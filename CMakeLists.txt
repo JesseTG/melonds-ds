@@ -30,3 +30,6 @@ FetchContent_Declare(
 ) # TODO: Make GIT_TAG and GIT_REPOSITORY values configurable
 
 FetchContent_MakeAvailable(melonDS libretro-common)
+
+
+add_subdirectory(src)
