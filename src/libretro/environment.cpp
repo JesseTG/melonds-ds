@@ -16,7 +16,6 @@ namespace retro {
 
     static retro_environment_t _environment;
     static retro_video_refresh_t _video_refresh;
-    static retro_audio_sample_t _audio_sample;
     static retro_audio_sample_batch_t _audio_sample_batch;
     static retro_input_poll_t _input_poll;
     static retro_input_state_t _input_state;
@@ -79,7 +78,7 @@ PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) 
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample(retro_audio_sample_t audio_sample) {
-    retro::_audio_sample = audio_sample;
+    // Noop, we don't use this callback
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample_batch(retro_audio_sample_batch_t audio_sample_batch) {
