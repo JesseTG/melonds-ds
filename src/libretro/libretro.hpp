@@ -9,4 +9,8 @@
 
 #define PUBLIC_SYMBOL [[maybe_unused]]
 
+#ifndef GIT_VERSION
+#define GIT_VERSION ""
+#endif
+
 #endif //MELONDS_DS_LIBRETRO_HPP

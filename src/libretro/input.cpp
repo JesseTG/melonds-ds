@@ -4,6 +4,8 @@
 
 #include "input.hpp"
 
+struct melonds::InputState input_state;
+
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left" },
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up" },

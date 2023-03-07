@@ -3,20 +3,31 @@
 //
 
 #include <cstring>
+#include <frontend/qt_sdl/Config.h>
+#include <GPU.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
+#include "screenlayout.hpp"
+#include "input.hpp"
+#include "gpu.hpp"
 
 namespace melonds::config {
     static bool opengl_options = true;
     static bool hybrid_options = true;
+    static ScreenSwapMode _screen_swap_mode = ScreenSwapMode::Toggle;
+    static bool _randomize_mac = false;
+    static bool using_opengl = false;
+    static bool refresh_opengl = true;
+    static GPU::RenderSettings _render_settings;
+    static melonds::RendererType _renderer_type = melonds::RendererType::OpenGl;
+
 #ifdef JIT_ENABLED
     static bool jit_options = true;
 #endif
 }
 
-bool melonds::update_option_visibility()
-{
+bool melonds::update_option_visibility() {
     using retro::environment;
     using namespace melonds::config;
     struct retro_core_option_display option_display{};
@@ -32,8 +43,7 @@ bool melonds::update_option_visibility()
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && !strcmp(var.value, "disabled"))
         opengl_options = false;
 
-    if (opengl_options != opengl_options_prev)
-    {
+    if (opengl_options != opengl_options_prev) {
         option_display.visible = opengl_options;
 
         option_display.key = "melonds_opengl_resolution";
@@ -54,11 +64,11 @@ bool melonds::update_option_visibility()
 
     hybrid_options = true;
     var.key = "melonds_screen_layout";
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && (strcmp(var.value, "Hybrid Top") && strcmp(var.value, "Hybrid Bottom")))
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
+        (strcmp(var.value, "Hybrid Top") && strcmp(var.value, "Hybrid Bottom")))
         hybrid_options = false;
 
-    if (hybrid_options != hybrid_options_prev)
-    {
+    if (hybrid_options != hybrid_options_prev) {
         option_display.visible = hybrid_options;
 
         option_display.key = "melonds_hybrid_small_screen";
@@ -81,8 +91,7 @@ bool melonds::update_option_visibility()
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && !strcmp(var.value, "disabled"))
         jit_options = false;
 
-    if (jit_options != jit_options_prev)
-    {
+    if (jit_options != jit_options_prev) {
         option_display.visible = jit_options;
 
         option_display.key = "melonds_jit_block_size";
@@ -104,6 +113,308 @@ bool melonds::update_option_visibility()
     return updated;
 }
 
+void melonds::check_variables(bool init) {
+    using retro::environment;
+    using melonds::screen_layout_data;
+
+    struct retro_variable var = {nullptr};
+
+#ifdef HAVE_OPENGL
+    bool gl_settings_changed = false;
+#endif
+
+    var.key = "melonds_console_mode";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "DSi"))
+            Config::ConsoleType = ConsoleType::DSi;
+        else
+            Config::ConsoleType = ConsoleType::DS;
+    }
+
+    var.key = "melonds_boot_directly";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "disabled"))
+            Config::DirectBoot = false;
+        else
+            Config::DirectBoot = true;
+    }
+
+    // TODO: Use standard melonDS config settings
+    ScreenLayout layout = ScreenLayout::TopBottom;
+    var.key = "melonds_screen_layout";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "Top/Bottom"))
+            layout = ScreenLayout::TopBottom;
+        else if (!strcmp(var.value, "Bottom/Top"))
+            layout = ScreenLayout::BottomTop;
+        else if (!strcmp(var.value, "Left/Right"))
+            layout = ScreenLayout::LeftRight;
+        else if (!strcmp(var.value, "Right/Left"))
+            layout = ScreenLayout::RightLeft;
+        else if (!strcmp(var.value, "Top Only"))
+            layout = ScreenLayout::TopOnly;
+        else if (!strcmp(var.value, "Bottom Only"))
+            layout = ScreenLayout::BottomOnly;
+        else if (!strcmp(var.value, "Hybrid Top"))
+            layout = ScreenLayout::HybridTop;
+        else if (!strcmp(var.value, "Hybrid Bottom"))
+            layout = ScreenLayout::HybridBottom;
+    }
+
+    // TODO: Use standard melonDS config settings
+    var.key = "melonds_screen_gap";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        screen_layout_data.screen_gap_unscaled = std::stoi(var.value);
+    }
+
+#ifdef HAVE_OPENGL
+    // TODO: Use standard melonDS config settings
+    var.key = "melonds_hybrid_ratio";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value != nullptr) {
+        screen_layout_data.hybrid_ratio = std::stoi(var.value);
+    }
+#else
+    screen_layout_data.hybrid_ratio = 2;
+#endif
+
+    // TODO: Use standard melonDS config settings
+    var.key = "melonds_hybrid_small_screen";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value != nullptr) {
+        SmallScreenLayout old_hybrid_screen_value = screen_layout_data.hybrid_small_screen; // Copy the hybrid screen value
+        if (!strcmp(var.value, "Top"))
+            screen_layout_data.hybrid_small_screen = SmallScreenLayout::SmallScreenTop;
+        else if (!strcmp(var.value, "Bottom"))
+            screen_layout_data.hybrid_small_screen = SmallScreenLayout::SmallScreenBottom;
+        else
+            screen_layout_data.hybrid_small_screen = SmallScreenLayout::SmallScreenDuplicate;
+
+#ifdef HAVE_OPENGL
+        if (old_hybrid_screen_value != screen_layout_data.hybrid_small_screen) {
+            gl_settings_changed = true;
+        }
+#endif
+    }
+
+    var.key = "melonds_swapscreen_mode";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value != NULL) {
+        if (strcmp(var.value, "Toggle") == 0)
+            melonds::config::_screen_swap_mode = ScreenSwapMode::Toggle;
+        else
+            melonds::config::_screen_swap_mode = ScreenSwapMode::Hold;
+    }
+
+    var.key = "melonds_randomize_mac_address";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            config::_randomize_mac = true;
+        else
+            config::_randomize_mac = false;
+    }
+
+#ifdef HAVE_THREADS
+    var.key = "melonds_threaded_renderer";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            config::_render_settings.Soft_Threaded = true;
+        else
+            config::_render_settings.Soft_Threaded = false;
+    }
+#endif
+
+    TouchMode new_touch_mode = TouchMode::Disabled;
+
+    var.key = "melonds_touch_mode";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "Mouse"))
+            new_touch_mode = TouchMode::Mouse;
+        else if (!strcmp(var.value, "Touch"))
+            new_touch_mode = TouchMode::Touch;
+        else if (!strcmp(var.value, "Joystick"))
+            new_touch_mode = TouchMode::Joystick;
+    }
+
+#ifdef HAVE_OPENGL
+    if (input_state.current_touch_mode != new_touch_mode) // Hide the cursor
+        gl_settings_changed = true;
+
+    // TODO: Fix the OpenGL software only render impl so you can switch at runtime
+    if (init) {
+        var.key = "melonds_opengl_renderer";
+        if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+            bool use_opengl = !strcmp(var.value, "enabled");
+
+            if (!init && melonds::config::using_opengl)
+                current_renderer = use_opengl ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
+
+            Config::ScreenUseGL = use_opengl;
+        }
+    }
+
+    // Running the software rendering thread at the same time as OpenGL is used will cause segfaulty on cleanup
+    if (config::_renderer_type == RendererType::OpenGl) config::_render_settings.Soft_Threaded = false;
+
+    var.key = "melonds_opengl_resolution";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        int first_char_val = (int) var.value[0];
+        int scaleing = std::clamp(first_char_val - 48, 0, 8);
+
+        if (config::_render_settings.GL_ScaleFactor != scaleing)
+            gl_settings_changed = true;
+
+        config::_render_settings.GL_ScaleFactor = scaleing;
+    } else {
+        config::_render_settings.GL_ScaleFactor = 1;
+    }
+
+    var.key = "melonds_opengl_better_polygons";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        bool enabled = !strcmp(var.value, "enabled");
+        gl_settings_changed |= enabled != config::_render_settings.GL_BetterPolygons;
+
+        if (enabled)
+            config::_render_settings.GL_BetterPolygons = true;
+        else
+            config::_render_settings.GL_BetterPolygons = false;
+    }
+
+    var.key = "melonds_opengl_filtering";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        Config::ScreenFilter = !strcmp(var.value, "linear");
+    }
+
+    if ((config::_renderer_type == RendererType::OpenGl && gl_settings_changed) || layout != current_screen_layout())
+        melonds::config::refresh_opengl = true;
+#endif
+
+#ifdef JIT_ENABLED
+    var.key = "melonds_jit_enable";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            Config::JIT_Enable = true;
+        else
+            Config::JIT_Enable = false;
+    }
+
+    var.key = "melonds_jit_block_size";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        Config::JIT_MaxBlockSize = std::stoi(var.value);
+    }
+
+    var.key = "melonds_jit_branch_optimisations";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            Config::JIT_BranchOptimisations = true;
+        else
+            Config::JIT_BranchOptimisations = false;
+    }
+
+    var.key = "melonds_jit_literal_optimisations";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            Config::JIT_LiteralOptimisations = true;
+        else
+            Config::JIT_LiteralOptimisations = false;
+    }
+
+    var.key = "melonds_jit_fast_memory";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            Config::JIT_FastMemory = true;
+        else
+            Config::JIT_FastMemory = false;
+    }
+#endif
+
+    var.key = "melonds_dsi_sdcard";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "enabled"))
+            Config::DSiSDEnable = true;
+        else
+            Config::DSiSDEnable = true;
+    }
+
+//    var.key = "melonds_mic_input";
+//    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+//        if (!strcmp(var.value, "Microphone Input"))
+//            micNoiseType = MicInput;
+//        else if (!strcmp(var.value, "Blow Noise"))
+//            micNoiseType = BlowNoise;
+//        else
+//            micNoiseType = WhiteNoise;
+//
+//        if (micNoiseType != MicInput && micInterface.interface_version &&
+//            micHandle) { // If the player wants to stop using the real mic as the DS mic's input...
+//            micInterface.set_mic_state(micHandle, false);
+//        }
+//    }
+//
+//    var.key = "melonds_need_button_mic_input";
+//    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+//        if (!strcmp(var.value, "With Button"))
+//            noise_button_required = true;
+//        else
+//            noise_button_required = false;
+//
+//        if (noise_button_required &&
+//            micInterface.interface_version &&
+//            micHandle != NULL &&
+//            !input_state.holding_noise_btn) { // If the player wants to require the noise button for mic input and they aren't already holding it...
+//            micInterface.set_mic_state(micHandle, false);
+//        }
+//    }
+
+    var.key = "melonds_audio_bitrate";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "10-bit"))
+            Config::AudioBitrate = 1;
+        else if (!strcmp(var.value, "16-bit"))
+            Config::AudioBitrate = 2;
+        else
+            Config::AudioBitrate = 0;
+    }
+
+    var.key = "melonds_audio_interpolation";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "Cubic"))
+            Config::AudioInterp = 3;
+        else if (!strcmp(var.value, "Cosine"))
+            Config::AudioInterp = 2;
+        else if (!strcmp(var.value, "Linear"))
+            Config::AudioInterp = 1;
+        else
+            Config::AudioInterp = 0;
+    }
+
+    var.key = "melonds_use_fw_settings";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "disabled"))
+            Config::FirmwareOverrideSettings = true;
+        else
+            Config::FirmwareOverrideSettings = false;
+    }
+
+    var.key = "melonds_language";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (!strcmp(var.value, "Japanese"))
+            Config::FirmwareLanguage = 0;
+        else if (!strcmp(var.value, "English"))
+            Config::FirmwareLanguage = 1;
+        else if (!strcmp(var.value, "French"))
+            Config::FirmwareLanguage = 2;
+        else if (!strcmp(var.value, "German"))
+            Config::FirmwareLanguage = 3;
+        else if (!strcmp(var.value, "Italian"))
+            Config::FirmwareLanguage = 4;
+        else if (!strcmp(var.value, "Spanish"))
+            Config::FirmwareLanguage = 5;
+    }
+
+    input_state.current_touch_mode = new_touch_mode;
+
+    update_screenlayout(layout, &screen_layout_data, Config::ScreenUseGL, Config::ScreenSwap);
+
+    update_option_visibility();
+}
 
 struct retro_core_option_v2_category option_cats_us[] = {
         {
@@ -691,7 +1002,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
 #endif
         {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{0}}, nullptr},
 };
-
 
 
 struct retro_core_options_v2 melonds::options_us = {

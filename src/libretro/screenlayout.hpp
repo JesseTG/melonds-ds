@@ -9,22 +9,22 @@
 #include <cstdint>
 
 namespace melonds {
-    enum class SmallScreenLayout
-    {
+    constexpr int VIDEO_WIDTH = 256;
+    constexpr int VIDEO_HEIGHT = 192;
+
+    enum class SmallScreenLayout {
         SmallScreenTop = 0,
         SmallScreenBottom = 1,
         SmallScreenDuplicate = 2
     };
 
-    enum class ScreenId
-    {
+    enum class ScreenId {
         Primary = 0,
         Top = 1,
         Bottom = 2,
     };
 
-    enum class ScreenLayout
-    {
+    enum class ScreenLayout {
         TopBottom = 0,
         BottomTop = 1,
         LeftRight = 2,
@@ -35,9 +35,9 @@ namespace melonds {
         HybridBottom = 7,
     };
 
-    struct ScreenLayoutData
-    {
+    struct ScreenLayoutData {
         ScreenLayoutData();
+
         bool enable_top_screen;
         bool enable_bottom_screen;
         bool direct_copy;
@@ -64,10 +64,14 @@ namespace melonds {
         unsigned buffer_height;
         unsigned buffer_stride;
         size_t buffer_len;
-        uint16_t* buffer_ptr;
+        uint16_t *buffer_ptr;
         ScreenLayout displayed_layout;
     };
-    
+
     ScreenLayout current_screen_layout();
+
+    void update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, bool opengl, bool swap_screens);
+
+    extern ScreenLayoutData screen_layout_data;
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP
