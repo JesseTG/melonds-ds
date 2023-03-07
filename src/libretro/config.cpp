@@ -10,7 +10,7 @@
 #include "config.hpp"
 #include "screenlayout.hpp"
 #include "input.hpp"
-#include "gpu.hpp"
+#include "opengl.hpp"
 
 namespace melonds::config {
     static bool opengl_options = true;
