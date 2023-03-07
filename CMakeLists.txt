@@ -19,16 +19,17 @@ FetchContent_Declare(
 ) # TODO: Make GIT_TAG and GIT_REPOSITORY values configurable
 
 FetchContent_GetProperties(melonDS)
-set(BUILD_QT_SDL OFF)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${melonDS_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+set(BUILD_QT_SDL OFF)
 
 FetchContent_Declare(
     libretro-common
     GIT_REPOSITORY https://github.com/libretro/libretro-common.git
     GIT_TAG 20a43ba
 ) # TODO: Make GIT_TAG and GIT_REPOSITORY values configurable
+FetchContent_GetProperties(libretro-common)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${CMAKE_MODULE_PATH}")
 FetchContent_MakeAvailable(melonDS libretro-common)
 
 
