@@ -31,6 +31,42 @@ namespace retro {
         }
     }
 
+    int16_t input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
+        if (_input_state) {
+            return _input_state(port, device, index, id);
+        }
+        else {
+            return 0;
+        }
+    }
+
+    void input_poll() {
+        if (_input_poll) {
+            _input_poll();
+        }
+    }
+
+    size_t audio_sample_batch(const int16_t *data, size_t frames)
+    {
+        if (_audio_sample_batch)
+        {
+            _audio_sample_batch(data, frames);
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+
+    void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch)
+    {
+        if (_video_refresh)
+        {
+            _video_refresh(data, width, height, pitch);
+        }
+    }
+
     void log(enum retro_log_level level, const char *fmt, ...) {
         va_list va;
         va_start(va, fmt);

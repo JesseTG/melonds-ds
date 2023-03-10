@@ -28,8 +28,13 @@ namespace melonds {
         bool holding_noise_btn = false;
         bool swap_screens_btn = false;
         bool lid_closed = false;
+
+        bool cursor_enabled() const;
     };
 
     extern InputState input_state;
+
+    void update_input(InputState &state);
+
 }
 #endif //MELONDS_DS_INPUT_HPP

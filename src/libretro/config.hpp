@@ -24,10 +24,12 @@ namespace melonds {
         Toggle,
     };
 
-    enum class RendererType {
+    enum RendererType {
         Software,
         OpenGl,
     };
+
+    GPU::RenderSettings &render_settings();
 }
 
 #endif //MELONDS_DS_CONFIG_HPP

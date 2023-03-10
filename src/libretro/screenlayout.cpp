@@ -5,9 +5,11 @@
 #include "libretro.hpp"
 #include "screenlayout.hpp"
 #include <frontend/qt_sdl/Config.h>
+#include <functional>
 
 namespace melonds {
     static ScreenLayout _current_screen_layout = ScreenLayout::TopBottom;
+
     ScreenLayoutData screen_layout_data;
 
     ScreenLayout current_screen_layout() {
@@ -20,19 +22,104 @@ melonds::ScreenLayoutData::ScreenLayoutData() {
     this->hybrid_ratio = 2;
 }
 
+void melonds::ScreenLayoutData::copy_screen(uint32_t *src, unsigned offset) {
+    if (direct_copy) {
+        memcpy((uint32_t *) buffer_ptr + offset, src, screen_width * screen_height * pixel_size);
+    } else {
+        unsigned y;
+        for (y = 0; y < screen_height; y++) {
+            memcpy((uint16_t *) buffer_ptr + offset + (y * screen_width * pixel_size),
+                   src + (y * screen_width), screen_width * pixel_size);
+        }
+    }
+
+}
+
+void melonds::ScreenLayoutData::copy_hybrid_screen(uint32_t *src, ScreenId screen_id) {
+    switch (screen_id) {
+        case ScreenId::Primary: {
+            unsigned buffer_y, buffer_x;
+            unsigned x, y, pixel;
+            uint32_t pixel_data;
+            unsigned buffer_height = screen_height * hybrid_ratio;
+            unsigned buffer_width = screen_width * hybrid_ratio;
+
+            for (buffer_y = 0; buffer_y < buffer_height; buffer_y++) {
+                y = buffer_y / hybrid_ratio;
+                for (buffer_x = 0; buffer_x < buffer_width; buffer_x++) {
+                    x = buffer_x / hybrid_ratio;
+
+                    pixel_data = *(uint32_t *) (src + (y * screen_width) + x);
+
+                    for (pixel = 0; pixel < hybrid_ratio; pixel++) {
+                        *(uint32_t *) (buffer_ptr + (buffer_y * buffer_stride / 2) + pixel * 2 +
+                                       (buffer_x * 2)) = pixel_data;
+                    }
+                }
+            }
+        }
+            break;
+        case ScreenId::Top: {
+            unsigned y;
+            for (y = 0; y < screen_height; y++) {
+                memcpy((uint16_t *) buffer_ptr
+                       // X
+                       + ((screen_width * hybrid_ratio * 2) +
+                          (hybrid_ratio % 2 == 0 ? hybrid_ratio : ((hybrid_ratio / 2) * 4)))
+                       // Y
+                       + (y * buffer_stride / 2),
+                       src + (y * screen_width), (screen_width) * pixel_size);
+            }
+        }
+            break;
+        case ScreenId::Bottom: {
+            unsigned y;
+            for (y = 0; y < screen_height; y++) {
+                memcpy((uint16_t *) buffer_ptr
+                       // X
+                       + ((screen_width * hybrid_ratio * 2) +
+                          (hybrid_ratio % 2 == 0 ? hybrid_ratio : ((hybrid_ratio / 2) * 4)))
+                       // Y
+                       + ((y + (screen_height * (hybrid_ratio - 1))) * buffer_stride / 2),
+                       src + (y * screen_width), (screen_width) * pixel_size);
+            }
+        }
+            break;
+    }
+}
+
+void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
+    auto *base_offset = (uint32_t *) buffer_ptr;
+
+    uint32_t scale = displayed_layout == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
+
+    uint32_t start_y = std::clamp(y - CURSOR_SIZE, 0, screen_height) * scale;
+    uint32_t end_y = std::clamp(y + CURSOR_SIZE, 0, screen_height) * scale;
+
+    for (uint32_t y = start_y; y < end_y; y++) {
+        uint32_t start_x = std::clamp(x - CURSOR_SIZE, 0, screen_width) * scale;
+        uint32_t end_x = std::clamp(x + CURSOR_SIZE, 0, screen_width) * scale;
+
+        for (uint32_t x = start_x; x < end_x; x++) {
+            uint32_t *offset = base_offset + ((y + touch_offset_y) * buffer_width) + ((x + touch_offset_x));
+            uint32_t pixel = *offset;
+            *(uint32_t *) offset = (0xFFFFFF - pixel) | 0xFF000000;
+        }
+    }
+}
+
 using melonds::ScreenLayout;
 using melonds::ScreenLayoutData;
-void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, bool opengl, bool swap_screens)
-{
+
+void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, bool opengl, bool swap_screens) {
     unsigned pixel_size = 4; // XRGB8888 is hardcoded for now, so it's fine
     data->pixel_size = pixel_size;
 
     unsigned scale = 1; // ONLY SUPPORTED BY OPENGL RENDERER
 
-    if(opengl)
-    {
+    if (opengl) {
         // To avoid some issues the size should be at least 4x the native res
-        if(Config::GL_ScaleFactor > 4)
+        if (Config::GL_ScaleFactor > 4)
             scale = Config::GL_ScaleFactor;
         else
             scale = 4;
@@ -51,10 +138,8 @@ void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, b
 
     melonds::_current_screen_layout = layout;
 
-    if (swap_screens)
-    {
-        switch (melonds::_current_screen_layout)
-        {
+    if (swap_screens) {
+        switch (melonds::_current_screen_layout) {
             case ScreenLayout::BottomOnly:
                 layout = ScreenLayout::TopOnly;
                 break;
@@ -82,8 +167,7 @@ void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, b
         }
     }
 
-    switch (layout)
-    {
+    switch (layout) {
         case ScreenLayout::TopBottom:
             data->enable_top_screen = true;
             data->enable_bottom_screen = true;
@@ -184,17 +268,15 @@ void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, b
 
             data->hybrid = true;
 
-            data->buffer_width = (data->screen_width * data->hybrid_ratio) + data->screen_width + (data->hybrid_ratio * 2);
+            data->buffer_width =
+                    (data->screen_width * data->hybrid_ratio) + data->screen_width + (data->hybrid_ratio * 2);
             data->buffer_height = (data->screen_height * data->hybrid_ratio);
             data->buffer_stride = data->buffer_width * pixel_size;
 
-            if (layout == ScreenLayout::HybridTop)
-            {
+            if (layout == ScreenLayout::HybridTop) {
                 data->touch_offset_x = (data->screen_width * data->hybrid_ratio) + (data->hybrid_ratio / 2);
                 data->touch_offset_y = (data->screen_height * (data->hybrid_ratio - 1));
-            }
-            else
-            {
+            } else {
                 data->touch_offset_x = 0;
                 data->touch_offset_y = 0;
             }
@@ -208,15 +290,12 @@ void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, b
         // not needed anymore :)
         free(data->buffer_ptr);
         data->buffer_ptr = nullptr;
-    }
-    else
-    {
+    } else {
         unsigned new_size = data->buffer_stride * data->buffer_height;
 
-        if (old_size != new_size || data->buffer_ptr == nullptr)
-        {
-            if(data->buffer_ptr != nullptr) free(data->buffer_ptr);
-            data->buffer_ptr = (uint16_t*)malloc(new_size);
+        if (old_size != new_size || data->buffer_ptr == nullptr) {
+            if (data->buffer_ptr != nullptr) free(data->buffer_ptr);
+            data->buffer_ptr = (uint16_t *) malloc(new_size);
 
             memset(data->buffer_ptr, 0, new_size);
         }

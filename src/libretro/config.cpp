@@ -13,18 +13,21 @@
 #include "opengl.hpp"
 
 namespace melonds::config {
-    static bool opengl_options = true;
-    static bool hybrid_options = true;
+    static bool _show_opengl_options = true;
+    static bool _show_hybrid_options = true;
     static ScreenSwapMode _screen_swap_mode = ScreenSwapMode::Toggle;
     static bool _randomize_mac = false;
-    static bool using_opengl = false;
-    static bool refresh_opengl = true;
     static GPU::RenderSettings _render_settings;
     static melonds::RendererType _renderer_type = melonds::RendererType::OpenGl;
 
 #ifdef JIT_ENABLED
-    static bool jit_options = true;
+    static bool _show_jit_options = true;
 #endif
+}
+
+
+GPU::RenderSettings &melonds::render_settings() {
+    return config::_render_settings;
 }
 
 bool melonds::update_option_visibility() {
@@ -36,15 +39,15 @@ bool melonds::update_option_visibility() {
 
 #ifdef HAVE_OPENGL
     // Show/hide OpenGL core options
-    bool opengl_options_prev = opengl_options;
+    bool show_opengl_options_prev = _show_opengl_options;
 
-    opengl_options = true;
+    _show_opengl_options = true;
     var.key = "melonds_opengl_renderer";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && !strcmp(var.value, "disabled"))
-        opengl_options = false;
+        _show_opengl_options = false;
 
-    if (opengl_options != opengl_options_prev) {
-        option_display.visible = opengl_options;
+    if (_show_opengl_options != show_opengl_options_prev) {
+        option_display.visible = _show_opengl_options;
 
         option_display.key = "melonds_opengl_resolution";
         environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
@@ -60,16 +63,16 @@ bool melonds::update_option_visibility() {
 #endif
 
     // Show/hide Hybrid screen options
-    bool hybrid_options_prev = hybrid_options;
+    bool show_hybrid_options_prev = _show_hybrid_options;
 
-    hybrid_options = true;
+    _show_hybrid_options = true;
     var.key = "melonds_screen_layout";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
         (strcmp(var.value, "Hybrid Top") && strcmp(var.value, "Hybrid Bottom")))
-        hybrid_options = false;
+        _show_hybrid_options = false;
 
-    if (hybrid_options != hybrid_options_prev) {
-        option_display.visible = hybrid_options;
+    if (_show_hybrid_options != show_hybrid_options_prev) {
+        option_display.visible = _show_hybrid_options;
 
         option_display.key = "melonds_hybrid_small_screen";
         environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
@@ -84,15 +87,15 @@ bool melonds::update_option_visibility() {
 
 #ifdef JIT_ENABLED
     // Show/hide JIT core options
-    bool jit_options_prev = jit_options;
+    bool jit_options_prev = _show_jit_options;
 
-    jit_options = true;
+    _show_jit_options = true;
     var.key = "melonds_jit_enable";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && !strcmp(var.value, "disabled"))
-        jit_options = false;
+        _show_jit_options = false;
 
-    if (jit_options != jit_options_prev) {
-        option_display.visible = jit_options;
+    if (_show_jit_options != jit_options_prev) {
+        option_display.visible = _show_jit_options;
 
         option_display.key = "melonds_jit_block_size";
         environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
@@ -164,6 +167,7 @@ void melonds::check_variables(bool init) {
     // TODO: Use standard melonDS config settings
     var.key = "melonds_screen_gap";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+
         screen_layout_data.screen_gap_unscaled = std::stoi(var.value);
     }
 
@@ -241,12 +245,10 @@ void melonds::check_variables(bool init) {
     if (init) {
         var.key = "melonds_opengl_renderer";
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-            bool use_opengl = !strcmp(var.value, "enabled");
+            Config::ScreenUseGL = !strcmp(var.value, "enabled");
 
-            if (!init && melonds::config::using_opengl)
-                current_renderer = use_opengl ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
-
-            Config::ScreenUseGL = use_opengl;
+            if (!init && melonds::opengl::using_opengl())
+                current_renderer = Config::ScreenUseGL ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
         }
     }
 
@@ -258,23 +260,23 @@ void melonds::check_variables(bool init) {
         int first_char_val = (int) var.value[0];
         int scaleing = std::clamp(first_char_val - 48, 0, 8);
 
-        if (config::_render_settings.GL_ScaleFactor != scaleing)
+        if (Config::GL_ScaleFactor != scaleing)
             gl_settings_changed = true;
 
-        config::_render_settings.GL_ScaleFactor = scaleing;
+        Config::GL_ScaleFactor = scaleing;
     } else {
-        config::_render_settings.GL_ScaleFactor = 1;
+        Config::GL_ScaleFactor = 1;
     }
 
     var.key = "melonds_opengl_better_polygons";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         bool enabled = !strcmp(var.value, "enabled");
-        gl_settings_changed |= enabled != config::_render_settings.GL_BetterPolygons;
+        gl_settings_changed |= enabled != Config::GL_BetterPolygons;
 
         if (enabled)
-            config::_render_settings.GL_BetterPolygons = true;
+            Config::GL_BetterPolygons = true;
         else
-            config::_render_settings.GL_BetterPolygons = false;
+            Config::GL_BetterPolygons = false;
     }
 
     var.key = "melonds_opengl_filtering";
