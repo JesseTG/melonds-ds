@@ -24,7 +24,6 @@
 #include <file/file_path.h>
 #include <libretro.h>
 #include <streams/file_stream.h>
-#include <streams/file_stream_transforms.h>
 
 #include <NDS.h>
 #include <NDSCart.h>
@@ -33,6 +32,7 @@
 #include <frontend/qt_sdl/Config.h>
 #include <GPU.h>
 #include <SPU.h>
+#include <GBACart.h>
 
 #include "opengl.hpp"
 #include "environment.hpp"
@@ -397,7 +397,6 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
     if (type == melonds::SLOT_1_2_BOOT) {
         char gba_game_name[256];
-        std::string gba_save_path;
         const char *gba_ptr = path_basename(info[1].path);
         if (gba_ptr)
             strlcpy(gba_game_name, gba_ptr, sizeof(gba_game_name));
@@ -405,21 +404,21 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
             strlcpy(gba_game_name, info[1].path, sizeof(gba_game_name));
         path_remove_extension(gba_game_name);
 
-        gba_save_path = melonds::_save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
-
-        if (!NDS::LoadGBACart((const uint8_t *) info[1].data, info[1].size)) {
-            retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
+        std::string gba_save_path =
+                melonds::_save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
+        if (!GBACart::LoadROM((const uint8_t *) info[1].data, info[1].size)) {
+            retro::log(RETRO_LOG_ERROR, "Failed to load GBA ROM");
         }
 
-        if (Platform::FileExists(Config::SaveFilePath)) {
-            void *save_data = nullptr;
-            int64_t save_length = 0;
+        if (Platform::FileExists(gba_save_path)) {
+            void *gba_save_data = nullptr;
+            int64_t gba_save_length = 0;
 
-            if (filestream_read_file(Config::SaveFilePath.c_str(), &save_data, &save_length)) {
-                retro::log(RETRO_LOG_INFO, "Loaded save file from %s", Config::SaveFilePath.c_str());
+            if (filestream_read_file(Config::SaveFilePath.c_str(), &gba_save_data, &gba_save_length)) {
+                retro::log(RETRO_LOG_INFO, "Loaded GBA save file from %s", Config::SaveFilePath.c_str());
 
-                NDS::LoadSave(static_cast<const uint8_t *>(save_data), save_length);
-                free(save_data);
+                GBACart::LoadSave(static_cast<const u8 *>(gba_save_data), gba_save_length);
+                free(gba_save_data);
             }
         }
     }
