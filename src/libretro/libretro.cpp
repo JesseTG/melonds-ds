@@ -81,7 +81,7 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     melonds::update_input(input_state);
 
-    if (melonds::input_state.swap_screens_btn != melonds::swapped_screens) {
+    if (melonds::input_state.swap_screens_btn !=Config::ScreenSwap) {
         switch (melonds::screen_swap_mode)
         {
             case melonds::ScreenSwapMode::Toggle: {
@@ -98,36 +98,36 @@ PUBLIC_SYMBOL void retro_run(void) {
             case ScreenSwapMode::Hold: {
                 Config::ScreenSwap = input_state.swap_screens_btn;
                 update_screenlayout(current_screen_layout(), &screen_layout_data, Config::ScreenUseGL,
-                                    melonds::swapped_screens);
+                                    Config::ScreenSwap);
                 melonds::opengl::refresh_opengl = true;
             }
         }
     }
 
-    if (input_state.holding_noise_btn || !noise_button_required) {
-        switch (micNoiseType) {
-            case WhiteNoise: // random noise
+    if (input_state.holding_noise_btn || !Config::Retro::MicButtonRequired) {
+        switch (static_cast<MicInputMode>(Config::MicInputType)) {
+            case MicInputMode::WhiteNoise: // random noise
             {
                 s16 tmp[735];
                 for (int i = 0; i < 735; i++) tmp[i] = rand() & 0xFFFF;
                 NDS::MicInputFrame(tmp, 735);
                 break;
             }
-            case BlowNoise: // blow noise
+            case MicInputMode::BlowNoise: // blow noise
             {
                 Frontend::Mic_FeedNoise(); // despite the name, this feeds a blow noise
                 break;
             }
-//            case MicInput: // microphone input
-//            {
-//                s16 tmp[735];
+            case MicInputMode::HostMic: // microphone input
+            {
+                s16 tmp[735];
 //                if (micHandle && micInterface.interface_version &&
 //                    micInterface.get_mic_state(micHandle)) { // If the microphone is enabled and supported...
 //                    micInterface.read_mic(micHandle, tmp, 735);
 //                    NDS::MicInputFrame(tmp, 735);
 //                    break;
 //                } // If the mic isn't available, go to the default case
-//            }
+            }
             default:
                 Frontend::Mic_FeedSilence();
         }

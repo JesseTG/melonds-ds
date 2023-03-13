@@ -48,4 +48,8 @@ namespace melonds {
     unsigned cursor_size();
 }
 
+namespace Config::Retro {
+    extern bool MicButtonRequired;
+}
+
 #endif //MELONDS_DS_CONFIG_HPP

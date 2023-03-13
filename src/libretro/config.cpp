@@ -17,12 +17,17 @@
 #include <cstring>
 #include <frontend/qt_sdl/Config.h>
 #include <GPU.h>
+#include <string/stdstring.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "opengl.hpp"
+
+namespace Config::Retro {
+    bool MicButtonRequired = true;
+}
 
 namespace melonds::config {
     static unsigned _cursor_size = 2; // TODO: Make configurable
@@ -59,7 +64,7 @@ bool melonds::update_option_visibility() {
 
     _show_opengl_options = true;
     var.key = "melonds_opengl_renderer";
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && !strcmp(var.value, "disabled"))
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, "disabled"))
         _show_opengl_options = false;
 
     if (_show_opengl_options != show_opengl_options_prev) {
@@ -107,7 +112,7 @@ bool melonds::update_option_visibility() {
 
     _show_jit_options = true;
     var.key = "melonds_jit_enable";
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && !strcmp(var.value, "disabled"))
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, "disabled"))
         _show_jit_options = false;
 
     if (_show_jit_options != jit_options_prev) {
@@ -144,7 +149,7 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_console_mode";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "DSi"))
+        if (string_is_equal(var.value, "DSi"))
             Config::ConsoleType = ConsoleType::DSi;
         else
             Config::ConsoleType = ConsoleType::DS;
@@ -152,7 +157,7 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_boot_directly";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "disabled"))
+        if (string_is_equal(var.value, "disabled"))
             Config::DirectBoot = false;
         else
             Config::DirectBoot = true;
@@ -162,21 +167,21 @@ void melonds::check_variables(bool init) {
     ScreenLayout layout = ScreenLayout::TopBottom;
     var.key = "melonds_screen_layout";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "Top/Bottom"))
+        if (string_is_equal(var.value, "Top/Bottom"))
             layout = ScreenLayout::TopBottom;
-        else if (!strcmp(var.value, "Bottom/Top"))
+        else if (string_is_equal(var.value, "Bottom/Top"))
             layout = ScreenLayout::BottomTop;
-        else if (!strcmp(var.value, "Left/Right"))
+        else if (string_is_equal(var.value, "Left/Right"))
             layout = ScreenLayout::LeftRight;
-        else if (!strcmp(var.value, "Right/Left"))
+        else if (string_is_equal(var.value, "Right/Left"))
             layout = ScreenLayout::RightLeft;
-        else if (!strcmp(var.value, "Top Only"))
+        else if (string_is_equal(var.value, "Top Only"))
             layout = ScreenLayout::TopOnly;
-        else if (!strcmp(var.value, "Bottom Only"))
+        else if (string_is_equal(var.value, "Bottom Only"))
             layout = ScreenLayout::BottomOnly;
-        else if (!strcmp(var.value, "Hybrid Top"))
+        else if (string_is_equal(var.value, "Hybrid Top"))
             layout = ScreenLayout::HybridTop;
-        else if (!strcmp(var.value, "Hybrid Bottom"))
+        else if (string_is_equal(var.value, "Hybrid Bottom"))
             layout = ScreenLayout::HybridBottom;
     }
 
@@ -201,9 +206,9 @@ void melonds::check_variables(bool init) {
     var.key = "melonds_hybrid_small_screen";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value != nullptr) {
         SmallScreenLayout old_hybrid_screen_value = screen_layout_data.hybrid_small_screen; // Copy the hybrid screen value
-        if (!strcmp(var.value, "Top"))
+        if (string_is_equal(var.value, "Top"))
             screen_layout_data.hybrid_small_screen = SmallScreenLayout::SmallScreenTop;
-        else if (!strcmp(var.value, "Bottom"))
+        else if (string_is_equal(var.value, "Bottom"))
             screen_layout_data.hybrid_small_screen = SmallScreenLayout::SmallScreenBottom;
         else
             screen_layout_data.hybrid_small_screen = SmallScreenLayout::SmallScreenDuplicate;
@@ -225,13 +230,13 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_randomize_mac_address";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        config::_randomize_mac = !strcmp(var.value, "enabled");
+        config::_randomize_mac = string_is_equal(var.value, "enabled");
     }
 
 #ifdef HAVE_THREADS
     var.key = "melonds_threaded_renderer";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
+        if (string_is_equal(var.value, "enabled"))
             config::_render_settings.Soft_Threaded = true;
         else
             config::_render_settings.Soft_Threaded = false;
@@ -242,11 +247,11 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_touch_mode";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "Mouse"))
+        if (string_is_equal(var.value, "Mouse"))
             new_touch_mode = TouchMode::Mouse;
-        else if (!strcmp(var.value, "Touch"))
+        else if (string_is_equal(var.value, "Touch"))
             new_touch_mode = TouchMode::Touch;
-        else if (!strcmp(var.value, "Joystick"))
+        else if (string_is_equal(var.value, "Joystick"))
             new_touch_mode = TouchMode::Joystick;
     }
 
@@ -258,7 +263,7 @@ void melonds::check_variables(bool init) {
     if (init) {
         var.key = "melonds_opengl_renderer";
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-            Config::ScreenUseGL = !strcmp(var.value, "enabled");
+            Config::ScreenUseGL = string_is_equal(var.value, "enabled");
 
             if (!init && melonds::opengl::using_opengl())
                 current_renderer = Config::ScreenUseGL ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
@@ -283,7 +288,7 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_opengl_better_polygons";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        bool enabled = !strcmp(var.value, "enabled");
+        bool enabled = string_is_equal(var.value, "enabled");
         gl_settings_changed |= enabled != Config::GL_BetterPolygons;
 
         Config::GL_BetterPolygons = enabled;
@@ -291,7 +296,7 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_opengl_filtering";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::ScreenFilter = !strcmp(var.value, "linear");
+        Config::ScreenFilter = string_is_equal(var.value, "linear");
     }
 
     if ((config::_renderer_type == RendererType::OpenGl && gl_settings_changed) || layout != current_screen_layout())
@@ -301,7 +306,7 @@ void melonds::check_variables(bool init) {
 #ifdef JIT_ENABLED
     var.key = "melonds_jit_enable";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_Enable = !strcmp(var.value, "enabled");
+        Config::JIT_Enable = string_is_equal(var.value, "enabled");
     }
 
     var.key = "melonds_jit_block_size";
@@ -311,60 +316,60 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_jit_branch_optimisations";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_BranchOptimisations = (!strcmp(var.value, "enabled"));
+        Config::JIT_BranchOptimisations = (string_is_equal(var.value, "enabled"));
     }
 
     var.key = "melonds_jit_literal_optimisations";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_LiteralOptimisations = !strcmp(var.value, "enabled");
+        Config::JIT_LiteralOptimisations = string_is_equal(var.value, "enabled");
     }
 
     var.key = "melonds_jit_fast_memory";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_FastMemory = !strcmp(var.value, "enabled");
+        Config::JIT_FastMemory = string_is_equal(var.value, "enabled");
     }
 #endif
 
     var.key = "melonds_dsi_sdcard";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::DSiSDEnable = !strcmp(var.value, "enabled");
+        Config::DSiSDEnable = string_is_equal(var.value, "enabled");
     }
 
-//    var.key = "melonds_mic_input";
-//    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-//        if (!strcmp(var.value, "Microphone Input"))
-//            micNoiseType = MicInput;
-//        else if (!strcmp(var.value, "Blow Noise"))
-//            micNoiseType = BlowNoise;
-//        else
-//            micNoiseType = WhiteNoise;
-//
-//        if (micNoiseType != MicInput && micInterface.interface_version &&
-//            micHandle) { // If the player wants to stop using the real mic as the DS mic's input...
-//            micInterface.set_mic_state(micHandle, false);
-//        }
-//    }
-//
-//    var.key = "melonds_need_button_mic_input";
-//    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-//        if (!strcmp(var.value, "With Button"))
-//            noise_button_required = true;
-//        else
-//            noise_button_required = false;
-//
+    var.key = "melonds_mic_input";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (string_is_equal(var.value, "Microphone Input"))
+            Config::MicInputType = static_cast<int>(MicInputMode::HostMic);
+        else if (string_is_equal(var.value, "Blow Noise"))
+            Config::MicInputType = static_cast<int>(MicInputMode::BlowNoise);
+        else if (string_is_equal(var.value, "White Noise"))
+            Config::MicInputType = static_cast<int>(MicInputMode::WhiteNoise);
+        else
+            Config::MicInputType = static_cast<int>(MicInputMode::None);
+
+        if (static_cast<MicInputMode>(Config::MicInputType) !=
+            MicInputMode::HostMic /*&& micInterface.interface_version && micHandle*/) {
+            // If the player wants to stop using the real mic as the DS mic's input...
+            // micInterface.set_mic_state(micHandle, false);
+        }
+    }
+
+    var.key = "melonds_need_button_mic_input";
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        Config::Retro::MicButtonRequired = string_is_equal(var.value, "With Button");
+
 //        if (noise_button_required &&
 //            micInterface.interface_version &&
 //            micHandle != NULL &&
 //            !input_state.holding_noise_btn) { // If the player wants to require the noise button for mic input and they aren't already holding it...
 //            micInterface.set_mic_state(micHandle, false);
 //        }
-//    }
+    }
 
     var.key = "melonds_audio_bitrate";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "10-bit"))
+        if (string_is_equal(var.value, "10-bit"))
             Config::AudioBitrate = 1;
-        else if (!strcmp(var.value, "16-bit"))
+        else if (string_is_equal(var.value, "16-bit"))
             Config::AudioBitrate = 2;
         else
             Config::AudioBitrate = 0;
@@ -372,11 +377,11 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_audio_interpolation";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "Cubic"))
+        if (string_is_equal(var.value, "Cubic"))
             Config::AudioInterp = 3;
-        else if (!strcmp(var.value, "Cosine"))
+        else if (string_is_equal(var.value, "Cosine"))
             Config::AudioInterp = 2;
-        else if (!strcmp(var.value, "Linear"))
+        else if (string_is_equal(var.value, "Linear"))
             Config::AudioInterp = 1;
         else
             Config::AudioInterp = 0;
@@ -384,7 +389,7 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_use_fw_settings";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "disabled"))
+        if (string_is_equal(var.value, "disabled"))
             Config::FirmwareOverrideSettings = true;
         else
             Config::FirmwareOverrideSettings = false;
@@ -392,17 +397,17 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_language";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "Japanese"))
+        if (string_is_equal(var.value, "Japanese"))
             Config::FirmwareLanguage = 0;
-        else if (!strcmp(var.value, "English"))
+        else if (string_is_equal(var.value, "English"))
             Config::FirmwareLanguage = 1;
-        else if (!strcmp(var.value, "French"))
+        else if (string_is_equal(var.value, "French"))
             Config::FirmwareLanguage = 2;
-        else if (!strcmp(var.value, "German"))
+        else if (string_is_equal(var.value, "German"))
             Config::FirmwareLanguage = 3;
-        else if (!strcmp(var.value, "Italian"))
+        else if (string_is_equal(var.value, "Italian"))
             Config::FirmwareLanguage = 4;
-        else if (!strcmp(var.value, "Spanish"))
+        else if (string_is_equal(var.value, "Spanish"))
             Config::FirmwareLanguage = 5;
     }
 
@@ -623,6 +628,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "audio",
                 {
+                        {"Disabled", nullptr},
                         {"Blow Noise", nullptr},
                         {"White Noise", nullptr},
                         {"Microphone Input", nullptr},
