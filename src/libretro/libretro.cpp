@@ -161,7 +161,8 @@ PUBLIC_SYMBOL void retro_run(void) {
         screen_layout_data.clean_screenlayout_buffer();
     }
 
-    NDSCart_SRAMManager::Flush();
+    //NDSCart_SRAMManager::Flush();
+    // TODO: Flush SRAM to disk, if necessary
 }
 
 static void melonds::render_frame() {
