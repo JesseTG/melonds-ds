@@ -25,6 +25,7 @@
 #include "opengl.hpp"
 
 namespace melonds::config {
+    static unsigned _cursor_size = 2; // TODO: Make configurable
     static bool _show_opengl_options = true;
     static bool _show_hybrid_options = true;
     ScreenSwapMode screen_swap_mode = ScreenSwapMode::Toggle;
@@ -37,6 +38,9 @@ namespace melonds::config {
 #endif
 }
 
+unsigned melonds::cursor_size() {
+    return config::_cursor_size;
+}
 
 GPU::RenderSettings &melonds::render_settings() {
     return config::_render_settings;

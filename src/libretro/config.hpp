@@ -45,6 +45,7 @@ namespace melonds {
 
     GPU::RenderSettings &render_settings();
     extern ScreenSwapMode screen_swap_mode;
+    unsigned cursor_size();
 }
 
 #endif //MELONDS_DS_CONFIG_HPP
