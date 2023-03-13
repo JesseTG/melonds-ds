@@ -2,11 +2,18 @@
 // Created by Jesse on 3/7/2023.
 //
 
-#include <NDS.h>
 #include "input.hpp"
-#include "environment.hpp"
 
-struct melonds::InputState melonds::input_state;
+#include <algorithm>
+#include <NDS.h>
+#include "environment.hpp"
+#include "utils.hpp"
+
+namespace melonds {
+
+    struct InputState input_state;
+    static bool _has_touched = false;
+}
 
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -81,21 +88,21 @@ void melonds::update_input(InputState &state) {
     state.holding_noise_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2);
     state.swap_screens_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2);
 
-    if (micNoiseType == MicInput && // If the player wants to use their real mic...
-        noise_button_required && // ...and they don't always want it hot...
-        (state.holding_noise_btn != state.previous_holding_noise_btn) &&
-        // ...and they just pressed or released the button...
-        micHandle != NULL && micInterface.interface_version > 0 // ...and the mic is valid...
-            ) {
-        bool stateSet = micInterface.set_mic_state(micHandle, state.holding_noise_btn);
-        // ...then set the state of the mic to the active staste of the noise button
+//    if (micNoiseType == MicInput && // If the player wants to use their real mic...
+//        noise_button_required && // ...and they don't always want it hot...
+//        (state.holding_noise_btn != state.previous_holding_noise_btn) &&
+//        // ...and they just pressed or released the button...
+//        micHandle != NULL && micInterface.interface_version > 0 // ...and the mic is valid...
+//            ) {
+//        bool stateSet = micInterface.set_mic_state(micHandle, state.holding_noise_btn);
+//        // ...then set the state of the mic to the active staste of the noise button
+//
+//        if (!stateSet)
+//            retro::log(RETRO_LOG_ERROR, "[melonDS] Error setting state of microphone to %s\n",
+//                   state.holding_noise_btn ? "enabled" : "disabled");
+//    }
 
-        if (!stateSet)
-            log_cb(RETRO_LOG_ERROR, "[melonDS] Error setting state of microphone to %s\n",
-                   state.holding_noise_btn ? "enabled" : "disabled");
-    }
-
-    if (current_screen_layout != ScreenLayout::TopOnly) {
+    if (current_screen_layout() != ScreenLayout::TopOnly) {
         switch (state.current_touch_mode) {
             case TouchMode::Disabled:
                 state.touching = false;
@@ -106,8 +113,8 @@ void melonds::update_input(InputState &state) {
 
                 state.touching = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
 
-                state.touch_x = Clamp(state.touch_x + mouse_x, 0, VIDEO_WIDTH - 1);
-                state.touch_y = Clamp(state.touch_y + mouse_y, 0, VIDEO_HEIGHT - 1);
+                state.touch_x = std::clamp(state.touch_x + mouse_x, 0, VIDEO_WIDTH - 1);
+                state.touch_y = std::clamp(state.touch_y + mouse_y, 0, VIDEO_HEIGHT - 1);
             }
 
                 break;
@@ -130,11 +137,15 @@ void melonds::update_input(InputState &state) {
                         (y < screen_layout_data.touch_offset_y + screen_layout_data.screen_height)) {
                         state.touching = true;
 
-                        state.touch_x = Clamp(
-                                (x - screen_layout_data.touch_offset_x) * VIDEO_WIDTH / screen_layout_data.screen_width,
+                        state.touch_x = std::clamp(
+                                static_cast<int>((x - screen_layout_data.touch_offset_x) * VIDEO_WIDTH /
+                                                 screen_layout_data.screen_width),
                                 0, VIDEO_WIDTH - 1);
-                        state.touch_y = Clamp((y - screen_layout_data.touch_offset_y) * VIDEO_HEIGHT /
-                                              screen_layout_data.screen_height, 0, VIDEO_HEIGHT - 1);
+                        state.touch_y = std::clamp(
+                                static_cast<int>((y - screen_layout_data.touch_offset_y) * VIDEO_HEIGHT /
+                                                 screen_layout_data.screen_height),
+                                0,
+                                VIDEO_HEIGHT - 1);
                     }
                 } else if (state.touching) {
                     state.touching = false;
@@ -147,8 +158,8 @@ void melonds::update_input(InputState &state) {
                 int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
                                                         RETRO_DEVICE_ID_ANALOG_Y) / 2048;
 
-                state.touch_x = Clamp(state.touch_x + joystick_x, 0, VIDEO_WIDTH - 1);
-                state.touch_y = Clamp(state.touch_y + joystick_y, 0, VIDEO_HEIGHT - 1);
+                state.touch_x = std::clamp(state.touch_x + joystick_x, 0, melonds::VIDEO_WIDTH - 1);
+                state.touch_y = std::clamp(state.touch_y + joystick_y, 0, melonds::VIDEO_HEIGHT - 1);
 
                 state.touching = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3);
 
@@ -160,10 +171,10 @@ void melonds::update_input(InputState &state) {
 
     if (state.touching) {
         NDS::TouchScreen(state.touch_x, state.touch_y);
-        has_touched = true;
-    } else if (has_touched) {
+        _has_touched = true;
+    } else if (_has_touched) {
         NDS::ReleaseScreen();
-        has_touched = false;
+        _has_touched = false;
     }
 }
 
