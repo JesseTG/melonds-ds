@@ -25,8 +25,52 @@
 #include "input.hpp"
 #include "opengl.hpp"
 
-namespace Config::Retro {
-    bool MicButtonRequired = true;
+namespace Config {
+    bool ScreenSwap;
+    bool ScreenFilter;
+
+    bool ScreenUseGL;
+    int _3DRenderer;
+
+    int GL_ScaleFactor;
+    bool GL_BetterPolygons;
+
+    int ConsoleType;
+    [[maybe_unused]] bool DirectBoot;
+
+#ifdef JIT_ENABLED
+    [[maybe_unused]] bool JIT_Enable;
+    [[maybe_unused]] int JIT_MaxBlockSize;
+    [[maybe_unused]] bool JIT_BranchOptimisations;
+    [[maybe_unused]] bool JIT_LiteralOptimisations;
+    [[maybe_unused]] bool JIT_FastMemory;
+#endif
+
+    [[maybe_unused]] std::string BIOS9Path;
+    [[maybe_unused]] std::string BIOS7Path;
+    [[maybe_unused]] std::string FirmwarePath;
+
+    [[maybe_unused]] std::string DSiBIOS9Path;
+    [[maybe_unused]] std::string DSiBIOS7Path;
+    [[maybe_unused]] std::string DSiFirmwarePath;
+    [[maybe_unused]] std::string DSiNANDPath;
+
+    [[maybe_unused]] bool DSiSDEnable;
+    [[maybe_unused]] std::string DSiSDPath;
+
+    [[maybe_unused]] bool FirmwareOverrideSettings;
+    [[maybe_unused]] std::string FirmwareUsername;
+    [[maybe_unused]] int FirmwareLanguage;
+
+    int AudioInterp;
+    [[maybe_unused]] int AudioBitrate;
+    int MicInputType;
+
+    std::string SaveFilePath;
+
+    namespace Retro {
+        bool MicButtonRequired = true;
+    }
 }
 
 namespace melonds::config {
