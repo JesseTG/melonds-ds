@@ -285,8 +285,21 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
 PUBLIC_SYMBOL void retro_reset(void) {
     using melonds::game_info;
     NDS::Reset();
-    NDS::LoadCart((u8 *) game_info->data, game_info->size, _save_path.c_str(), Config::DirectBoot);
-    // TODO: Load game
+    if (!NDSCart::LoadROM((const uint8_t *) game_info->data, game_info->size)) {
+        retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
+    }
+
+    if (Platform::FileExists(Config::SaveFilePath)) {
+        void *save_data = nullptr;
+        int64_t save_length = 0;
+
+        if (filestream_read_file(Config::SaveFilePath.c_str(), &save_data, &save_length)) {
+            retro::log(RETRO_LOG_INFO, "Loaded save file from %s", Config::SaveFilePath.c_str());
+
+            NDS::LoadSave(static_cast<const uint8_t *>(save_data), save_length);
+            free(save_data);
+        }
+    }
 }
 
 static bool melonds::load_game(unsigned type, const struct retro_game_info *info) {
