@@ -73,4 +73,4 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melo
 FetchContent_MakeAvailable(melonDS libretro-common)
 
 
-add_subdirectory(src)
+add_subdirectory(src/libretro)
