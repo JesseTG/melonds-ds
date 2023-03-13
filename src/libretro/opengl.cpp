@@ -38,6 +38,8 @@ namespace melonds::opengl {
     static GLuint screen_framebuffer_texture;
     static float screen_vertices[72];
     static GLuint vao, vbo;
+    static const char *_vertex_shader;
+    static const char *_fragment_shader;
 
     static struct {
         GLfloat uScreenSize[2];
@@ -200,7 +202,7 @@ static void melonds::opengl::context_destroy() {
 static bool melonds::opengl::setup_opengl() {
     GPU::InitRenderer(true);
 
-    if (!OpenGL::BuildShaderProgram(vertex_shader, fragment_shader, shader, "LibretroShader"))
+    if (!OpenGL::BuildShaderProgram(_vertex_shader, _fragment_shader, shader, "LibretroShader"))
         return false;
 
     glBindAttribLocation(shader[2], 0, "vPosition");
@@ -457,3 +459,50 @@ void melonds::opengl::setup_opengl_frame_state(void)
 static bool melonds::opengl::context_framebuffer_lock(void *data) {
     return false;
 }
+
+static const char *_vertex_shader = R"(#version 140
+layout(std140) uniform uConfig
+{
+    vec2 uScreenSize;
+    uint u3DScale;
+    uint uFilterMode;
+    vec4 cursorPos;
+};
+in vec2 pos;
+in vec2 texcoord;
+smooth out vec2 fTexcoord;
+void main()
+{
+    vec4 fpos;
+    fpos.xy = ((pos * 2.0) / uScreenSize) - 1.0;
+    fpos.y *= -1;
+    fpos.z = 0.0;
+    fpos.w = 1.0;
+    gl_Position = fpos;
+    fTexcoord = texcoord;
+}
+)";
+
+static const char *_fragment_shader = R"(#version 140
+layout(std140) uniform uConfig
+{
+    vec2 uScreenSize;
+    uint u3DScale;
+    uint uFilterMode;
+    vec4 cursorPos;
+};
+uniform sampler2D ScreenTex;
+smooth in vec2 fTexcoord;
+out vec4 oColor;
+void main()
+{
+    vec4 pixel = texture(ScreenTex, fTexcoord);
+    // virtual cursor so you can see where you touch
+    if(fTexcoord.y >= 0.5 && fTexcoord.y <= 1.0) {
+        if(cursorPos.x <= fTexcoord.x && cursorPos.y <= fTexcoord.y && cursorPos.z >= fTexcoord.x && cursorPos.w >= fTexcoord.y) {
+            pixel = vec4(1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, pixel.a);
+        }
+    }
+    oColor = vec4(pixel.bgr, 1.0);
+}
+)";
