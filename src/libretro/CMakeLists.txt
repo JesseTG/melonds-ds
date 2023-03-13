@@ -1,6 +1,6 @@
 set (CMAKE_CXX_STANDARD 17)
 
-add_library(libretro SHARED
+add_library(libretro MODULE
     ../rthreads/rsemaphore.c
     config.cpp
     environment.cpp
