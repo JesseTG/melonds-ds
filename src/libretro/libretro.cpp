@@ -14,6 +14,8 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include "libretro.hpp"
+
 #include <ctime>
 #include <cstdlib>
 #include <cstring>
@@ -35,7 +37,6 @@
 #include "opengl.hpp"
 #include "environment.hpp"
 #include "config.hpp"
-#include "libretro.hpp"
 #include "input.hpp"
 #include "utils.hpp"
 #include "info.hpp"
