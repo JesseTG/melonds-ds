@@ -236,10 +236,7 @@ void melonds::check_variables(bool init) {
 #ifdef HAVE_THREADS
     var.key = "melonds_threaded_renderer";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "enabled"))
-            config::_render_settings.Soft_Threaded = true;
-        else
-            config::_render_settings.Soft_Threaded = false;
+        config::_render_settings.Soft_Threaded = string_is_equal(var.value, "enabled");
     }
 #endif
 
@@ -285,6 +282,7 @@ void melonds::check_variables(bool init) {
     } else {
         Config::GL_ScaleFactor = 1;
     }
+    config::_render_settings.GL_ScaleFactor = Config::GL_ScaleFactor;
 
     var.key = "melonds_opengl_better_polygons";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
@@ -293,6 +291,7 @@ void melonds::check_variables(bool init) {
 
         Config::GL_BetterPolygons = enabled;
     }
+    config::_render_settings.GL_BetterPolygons = Config::GL_BetterPolygons;
 
     var.key = "melonds_opengl_filtering";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
