@@ -13,6 +13,7 @@ add_library(libretro MODULE
     platform/mutex.cpp
     platform/semaphore.cpp
     platform/thread.cpp
+    platform/config.cpp
     screenlayout.cpp
     platform/file.cpp)
 
