@@ -72,10 +72,10 @@ PUBLIC_SYMBOL void retro_init(void) {
 
     srand(time(nullptr));
     if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-        melonds::base_directory = dir;
+        melonds::_base_directory = dir;
 
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
-        melonds::save_directory = dir;
+        melonds::_save_directory = dir;
 
     melonds::init_savestate_buffer();
     // ScreenLayoutData is initialized in its constructor
@@ -372,7 +372,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         strlcpy(game_name, info->path, sizeof(game_name));
     path_remove_extension(game_name);
 
-    Config::SaveFilePath = save_directory + PLATFORM_DIR_SEPERATOR + std::string(game_name) + ".sav";
+    Config::SaveFilePath = _save_directory + PLATFORM_DIR_SEPERATOR + std::string(game_name) + ".sav";
 
     GPU::InitRenderer(false);
     GPU::SetRenderSettings(false, melonds::render_settings());
@@ -406,9 +406,9 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
             strlcpy(gba_game_name, info[1].path, sizeof(gba_game_name));
         path_remove_extension(gba_game_name);
 
-        gba_save_path = melonds::save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
+        gba_save_path = melonds::_save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
 
-        if (!NDS::LoadGBACart((const uint8_t *) info[1]->data, info[1]->size)) {
+        if (!NDS::LoadGBACart((const uint8_t *) info[1].data, info[1].size)) {
             retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
         }
 
