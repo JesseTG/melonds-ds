@@ -90,18 +90,17 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     melonds::update_input(input_state);
 
-    if (melonds::input_state.swap_screens_btn !=Config::ScreenSwap) {
-        switch (melonds::screen_swap_mode)
-        {
+    if (melonds::input_state.swap_screens_btn != Config::ScreenSwap) {
+        switch (melonds::screen_swap_mode) {
             case melonds::ScreenSwapMode::Toggle: {
-                if (!Config::ScreenSwap ) {
+                if (!Config::ScreenSwap) {
                     swap_screen_toggled = !swap_screen_toggled;
                     update_screenlayout(current_screen_layout(), &screen_layout_data, Config::ScreenUseGL,
                                         swap_screen_toggled);
                     melonds::opengl::refresh_opengl = true;
                 }
 
-                Config::ScreenSwap  = input_state.swap_screens_btn;
+                Config::ScreenSwap = input_state.swap_screens_btn;
                 break;
             }
             case ScreenSwapMode::Hold: {
