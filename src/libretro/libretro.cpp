@@ -91,7 +91,7 @@ PUBLIC_SYMBOL void retro_run(void) {
     melonds::update_input(input_state);
 
     if (melonds::input_state.swap_screens_btn != Config::ScreenSwap) {
-        switch (melonds::screen_swap_mode) {
+        switch (Config::Retro::ScreenSwapMode) {
             case melonds::ScreenSwapMode::Toggle: {
                 if (!Config::ScreenSwap) {
                     swap_screen_toggled = !swap_screen_toggled;

@@ -70,6 +70,7 @@ namespace Config {
 
     namespace Retro {
         bool MicButtonRequired = true;
+        melonds::ScreenSwapMode ScreenSwapMode;
     }
 }
 

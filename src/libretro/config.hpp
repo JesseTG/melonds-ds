@@ -49,12 +49,12 @@ namespace melonds {
     };
 
     GPU::RenderSettings &render_settings();
-    extern ScreenSwapMode screen_swap_mode;
     unsigned cursor_size();
 }
 
 namespace Config::Retro {
     extern bool MicButtonRequired;
+    extern melonds::ScreenSwapMode ScreenSwapMode;
 }
 
 #endif //MELONDS_DS_CONFIG_HPP
