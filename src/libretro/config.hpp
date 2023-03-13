@@ -5,6 +5,8 @@
 #ifndef MELONDS_DS_CONFIG_HPP
 #define MELONDS_DS_CONFIG_HPP
 
+#include <GPU.h>
+
 namespace melonds {
     bool update_option_visibility();
     void check_variables(bool init);
