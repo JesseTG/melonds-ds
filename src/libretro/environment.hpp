@@ -32,6 +32,8 @@ namespace retro {
     size_t audio_sample_batch(const int16_t *data, size_t frames);
     void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch);
 
+    const std::string& base_directory();
+    const std::string& save_directory();
 }
 
 #endif //MELONDS_DS_ENVIRONMENT_HPP

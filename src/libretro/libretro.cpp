@@ -43,8 +43,8 @@
 #include "memory.hpp"
 
 namespace melonds {
-    static std::string base_directory;
-    static std::string save_directory;
+    static std::string _base_directory;
+    static std::string _save_directory;
     static const retro_game_info *game_info;
     static bool swap_screen_toggled = false;
 
@@ -55,6 +55,14 @@ namespace melonds {
     static bool load_game(unsigned type, const struct retro_game_info *info);
 
     static void render_software();
+
+    const std::string &base_directory() {
+        return _base_directory;
+    }
+
+    const std::string &save_directory() {
+        return _save_directory;
+    }
 }
 
 
@@ -253,8 +261,8 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 
 PUBLIC_SYMBOL void retro_deinit(void) {
     // TODO: Does this clear the underlying memory?
-    melonds::base_directory.clear();
-    melonds::save_directory.clear();
+    melonds::_base_directory.clear();
+    melonds::_save_directory.clear();
     melonds::free_savestate_buffer();
 }
 
