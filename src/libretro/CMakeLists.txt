@@ -20,4 +20,5 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${melonDS_SOURCE_DIR}/src"
     )
 target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_OPENGL OGLRENDERER_ENABLED HAVE_THREADS PLATFORMOGL_H) # TODO: Disable on certain platforms
-# TODO: Set the target's name
+set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
+# Name the output library "melondsds_libretro.dll" instead of "libmelondsds_libretro.dll", as is the convention
