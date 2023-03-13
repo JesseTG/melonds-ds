@@ -74,5 +74,6 @@ FetchContent_MakeAvailable(melonDS libretro-common)
 include(cmake/libretro-common.cmake)
 
 option(HAVE_THREADS "Build with thread support" ON)
+option(HAVE_STRL "Build with strlcpy() support" ON)
 
 add_subdirectory(src/libretro)

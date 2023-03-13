@@ -64,5 +64,15 @@ if (HAVE_THREADS)
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/rthreads/rthreads.c
         )
+
+    target_compile_definitions(libretro-common PUBLIC HAVE_THREADS)
+endif ()
+
+if (NOT HAVE_STRL)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/compat/compat_strl.c
+        )
+else ()
+    target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
 endif ()
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")
