@@ -58,5 +58,11 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/time/rtime.c
     ${libretro-common_SOURCE_DIR}/utils/md5.c
     ${libretro-common_SOURCE_DIR}/vfs/vfs_implementation.c
-)
+    )
+
+if (HAVE_THREADS)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/rthreads/rthreads.c
+        )
+endif ()
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")
