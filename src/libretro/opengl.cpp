@@ -26,6 +26,7 @@
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "environment.hpp"
+#include "config.hpp"
 
 melonds::CurrentRenderer current_renderer = melonds::CurrentRenderer::None;
 
@@ -102,14 +103,14 @@ void melonds::opengl::render_frame(bool software) {
     }
 
     if (virtual_cursor) {
-        GL_ShaderConfig.cursorPos[0] = (((float) (input_state.touch_x) - (float) (CURSOR_SIZE)) /
-                                        ((float) VIDEO_HEIGHT * 1.35));
+        GL_ShaderConfig.cursorPos[0] = (((float) (input_state.touch_x) - (float) cursor_size()) /
+                                        (VIDEO_HEIGHT * 1.35f));
         GL_ShaderConfig.cursorPos[1] =
-                (((float) (input_state.touch_y) - (float) (CURSOR_SIZE)) / ((float) VIDEO_WIDTH * 1.5)) + 0.5f;
-        GL_ShaderConfig.cursorPos[2] = (((float) (input_state.touch_x) + (float) (CURSOR_SIZE)) /
-                                        ((float) VIDEO_HEIGHT * 1.35));
+                (((float) (input_state.touch_y) - (float) cursor_size()) / (VIDEO_WIDTH * 1.5f)) + 0.5f;
+        GL_ShaderConfig.cursorPos[2] = (((float) (input_state.touch_x) + (float) cursor_size()) /
+                                        (VIDEO_HEIGHT * 1.35f));
         GL_ShaderConfig.cursorPos[3] =
-                (((float) (input_state.touch_y) + (float) (CURSOR_SIZE)) / ((float) VIDEO_WIDTH * 1.5)) + 0.5f;
+                (((float) (input_state.touch_y) + (float) cursor_size()) / ((float) VIDEO_WIDTH * 1.5f)) + 0.5f;
 
         glBindBuffer(GL_UNIFORM_BUFFER, ubo);
         void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
@@ -140,7 +141,7 @@ void melonds::opengl::render_frame(bool software) {
         GPU::CurGLCompositor->BindOutputTexture(frontbuf);
     }
 
-    GLint filter = opengl_linear_filtering ? GL_LINEAR : GL_NEAREST;
+    GLint filter = Config::ScreenFilter ? GL_LINEAR : GL_NEAREST;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 

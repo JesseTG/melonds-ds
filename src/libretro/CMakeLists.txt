@@ -19,5 +19,5 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
     )
-target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_OPENGL HAVE_THREADS) # TODO: Disable on certain platforms
+target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_OPENGL OGLRENDERER_ENABLED HAVE_THREADS) # TODO: Disable on certain platforms
 # TODO: Set the target's name
