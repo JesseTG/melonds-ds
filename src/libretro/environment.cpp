@@ -66,7 +66,7 @@ namespace retro {
     {
         if (_audio_sample_batch)
         {
-            _audio_sample_batch(data, frames);
+            return _audio_sample_batch(data, frames);
         }
         else
         {
