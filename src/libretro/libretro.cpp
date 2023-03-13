@@ -104,35 +104,37 @@ PUBLIC_SYMBOL void retro_run(void) {
         }
     }
 
-    if (input_state.holding_noise_btn || !Config::Retro::MicButtonRequired) {
-        switch (static_cast<MicInputMode>(Config::MicInputType)) {
-            case MicInputMode::WhiteNoise: // random noise
-            {
-                s16 tmp[735];
-                for (int i = 0; i < 735; i++) tmp[i] = rand() & 0xFFFF;
-                NDS::MicInputFrame(tmp, 735);
-                break;
-            }
-            case MicInputMode::BlowNoise: // blow noise
-            {
-                Frontend::Mic_FeedNoise(); // despite the name, this feeds a blow noise
-                break;
-            }
-            case MicInputMode::HostMic: // microphone input
-            {
-                s16 tmp[735];
+    auto mic_input_mode = static_cast<MicInputMode>(Config::MicInputType);
+
+    if (Config::Retro::MicButtonRequired && !input_state.holding_noise_btn) {
+        mic_input_mode = melonds::MicInputMode::None;
+    }
+
+    switch (static_cast<MicInputMode>(Config::MicInputType)) {
+        case MicInputMode::WhiteNoise: // random noise
+        {
+            s16 tmp[735];
+            for (int i = 0; i < 735; i++) tmp[i] = rand() & 0xFFFF;
+            NDS::MicInputFrame(tmp, 735);
+            break;
+        }
+        case MicInputMode::BlowNoise: // blow noise
+        {
+            Frontend::Mic_FeedNoise(); // despite the name, this feeds a blow noise
+            break;
+        }
+        case MicInputMode::HostMic: // microphone input
+        {
+            s16 tmp[735];
 //                if (micHandle && micInterface.interface_version &&
 //                    micInterface.get_mic_state(micHandle)) { // If the microphone is enabled and supported...
 //                    micInterface.read_mic(micHandle, tmp, 735);
 //                    NDS::MicInputFrame(tmp, 735);
 //                    break;
 //                } // If the mic isn't available, go to the default case
-            }
-            default:
-                Frontend::Mic_FeedSilence();
         }
-    } else {
-        Frontend::Mic_FeedSilence();
+        default:
+            Frontend::Mic_FeedSilence();
     }
 
     if (current_renderer != melonds::CurrentRenderer::None) NDS::RunFrame();
