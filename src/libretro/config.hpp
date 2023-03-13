@@ -17,7 +17,12 @@
 #ifndef MELONDS_DS_CONFIG_HPP
 #define MELONDS_DS_CONFIG_HPP
 
+#ifdef HAVE_OPENGL
+#include <gl/gl.h>
+#include <glsym/glsym.h>
+#endif
 #include <GPU.h>
+#include <libretro.h>
 
 namespace melonds {
     bool update_option_visibility();

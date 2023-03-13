@@ -14,13 +14,13 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include "config.hpp"
 #include <cstring>
 #include <frontend/qt_sdl/Config.h>
 #include <GPU.h>
 #include <string/stdstring.h>
 #include "libretro.hpp"
 #include "environment.hpp"
-#include "config.hpp"
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "opengl.hpp"
