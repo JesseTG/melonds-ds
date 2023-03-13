@@ -52,7 +52,14 @@ void Platform::Thread_Wait(Thread *thread) {
 #endif
 }
 
-void Platform::Sleep(u64 usecs) {
-    // TODO: May cause problems with recursion
+/// This function exists to avoid causing potential recursion problems
+/// with \c retro_sleep, as on Windows it delegates to a function named
+/// \c Sleep.
+static void sleep_impl(u64 usecs) {
+
     retro_sleep(usecs / 1000);
+}
+
+void Platform::Sleep(u64 usecs) {
+    sleep_impl(usecs);
 }
