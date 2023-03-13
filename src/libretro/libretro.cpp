@@ -118,7 +118,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         mic_input_mode = melonds::MicInputMode::None;
     }
 
-    switch (static_cast<MicInputMode>(Config::MicInputType)) {
+    switch (mic_input_mode) {
         case MicInputMode::WhiteNoise: // random noise
         {
             s16 tmp[735];
