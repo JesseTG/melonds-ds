@@ -17,6 +17,8 @@ namespace melonds {
 }
 
 namespace melonds::opengl {
+    extern bool refresh_opengl;
+
     bool initialize();
 
     void deinitialize();

@@ -1,15 +1,19 @@
 set (CMAKE_CXX_STANDARD 17)
 
 add_library(libretro SHARED
-    libretro.cpp
-    environment.cpp
-    info.cpp config.cpp
-    screenlayout.cpp
-    platform/thread.cpp
-    platform/semaphore.cpp
-    platform/mutex.cpp
     ../rthreads/rsemaphore.c
-    input.cpp input.hpp opengl.cpp opengl.hpp memory.cpp memory.hpp utils.cpp)
+    config.cpp
+    environment.cpp
+    info.cpp
+    input.cpp
+    libretro.cpp
+    memory.cpp
+    opengl.cpp
+    platform/mutex.cpp
+    platform/semaphore.cpp
+    platform/thread.cpp
+    screenlayout.cpp
+    )
 
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"

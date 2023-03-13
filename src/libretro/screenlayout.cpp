@@ -6,6 +6,7 @@
 #include "screenlayout.hpp"
 #include <frontend/qt_sdl/Config.h>
 #include <functional>
+#include <cstring>
 
 namespace melonds {
     static ScreenLayout _current_screen_layout = ScreenLayout::TopBottom;
@@ -105,6 +106,13 @@ void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
             uint32_t pixel = *offset;
             *(uint32_t *) offset = (0xFFFFFF - pixel) | 0xFF000000;
         }
+    }
+}
+
+
+void melonds::ScreenLayoutData::clean_screenlayout_buffer() {
+    if (buffer_ptr != nullptr) {
+        memset(buffer_ptr, 0, buffer_stride * buffer_height);
     }
 }
 

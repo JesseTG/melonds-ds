@@ -19,14 +19,14 @@ melonds::CurrentRenderer current_renderer = melonds::CurrentRenderer::None;
 
 namespace melonds::opengl {
     static bool _using_opengl = false;
-    static bool refresh_opengl = true;
+    bool refresh_opengl = true;
     static bool initialized_glsm = false;
     static GLuint shader[3];
     static GLuint screen_framebuffer_texture;
     static float screen_vertices[72];
     static GLuint vao, vbo;
 
-    struct {
+    static struct {
         GLfloat uScreenSize[2];
         u32 u3DScale;
         u32 uFilterMode;

@@ -24,18 +24,21 @@
 #include "utils.hpp"
 #include "info.hpp"
 #include "screenlayout.hpp"
+#include "memory.hpp"
 
 namespace melonds {
     static std::string base_directory;
     static std::string save_directory;
     static const retro_game_info *game_info;
-    static bool swapped_screens = false;
+    static bool swap_screen_toggled = false;
 
     static void render_frame();
 
     static void render_audio();
 
     static bool load_game(unsigned type, const struct retro_game_info *info);
+
+    static void render_software();
 }
 
 
@@ -49,6 +52,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
         melonds::save_directory = dir;
 
+    melonds::init_savestate_buffer();
     // ScreenLayoutData is initialized in its constructor
 }
 
@@ -57,22 +61,35 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
-    using melonds::input_state;
+    using namespace melonds;
+
     melonds::update_input(input_state);
 
     if (melonds::input_state.swap_screens_btn != melonds::swapped_screens) {
-        if (toggle_swap_screen) {
-            if (!melonds::swapped_screens) {
-                swap_screen_toggled = !swap_screen_toggled;
-                update_screenlayout(current_screen_layout, &screen_layout_data, enable_opengl, swap_screen_toggled);
-                refresh_opengl = true;
-            }
+        switch (melonds::screen_swap_mode)
+        {
+            case melonds::ScreenSwapMode::Toggle: {
+                if (!Config::ScreenSwap ) {
+                    swap_screen_toggled = !swap_screen_toggled;
+                    update_screenlayout(current_screen_layout(), &screen_layout_data, Config::ScreenUseGL,
+                                        swap_screen_toggled);
+                    melonds::opengl::refresh_opengl = true;
+                }
 
-            melonds::swapped_screens = input_state.swap_screens_btn;
+                Config::ScreenSwap  = input_state.swap_screens_btn;
+                break;
+            }
+            case ScreenSwapMode::Hold: {
+                Config::ScreenSwap = input_state.swap_screens_btn;
+                update_screenlayout(current_screen_layout(), &screen_layout_data, Config::ScreenUseGL,
+                                    melonds::swapped_screens);
+                melonds::opengl::refresh_opengl = true;
+            }
+        }
+        if (melonds::screen_swap_mode == melonds::ScreenSwapMode::Toggle) {
+
         } else {
-            melonds::swapped_screens = input_state.swap_screens_btn;
-            update_screenlayout(current_screen_layout, &screen_layout_data, enable_opengl, melonds::swapped_screens);
-            refresh_opengl = true;
+
         }
     }
 
@@ -120,7 +137,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         struct retro_system_av_info updated_av_info{};
         retro_get_system_av_info(&updated_av_info);
         retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
-        clean_screenlayout_buffer(&screen_layout_data);
+        screen_layout_data.clean_screenlayout_buffer();
     }
 
     NDSCart_SRAMManager::Flush();
@@ -147,52 +164,57 @@ static void melonds::render_frame() {
         current_renderer = CurrentRenderer::Software;
 #endif
     }
+
 #ifdef HAVE_OPENGL
     if (melonds::opengl::using_opengl()) {
         melonds::opengl::render_frame(current_renderer == CurrentRenderer::Software);
     } else if (!Config::ScreenUseGL) {
-#endif
-        int frontbuf = GPU::FrontBuffer;
-
-        if (screen_layout_data.hybrid) {
-            unsigned primary = screen_layout_data.displayed_layout == ScreenLayout::HybridTop ? 0 : 1;
-
-            copy_hybrid_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
-
-            switch (screen_layout_data.hybrid_small_screen) {
-                case SmallScreenLayout::SmallScreenTop:
-                    copy_hybrid_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][0], ScreenId::Bottom);
-                    break;
-                case SmallScreenLayout::SmallScreenBottom:
-                    copy_hybrid_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
-                    break;
-                case SmallScreenLayout::SmallScreenDuplicate:
-                    copy_hybrid_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][0], ScreenId::Top);
-                    copy_hybrid_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
-                    break;
-            }
-
-            if (input_state.cursor_enabled())
-                draw_cursor(&screen_layout_data, input_state.touch_x, input_state.touch_y);
-
-            retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
-                                 screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
-        } else {
-            if (screen_layout_data.enable_top_screen)
-                copy_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][0], screen_layout_data.top_screen_offset);
-            if (screen_layout_data.enable_bottom_screen)
-                copy_screen(&screen_layout_data, GPU::Framebuffer[frontbuf][1],
-                            screen_layout_data.bottom_screen_offset);
-
-            if (input_state.cursor_enabled() && current_screen_layout() != ScreenLayout::TopOnly)
-                draw_cursor(&screen_layout_data, input_state.touch_x, input_state.touch_y);
-
-            retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
-                                 screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
-        }
-#ifdef HAVE_OPENGL
+        render_software();
     }
+#else
+    render_software();
 #endif
+}
+
+static void melonds::render_software() {
+    int frontbuf = GPU::FrontBuffer;
+
+    if (screen_layout_data.hybrid) {
+        unsigned primary = screen_layout_data.displayed_layout == ScreenLayout::HybridTop ? 0 : 1;
+
+        screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
+
+        switch (screen_layout_data.hybrid_small_screen) {
+            case SmallScreenLayout::SmallScreenTop:
+                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][0], ScreenId::Bottom);
+                break;
+            case SmallScreenLayout::SmallScreenBottom:
+                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
+                break;
+            case SmallScreenLayout::SmallScreenDuplicate:
+                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][0], ScreenId::Top);
+                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
+                break;
+        }
+
+        if (input_state.cursor_enabled())
+            screen_layout_data.draw_cursor(input_state.touch_x, input_state.touch_y);
+
+        retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
+                             screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
+    } else {
+        if (screen_layout_data.enable_top_screen)
+            screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][0], screen_layout_data.top_screen_offset);
+        if (screen_layout_data.enable_bottom_screen)
+            screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][1],
+                                           screen_layout_data.bottom_screen_offset);
+
+        if (input_state.cursor_enabled() && current_screen_layout() != ScreenLayout::TopOnly)
+            screen_layout_data.draw_cursor(input_state.touch_x, input_state.touch_y);
+
+        retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
+                             screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
+    }
 }
 
 static void melonds::render_audio() {
@@ -220,6 +242,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     // TODO: Does this clear the underlying memory?
     melonds::base_directory.clear();
     melonds::save_directory.clear();
+    melonds::free_savestate_buffer();
 }
 
 PUBLIC_SYMBOL unsigned retro_api_version(void) {

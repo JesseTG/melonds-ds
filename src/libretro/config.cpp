@@ -15,7 +15,7 @@
 namespace melonds::config {
     static bool _show_opengl_options = true;
     static bool _show_hybrid_options = true;
-    static ScreenSwapMode _screen_swap_mode = ScreenSwapMode::Toggle;
+    ScreenSwapMode screen_swap_mode = ScreenSwapMode::Toggle;
     static bool _randomize_mac = false;
     static GPU::RenderSettings _render_settings;
     static melonds::RendererType _renderer_type = melonds::RendererType::OpenGl;
@@ -202,17 +202,14 @@ void melonds::check_variables(bool init) {
     var.key = "melonds_swapscreen_mode";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value != NULL) {
         if (strcmp(var.value, "Toggle") == 0)
-            melonds::config::_screen_swap_mode = ScreenSwapMode::Toggle;
+            melonds::config::screen_swap_mode = ScreenSwapMode::Toggle;
         else
-            melonds::config::_screen_swap_mode = ScreenSwapMode::Hold;
+            melonds::config::screen_swap_mode = ScreenSwapMode::Hold;
     }
 
     var.key = "melonds_randomize_mac_address";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
-            config::_randomize_mac = true;
-        else
-            config::_randomize_mac = false;
+        config::_randomize_mac = !strcmp(var.value, "enabled");
     }
 
 #ifdef HAVE_THREADS
@@ -273,10 +270,7 @@ void melonds::check_variables(bool init) {
         bool enabled = !strcmp(var.value, "enabled");
         gl_settings_changed |= enabled != Config::GL_BetterPolygons;
 
-        if (enabled)
-            Config::GL_BetterPolygons = true;
-        else
-            Config::GL_BetterPolygons = false;
+        Config::GL_BetterPolygons = enabled;
     }
 
     var.key = "melonds_opengl_filtering";
@@ -285,16 +279,13 @@ void melonds::check_variables(bool init) {
     }
 
     if ((config::_renderer_type == RendererType::OpenGl && gl_settings_changed) || layout != current_screen_layout())
-        melonds::config::refresh_opengl = true;
+        melonds::opengl::refresh_opengl = true;
 #endif
 
 #ifdef JIT_ENABLED
     var.key = "melonds_jit_enable";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
-            Config::JIT_Enable = true;
-        else
-            Config::JIT_Enable = false;
+        Config::JIT_Enable = !strcmp(var.value, "enabled");
     }
 
     var.key = "melonds_jit_block_size";
@@ -304,35 +295,23 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_jit_branch_optimisations";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
-            Config::JIT_BranchOptimisations = true;
-        else
-            Config::JIT_BranchOptimisations = false;
+        Config::JIT_BranchOptimisations = (!strcmp(var.value, "enabled"));
     }
 
     var.key = "melonds_jit_literal_optimisations";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
-            Config::JIT_LiteralOptimisations = true;
-        else
-            Config::JIT_LiteralOptimisations = false;
+        Config::JIT_LiteralOptimisations = !strcmp(var.value, "enabled");
     }
 
     var.key = "melonds_jit_fast_memory";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
-            Config::JIT_FastMemory = true;
-        else
-            Config::JIT_FastMemory = false;
+        Config::JIT_FastMemory = !strcmp(var.value, "enabled");
     }
 #endif
 
     var.key = "melonds_dsi_sdcard";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (!strcmp(var.value, "enabled"))
-            Config::DSiSDEnable = true;
-        else
-            Config::DSiSDEnable = true;
+        Config::DSiSDEnable = !strcmp(var.value, "enabled");
     }
 
 //    var.key = "melonds_mic_input";
@@ -470,7 +449,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 "melonds_boot_directly",
                 "Boot Game Directly",
                 nullptr,
-                "Whether melonDS should directly boot the game or enter the DS menu beforehand. If disabled, compatible BIOS and firmware files are required.",
+                "Whether melonDS should directly boot the game or enter the DS menu beforehand. If disabled, compatible BIOS and firmware files must be provided in the system directory.",
                 nullptr,
                 "system",
                 {

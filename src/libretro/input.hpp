@@ -29,7 +29,7 @@ namespace melonds {
         bool swap_screens_btn = false;
         bool lid_closed = false;
 
-        bool cursor_enabled() const;
+        [[nodiscard]] bool cursor_enabled() const;
     };
 
     extern InputState input_state;

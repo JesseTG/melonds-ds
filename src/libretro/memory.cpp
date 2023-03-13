@@ -6,52 +6,52 @@
 #include <ARCodeFile.h>
 #include <AREngine.h>
 #include <cstring>
+#include <ExternalBufferSavestate.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "memory.hpp"
 #include "config.hpp"
 
 
-#define MAX_SERIALIZE_TEST_SIZE 16 * 1024 * 1024 // The current savestate is around 7MiB so 16MiB should be enough for now
+namespace AREngine {
+    extern void RunCheat(ARCode &arcode);
+}
 
-namespace AREngine
-{
-    extern void RunCheat(ARCode& arcode);
+namespace melonds {
+    static u8* _savestate_buffer = nullptr;
+    static size_t _savestate_buffer_length = 0;
 }
 
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
 
-        // Create the dummy savestate
-        void *data = malloc(MAX_SERIALIZE_TEST_SIZE);
-        Savestate *savestate = new Savestate(data, MAX_SERIALIZE_TEST_SIZE, true);
-        NDS::DoSavestate(savestate);
-        // Find the offset to find the current static filesize
-        size_t size = savestate->GetOffset();
-        // Free
-        delete savestate;
-        free(data);
+    // Create the dummy savestate
+    void *data = malloc(melonds::DEFAULT_SERIALIZE_TEST_SIZE);
 
-        return size;
+    ExternalBufferSavestate savestate((u8*)data, melonds::DEFAULT_SERIALIZE_TEST_SIZE, true);
+    NDS::DoSavestate(&savestate);
+    // Find the offset to find the current static filesize
+    size_t size = savestate.BufferOffset();
+    // Free
+    // TODO: If the save state didn't fit, double the buffer size and try again
+    free(data);
+
+    return size;
 
 
 }
 
 PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
-        Savestate *savestate = new Savestate(data, size, true);
-        NDS::DoSavestate(savestate);
-        delete savestate;
+    ExternalBufferSavestate savestate((u8*)data, size, true);
+    NDS::DoSavestate(&savestate);
 
-        return true;
-
+    return !savestate.Error;
 }
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
-        Savestate *savestate = new Savestate((void *) data, size, false);
-        NDS::DoSavestate(savestate);
-        delete savestate;
+    ExternalBufferSavestate savestate((u8*)data, size, false);
+    NDS::DoSavestate(&savestate);
 
-        return true;
-
+    return !savestate.Error;
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
@@ -87,4 +87,20 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
         pch = strtok(nullptr, " +");
     }
     AREngine::RunCheat(curcode);
+}
+
+void melonds::init_savestate_buffer(size_t length) {
+    u8* realloced_buffer = (u8*)realloc(_savestate_buffer, length);
+    // TODO: If this failed, log an error
+    _savestate_buffer = realloced_buffer;
+    _savestate_buffer_length = length;
+
+}
+
+void melonds::free_savestate_buffer() {
+    if (_savestate_buffer) {
+        free(_savestate_buffer);
+        _savestate_buffer = nullptr;
+        _savestate_buffer_length = 0;
+    }
 }

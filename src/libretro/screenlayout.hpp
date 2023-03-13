@@ -40,6 +40,7 @@ namespace melonds {
         void copy_screen(uint32_t* src, unsigned offset);
         void copy_hybrid_screen(uint32_t* src, ScreenId screen_id);
         void draw_cursor(int32_t x, int32_t y);
+        void clean_screenlayout_buffer();
 
         bool enable_top_screen;
         bool enable_bottom_screen;

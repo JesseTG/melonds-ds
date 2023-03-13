@@ -58,7 +58,6 @@ namespace retro {
         }
     }
 
-
     void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch)
     {
         if (_video_refresh)
