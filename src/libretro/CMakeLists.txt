@@ -1,6 +1,7 @@
 set (CMAKE_CXX_STANDARD 17)
 
 add_library(libretro MODULE
+    "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     ../rthreads/rsemaphore.c
     config.cpp
     environment.cpp
