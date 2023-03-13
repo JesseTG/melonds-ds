@@ -270,7 +270,7 @@ void melonds::check_variables(bool init) {
         }
     }
 
-    // Running the software rendering thread at the same time as OpenGL is used will cause segfaulty on cleanup
+    // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
     if (config::_renderer_type == RendererType::OpenGl) config::_render_settings.Soft_Threaded = false;
 
     var.key = "melonds_opengl_resolution";
