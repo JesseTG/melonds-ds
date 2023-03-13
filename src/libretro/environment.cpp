@@ -128,7 +128,7 @@ PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) 
     retro::_video_refresh = video_refresh;
 }
 
-PUBLIC_SYMBOL void retro_set_audio_sample(retro_audio_sample_t audio_sample) {
+PUBLIC_SYMBOL void retro_set_audio_sample(retro_audio_sample_t) {
     // Noop, we don't use this callback
 }
 
