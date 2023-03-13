@@ -102,11 +102,6 @@ PUBLIC_SYMBOL void retro_run(void) {
                 melonds::opengl::refresh_opengl = true;
             }
         }
-        if (melonds::screen_swap_mode == melonds::ScreenSwapMode::Toggle) {
-
-        } else {
-
-        }
     }
 
     if (input_state.holding_noise_btn || !noise_button_required) {
