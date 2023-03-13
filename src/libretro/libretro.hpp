@@ -18,6 +18,10 @@
 #define MELONDS_DS_LIBRETRO_HPP
 
 #include <libretro.h>
+#ifdef HAVE_OPENGL
+#include <gl/gl.h>
+#include <glsym/glsym.h>
+#endif
 
 /**!
  * Contains global state that's accessible to the entire core.
