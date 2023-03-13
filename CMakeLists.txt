@@ -73,5 +73,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melo
 FetchContent_MakeAvailable(melonDS libretro-common)
 include(cmake/libretro-common.cmake)
 
+option(HAVE_THREADS "Build with thread support" ON)
 
 add_subdirectory(src/libretro)
