@@ -18,9 +18,10 @@
 
 #include <libretro.h>
 #include <glsm/glsm.h>
+#include <glsm/glsmsym.h>
+
 #include <GPU.h>
 #include <OpenGLSupport.h>
-#include <glsm/glsmsym.h>
 #include <frontend/qt_sdl/Config.h>
 
 #include "screenlayout.hpp"
