@@ -145,7 +145,7 @@ PUBLIC_SYMBOL void retro_run(void) {
             Frontend::Mic_FeedSilence();
     }
 
-    if (current_renderer != melonds::CurrentRenderer::None) NDS::RunFrame();
+    if (Config::Retro::CurrentRenderer != melonds::CurrentRenderer::None) NDS::RunFrame();
 
     melonds::render_frame();
 
@@ -167,19 +167,19 @@ PUBLIC_SYMBOL void retro_run(void) {
 
 static void melonds::render_frame() {
     using melonds::screen_layout_data;
-    if (current_renderer == CurrentRenderer::None) {
+    if (Config::Retro::CurrentRenderer == CurrentRenderer::None) {
 #ifdef HAVE_OPENGL
         if (Config::ScreenUseGL && melonds::opengl::using_opengl()) {
             // Try to initialize opengl, if it failed fallback to software
             if (melonds::opengl::initialize()) {
-                current_renderer = CurrentRenderer::OpenGLRenderer;
+                Config::Retro::CurrentRenderer = CurrentRenderer::OpenGLRenderer;
             } else {
                 return;
             }
         } else {
             if (melonds::opengl::using_opengl()) melonds::opengl::deinitialize();
 
-            current_renderer = CurrentRenderer::Software;
+            Config::Retro::CurrentRenderer = CurrentRenderer::Software;
 
         }
 #else
@@ -189,7 +189,7 @@ static void melonds::render_frame() {
 
 #ifdef HAVE_OPENGL
     if (melonds::opengl::using_opengl()) {
-        melonds::opengl::render_frame(current_renderer == CurrentRenderer::Software);
+        melonds::opengl::render_frame(Config::Retro::CurrentRenderer == CurrentRenderer::Software);
     } else if (!Config::ScreenUseGL) {
         render_software();
     }
@@ -262,6 +262,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 
 PUBLIC_SYMBOL void retro_deinit(void) {
     // TODO: Does this clear the underlying memory?
+    NDS::Stop();
     melonds::_base_directory.clear();
     melonds::_save_directory.clear();
     melonds::free_savestate_buffer();

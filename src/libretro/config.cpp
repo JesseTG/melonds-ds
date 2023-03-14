@@ -88,7 +88,9 @@ namespace Config {
 
     namespace Retro {
         bool MicButtonRequired = true;
+        bool RandomizeMac = false;
         melonds::ScreenSwapMode ScreenSwapMode;
+        melonds::CurrentRenderer CurrentRenderer;
     }
 }
 
@@ -96,8 +98,6 @@ namespace melonds::config {
     static unsigned _cursor_size = 2; // TODO: Make configurable
     static bool _show_opengl_options = true;
     static bool _show_hybrid_options = true;
-    ScreenSwapMode screen_swap_mode = ScreenSwapMode::Toggle;
-    static bool _randomize_mac = false;
     static GPU::RenderSettings _render_settings;
     static melonds::RendererType _renderer_type = melonds::RendererType::OpenGl;
 
@@ -285,15 +285,15 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_swapscreen_mode";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value != NULL) {
-        if (strcmp(var.value, "Toggle") == 0)
-            melonds::config::screen_swap_mode = ScreenSwapMode::Toggle;
+        if (string_is_equal(var.value, "Toggle"))
+            Config::Retro::ScreenSwapMode = ScreenSwapMode::Toggle;
         else
-            melonds::config::screen_swap_mode = ScreenSwapMode::Hold;
+            Config::Retro::ScreenSwapMode = ScreenSwapMode::Hold;
     }
 
     var.key = "melonds_randomize_mac_address";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        config::_randomize_mac = string_is_equal(var.value, "enabled");
+        Config::Retro::RandomizeMac = string_is_equal(var.value, "enabled");
     }
 
 #ifdef HAVE_THREADS
@@ -326,7 +326,7 @@ void melonds::check_variables(bool init) {
             Config::ScreenUseGL = string_is_equal(var.value, "enabled");
 
             if (!init && melonds::opengl::using_opengl())
-                current_renderer = Config::ScreenUseGL ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
+                Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
         }
     }
 

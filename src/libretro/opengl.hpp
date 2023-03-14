@@ -17,17 +17,6 @@
 #ifndef MELONDS_DS_OPENGL_HPP
 #define MELONDS_DS_OPENGL_HPP
 
-namespace melonds {
-    enum class CurrentRenderer
-    {
-        None,
-        Software,
-        OpenGLRenderer,
-    };
-
-    extern CurrentRenderer current_renderer;
-}
-
 namespace melonds::opengl {
     extern bool refresh_opengl;
 

@@ -48,13 +48,22 @@ namespace melonds {
         OpenGl,
     };
 
+    enum class CurrentRenderer
+    {
+        None,
+        Software,
+        OpenGLRenderer,
+    };
+
     GPU::RenderSettings &render_settings();
     unsigned cursor_size();
 }
 
 namespace Config::Retro {
     extern bool MicButtonRequired;
+    extern bool RandomizeMac;
     extern melonds::ScreenSwapMode ScreenSwapMode;
+    extern melonds::CurrentRenderer CurrentRenderer;
 }
 
 #endif //MELONDS_DS_CONFIG_HPP
