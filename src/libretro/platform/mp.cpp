@@ -17,3 +17,55 @@
 #include <Platform.h>
 #include <net/net_socket.h>
 
+bool Platform::MP_Init() {
+    // TODO: Implement
+    return false;
+}
+
+void Platform::MP_DeInit() {
+    // TODO: Implement
+}
+
+void Platform::MP_Begin() {
+    // TODO: Implement
+}
+
+void Platform::MP_End() {
+    // TODO: Implement
+}
+
+int Platform::MP_SendPacket(u8 *data, int len, u64 timestamp) {
+    // TODO: Implement
+    return 0;
+}
+
+int Platform::MP_RecvPacket(u8 *data, u64 *timestamp) {
+    // TODO: Implement
+    return 0;
+}
+
+int Platform::MP_SendCmd(u8 *data, int len, u64 timestamp) {
+    // TODO: Implement
+    return 0;
+}
+
+int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid) {
+    // TODO: Implement
+    return 0;
+}
+
+int Platform::MP_SendAck(u8 *data, int len, u64 timestamp) {
+    // TODO: Implement
+    return 0;
+}
+
+int Platform::MP_RecvHostPacket(u8 *data, u64 *timestamp) {
+    // TODO: Implement
+    return 0;
+
+}
+
+u16 Platform::MP_RecvReplies(u8 *data, u64 timestamp, u16 aidmask) {
+    // TODO: Implement
+    return 0;
+}

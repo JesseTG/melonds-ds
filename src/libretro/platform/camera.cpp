@@ -15,27 +15,15 @@
 */
 
 #include <Platform.h>
-#include <net/net_socket.h>
 
-bool Platform::LAN_Init()
-{
-    // TODO: Implement
-    return false;
-}
-
-void Platform::LAN_DeInit()
-{
+void Platform::Camera_Start(int num) {
     // TODO: Implement
 }
 
-int Platform::LAN_SendPacket(u8* data, int len)
-{
+void Platform::Camera_Stop(int num) {
     // TODO: Implement
-    return 0;
 }
 
-int Platform::LAN_RecvPacket(u8* data)
-{
+void Platform::Camera_CaptureFrame(int num, u32 *frame, int width, int height, bool yuv) {
     // TODO: Implement
-    return 0;
 }

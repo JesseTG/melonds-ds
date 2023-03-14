@@ -9,11 +9,13 @@ add_library(libretro MODULE
     input.cpp
     libretro.cpp
     memory.cpp
+    platform/camera.cpp
     platform/config.cpp
     platform/file.cpp
     platform/lan.cpp
     platform/mp.cpp
     platform/mutex.cpp
+    platform/platform.cpp
     platform/semaphore.cpp
     platform/thread.cpp
     screenlayout.cpp
