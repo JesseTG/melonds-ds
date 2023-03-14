@@ -76,6 +76,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
         melonds::_save_directory = dir;
 
+    Platform::Init(0, nullptr);
     melonds::init_savestate_buffer();
     // ScreenLayoutData is initialized in its constructor
 }
@@ -264,6 +265,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_base_directory.clear();
     melonds::_save_directory.clear();
     melonds::free_savestate_buffer();
+    Platform::DeInit();
 }
 
 PUBLIC_SYMBOL unsigned retro_api_version(void) {
