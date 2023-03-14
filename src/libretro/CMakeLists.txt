@@ -9,13 +9,16 @@ add_library(libretro MODULE
     input.cpp
     libretro.cpp
     memory.cpp
-    opengl.cpp
     platform/mutex.cpp
     platform/semaphore.cpp
     platform/thread.cpp
     platform/config.cpp
     screenlayout.cpp
     platform/file.cpp)
+
+if (HAVE_OPENGL)
+    target_sources(libretro PRIVATE opengl.cpp)
+endif()
 
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
