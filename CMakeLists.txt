@@ -86,7 +86,29 @@ if (ENABLE_OGLRENDERER)
     find_package(OpenGL)
 
     if (OpenGL_OpenGL_FOUND)
+        # Upstream melonDS uses GLAD to load OpenGL, but we want to use libretro's loader.
+        # So instead of patching melonDS, let's change how it's compiled.
         set(HAVE_OPENGL ON)
+        file(GLOB melonDS_cpp_sources ${melonDS_SOURCE_DIR}/src/*.cpp)
+        # Get all C++ source files within melonDS' main directory.
+        # Need to specify C++ files because melonDS uses assembly,
+        # which chokes if the glsym headers are included.
+
+        # Now ensure that melonDS can find libretro's headers...
+        target_include_directories(core SYSTEM PRIVATE "${libretro-common_SOURCE_DIR}/include")
+
+        # ...and that the #defines that libretro needs here are provided.
+        # Also, that the header that includes GLAD is *excluded* (PLATFORMOGL_H).
+        target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED)
+
+        # Now let's include the relevant headers before each melonDS C++ source file.
+        set_source_files_properties(
+            ${melonDS_cpp_sources}
+            TARGET_DIRECTORY
+            core
+            PROPERTIES
+            COMPILE_OPTIONS "-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
+        # TODO: Adapt for GLES2 and GLES3
     endif ()
 endif ()
 
