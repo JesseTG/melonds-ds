@@ -56,16 +56,15 @@ namespace melonds {
     static bool load_game(unsigned type, const struct retro_game_info *info);
 
     static void render_software();
-
-    const std::string &base_directory() {
-        return _base_directory;
-    }
-
-    const std::string &save_directory() {
-        return _save_directory;
-    }
 }
 
+const std::string &retro::base_directory() {
+    return melonds::_base_directory;
+}
+
+const std::string &retro::save_directory() {
+    return melonds::_save_directory;
+}
 
 PUBLIC_SYMBOL void retro_init(void) {
     const char *dir = nullptr;
