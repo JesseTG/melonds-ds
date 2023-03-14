@@ -31,8 +31,12 @@ if (HAVE_THREADS)
 endif()
 
 if (HAVE_OPENGL)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED PLATFORMOGL_H)
-endif()
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER PLATFORMOGL_H)
+    if (APPLE)
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-framework,OpenGL")
+    endif ()
+    target_link_libraries(libretro PUBLIC OpenGL::GL)
+endif ()
 
 target_compile_definitions(libretro PUBLIC JIT_ENABLED) # TODO: Disable on certain platforms
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")

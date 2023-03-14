@@ -75,4 +75,16 @@ if (NOT HAVE_STRL)
 else ()
     target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
 endif ()
+
+if (HAVE_OPENGL)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/glsm/glsm.c
+        ${libretro-common_SOURCE_DIR}/glsym/rglgen.c
+        ${libretro-common_SOURCE_DIR}/glsym/glsym_gl.c
+        )
+
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED CORE)
+    target_link_libraries(libretro-common PUBLIC OpenGL::GL)
+endif ()
+
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")

@@ -82,7 +82,13 @@ if (ENABLE_THREADS)
     endif()
 endif()
 
+if (ENABLE_OGLRENDERER)
+    find_package(OpenGL)
 
+    if (OpenGL_OpenGL_FOUND)
+        set(HAVE_OPENGL ON)
+    endif ()
+endif ()
 
 include(cmake/libretro-common.cmake)
 
