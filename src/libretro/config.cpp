@@ -46,6 +46,8 @@ namespace Config {
     [[maybe_unused]] bool JIT_FastMemory;
 #endif
 
+    [[maybe_unused]] bool ExternalBIOSEnable;
+
     [[maybe_unused]] std::string BIOS9Path;
     [[maybe_unused]] std::string BIOS7Path;
     [[maybe_unused]] std::string FirmwarePath;
@@ -55,12 +57,28 @@ namespace Config {
     [[maybe_unused]] std::string DSiFirmwarePath;
     [[maybe_unused]] std::string DSiNANDPath;
 
+    [[maybe_unused]] bool DLDIEnable;
+    [[maybe_unused]] std::string DLDISDPath;
+    [[maybe_unused]] int DLDISize;
+    [[maybe_unused]] bool DLDIReadOnly;
+    [[maybe_unused]] bool DLDIFolderSync;
+    [[maybe_unused]] std::string DLDIFolderPath;
+
     [[maybe_unused]] bool DSiSDEnable;
     [[maybe_unused]] std::string DSiSDPath;
+    [[maybe_unused]] int DSiSDSize;
+    [[maybe_unused]] bool DSiSDReadOnly;
+    [[maybe_unused]] bool DSiSDFolderSync;
+    [[maybe_unused]] std::string DSiSDFolderPath;
 
     [[maybe_unused]] bool FirmwareOverrideSettings;
     [[maybe_unused]] std::string FirmwareUsername;
     [[maybe_unused]] int FirmwareLanguage;
+    [[maybe_unused]] int FirmwareBirthdayMonth;
+    [[maybe_unused]] int FirmwareBirthdayDay;
+    [[maybe_unused]] int FirmwareFavouriteColour;
+    [[maybe_unused]] std::string FirmwareMessage;
+    [[maybe_unused]] std::string FirmwareMAC;
 
     int AudioInterp;
     [[maybe_unused]] int AudioBitrate;
