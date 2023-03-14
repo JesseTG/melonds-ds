@@ -79,8 +79,8 @@ if (ENABLE_THREADS)
 
     if (Threads_FOUND)
         set(HAVE_THREADS ON)
-    endif()
-endif()
+    endif ()
+endif ()
 
 if (ENABLE_OGLRENDERER)
     find_package(OpenGL)
