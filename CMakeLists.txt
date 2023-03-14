@@ -71,9 +71,23 @@ FetchContent_GetProperties(libretro-common)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${CMAKE_MODULE_PATH}")
 FetchContent_MakeAvailable(melonDS libretro-common)
+
+option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
+
+if (ENABLE_THREADS)
+    find_package(Threads)
+
+    if (Threads_FOUND)
+        set(HAVE_THREADS ON)
+    endif()
+endif()
+
+
+
 include(cmake/libretro-common.cmake)
 
-option(HAVE_THREADS "Build with thread support" ON)
+# TODO: Rename these (but not the accompanying #defines) to ENABLE_xxx
+# TODO: Detect whether these should be set depending on the OS
 option(HAVE_STRL "Build with strlcpy() support" ON)
 
 add_subdirectory(src/libretro)
