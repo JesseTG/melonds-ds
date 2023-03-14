@@ -1,4 +1,4 @@
-set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
@@ -24,7 +24,7 @@ add_library(libretro MODULE
 
 if (HAVE_OPENGL)
     target_sources(libretro PRIVATE opengl.cpp)
-endif()
+endif ()
 
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
@@ -33,11 +33,11 @@ target_include_directories(libretro SYSTEM PUBLIC
 
 if (HAVE_STRL)
     target_compile_definitions(libretro PUBLIC HAVE_STRL)
-endif()
+endif ()
 
 if (HAVE_THREADS)
     target_compile_definitions(libretro PUBLIC HAVE_THREADS)
-endif()
+endif ()
 
 if (HAVE_OPENGL)
     target_compile_definitions(libretro PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER PLATFORMOGL_H)
