@@ -297,7 +297,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
         int64_t save_length = 0;
 
         if (filestream_read_file(Config::SaveFilePath.c_str(), &save_data, &save_length)) {
-            retro::log(RETRO_LOG_INFO, "Loaded save file from %s", Config::SaveFilePath.c_str());
+            retro::log(RETRO_LOG_INFO, "Loaded %d-byte save file from %s", save_length, Config::SaveFilePath.c_str());
 
             NDS::LoadSave(static_cast<const uint8_t *>(save_data), save_length);
             free(save_data);
@@ -404,7 +404,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         int64_t save_length = 0;
 
         if (filestream_read_file(Config::SaveFilePath.c_str(), &save_data, &save_length)) {
-            retro::log(RETRO_LOG_INFO, "Loaded save file from %s", Config::SaveFilePath.c_str());
+            retro::log(RETRO_LOG_INFO, "Loaded %d-byte save file from %s\n", save_length, Config::SaveFilePath.c_str());
 
             NDS::LoadSave(static_cast<const uint8_t *>(save_data), save_length);
             free(save_data);
