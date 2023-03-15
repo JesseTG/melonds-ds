@@ -35,7 +35,7 @@ namespace retro {
     static retro_audio_sample_batch_t _audio_sample_batch;
     static retro_input_poll_t _input_poll;
     static retro_input_state_t _input_state;
-    struct retro_log_callback _log;
+    static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
 
@@ -83,10 +83,21 @@ namespace retro {
     }
 
     void log(enum retro_log_level level, const char *fmt, ...) {
+        if (fmt == nullptr)
+            return;
+
         va_list va;
         va_start(va, fmt);
-        if (_log.log) {
-            _log.log(level, fmt, va);
+        if (_log) {
+            // We can't pass the va_list directly to the libretro callback,
+            // so we have to construct the string and print that
+            char text[1024];
+            vsnprintf(text, sizeof(text), fmt, va);
+            size_t text_length = strlen(text);
+            if (text[text_length - 1] == '\n')
+                text[text_length - 1] = '\0';
+
+            _log(level, "%s\n", text);
         } else {
             vfprintf(stderr, fmt, va);
         }
@@ -109,8 +120,14 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
 
     environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *) melonds::content_overrides);
-    environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &retro::_log);
     environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *) melonds::ports);
+
+    retro_log_callback log_callback = {nullptr};
+    if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
+        retro::_log = log_callback.log;
+    } else {
+        retro::_log = nullptr;
+    }
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
 
