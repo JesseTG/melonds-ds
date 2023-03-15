@@ -50,8 +50,7 @@ namespace retro {
     int16_t input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
         if (_input_state) {
             return _input_state(port, device, index, id);
-        }
-        else {
+        } else {
             return 0;
         }
     }
@@ -62,22 +61,16 @@ namespace retro {
         }
     }
 
-    size_t audio_sample_batch(const int16_t *data, size_t frames)
-    {
-        if (_audio_sample_batch)
-        {
+    size_t audio_sample_batch(const int16_t *data, size_t frames) {
+        if (_audio_sample_batch) {
             return _audio_sample_batch(data, frames);
-        }
-        else
-        {
+        } else {
             return 0;
         }
     }
 
-    void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch)
-    {
-        if (_video_refresh)
-        {
+    void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch) {
+        if (_video_refresh) {
             _video_refresh(data, width, height, pitch);
         }
     }
