@@ -24,9 +24,6 @@ namespace melonds::opengl {
 
     void deinitialize();
 
-    /// Returns true if OpenGL is configured to be used \em and is actively being used.
-    bool using_opengl();
-
     void render_frame(bool software);
 }
 #endif //MELONDS_DS_OPENGL_HPP

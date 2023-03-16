@@ -29,18 +29,21 @@
 #include "environment.hpp"
 #include "config.hpp"
 
-melonds::CurrentRenderer current_renderer = melonds::CurrentRenderer::None;
+namespace Config::Retro {
+    bool UsingOpenGl;
+}
 
 namespace melonds::opengl {
-    static bool _using_opengl = false;
     bool refresh_opengl = true;
-    static bool initialized_glsm = false;
     static GLuint shader[3];
     static GLuint screen_framebuffer_texture;
     static float screen_vertices[72];
     static GLuint vao, vbo;
-    static const char *_vertex_shader;
-    static const char *_fragment_shader;
+    struct shaders {
+        // Declared within an anonymous struct so we can initialize them later in the file
+        static const char *_vertex_shader;
+        static const char *_fragment_shader;
+    };
 
     static struct {
         GLfloat uScreenSize[2];
@@ -61,11 +64,6 @@ namespace melonds::opengl {
     static void setup_opengl_frame_state();
 }
 
-
-bool melonds::opengl::using_opengl() {
-    return _using_opengl;
-}
-
 bool melonds::opengl::initialize() {
     glsm_ctx_params_t params = {nullptr};
 
@@ -81,10 +79,8 @@ bool melonds::opengl::initialize() {
 
     if (!glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params)) {
         retro::log(RETRO_LOG_ERROR, "Could not setup opengl context, falling back to software rasterization.\n");
-        _using_opengl = false;
         return false;
     }
-
 
     return true;
 }
@@ -169,7 +165,7 @@ void melonds::opengl::deinitialize() {
 }
 
 static void melonds::opengl::context_reset() {
-    if (_using_opengl)
+    if (Config::Retro::UsingOpenGl)
         GPU::DeInitRenderer();
 
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
@@ -180,12 +176,11 @@ static void melonds::opengl::context_reset() {
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     setup_opengl();
 
-    if (_using_opengl)
+    if (Config::Retro::UsingOpenGl)
         GPU::InitRenderer(true);
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-    initialized_glsm = true;
-    _using_opengl = true;
+    Config::Retro::UsingOpenGl = true;
 }
 
 static void melonds::opengl::context_destroy() {
@@ -197,14 +192,12 @@ static void melonds::opengl::context_destroy() {
 
     OpenGL::DeleteShaderProgram(shader);
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
-
-    initialized_glsm = false;
 }
 
 static bool melonds::opengl::setup_opengl() {
     GPU::InitRenderer(true);
 
-    if (!OpenGL::BuildShaderProgram(_vertex_shader, _fragment_shader, shader, "LibretroShader"))
+    if (!OpenGL::BuildShaderProgram(shaders::_vertex_shader, shaders::_fragment_shader, shader, "LibretroShader"))
         return false;
 
     glBindAttribLocation(shader[2], 0, "vPosition");
@@ -460,7 +453,8 @@ static bool melonds::opengl::context_framebuffer_lock(void *data) {
     return false;
 }
 
-static const char *_vertex_shader = R"(#version 140
+// TODO: Store in a .glsl file, but use CMake to embed it
+const char *melonds::opengl::shaders::_vertex_shader = R"(#version 140
 layout(std140) uniform uConfig
 {
     vec2 uScreenSize;
@@ -483,7 +477,8 @@ void main()
 }
 )";
 
-static const char *_fragment_shader = R"(#version 140
+// TODO: Store in a .glsl file, but use CMake to embed it
+const char *melonds::opengl::shaders::_fragment_shader = R"(#version 140
 layout(std140) uniform uConfig
 {
     vec2 uScreenSize;

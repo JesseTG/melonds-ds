@@ -43,16 +43,11 @@ namespace melonds {
         Toggle,
     };
 
-    enum RendererType {
-        Software,
-        OpenGl,
-    };
-
     enum class CurrentRenderer
     {
         None,
         Software,
-        OpenGLRenderer,
+        OpenGl,
     };
 
     GPU::RenderSettings &render_settings();
@@ -62,6 +57,7 @@ namespace melonds {
 namespace Config::Retro {
     extern bool MicButtonRequired;
     extern bool RandomizeMac;
+    extern bool UsingOpenGl;
     extern melonds::ScreenSwapMode ScreenSwapMode;
     extern melonds::CurrentRenderer CurrentRenderer;
 }

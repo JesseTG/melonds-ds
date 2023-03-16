@@ -99,7 +99,6 @@ namespace melonds::config {
     static bool _show_opengl_options = true;
     static bool _show_hybrid_options = true;
     static GPU::RenderSettings _render_settings;
-    static melonds::RendererType _renderer_type = melonds::RendererType::OpenGl;
 
 #ifdef JIT_ENABLED
     static bool _show_jit_options = true;
@@ -321,17 +320,20 @@ void melonds::check_variables(bool init) {
 
     // TODO: Fix the OpenGL software only render impl so you can switch at runtime
     if (init) {
+        // If we're initializing the game...
         var.key = "melonds_opengl_renderer";
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
             Config::ScreenUseGL = string_is_equal(var.value, "enabled");
 
-            if (!init && melonds::opengl::using_opengl())
-                Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGLRenderer : CurrentRenderer::Software;
+            if (!init && Config::Retro::UsingOpenGl)
+                Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGl : CurrentRenderer::Software;
         }
     }
 
-    // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
-    if (config::_renderer_type == RendererType::OpenGl) config::_render_settings.Soft_Threaded = false;
+    if (Config::ScreenUseGL) {
+        // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
+        config::_render_settings.Soft_Threaded = false;
+    }
 
     var.key = "melonds_opengl_resolution";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
@@ -361,7 +363,7 @@ void melonds::check_variables(bool init) {
         Config::ScreenFilter = string_is_equal(var.value, "linear");
     }
 
-    if ((config::_renderer_type == RendererType::OpenGl && gl_settings_changed) || layout != current_screen_layout())
+    if ((Config::Retro::UsingOpenGl && gl_settings_changed) || layout != current_screen_layout())
         melonds::opengl::refresh_opengl = true;
 #endif
 
