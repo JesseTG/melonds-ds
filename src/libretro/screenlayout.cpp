@@ -107,12 +107,12 @@ void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
 
     uint32_t scale = displayed_layout == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
 
-    uint32_t start_y = std::clamp(y - cursor_size(), 0u, screen_height) * scale;
-    uint32_t end_y = std::clamp(y + cursor_size(), 0u, screen_height) * scale;
+    uint32_t start_y = std::clamp<float>(y - Config::Retro::CursorSize, 0, screen_height) * scale;
+    uint32_t end_y = std::clamp<float>(y + Config::Retro::CursorSize, 0, screen_height) * scale;
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp(x - cursor_size(), 0u, screen_width) * scale;
-        uint32_t end_x = std::clamp(x + cursor_size(), 0u, screen_width) * scale;
+        uint32_t start_x = std::clamp<float>(x - Config::Retro::CursorSize, 0, screen_width) * scale;
+        uint32_t end_x = std::clamp<float>(x + Config::Retro::CursorSize, 0, screen_width) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
             uint32_t *offset = base_offset + ((y + touch_offset_y) * buffer_width) + ((x + touch_offset_x));

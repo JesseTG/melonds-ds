@@ -91,11 +91,11 @@ namespace Config {
         bool RandomizeMac = false;
         melonds::ScreenSwapMode ScreenSwapMode;
         melonds::CurrentRenderer CurrentRenderer;
+        float CursorSize = 2.0;
     }
 }
 
 namespace melonds::config {
-    static unsigned _cursor_size = 2; // TODO: Make configurable
     static bool _show_opengl_options = true;
     static bool _show_hybrid_options = true;
     static GPU::RenderSettings _render_settings;

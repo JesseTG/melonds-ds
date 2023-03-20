@@ -102,14 +102,14 @@ void melonds::opengl::render_frame(bool software) {
     }
 
     if (virtual_cursor) {
-        GL_ShaderConfig.cursorPos[0] = (((float) (input_state.touch_x) - (float) cursor_size()) /
+        GL_ShaderConfig.cursorPos[0] = (((float) (input_state.touch_x) - Config::Retro::CursorSize) /
                                         (VIDEO_HEIGHT * 1.35f));
         GL_ShaderConfig.cursorPos[1] =
-                (((float) (input_state.touch_y) - (float) cursor_size()) / (VIDEO_WIDTH * 1.5f)) + 0.5f;
-        GL_ShaderConfig.cursorPos[2] = (((float) (input_state.touch_x) + (float) cursor_size()) /
+                (((float) (input_state.touch_y) - Config::Retro::CursorSize) / (VIDEO_WIDTH * 1.5f)) + 0.5f;
+        GL_ShaderConfig.cursorPos[2] = (((float) (input_state.touch_x) + Config::Retro::CursorSize) /
                                         (VIDEO_HEIGHT * 1.35f));
         GL_ShaderConfig.cursorPos[3] =
-                (((float) (input_state.touch_y) + (float) cursor_size()) / ((float) VIDEO_WIDTH * 1.5f)) + 0.5f;
+                (((float) (input_state.touch_y) + Config::Retro::CursorSize) / ((float) VIDEO_WIDTH * 1.5f)) + 0.5f;
 
         glBindBuffer(GL_UNIFORM_BUFFER, ubo);
         void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);

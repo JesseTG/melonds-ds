@@ -58,6 +58,7 @@ namespace Config::Retro {
     extern bool MicButtonRequired;
     extern bool RandomizeMac;
     extern bool UsingOpenGl;
+    extern float CursorSize;
     extern melonds::ScreenSwapMode ScreenSwapMode;
     extern melonds::CurrentRenderer CurrentRenderer;
 }
