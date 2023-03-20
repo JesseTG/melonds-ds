@@ -49,9 +49,6 @@ namespace melonds {
         Software,
         OpenGl,
     };
-
-    GPU::RenderSettings &render_settings();
-    unsigned cursor_size();
 }
 
 namespace Config::Retro {
@@ -61,6 +58,8 @@ namespace Config::Retro {
     extern float CursorSize;
     extern melonds::ScreenSwapMode ScreenSwapMode;
     extern melonds::CurrentRenderer CurrentRenderer;
+
+    GPU::RenderSettings RenderSettings();
 }
 
 #endif //MELONDS_DS_CONFIG_HPP

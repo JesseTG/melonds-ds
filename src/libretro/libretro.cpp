@@ -391,7 +391,8 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     Config::SaveFilePath = _save_directory + PLATFORM_DIR_SEPERATOR + std::string(game_name) + ".sav";
 
     GPU::InitRenderer(false);
-    GPU::SetRenderSettings(false, melonds::render_settings());
+    GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
+    GPU::SetRenderSettings(false, render_settings);
     SPU::SetInterpolation(Config::AudioInterp);
     NDS::SetConsoleType(Config::ConsoleType);
     NDS::LoadBIOS();

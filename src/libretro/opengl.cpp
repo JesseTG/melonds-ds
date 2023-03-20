@@ -251,12 +251,12 @@ static bool melonds::opengl::setup_opengl() {
 void melonds::opengl::setup_opengl_frame_state(void) {
 
     refresh_opengl = false;
-
-    GPU::SetRenderSettings(true, render_settings());
+    GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
+    GPU::SetRenderSettings(true, render_settings);
 
     GL_ShaderConfig.uScreenSize[0] = (float) screen_layout_data.buffer_width;
     GL_ShaderConfig.uScreenSize[1] = (float) screen_layout_data.buffer_height;
-    GL_ShaderConfig.u3DScale = (float) render_settings().GL_ScaleFactor;
+    GL_ShaderConfig.u3DScale = Config::GL_ScaleFactor;
     GL_ShaderConfig.cursorPos[0] = -1.0f;
     GL_ShaderConfig.cursorPos[1] = -1.0f;
     GL_ShaderConfig.cursorPos[2] = -1.0f;

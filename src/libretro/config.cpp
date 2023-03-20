@@ -31,6 +31,7 @@ namespace Config {
 
     bool ScreenUseGL;
     int _3DRenderer;
+    bool Threaded3D;
 
     int GL_ScaleFactor;
     bool GL_BetterPolygons;
@@ -105,12 +106,12 @@ namespace melonds::config {
 #endif
 }
 
-unsigned melonds::cursor_size() {
-    return config::_cursor_size;
-}
-
-GPU::RenderSettings &melonds::render_settings() {
-    return config::_render_settings;
+GPU::RenderSettings Config::Retro::RenderSettings() {
+    return GPU::RenderSettings {
+        .Soft_Threaded = !Config::Threaded3D,
+        .GL_ScaleFactor = Config::GL_ScaleFactor,
+        .GL_BetterPolygons = Config::GL_BetterPolygons,
+    };
 }
 
 bool melonds::update_option_visibility() {
@@ -298,7 +299,7 @@ void melonds::check_variables(bool init) {
 #ifdef HAVE_THREADS
     var.key = "melonds_threaded_renderer";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        config::_render_settings.Soft_Threaded = string_is_equal(var.value, "enabled");
+        Config::Threaded3D = string_is_equal(var.value, "enabled");
     }
 #endif
 
