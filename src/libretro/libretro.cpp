@@ -390,12 +390,16 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
     Config::SaveFilePath = _save_directory + PLATFORM_DIR_SEPERATOR + std::string(game_name) + ".sav";
 
+    // GPU config must be initialized before NDS::Reset is called
     GPU::InitRenderer(false);
     GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
     GPU::SetRenderSettings(false, render_settings);
     SPU::SetInterpolation(Config::AudioInterp);
     NDS::SetConsoleType(Config::ConsoleType);
-    NDS::LoadBIOS();
+
+    NDS::Reset(); // Loads the BIOS, too
+
+    // The ROM and save data must be loaded after NDS::Reset is called
 
     if (!NDSCart::LoadROM((const uint8_t *) info->data, info->size)) {
         retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
@@ -440,6 +444,12 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
             }
         }
     }
+
+    if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
+        NDS::SetupDirectBoot(game_name);
+    }
+
+    NDS::Start();
 
 //    micInterface.interface_version = RETRO_MICROPHONE_INTERFACE_VERSION;
 //    if (environ_cb(RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE, &micInterface))
