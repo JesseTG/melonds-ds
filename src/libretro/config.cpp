@@ -48,7 +48,8 @@ namespace Config {
     [[maybe_unused]] bool JIT_FastMemory;
 #endif
 
-    [[maybe_unused]] bool ExternalBIOSEnable;
+    // TODO: Make configurable
+    [[maybe_unused]] bool ExternalBIOSEnable = true;
 
     [[maybe_unused]] std::string BIOS9Path;
     [[maybe_unused]] std::string BIOS7Path;
