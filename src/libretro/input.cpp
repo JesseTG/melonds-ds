@@ -94,6 +94,7 @@ void melonds::update_input(InputState &state) {
     if (lid_closed_btn != state.lid_closed) {
         NDS::SetLidClosed(lid_closed_btn);
         state.lid_closed = lid_closed_btn;
+        retro::log(RETRO_LOG_DEBUG, "%s the lid", state.lid_closed ? "Closed" : "Opened");
     }
 
     state.previous_holding_noise_btn = state.holding_noise_btn;
