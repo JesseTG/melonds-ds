@@ -123,6 +123,11 @@ namespace Config {
             static const char *const USE_FIRMWARE_LANGUAGE = "melonds_use_fw_settings";
             static const char *const LANGUAGE = "melonds_language";
         }
+
+        namespace Values {
+            static const char *const DISABLED = "disabled";
+            static const char *const ENABLED = "enabled";
+        }
     }
 }
 
@@ -158,7 +163,7 @@ bool melonds::update_option_visibility() {
 
     _show_opengl_options = true;
     var.key = Keys::OPENGL_RENDERER;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, "disabled"))
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, Values::DISABLED))
         _show_opengl_options = false;
 
     if (_show_opengl_options != show_opengl_options_prev) {
@@ -206,7 +211,7 @@ bool melonds::update_option_visibility() {
 
     _show_jit_options = true;
     var.key = Keys::JIT_ENABLE;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, "disabled"))
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, Values::DISABLED))
         _show_jit_options = false;
 
     if (_show_jit_options != jit_options_prev) {
@@ -252,7 +257,7 @@ void melonds::check_variables(bool init) {
 
     var.key = Keys::BOOT_DIRECTLY;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::DirectBoot = string_is_equal(var.value, "enabled");
+        Config::DirectBoot = string_is_equal(var.value, Values::ENABLED);
     }
 
     // TODO: Use standard melonDS config settings
@@ -322,13 +327,13 @@ void melonds::check_variables(bool init) {
 
     var.key = Keys::RANDOMIZE_MAC_ADDRESS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::Retro::RandomizeMac = string_is_equal(var.value, "enabled");
+        Config::Retro::RandomizeMac = string_is_equal(var.value, Values::ENABLED);
     }
 
 #ifdef HAVE_THREADS
     var.key = Keys::THREADED_RENDERER;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::Threaded3D = string_is_equal(var.value, "enabled");
+        Config::Threaded3D = string_is_equal(var.value, Values::ENABLED);
     }
 #endif
 
@@ -353,10 +358,11 @@ void melonds::check_variables(bool init) {
         // If we're initializing the game...
         var.key = Keys::OPENGL_RENDERER;
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-            Config::ScreenUseGL = string_is_equal(var.value, "enabled");
+            Config::ScreenUseGL = string_is_equal(var.value, Values::ENABLED);
 
             if (Config::Retro::UsingOpenGl)
-                Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGl : CurrentRenderer::Software;
+                Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGl
+                                                                     : CurrentRenderer::Software;
         }
     }
 
@@ -381,7 +387,7 @@ void melonds::check_variables(bool init) {
 
     var.key = Keys::OPENGL_BETTER_POLYGONS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        bool enabled = string_is_equal(var.value, "enabled");
+        bool enabled = string_is_equal(var.value, Values::ENABLED);
         gl_settings_changed |= enabled != Config::GL_BetterPolygons;
 
         Config::GL_BetterPolygons = enabled;
@@ -400,7 +406,7 @@ void melonds::check_variables(bool init) {
 #ifdef JIT_ENABLED
     var.key = Keys::JIT_ENABLE;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_Enable = string_is_equal(var.value, "enabled");
+        Config::JIT_Enable = string_is_equal(var.value, Values::ENABLED);
     }
 
     var.key = Keys::JIT_BLOCK_SIZE;
@@ -410,23 +416,23 @@ void melonds::check_variables(bool init) {
 
     var.key = Keys::JIT_BRANCH_OPTIMISATIONS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_BranchOptimisations = (string_is_equal(var.value, "enabled"));
+        Config::JIT_BranchOptimisations = (string_is_equal(var.value, Values::ENABLED));
     }
 
     var.key = Keys::JIT_LITERAL_OPTIMISATIONS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_LiteralOptimisations = string_is_equal(var.value, "enabled");
+        Config::JIT_LiteralOptimisations = string_is_equal(var.value, Values::ENABLED);
     }
 
     var.key = Keys::JIT_FAST_MEMORY;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::JIT_FastMemory = string_is_equal(var.value, "enabled");
+        Config::JIT_FastMemory = string_is_equal(var.value, Values::ENABLED);
     }
 #endif
 
     var.key = Keys::DSI_SDCARD;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::DSiSDEnable = string_is_equal(var.value, "enabled");
+        Config::DSiSDEnable = string_is_equal(var.value, Values::ENABLED);
     }
 
     var.key = Keys::MIC_INPUT;
@@ -483,7 +489,7 @@ void melonds::check_variables(bool init) {
 
     var.key = Keys::USE_FIRMWARE_LANGUAGE;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "disabled"))
+        if (string_is_equal(var.value, Values::DISABLED))
             Config::FirmwareOverrideSettings = true;
         else
             Config::FirmwareOverrideSettings = false;
@@ -568,11 +574,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "system",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "enabled"
+                Config::Retro::Values::ENABLED
         },
         {
                 Config::Retro::Keys::USE_FIRMWARE_LANGUAGE,
@@ -582,11 +588,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "system",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "disabled"
+                Config::Retro::Values::DISABLED
         },
         {
                 Config::Retro::Keys::LANGUAGE,
@@ -614,11 +620,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "system",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "disabled"
+                Config::Retro::Values::DISABLED
         },
         {
                 Config::Retro::Keys::DSI_SDCARD,
@@ -628,11 +634,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "system",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "disabled"
+                Config::Retro::Values::DISABLED
         },
 #ifdef HAVE_THREADS
         {
@@ -643,11 +649,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "video",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "disabled"
+                Config::Retro::Values::DISABLED
         },
 #endif
 #ifdef HAVE_OPENGL
@@ -659,11 +665,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "video",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "disabled"
+                Config::Retro::Values::DISABLED
         },
         {
                 Config::Retro::Keys::OPENGL_RESOLUTION,
@@ -693,11 +699,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "video",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "disabled"
+                Config::Retro::Values::DISABLED
         },
         {
                 Config::Retro::Keys::OPENGL_FILTERING,
@@ -786,7 +792,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                         {"Mouse", nullptr},
                         {"Touch", nullptr},
                         {"Joystick", nullptr},
-                        {"disabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
                         {nullptr, nullptr},
                 },
                 "Mouse"
@@ -1004,11 +1010,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "cpu",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "enabled"
+                Config::Retro::Values::ENABLED
         },
         {
                 Config::Retro::Keys::JIT_BLOCK_SIZE,
@@ -1062,11 +1068,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "cpu",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "enabled"
+                Config::Retro::Values::ENABLED
         },
         {
                 Config::Retro::Keys::JIT_LITERAL_OPTIMISATIONS,
@@ -1076,11 +1082,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "cpu",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "enabled"
+                Config::Retro::Values::ENABLED
         },
         {
                 Config::Retro::Keys::JIT_FAST_MEMORY,
@@ -1090,11 +1096,11 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "cpu",
                 {
-                        {"disabled", nullptr},
-                        {"enabled", nullptr},
+                        {Config::Retro::Values::DISABLED, nullptr},
+                        {Config::Retro::Values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
-                "enabled"
+                Config::Retro::Values::ENABLED
         },
 #endif
         {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{0}}, nullptr},
