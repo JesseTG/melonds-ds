@@ -220,10 +220,7 @@ void melonds::check_variables(bool init) {
 
     var.key = "melonds_boot_directly";
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "disabled"))
-            Config::DirectBoot = false;
-        else
-            Config::DirectBoot = true;
+        Config::DirectBoot = string_is_equal(var.value, "enabled");
     }
 
     // TODO: Use standard melonDS config settings
@@ -326,7 +323,7 @@ void melonds::check_variables(bool init) {
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
             Config::ScreenUseGL = string_is_equal(var.value, "enabled");
 
-            if (!init && Config::Retro::UsingOpenGl)
+            if (Config::Retro::UsingOpenGl)
                 Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGl : CurrentRenderer::Software;
         }
     }
