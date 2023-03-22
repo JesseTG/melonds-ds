@@ -30,6 +30,7 @@ namespace Config {
     bool ScreenFilter;
 
     bool ScreenUseGL;
+
     int _3DRenderer;
     bool Threaded3D;
 
@@ -142,10 +143,10 @@ namespace melonds::config {
 }
 
 GPU::RenderSettings Config::Retro::RenderSettings() {
-    return GPU::RenderSettings {
-        .Soft_Threaded = !Config::Threaded3D,
-        .GL_ScaleFactor = Config::GL_ScaleFactor,
-        .GL_BetterPolygons = Config::GL_BetterPolygons,
+    return GPU::RenderSettings{
+            .Soft_Threaded = !Config::Threaded3D,
+            .GL_ScaleFactor = Config::GL_ScaleFactor,
+            .GL_BetterPolygons = Config::GL_BetterPolygons,
     };
 }
 
@@ -1115,7 +1116,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Values::ENABLED
         },
 #endif
-        {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{0}}, nullptr},
+        {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{nullptr}}, nullptr},
 };
 
 
