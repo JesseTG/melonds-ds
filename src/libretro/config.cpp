@@ -94,9 +94,8 @@ namespace Config {
         melonds::ScreenSwapMode ScreenSwapMode;
         melonds::CurrentRenderer CurrentRenderer;
         float CursorSize = 2.0;
-        
-        namespace Keys
-        {
+
+        namespace Keys {
             static const char *const OPENGL_RENDERER = "melonds_opengl_renderer";
             static const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
             static const char *const THREADED_RENDERER = "melonds_threaded_renderer";
