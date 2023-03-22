@@ -49,6 +49,17 @@ namespace melonds {
         Software,
         OpenGl,
     };
+
+    /// The order of these values is important.
+    enum class FirmwareLanguage
+    {
+        Japanese,
+        English,
+        French,
+        German,
+        Italian,
+        Spanish,
+    };
 }
 
 namespace Config::Retro {
