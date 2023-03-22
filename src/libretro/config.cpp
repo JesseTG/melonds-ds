@@ -556,7 +556,8 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::CONSOLE_MODE,
                 "Console Mode",
                 nullptr,
-                "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. Some features may not be available in DSi mode.",
+                "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
+                "Some features may not be available in DSi mode.",
                 nullptr,
                 "system",
                 {
@@ -570,7 +571,10 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::BOOT_DIRECTLY,
                 "Boot Game Directly",
                 nullptr,
-                "Whether melonDS should directly boot the game or enter the DS menu beforehand. If disabled, compatible BIOS and firmware files must be provided in the system directory.",
+                "Whether melonDS should directly boot the game or enter the DS menu beforehand. "
+                "If disabled, compatible BIOS and firmware files must be provided in the system directory. "
+                "Ignored if the core is loaded without a game, "
+                "or if suitable BIOS/firmware files weren't found.",
                 nullptr,
                 "system",
                 {
@@ -584,7 +588,10 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::USE_FIRMWARE_SETTINGS,
                 "Use Firmware Settings",
                 nullptr,
-                "Use language and username specified in the DS firmware, rather than those provided by the frontend. If disabled or the firmware is unavailable, these values will be provided by the frontend. If a name couldn't be found, \"melonDS\" will be used as the default.",
+                "Use language and username specified in the DS firmware, "
+                "rather than those provided by the frontend. "
+                "If disabled or the firmware is unavailable, these values will be provided by the frontend. "
+                "If a name couldn't be found, \"melonDS\" will be used as the default.",
                 nullptr,
                 "system",
                 {
@@ -598,7 +605,10 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::LANGUAGE,
                 "Language",
                 nullptr,
-                "Selected language will be used if 'Use Firmware Settings' is disabled or if firmware file was not found.",
+                "The language mode of the emulated DS. "
+                "Ignored if 'Use Firmware Settings' is enabled or if no valid firmware file was found. "
+                "Not every game honors this setting. "
+                "'Default' uses the frontend's language if supported by the DS, or English if not.",
                 nullptr,
                 "system",
                 {
@@ -1006,7 +1016,9 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::JIT_ENABLE,
                 "JIT Enable (Restart)",
                 nullptr,
-                nullptr,
+                "Recompiles emulated machine code as it runs. "
+                "Restart required to take effect. "
+                "If unsure, leave enabled.",
                 nullptr,
                 "cpu",
                 {
