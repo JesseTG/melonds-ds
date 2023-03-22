@@ -120,7 +120,7 @@ namespace Config {
             static const char *const MIC_INPUT = "melonds_mic_input";
             static const char *const AUDIO_BITRATE = "melonds_audio_bitrate";
             static const char *const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
-            static const char *const USE_FIRMWARE_LANGUAGE = "melonds_use_fw_settings";
+            static const char *const USE_FIRMWARE_SETTINGS = "melonds_use_fw_settings";
             static const char *const LANGUAGE = "melonds_language";
         }
 
@@ -487,7 +487,7 @@ void melonds::check_variables(bool init) {
             Config::AudioInterp = 0;
     }
 
-    var.key = Keys::USE_FIRMWARE_LANGUAGE;
+    var.key = Keys::USE_FIRMWARE_SETTINGS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         if (string_is_equal(var.value, Values::DISABLED))
             Config::FirmwareOverrideSettings = true;
@@ -581,7 +581,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Values::ENABLED
         },
         {
-                Config::Retro::Keys::USE_FIRMWARE_LANGUAGE,
+                Config::Retro::Keys::USE_FIRMWARE_SETTINGS,
                 "Use Firmware Settings",
                 nullptr,
                 "Use language and username specified in the DS firmware, rather than those provided by the frontend. If disabled or the firmware is unavailable, these values will be provided by the frontend. If a name couldn't be found, \"melonDS\" will be used as the default.",
