@@ -81,6 +81,15 @@ namespace retro {
 
         va_list va;
         va_start(va, fmt);
+        log(level, fmt, va);
+        va_end(va);
+    }
+
+    void log(enum retro_log_level level, const char* fmt, va_list va)
+    {
+        if (fmt == nullptr)
+            return;
+
         if (_log) {
             // We can't pass the va_list directly to the libretro callback,
             // so we have to construct the string and print that
@@ -94,7 +103,6 @@ namespace retro {
         } else {
             vfprintf(stderr, fmt, va);
         }
-        va_end(va);
     }
 
     bool supports_bitmasks() {
@@ -118,8 +126,6 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
         retro::_log = log_callback.log;
-    } else {
-        retro::_log = nullptr;
     }
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);

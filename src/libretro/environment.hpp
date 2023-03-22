@@ -25,6 +25,7 @@ namespace retro {
     bool environment(unsigned cmd, void *data);
 
     void log(enum retro_log_level level, const char *fmt, ...);
+    void log(enum retro_log_level level, const char* fmt, va_list va);
 
     bool supports_bitmasks();
     void input_poll();
