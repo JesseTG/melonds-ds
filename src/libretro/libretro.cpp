@@ -156,8 +156,8 @@ PUBLIC_SYMBOL void retro_run(void) {
         NDS::RunFrame();
     }
 
+    // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
     melonds::render_frame();
-
     melonds::render_audio();
 
     bool updated = false;
