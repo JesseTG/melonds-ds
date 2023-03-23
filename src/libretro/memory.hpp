@@ -17,6 +17,8 @@
 #ifndef MELONDS_DS_MEMORY_HPP
 #define MELONDS_DS_MEMORY_HPP
 
+#include <cstdint>
+
 namespace melonds {
 
 
