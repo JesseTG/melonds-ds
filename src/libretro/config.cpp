@@ -361,7 +361,7 @@ void melonds::check_variables(bool init) {
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
             Config::ScreenUseGL = string_is_equal(var.value, Values::ENABLED);
 
-            if (Config::Retro::UsingOpenGl)
+            if (Config::Retro::RenderContextActive)
                 Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGl
                                                                      : CurrentRenderer::Software;
         }
@@ -400,7 +400,7 @@ void melonds::check_variables(bool init) {
         Config::ScreenFilter = string_is_equal(var.value, "linear");
     }
 
-    if ((Config::Retro::UsingOpenGl && gl_settings_changed) || layout != current_screen_layout())
+    if ((Config::Retro::RenderContextActive && gl_settings_changed) || layout != current_screen_layout())
         melonds::opengl::refresh_opengl = true;
 #endif
 

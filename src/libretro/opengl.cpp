@@ -30,7 +30,7 @@
 #include "config.hpp"
 
 namespace Config::Retro {
-    bool UsingOpenGl;
+    bool RenderContextActive;
 }
 
 namespace melonds::opengl {
@@ -65,6 +65,7 @@ namespace melonds::opengl {
 }
 
 bool melonds::opengl::initialize() {
+    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::initialize()");
     glsm_ctx_params_t params = {nullptr};
 
     // melonds wants an opengl 3.1 context, so glcore is required for mesa compatibility
@@ -160,12 +161,14 @@ void melonds::opengl::render_frame(bool software) {
 
 
 void melonds::opengl::deinitialize() {
+    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::deinitialize()");
     GPU::DeInitRenderer();
     GPU::InitRenderer(false);
 }
 
 static void melonds::opengl::context_reset() {
-    if (Config::Retro::UsingOpenGl)
+    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_reset()");
+    if (Config::Retro::RenderContextActive)
         GPU::DeInitRenderer();
 
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
@@ -176,14 +179,15 @@ static void melonds::opengl::context_reset() {
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     setup_opengl();
 
-    if (Config::Retro::UsingOpenGl)
+    if (Config::Retro::RenderContextActive)
         GPU::InitRenderer(true);
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-    Config::Retro::UsingOpenGl = true;
+    Config::Retro::RenderContextActive = true;
 }
 
 static void melonds::opengl::context_destroy() {
+    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_destroy()");
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     glDeleteTextures(1, &screen_framebuffer_texture);
 
@@ -195,6 +199,7 @@ static void melonds::opengl::context_destroy() {
 }
 
 static bool melonds::opengl::setup_opengl() {
+    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::setup_opengl()");
     GPU::InitRenderer(true);
 
     if (!OpenGL::BuildShaderProgram(shaders::_vertex_shader, shaders::_fragment_shader, shader, "LibretroShader"))
