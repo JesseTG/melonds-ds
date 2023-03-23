@@ -91,11 +91,16 @@ void Platform::Sleep(u64 usecs) {
     sleep_impl(usecs);
 }
 
+/// This function is unused.
+/// Save data is managed by the frontend with \c retro_get_memory_data(RETRO_MEMORY_SAVE_RAM).
 void Platform::WriteNDSSave(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
 {
-    // TODO: Write data to disk
+    retro::log(RETRO_LOG_DEBUG, "Platform::WriteNDSSave(%p, %d, %d, %d)\n", savedata, savelen, writeoffset, writelen);
 }
+
+/// This function is unused.
+/// Save data is managed by the frontend.
 void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
 {
-    // TODO: Write data to disk
+    retro::log(RETRO_LOG_DEBUG, "Platform::WriteGBASave(%p, %d, %d, %d)\n", savedata, savelen, writeoffset, writelen);
 }
