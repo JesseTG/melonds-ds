@@ -54,6 +54,32 @@ std::string Platform::InstanceFileSuffix() {
     return suffix;
 }
 
+static retro_log_level to_retro_log_level(Platform::LogLevel level)
+{
+    switch (level)
+    {
+        case Platform::LogLevel::Debug:
+            return RETRO_LOG_DEBUG;
+        case Platform::LogLevel::Info:
+            return RETRO_LOG_INFO;
+        case Platform::LogLevel::Warn:
+            return RETRO_LOG_WARN;
+        case Platform::LogLevel::Error:
+            return RETRO_LOG_ERROR;
+        default:
+            return RETRO_LOG_WARN;
+    }
+}
+
+void Platform::Log(Platform::LogLevel level, const char* fmt...)
+{
+    retro_log_level retro_level = to_retro_log_level(level);
+    va_list va;
+    va_start(va, fmt);
+    retro::log(retro_level, fmt, va);
+    va_end(va);
+}
+
 /// This function exists to avoid causing potential recursion problems
 /// with \c retro_sleep, as on Windows it delegates to a function named
 /// \c Sleep.
