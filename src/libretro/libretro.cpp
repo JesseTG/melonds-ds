@@ -257,8 +257,8 @@ static void melonds::render_audio() {
     u32 size = std::min(SPU::GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
     // Ensure that we don't overrun the buffer
 
-    SPU::ReadOutput(audio_buffer, size);
-    retro::audio_sample_batch(audio_buffer, size);
+    size_t read = SPU::ReadOutput(audio_buffer, size);
+    retro::audio_sample_batch(audio_buffer, read);
 }
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
