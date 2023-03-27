@@ -169,9 +169,6 @@ PUBLIC_SYMBOL void retro_run(void) {
         retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
         screen_layout_data.clean_screenlayout_buffer();
     }
-
-    //NDSCart_SRAMManager::Flush();
-    // TODO: Flush SRAM to disk, if necessary
 }
 
 static void melonds::render_frame() {
