@@ -14,3 +14,7 @@ cmake-build-*
 
 # JetBrains
 .idea/
+
+# Build System
+artifact
+build
