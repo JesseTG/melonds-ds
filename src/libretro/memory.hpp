@@ -20,7 +20,7 @@
 #include <cstdint>
 
 namespace melonds {
-
+    using std::size_t;
 
     constexpr size_t DEFAULT_SERIALIZE_TEST_SIZE = 16 * 1024 * 1024; // 16 MiB
 
