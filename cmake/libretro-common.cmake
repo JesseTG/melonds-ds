@@ -29,7 +29,6 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/formats/json/rjson.c
     ${libretro-common_SOURCE_DIR}/formats/logiqx_dat/logiqx_dat.c
     ${libretro-common_SOURCE_DIR}/formats/m3u/m3u_file.c
-    #${libretro-common_SOURCE_DIR}/formats/xml/rxml.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/pixconv.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/scaler.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/scaler_filter.c
