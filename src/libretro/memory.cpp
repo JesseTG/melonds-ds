@@ -14,16 +14,21 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include "memory.hpp"
+
+#include <cstring>
 #include <NDS.h>
+#include <NDSCart.h>
 #include <ARCodeFile.h>
 #include <AREngine.h>
-#include <cstring>
+#include <frontend/qt_sdl/Config.h>
 #include <ExternalBufferSavestate.h>
 #include "libretro.hpp"
 #include "environment.hpp"
-#include "memory.hpp"
 #include "config.hpp"
 
+constexpr size_t DS_MEMORY_SIZE = 0x400000;
+constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 
 namespace AREngine {
     extern void RunCheat(ARCode &arcode);
@@ -43,8 +48,6 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
     free(data);
 
     return size;
-
-
 }
 
 PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
