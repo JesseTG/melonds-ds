@@ -86,4 +86,13 @@ if (HAVE_OPENGL)
     target_link_libraries(libretro-common PUBLIC OpenGL::GL)
 endif ()
 
+check_symbol_exists(strlcpy "string.h" HAVE_STRL)
+if (HAVE_STRL)
+    target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
+else ()
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/compat/compat_strldup.c
+    )
+endif ()
+
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")
