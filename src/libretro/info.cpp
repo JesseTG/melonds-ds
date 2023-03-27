@@ -35,8 +35,8 @@ namespace melonds {
     };
 
     const struct retro_subsystem_rom_info slot_1_2_roms[]{
-            {"NDS Rom (Slot 1)", "nds", false, false, true, nds_memory, 0},
-            {"GBA Rom (Slot 2)", "gba", false, false, true, gba_memory, 1},
+            {"Nintendo DS (Slot 1)", "nds", false, false, true, nds_memory, 0},
+            {"GBA (Slot 2)", "gba", false, false, true, gba_memory, 1},
             {}
     };
 
