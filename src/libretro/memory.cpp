@@ -29,11 +29,6 @@ namespace AREngine {
     extern void RunCheat(ARCode &arcode);
 }
 
-namespace melonds {
-    static u8* _savestate_buffer = nullptr;
-    static size_t _savestate_buffer_length = 0;
-}
-
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
 
     // Create the dummy savestate
@@ -117,20 +112,4 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
         pch = strtok(nullptr, " +");
     }
     AREngine::RunCheat(curcode);
-}
-
-void melonds::init_savestate_buffer(size_t length) {
-    u8* realloced_buffer = (u8*)realloc(_savestate_buffer, length);
-    // TODO: If this failed, log an error
-    _savestate_buffer = realloced_buffer;
-    _savestate_buffer_length = length;
-
-}
-
-void melonds::free_savestate_buffer() {
-    if (_savestate_buffer) {
-        free(_savestate_buffer);
-        _savestate_buffer = nullptr;
-        _savestate_buffer_length = 0;
-    }
 }
