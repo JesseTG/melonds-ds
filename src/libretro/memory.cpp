@@ -67,17 +67,35 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
-    if (type == RETRO_MEMORY_SYSTEM_RAM)
-        return NDS::MainRAM;
-    else
-        return nullptr;
+    switch (type) {
+        case RETRO_MEMORY_SYSTEM_RAM:
+            return NDS::MainRAM;
+        case RETRO_MEMORY_SAVE_RAM:
+            return NDSCart::GetSaveMemory();
+        default:
+            return nullptr;
+    }
 }
 
 PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
-    if (type == RETRO_MEMORY_SYSTEM_RAM)
-        return 0x400000;
-    else
-        return 0;
+    switch (type) {
+        case RETRO_MEMORY_SYSTEM_RAM:
+            switch (Config::ConsoleType) {
+                default:
+                    retro::log(RETRO_LOG_WARN,
+                               "Unknown console type %d, returning memory size of 4MB (as used by the DS).",
+                               Config::ConsoleType);
+                    // Intentional fall-through
+                case melonds::ConsoleType::DS:
+                    return DS_MEMORY_SIZE; // 4MB, the size of the DS system RAM
+                case melonds::ConsoleType::DSi:
+                    return DSI_MEMORY_SIZE; // 16MB, the size of the DSi system RAM
+            }
+        case RETRO_MEMORY_SAVE_RAM:
+            return NDSCart::GetSaveMemoryLength();
+        default:
+            return 0;
+    }
 }
 
 PUBLIC_SYMBOL void retro_cheat_reset(void) {}
