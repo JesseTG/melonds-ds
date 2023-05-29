@@ -14,6 +14,7 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include <cstdarg>
 #include <libretro.h>
 #include <retro_timers.h>
 #include <Platform.h>
