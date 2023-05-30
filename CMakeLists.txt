@@ -99,7 +99,7 @@ if (ENABLE_OGLRENDERER)
 
         # ...and that the #defines that libretro needs here are provided.
         # Also, that the header that includes GLAD is *excluded* (PLATFORMOGL_H).
-        target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED)
+        target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER)
 
         # Now let's include the relevant headers before each melonDS C++ source file.
         set_source_files_properties(
