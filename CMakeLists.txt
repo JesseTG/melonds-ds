@@ -107,7 +107,7 @@ if (ENABLE_OGLRENDERER)
             TARGET_DIRECTORY
             core
             PROPERTIES
-            COMPILE_OPTIONS "-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
+            COMPILE_OPTIONS "-include;GL/gl.h;-include;GL/glext.h;-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
         # TODO: Adapt for GLES2 and GLES3
     endif ()
 endif ()
