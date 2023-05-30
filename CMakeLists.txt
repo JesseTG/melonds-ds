@@ -89,7 +89,7 @@ if (ENABLE_OGLRENDERER)
         # Upstream melonDS uses GLAD to load OpenGL, but we want to use libretro's loader.
         # So instead of patching melonDS, let's change how it's compiled.
         set(HAVE_OPENGL ON)
-        file(GLOB melonDS_cpp_sources ${melonDS_SOURCE_DIR}/src/*.cpp)
+        file(GLOB melonDS_cpp_sources "${melonDS_SOURCE_DIR}/src/*.cpp")
         # Get all C++ source files within melonDS' main directory.
         # Need to specify C++ files because melonDS uses assembly,
         # which chokes if the glsym headers are included.
