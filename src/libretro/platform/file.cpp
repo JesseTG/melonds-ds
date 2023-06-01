@@ -20,7 +20,7 @@
 #include "../environment.hpp"
 #include "../utils.hpp"
 
-FILE *Platform::OpenFile(std::string path, std::string mode, bool mustexist) {
+FILE *Platform::OpenFile(const std::string& path, const std::string& mode, bool mustexist) {
     FILE *ret;
 
     if (mustexist) {
@@ -33,12 +33,12 @@ FILE *Platform::OpenFile(std::string path, std::string mode, bool mustexist) {
     return ret;
 }
 
-FILE *Platform::OpenLocalFile(std::string path, std::string mode) {
+FILE *Platform::OpenLocalFile(const std::string& path, const std::string& mode) {
     std::string fullpath = retro::base_directory() + PLATFORM_DIR_SEPERATOR + path;
-    FILE* f = OpenFile(fullpath, std::move(mode), true);
+    FILE* f = OpenFile(fullpath, mode, true);
     return f;
 }
 
-FILE *Platform::OpenDataFile(std::string path) {
-    return OpenLocalFile(std::move(path), "rb");
+FILE *Platform::OpenDataFile(const std::string& path) {
+    return OpenLocalFile(path, "rb");
 }
