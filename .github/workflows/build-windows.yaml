@@ -39,7 +39,7 @@ jobs:
           update: true
 
       - name: Install dependencies
-        run: pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,toolchain}
+        run: pacman -Sq --noconfirm git pkgconf zip mingw-w64-x86_64-{cmake,toolchain}
       - name: Create build environment
         run: mkdir --verbose --parents "$BUILD_DIR"
       - name: Configure
