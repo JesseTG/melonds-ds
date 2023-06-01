@@ -100,3 +100,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(libretro-common PRIVATE -fPIC)
     target_link_options(libretro-common PRIVATE -fPIC)
 endif ()
+
+if (APPLE)
+    target_compile_definitions(libretro-common PUBLIC GL_SILENCE_DEPRECATION)
+endif()
