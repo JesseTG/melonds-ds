@@ -47,7 +47,7 @@ jobs:
         run: cmake "$GITHUB_WORKSPACE" -G"MinGW Makefiles" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
-        run: cmake --build "$GITHUB_WORKSPACE"
+        run: make -j$(nproc --all)
       - name: Package for Release
         if: matrix.release
         env:
