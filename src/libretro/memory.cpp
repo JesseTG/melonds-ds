@@ -22,7 +22,6 @@
 #include <ARCodeFile.h>
 #include <AREngine.h>
 #include <frontend/qt_sdl/Config.h>
-#include <ExternalBufferSavestate.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
