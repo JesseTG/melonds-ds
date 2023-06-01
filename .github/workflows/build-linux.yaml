@@ -84,7 +84,7 @@ jobs:
           sudo dpkg --add-architecture arm64
           sudo sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
           sudo rm -f /etc/apt/sources.list
-          suo mv /etc/apt/sources.list{.new,}
+          sudo mv /etc/apt/sources.list{.new,}
           sudo apt-get update
           sudo apt-get install -y {gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake extra-cmake-modules dpkg-dev
       - name: Create build environment
