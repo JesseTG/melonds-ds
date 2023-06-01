@@ -64,6 +64,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
+    retro::log(RETRO_LOG_DEBUG, "retro_get_memory_data(%d)\n", type);
     switch (type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             return NDS::MainRAM;

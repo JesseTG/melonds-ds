@@ -82,6 +82,7 @@ PUBLIC_SYMBOL void retro_init(void) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
+    retro::log(RETRO_LOG_DEBUG, "retro_load_game(\"%s\", %d)\n", info->path, info->size);
     return melonds::load_game(0, info);
 }
 
@@ -294,6 +295,7 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
 
 PUBLIC_SYMBOL void retro_reset(void) {
     using melonds::game_info;
+    retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
     NDS::Reset();
     if (!NDSCart::LoadROM((const uint8_t *) game_info->data, game_info->size)) {
         retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
