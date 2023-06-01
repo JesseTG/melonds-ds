@@ -10,8 +10,8 @@ on:
 
 env:
   BUILD_TYPE: Release
-  BUILD_DIR: "${{runner.workspace}}/build"
-  DIST_DIR: "${{runner.workspace}}/build/dist"
+  BUILD_DIR: "${{github.workspace}}/build"
+  DIST_DIR: "${{github.workspace}}/build/dist"
 jobs:
   x86_64:
     runs-on: windows-latest
