@@ -1,0 +1,61 @@
+name: CMake Build (Ubuntu x86-64)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ !matrix.release }}
+    strategy:
+      matrix:
+        include:
+          - repo: https://github.com/JesseTG/melonDS.git
+            commit: 46ee85de
+            release: true
+          - repo: https://github.com/melonDS-emu/melonDS.git
+            commit: ca7fb4f
+            release: false
+            # This profile is used to receive advanced notice of breaking changes
+    env:
+      BUILD_DIR: "${{runner.workspace}}/build"
+      DIST_DIR: "${{runner.workspace}}/build/dist"
+      ARCHIVE_NAME: "melondsds_libretro-linux-x86_64"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/dotnetdev.list /etc/apt/sources.list.d/microsoft-prod.list
+          # Don't check for dependencies that we won't use
+
+          sudo apt-get update
+          sudo apt-get install -y cmake libepoxy-dev
+      - name: Create build environment
+        run: mkdir --parents "$BUILD_DIR"
+      - name: Configure
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
+      - name: Build
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: make -j$(nproc --all)
+      - name: Package for Release
+        if: matrix.release
+        env:
+          ZIP_ROOT: "${{ env.DIST_DIR }}/cores"
+        run: |
+          mkdir --parents "$ZIP_ROOT"
+          cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.so" "$ZIP_ROOT"
+          cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
+          cd "$DIST_DIR"
+          zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" "cores"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        if: matrix.release
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          if-no-files-found: error
+          path: "${{ env.DIST_DIR }}/${{ env.ARCHIVE_NAME }}.zip"
