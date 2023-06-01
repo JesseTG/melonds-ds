@@ -297,8 +297,17 @@ PUBLIC_SYMBOL void retro_reset(void) {
     using melonds::game_info;
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
     NDS::Reset();
-    if (!NDSCart::LoadROM((const uint8_t *) game_info->data, game_info->size)) {
-        retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
+
+    char game_name[256];
+    const char *ptr = path_basename(game_info->path);
+    if (ptr)
+        strlcpy(game_name, ptr, sizeof(game_name));
+    else
+        strlcpy(game_name, game_info->path, sizeof(game_name));
+    path_remove_extension(game_name);
+
+    if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
+        NDS::SetupDirectBoot(game_name);
     }
 
     if (Platform::FileExists(Config::SaveFilePath)) {
