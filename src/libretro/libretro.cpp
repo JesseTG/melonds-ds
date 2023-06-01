@@ -272,6 +272,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_base_directory.clear();
     melonds::_save_directory.clear();
+    melonds::clear_memory_config();
     Platform::DeInit();
 }
 
