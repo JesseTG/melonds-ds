@@ -10,8 +10,8 @@ on:
 
 env:
   BUILD_TYPE: Release
-  BUILD_DIR: "${{github.workspace}}\build"
-  DIST_DIR: "${{github.workspace}}\build\dist"
+  BUILD_DIR: "${{github.workspace}}/build"
+  DIST_DIR: "${{github.workspace}}/build/dist"
 jobs:
   x86_64:
     runs-on: windows-latest
@@ -53,18 +53,18 @@ jobs:
         if: matrix.release
         env:
           ZIP_ROOT: "${{ env.DIST_DIR }}"
-          CORES_PATH: "${{ env.DIST_DIR }}\cores"
-          INFO_PATH: "${{ env.DIST_DIR }}\info"
+          CORES_PATH: "${{ env.DIST_DIR }}/cores"
+          INFO_PATH: "${{ env.DIST_DIR }}/info"
         run: |
           mkdir --parents "$CORES_PATH" "$INFO_PATH"
-          cp --force "$BUILD_DIR\src\libretro\melondsds_libretro.dll" "$CORES_PATH"
-          cp --force "${{github.workspace}}\melondsds_libretro.info" "$INFO_PATH"
+          cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dll" "$CORES_PATH"
+          cp --force "${{github.workspace}}/melondsds_libretro.info" "$INFO_PATH"
           cd "$DIST_DIR"
-          zip -r "$DIST_DIR\$ARCHIVE_NAME.zip" "cores"
+          zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" "cores"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
         with:
           name: ${{ env.ARCHIVE_NAME }}
           if-no-files-found: error
-          path: "${{ env.DIST_DIR }}\${{ env.ARCHIVE_NAME }}.zip"
+          path: "${{ env.DIST_DIR }}/${{ env.ARCHIVE_NAME }}.zip"
