@@ -25,42 +25,62 @@
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
+#include <retro_assert.h>
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
+constexpr ssize_t SAVESTATE_SIZE_UNKNOWN = -1;
 
 namespace AREngine {
     extern void RunCheat(ARCode &arcode);
 }
 
+namespace melonds {
+    static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
+}
+
+/// Savestates in melonDS can vary in size depending on the game,
+/// so we have to try saving the state first before we can know how big it'll be.
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
+    if (melonds::_savestate_size < 0) {
+        // If we haven't yet figured out how big the savestate should be...
 
-    // Create the dummy savestate
-    void *data = malloc(melonds::DEFAULT_SERIALIZE_TEST_SIZE);
+        if (Config::ConsoleType == melonds::ConsoleType::DSi) {
+            // DSi mode doesn't support savestates right now
+            melonds::_savestate_size = 0;
+            // TODO: When DSi mode supports savestates, remove this conditional block
+        } else {
+            Savestate state;
+            NDS::DoSavestate(&state);
+            melonds::_savestate_size = state.Length();
 
-    ExternalBufferSavestate savestate((u8*)data, melonds::DEFAULT_SERIALIZE_TEST_SIZE, true);
-    NDS::DoSavestate(&savestate);
-    // Find the offset to find the current static filesize
-    size_t size = savestate.BufferOffset();
-    // Free
-    // TODO: If the save state didn't fit, double the buffer size and try again
-    free(data);
+            retro::log(
+                RETRO_LOG_INFO,
+                "Savestate requires %dB = %.0fKiB = %.0fMiB (before compression)",
+                melonds::_savestate_size,
+                melonds::_savestate_size / 1024.0f,
+                melonds::_savestate_size / 1024.0f / 1024.0f
+            );
+        }
+    }
 
-    return size;
+    return melonds::_savestate_size;
 }
 
 PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
-    ExternalBufferSavestate savestate((u8*)data, size, true);
-    NDS::DoSavestate(&savestate);
+    memset(data, 0, size);
 
-    return !savestate.Error;
+    Savestate state(data, size, true);
+
+    return NDS::DoSavestate(&state) && !state.Error;
 }
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
-    ExternalBufferSavestate savestate((u8*)data, size, false);
-    NDS::DoSavestate(&savestate);
+    retro::log(RETRO_LOG_DEBUG, "retro_unserialize(%p, %d)", data, size);
 
-    return !savestate.Error;
+    Savestate savestate((u8 *) data, size, false);
+
+    return NDS::DoSavestate(&savestate) && !savestate.Error;
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
