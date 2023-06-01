@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Create build directory
-        run: mkdir --verbose --parents "$BUILD_DIR"
+        run: mkdir -pv "$BUILD_DIR"
       - name: Install Dependencies
         run: brew install pkg-config cmake
       - name: Configure
@@ -44,7 +44,7 @@ jobs:
         env:
           ZIP_ROOT: "${{ env.DIST_DIR }}/cores"
         run: |
-          mkdir --parents "$ZIP_ROOT"
+          mkdir -pv "$ZIP_ROOT"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dylib" "$ZIP_ROOT"
           cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
       - name: Upload Artifact
