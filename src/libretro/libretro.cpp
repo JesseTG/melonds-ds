@@ -313,6 +313,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
 }
 
 static bool melonds::load_game(unsigned type, const struct retro_game_info *info) {
+    melonds::clear_memory_config();
     using retro::environment;
     using retro::log;
 
