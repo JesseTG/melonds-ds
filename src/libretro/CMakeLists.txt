@@ -47,6 +47,10 @@ if (HAVE_OPENGL)
     target_link_libraries(libretro PUBLIC OpenGL::GL)
 endif ()
 
+if (APPLE)
+    target_compile_definitions(libretro PUBLIC GL_SILENCE_DEPRECATION)
+endif()
+
 target_compile_definitions(libretro PUBLIC JIT_ENABLED) # TODO: Disable on certain platforms
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
 # Name the output library "melondsds_libretro.dll" instead of "libmelondsds_libretro.dll", as is the convention
