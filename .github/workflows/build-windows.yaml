@@ -39,7 +39,7 @@ jobs:
           update: true
 
       - name: Install dependencies
-        run: pacman -Sq --noconfirm git pkgconf zip mingw-w64-x86_64-{cmake,toolchain}
+        run: pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,toolchain}
       - name: Create build environment
         run: mkdir --verbose --parents "$BUILD_DIR"
       - name: Configure
@@ -48,22 +48,19 @@ jobs:
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: mingw32-make -j$(nproc --all)
-      - name: Package for Release
+      - name: Prepare Artifact Directory
         if: matrix.release
         env:
-          ZIP_ROOT: "${{ env.DIST_DIR }}"
           CORES_PATH: "${{ env.DIST_DIR }}/cores"
           INFO_PATH: "${{ env.DIST_DIR }}/info"
         run: |
           mkdir --parents "$CORES_PATH" "$INFO_PATH"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dll" "$CORES_PATH"
           cp --force "${{github.workspace}}/melondsds_libretro.info" "$INFO_PATH"
-          cd "$DIST_DIR"
-          zip -r "$ARCHIVE_NAME.zip" "$ZIP_ROOT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
         with:
           name: ${{ env.ARCHIVE_NAME }}
           if-no-files-found: error
-          path: "${{ env.ARCHIVE_NAME }}.zip"
+          path: "${{ env.DIST_DIR }}"

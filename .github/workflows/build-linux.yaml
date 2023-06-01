@@ -43,7 +43,7 @@ jobs:
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: make -j$(nproc --all)
-      - name: Package for Release
+      - name: Prepare Artifact Directory
         if: matrix.release
         env:
           ZIP_ROOT: "${{ env.DIST_DIR }}/cores"
@@ -51,15 +51,13 @@ jobs:
           mkdir --parents "$ZIP_ROOT"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.so" "$ZIP_ROOT"
           cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
-          cd "$DIST_DIR"
-          zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" "cores"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
         with:
           name: ${{ env.ARCHIVE_NAME }}
           if-no-files-found: error
-          path: "${{ env.DIST_DIR }}/${{ env.ARCHIVE_NAME }}.zip"
+          path: "${{ env.DIST_DIR }}"
 
   aarch64:
     runs-on: ubuntu-latest
@@ -98,7 +96,7 @@ jobs:
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: make -j$(nproc --all)
-      - name: Package for Release
+      - name: Prepare Artifact Directory
         if: matrix.release
         env:
           ZIP_ROOT: "${{ env.DIST_DIR }}/cores"
@@ -106,12 +104,10 @@ jobs:
           mkdir --parents "$ZIP_ROOT"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.so" "$ZIP_ROOT"
           cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
-          cd "$DIST_DIR"
-          zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" "cores"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
         with:
           name: ${{ env.ARCHIVE_NAME }}
           if-no-files-found: error
-          path: "${{ env.DIST_DIR }}/${{ env.ARCHIVE_NAME }}.zip"
+          path: "${{ env.DIST_DIR }}"
