@@ -44,8 +44,7 @@ jobs:
         run: mkdir --verbose --parents "$BUILD_DIR"
       - name: Configure
         working-directory: "${{ env.BUILD_DIR }}"
-        run: cmake "$GITHUB_WORKSPACE"  -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
-      - run: ls -halR
+        run: cmake "$GITHUB_WORKSPACE" -G"MinGW Makefiles" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: cmake --build "$GITHUB_WORKSPACE"
