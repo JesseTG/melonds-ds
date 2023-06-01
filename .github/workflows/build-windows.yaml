@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,toolchain}
       - name: Create build environment
-        run: mkdir --parents "$BUILD_DIR"
+        run: mkdir --verbose --parents "$BUILD_DIR"
       - name: Configure
         working-directory: ${{runner.workspace}}
         run: cmake "$GITHUB_WORKSPACE"  -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
