@@ -1,0 +1,70 @@
+name: CMake Build (Windows x86-64)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+env:
+  BUILD_TYPE: Release
+  BUILD_DIR: "${{runner.workspace}}/build"
+  DIST_DIR: "${{runner.workspace}}/build/dist"
+jobs:
+  x86_64:
+    runs-on: windows-latest
+    continue-on-error: ${{ !matrix.release }}
+    strategy:
+      matrix:
+        include:
+          - repo: https://github.com/JesseTG/melonDS.git
+            commit: 46ee85de
+            release: true
+          - repo: https://github.com/melonDS-emu/melonDS.git
+            commit: ca7fb4f
+            release: false
+            # This profile is used to receive advanced notice of breaking changes
+    env:
+      ARCHIVE_NAME: "melondsds_libretro-win32-x86_64"
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+
+      - name: Install dependencies
+        run: pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,toolchain}
+      - name: Create build environment
+        run: mkdir --parents "$BUILD_DIR"
+      - name: Configure
+        working-directory: ${{runner.workspace}}
+        run: cmake "$GITHUB_WORKSPACE"  -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        run: cmake --build .
+      - name: Package for Release
+        if: matrix.release
+        env:
+          ZIP_ROOT: "${{ env.DIST_DIR }}"
+          CORES_PATH: "${{ env.DIST_DIR }}/cores"
+          INFO_PATH: "${{ env.DIST_DIR }}/info"
+        run: |
+          mkdir --parents "${{ env.DIST_DIR }}/cores"
+          cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dll" "$CORES_PATH"
+          cp --force "${{github.workspace}}/melondsds_libretro.info" "$INFO_PATH"
+          cd "$DIST_DIR"
+          zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" "cores"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        if: matrix.release
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          if-no-files-found: error
+          path: "${{ env.DIST_DIR }}/${{ env.ARCHIVE_NAME }}.zip"
