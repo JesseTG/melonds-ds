@@ -42,7 +42,7 @@ jobs:
         run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
-        run: mingw32-make -j$(nproc --all)
+        run: make -j$(nproc --all)
       - name: Package for Release
         if: matrix.release
         env:
