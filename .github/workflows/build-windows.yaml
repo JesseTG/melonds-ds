@@ -43,9 +43,8 @@ jobs:
       - name: Create build environment
         run: mkdir --verbose --parents "$BUILD_DIR"
       - name: Configure
-        working-directory: ${{runner.workspace}}
+        working-directory: "${{ env.BUILD_DIR }}"
         run: cmake "$GITHUB_WORKSPACE"  -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
-
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: cmake --build "$GITHUB_WORKSPACE"
