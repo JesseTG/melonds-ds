@@ -1,0 +1,56 @@
+name: CMake Build (macOS)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+env:
+  BUILD_TYPE: Release
+  BUILD_DIR: "${{github.workspace}}/build"
+  DIST_DIR: "${{github.workspace}}/build/dist"
+jobs:
+  x86_64:
+    runs-on: macos-latest
+    continue-on-error: ${{ !matrix.release }}
+    strategy:
+      matrix:
+        include:
+          - repo: https://github.com/JesseTG/melonDS.git
+            commit: 46ee85de
+            release: true
+          - repo: https://github.com/melonDS-emu/melonDS.git
+            commit: ca7fb4f
+            release: false
+            # This profile is used to receive advanced notice of breaking changes
+    env:
+      ARCHIVE_NAME: "melondsds_libretro-macos-x86_64"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create build directory
+        run: mkdir --verbose --parents "$BUILD_DIR"
+      - name: Install Dependencies
+        run: brew install pkg-config cmake
+      - name: Configure
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
+      - name: Build
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: make -j$(sysctl -n hw.logicalcpu)
+      - name: Prepare Artifact Directory
+        if: matrix.release
+        env:
+          ZIP_ROOT: "${{ env.DIST_DIR }}/cores"
+        run: |
+          mkdir --parents "$ZIP_ROOT"
+          cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dylib" "$ZIP_ROOT"
+          cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        if: matrix.release
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          if-no-files-found: error
+          path: "${{ env.DIST_DIR }}"
