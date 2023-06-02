@@ -101,13 +101,20 @@ if (ENABLE_OGLRENDERER)
         # Also, that the header that includes GLAD is *excluded* (PLATFORMOGL_H).
         target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER)
 
+        if (APPLE)
+            # maOS uses a different OpenGL header path.
+            set(MELONDSDS_OPENGL_INCLUDES "-include;OpenGL/gl.h;-include;OpenGL/glext.h")
+        else()
+            set(MELONDSDS_OPENGL_INCLUDES "-include;GL/gl.h;-include;GL/glext.h")
+        endif()
+
         # Now let's include the relevant headers before each melonDS C++ source file.
         set_source_files_properties(
             ${melonDS_cpp_sources}
             TARGET_DIRECTORY
             core
             PROPERTIES
-            COMPILE_OPTIONS "-include;GL/gl.h;-include;GL/glext.h;-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
+            COMPILE_OPTIONS "${MELONDSDS_OPENGL_INCLUDES};-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
         # TODO: Adapt for GLES2 and GLES3
     endif ()
 endif ()
