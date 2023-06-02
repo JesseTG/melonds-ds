@@ -47,8 +47,8 @@ jobs:
           ZIP_ROOT: "${{ env.DIST_DIR }}/cores"
         run: |
           mkdir -pv "$ZIP_ROOT"
-          cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dylib" "$ZIP_ROOT"
-          cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
+          cp -f "$BUILD_DIR/src/libretro/melondsds_libretro.dylib" "$ZIP_ROOT"
+          cp -f "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
