@@ -17,9 +17,7 @@ jobs:
     continue-on-error: ${{ !matrix.release }}
     strategy:
       matrix:
-        arch:
-          - x86_64
-          - arm64
+        platform: [x86_64, arm64]
         include:
           - repo: https://github.com/JesseTG/melonDS.git
             commit: 46ee85de
@@ -38,7 +36,7 @@ jobs:
         run: brew install pkg-config cmake
       - name: Configure
         working-directory: "${{ env.BUILD_DIR }}"
-        run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}" -DCMAKE_OSX_ARCHITECTURES:STRING="${{ matrix.arch }}"
+        run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}" -DCMAKE_OSX_ARCHITECTURES:STRING="${{ matrix.platform }}"
       - name: Install GCC problem matcher
         uses: olemorud/gcc-problem-matcher@v1.0
       - name: Build
