@@ -54,6 +54,13 @@ endif()
 
 target_compile_definitions(libretro PUBLIC JIT_ENABLED) # TODO: Disable on certain platforms
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
-# Name the output library "melondsds_libretro.dll" instead of "libmelondsds_libretro.dll", as is the convention
+if (UNIX)
+    set_target_properties(libretro PROPERTIES SUFFIX ".so")
+elseif (WIN32)
+    set_target_properties(libretro PROPERTIES SUFFIX ".dll")
+elseif (APPLE)
+    set_target_properties(libretro PROPERTIES SUFFIX ".dylib")
+endif ()
+# Name the output library "melondsds_libretro.XXX" instead of "libmelondsds_libretro.XXX", as is the convention for libretro
 
 target_link_libraries(libretro PUBLIC libretro-common core)
