@@ -286,7 +286,7 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->block_extract = false;
     info->library_version = "0.0.0";
     info->need_fullpath = false;
-    info->valid_extensions = "nds|dsi";
+    info->valid_extensions = "nds|ids|dsi";
 }
 
 PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned device) {
