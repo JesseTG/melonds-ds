@@ -19,7 +19,6 @@
 
 #include <libretro.h>
 #ifdef HAVE_OPENGL
-#include <GL/gl.h>
 #include <glsym/glsym.h>
 #endif
 

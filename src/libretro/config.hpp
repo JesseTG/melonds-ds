@@ -18,7 +18,6 @@
 #define MELONDS_DS_CONFIG_HPP
 
 #ifdef HAVE_OPENGL
-#include <GL/gl.h>
 #include <glsym/glsym.h>
 #endif
 #include <GPU.h>
