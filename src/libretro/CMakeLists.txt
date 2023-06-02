@@ -49,6 +49,7 @@ endif ()
 
 if (APPLE)
     target_compile_definitions(libretro PUBLIC GL_SILENCE_DEPRECATION)
+    # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
 endif()
 
 target_compile_definitions(libretro PUBLIC JIT_ENABLED) # TODO: Disable on certain platforms
