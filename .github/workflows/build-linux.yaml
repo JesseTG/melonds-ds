@@ -93,7 +93,8 @@ jobs:
           CC: aarch64-linux-gnu-gcc-10
           CXX: aarch64-linux-gnu-g++-10
         run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}"
-      - uses: olemorud/gcc-problem-matcher@v1.0
+      - name: Install GCC problem matcher
+        uses: olemorud/gcc-problem-matcher@v1.0
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: make -j$(nproc --all)
