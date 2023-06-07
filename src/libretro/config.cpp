@@ -210,6 +210,7 @@ bool melonds::update_option_visibility() {
 
     _show_jit_options = true;
     var.key = Keys::JIT_ENABLE;
+    // TODO: Use RETRO_ENVIRONMENT_GET_JIT_CAPABLE
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, Values::DISABLED))
         _show_jit_options = false;
 
