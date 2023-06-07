@@ -343,32 +343,30 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     */
     game_info = info;
 
-    std::vector<std::string> required_roms = {"bios7.bin", "bios9.bin", "firmware.bin"};
-    std::vector<std::string> missing_roms;
+    if (Config::ExternalBIOSEnable) {
+        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
+        // so we have to do it ourselves
+        std::vector<std::string> required_roms = {"bios7.bin", "bios9.bin", "firmware.bin"};
+        std::vector<std::string> missing_roms;
 
-    // Check if any of the bioses / firmware files are missing
-    for (std::string &rom: required_roms) {
-        if (!Platform::LocalFileExists(rom)) {
-            missing_roms.push_back(rom);
-        }
-    }
-
-    // Abort if there are any of the required roms are missing
-    if (!missing_roms.empty()) {
-        std::string msg = "Using FreeBIOS instead of the following missing BIOS/firmware files: ";
-
-        for (int i = 0; i < missing_roms.size(); ++i) {
-            const std::string &missing_rom = missing_roms[i];
-
-            msg += missing_rom;
-            if (i < missing_roms.size() - 1) {
-                msg += ", ";
+        // Check if any of the bioses / firmware files are missing
+        for (std::string &rom: required_roms) {
+            if (Platform::LocalFileExists(rom)) {
+                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
+            } else {
+                missing_roms.push_back(rom);
+                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
             }
         }
 
-        msg.append("\n");
+        // Abort if there are any of the required roms are missing
+        if (!missing_roms.empty()) {
+            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
+        }
 
-        retro::log(RETRO_LOG_ERROR, msg.c_str());
+        Config::ExternalBIOSEnable = false;
+    } else {
+        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
     }
 
     Config::BIOS7Path = "bios7.bin";
