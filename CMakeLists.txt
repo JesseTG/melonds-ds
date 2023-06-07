@@ -40,6 +40,7 @@ FetchContent_Declare(
 
 FetchContent_GetProperties(melonDS)
 
+set(BUILD_STATIC ON)
 set(BUILD_QT_SDL OFF)
 
 if (NOT LIBRETRO_COMMON_REPOSITORY_URL)

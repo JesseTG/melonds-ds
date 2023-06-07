@@ -64,4 +64,8 @@ elseif (WIN32)
 endif ()
 # Name the output library "melondsds_libretro.XXX" instead of "libmelondsds_libretro.XXX", as is the convention for libretro
 
+if (WIN32 AND MINGW)
+    target_link_options(libretro PUBLIC -static-libgcc -static-libstdc++ -static)
+endif()
+
 target_link_libraries(libretro PUBLIC libretro-common core)
