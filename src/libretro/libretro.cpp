@@ -96,7 +96,8 @@ PUBLIC_SYMBOL void retro_run(void) {
             case melonds::ScreenSwapMode::Toggle: {
                 if (!Config::ScreenSwap) {
                     swap_screen_toggled = !swap_screen_toggled;
-                    update_screenlayout(current_screen_layout(), &screen_layout_data, Config::ScreenUseGL,
+                    update_screenlayout(current_screen_layout(), &screen_layout_data,
+                                        static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl,
                                         swap_screen_toggled);
                     melonds::opengl::refresh_opengl = true;
                 }
@@ -111,7 +112,8 @@ PUBLIC_SYMBOL void retro_run(void) {
                                input_state.swap_screens_btn ? "Started" : "Stopped");
                 }
                 Config::ScreenSwap = input_state.swap_screens_btn;
-                update_screenlayout(current_screen_layout(), &screen_layout_data, Config::ScreenUseGL,
+                update_screenlayout(current_screen_layout(), &screen_layout_data,
+                                    static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl,
                                     Config::ScreenSwap);
                 melonds::opengl::refresh_opengl = true;
             }
@@ -176,7 +178,7 @@ static void melonds::render_frame() {
 #ifdef HAVE_OPENGL
     if (Config::Retro::CurrentRenderer == CurrentRenderer::None) {
         // If we haven't initialized a renderer  yet...
-        if (Config::ScreenUseGL && Config::Retro::RenderContextActive) {
+        if ((static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl) && Config::Retro::RenderContextActive) {
             // Try to initialize opengl, if it failed fallback to software
             if (melonds::opengl::initialize()) {
                 Config::Retro::CurrentRenderer = CurrentRenderer::OpenGl;
@@ -189,6 +191,8 @@ static void melonds::render_frame() {
                 melonds::opengl::deinitialize();
             }
 
+            retro::log(RETRO_LOG_DEBUG, "Using software renderer");
+
             Config::Retro::CurrentRenderer = CurrentRenderer::Software;
         }
     }
@@ -196,7 +200,7 @@ static void melonds::render_frame() {
     if (Config::Retro::RenderContextActive) {
         // If the hardware state needed for rendering is set up...
         melonds::opengl::render_frame(Config::Retro::CurrentRenderer == CurrentRenderer::Software);
-    } else if (!Config::ScreenUseGL) {
+    } else if (Config::Retro::CurrentRenderer == CurrentRenderer::Software) {
         render_software();
     }
 #else
@@ -391,7 +395,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
 #ifdef HAVE_OPENGL
     // Initialize the opengl state if needed
-    if (Config::ScreenUseGL) {
+    if (static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl) {
         if (!melonds::opengl::initialize()) {
             log(RETRO_LOG_WARN, "Failed to initialize OpenGL context");
         }

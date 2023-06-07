@@ -29,8 +29,6 @@ namespace Config {
     bool ScreenSwap;
     bool ScreenFilter;
 
-    bool ScreenUseGL;
-
     int _3DRenderer;
     bool Threaded3D;
 
@@ -359,15 +357,19 @@ void melonds::check_variables(bool init) {
         // If we're initializing the game...
         var.key = Keys::OPENGL_RENDERER;
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-            Config::ScreenUseGL = string_is_equal(var.value, Values::ENABLED);
+            if (string_is_equal(var.value, Values::ENABLED)) {
+                Config::_3DRenderer = static_cast<int>(CurrentRenderer::OpenGl);
+            }
+            else {
+                Config::_3DRenderer = static_cast<int>(CurrentRenderer::Software);
+            }
 
             if (Config::Retro::RenderContextActive)
-                Config::Retro::CurrentRenderer = Config::ScreenUseGL ? CurrentRenderer::OpenGl
-                                                                     : CurrentRenderer::Software;
+                Config::Retro::CurrentRenderer = static_cast<CurrentRenderer>(Config::_3DRenderer);
         }
     }
 
-    if (Config::ScreenUseGL) {
+    if (Config::_3DRenderer == static_cast<int>(CurrentRenderer::OpenGl)) {
         // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
         config::_render_settings.Soft_Threaded = false;
     }
@@ -514,7 +516,7 @@ void melonds::check_variables(bool init) {
 
     input_state.current_touch_mode = new_touch_mode;
 
-    update_screenlayout(layout, &screen_layout_data, Config::ScreenUseGL, Config::ScreenSwap);
+    update_screenlayout(layout, &screen_layout_data, Config::_3DRenderer == static_cast<int>(CurrentRenderer::OpenGl), Config::ScreenSwap);
 
     update_option_visibility();
 }
