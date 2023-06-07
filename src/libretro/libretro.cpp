@@ -346,6 +346,9 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     if (Config::ExternalBIOSEnable) {
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
         // so we have to do it ourselves
+
+        // TODO: Don't always check all files; just check for the ones we need
+        // based on the console type
         std::vector<std::string> required_roms = {"bios7.bin", "bios9.bin", "firmware.bin"};
         std::vector<std::string> missing_roms;
 
