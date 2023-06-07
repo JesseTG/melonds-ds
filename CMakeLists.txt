@@ -102,7 +102,7 @@ if (ENABLE_OGLRENDERER)
         target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER)
 
         if (APPLE)
-            # maOS uses a different OpenGL header path.
+            # macOS uses a different OpenGL header path.
             set(MELONDSDS_OPENGL_INCLUDES "-include;OpenGL/gl.h;-include;OpenGL/glext.h")
         else()
             set(MELONDSDS_OPENGL_INCLUDES "-include;GL/gl.h;-include;GL/glext.h")
