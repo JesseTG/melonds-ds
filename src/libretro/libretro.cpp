@@ -400,7 +400,11 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         if (!melonds::opengl::initialize()) {
             log(RETRO_LOG_WARN, "Failed to initialize OpenGL context");
         }
+    } else {
+        log(RETRO_LOG_DEBUG, "OpenGL is not enabled, using software renderer");
     }
+#else
+    log(RETRO_LOG_DEBUG, "OpenGL is not supported by this build, using software renderer");
 #endif
 
     if (!NDS::Init())
