@@ -178,7 +178,8 @@ static void melonds::render_frame() {
 #ifdef HAVE_OPENGL
     if (Config::Retro::CurrentRenderer == CurrentRenderer::None) {
         // If we haven't initialized a renderer  yet...
-        if ((static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl) && Config::Retro::RenderContextActive) {
+        if ((static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl) &&
+            Config::Retro::RenderContextActive) {
             // Try to initialize opengl, if it failed fallback to software
             if (melonds::opengl::initialize()) {
                 Config::Retro::CurrentRenderer = CurrentRenderer::OpenGl;
@@ -457,7 +458,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         path_remove_extension(gba_game_name);
 
         std::string gba_save_path =
-                melonds::_save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
+            melonds::_save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
         if (!GBACart::LoadROM((const uint8_t *) info[1].data, info[1].size)) {
             retro::log(RETRO_LOG_ERROR, "Failed to load GBA ROM");
         }
