@@ -46,7 +46,6 @@ namespace Config {
     [[maybe_unused]] bool JIT_FastMemory;
 #endif
 
-    // TODO: Make configurable
     [[maybe_unused]] bool ExternalBIOSEnable = true;
 
     [[maybe_unused]] std::string BIOS9Path;
@@ -108,6 +107,7 @@ namespace Config {
             static const char *const JIT_BRANCH_OPTIMISATIONS = "melonds_jit_branch_optimisations";
             static const char *const JIT_LITERAL_OPTIMISATIONS = "melonds_jit_literal_optimisations";
             static const char *const JIT_FAST_MEMORY = "melonds_jit_fast_memory";
+            static const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
             static const char *const CONSOLE_MODE = "melonds_console_mode";
             static const char *const BOOT_DIRECTLY = "melonds_boot_directly";
             static const char *const SCREEN_GAP = "melonds_screen_gap";
@@ -514,6 +514,11 @@ void melonds::check_variables(bool init) {
             Config::FirmwareLanguage = 5;
     }
 
+    var.key = Keys::USE_EXTERNAL_BIOS;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        Config::ExternalBIOSEnable = string_is_equal(var.value, Values::ENABLED);
+    }
+
     input_state.current_touch_mode = new_touch_mode;
 
     update_screenlayout(layout, &screen_layout_data, Config::_3DRenderer == static_cast<int>(CurrentRenderer::OpenGl), Config::ScreenSwap);
@@ -652,6 +657,22 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                         {nullptr, nullptr},
                 },
                 Config::Retro::Values::DISABLED
+        },
+        {
+                Config::Retro::Keys::USE_EXTERNAL_BIOS,
+                "Use external BIOS if available",
+                nullptr,
+                "If enabled, melonDS will attempt to load a BIOS file from the system directory. "
+                "If no valid BIOS is present, melonDS will fall back to its built-in FreeBIOS. "
+                "If unsure, leave this enabled.",
+                nullptr,
+                "system",
+                {
+                    {Config::Retro::Values::DISABLED, nullptr},
+                    {Config::Retro::Values::ENABLED, nullptr},
+                    {nullptr, nullptr},
+                },
+                Config::Retro::Values::ENABLED
         },
 #ifdef HAVE_THREADS
         {
