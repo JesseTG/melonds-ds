@@ -55,7 +55,7 @@ endif ()
 if (NOT LIBRETRO_COMMON_REPOSITORY_TAG)
     set(
         LIBRETRO_COMMON_REPOSITORY_TAG
-        "ee1fd4b"
+        "10995d5"
         CACHE STRING
         "libretro-common repository commit hash or tag. Set this when using a new version or a custom branch."
         FORCE
