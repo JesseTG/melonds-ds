@@ -329,6 +329,8 @@ PUBLIC_SYMBOL void retro_reset(void) {
 
 static bool melonds::load_game(unsigned type, const struct retro_game_info *info) {
     melonds::clear_memory_config();
+    melonds::check_variables(true);
+
     using retro::environment;
     using retro::log;
 
@@ -391,7 +393,6 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         return false;
     }
 
-    melonds::check_variables(true);
 
 #ifdef HAVE_OPENGL
     // Initialize the opengl state if needed
