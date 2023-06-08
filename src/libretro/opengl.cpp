@@ -31,7 +31,6 @@
 
 namespace melonds::opengl {
     bool refresh_opengl = true;
-    bool context_alive = false;
     static GLuint shader[3];
     static GLuint screen_framebuffer_texture;
     static float screen_vertices[72];
@@ -63,7 +62,7 @@ namespace melonds::opengl {
 
 bool melonds::opengl::RenderContextAlive()
 {
-    return melonds::opengl::context_alive;
+    return GPU3D::CurrentRenderer != nullptr;
 }
 
 bool melonds::opengl::initialize() {
@@ -170,8 +169,11 @@ void melonds::opengl::deinitialize() {
 
 static void melonds::opengl::context_reset() {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_reset()");
-    if (context_alive)
+    if (GPU3D::CurrentRenderer)
+    {
+        retro::log(RETRO_LOG_DEBUG, "GPU3D renderer is assigned; deinitializing it before resetting the context.");
         GPU::DeInitRenderer();
+    }
 
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
 
@@ -181,11 +183,9 @@ static void melonds::opengl::context_reset() {
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     setup_opengl();
 
-    if (context_alive)
+    if (GPU3D::CurrentRenderer)
         GPU::InitRenderer(true);
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
-
-    context_alive = true;
 }
 
 static void melonds::opengl::context_destroy() {
