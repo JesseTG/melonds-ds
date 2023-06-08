@@ -398,7 +398,10 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 #ifdef HAVE_OPENGL
     // Initialize the opengl state if needed
     if (static_cast<Renderer>(Config::_3DRenderer) == Renderer::OpenGl) {
-        if (!melonds::opengl::initialize()) {
+        if (melonds::opengl::initialize()) {
+            log(RETRO_LOG_INFO, "Initialized OpenGL context");
+        }
+        else {
             log(RETRO_LOG_WARN, "Failed to initialize OpenGL context");
         }
     } else {
