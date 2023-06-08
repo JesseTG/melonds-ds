@@ -133,7 +133,6 @@ namespace Config {
 namespace melonds::config {
     static bool _show_opengl_options = true;
     static bool _show_hybrid_options = true;
-    static GPU::RenderSettings _render_settings;
 
 #ifdef JIT_ENABLED
     static bool _show_jit_options = true;
@@ -370,11 +369,6 @@ void melonds::check_variables(bool init) {
         }
     }
 
-    if (Config::_3DRenderer == static_cast<int>(Renderer::OpenGl)) {
-        // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
-        config::_render_settings.Soft_Threaded = false;
-    }
-
     var.key = Keys::OPENGL_RESOLUTION;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         int first_char_val = (int) var.value[0];
@@ -387,7 +381,6 @@ void melonds::check_variables(bool init) {
     } else {
         Config::GL_ScaleFactor = 1;
     }
-    config::_render_settings.GL_ScaleFactor = Config::GL_ScaleFactor;
 
     var.key = Keys::OPENGL_BETTER_POLYGONS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
@@ -396,7 +389,6 @@ void melonds::check_variables(bool init) {
 
         Config::GL_BetterPolygons = enabled;
     }
-    config::_render_settings.GL_BetterPolygons = Config::GL_BetterPolygons;
 
     var.key = Keys::OPENGL_FILTERING;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
