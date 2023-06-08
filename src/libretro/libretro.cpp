@@ -235,9 +235,6 @@ static void melonds::render_software() {
 
         if (input_state.cursor_enabled())
             screen_layout_data.draw_cursor(input_state.touch_x, input_state.touch_y);
-
-        retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
-                             screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
     } else {
         if (screen_layout_data.enable_top_screen)
             screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][0], screen_layout_data.top_screen_offset);
@@ -247,10 +244,9 @@ static void melonds::render_software() {
 
         if (input_state.cursor_enabled() && current_screen_layout() != ScreenLayout::TopOnly)
             screen_layout_data.draw_cursor(input_state.touch_x, input_state.touch_y);
-
-        retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
-                             screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
     }
+    retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
+                         screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
 }
 
 static void melonds::render_audio() {
