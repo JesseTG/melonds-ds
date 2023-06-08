@@ -153,7 +153,7 @@ PUBLIC_SYMBOL void retro_run(void) {
             Frontend::Mic_FeedSilence();
     }
 
-    if (Config::Retro::RenderContextActive && Config::Retro::CurrentRenderer != melonds::CurrentRenderer::None) {
+    if (melonds::opengl::RenderContextAlive() && Config::Retro::CurrentRenderer != melonds::CurrentRenderer::None) {
         // retro_run might be
         NDS::RunFrame();
     }
@@ -175,20 +175,19 @@ PUBLIC_SYMBOL void retro_run(void) {
 
 static void melonds::render_frame() {
     using melonds::screen_layout_data;
+    using melonds::opengl::RenderContextAlive;
 #ifdef HAVE_OPENGL
     if (Config::Retro::CurrentRenderer == CurrentRenderer::None) {
         // If we haven't initialized a renderer  yet...
-        if ((static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl) &&
-            Config::Retro::RenderContextActive) {
+        if ((static_cast<CurrentRenderer>(Config::_3DRenderer) == CurrentRenderer::OpenGl) && RenderContextAlive()) {
             // Try to initialize opengl, if it failed fallback to software
             if (melonds::opengl::initialize()) {
                 Config::Retro::CurrentRenderer = CurrentRenderer::OpenGl;
             } else {
-                Config::Retro::RenderContextActive = false;
                 return;
             }
         } else {
-            if (Config::Retro::RenderContextActive) {
+            if (RenderContextAlive()) {
                 melonds::opengl::deinitialize();
             }
 
@@ -198,7 +197,7 @@ static void melonds::render_frame() {
         }
     }
 
-    if (Config::Retro::RenderContextActive) {
+    if (RenderContextAlive()) {
         // If the hardware state needed for rendering is set up...
         melonds::opengl::render_frame(Config::Retro::CurrentRenderer == CurrentRenderer::Software);
     } else if (Config::Retro::CurrentRenderer == CurrentRenderer::Software) {

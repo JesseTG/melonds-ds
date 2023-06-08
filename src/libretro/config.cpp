@@ -365,7 +365,7 @@ void melonds::check_variables(bool init) {
                 Config::_3DRenderer = static_cast<int>(CurrentRenderer::Software);
             }
 
-            if (Config::Retro::RenderContextActive)
+            if (melonds::opengl::RenderContextAlive())
                 Config::Retro::CurrentRenderer = static_cast<CurrentRenderer>(Config::_3DRenderer);
         }
     }
@@ -403,7 +403,7 @@ void melonds::check_variables(bool init) {
         Config::ScreenFilter = string_is_equal(var.value, "linear");
     }
 
-    if ((Config::Retro::RenderContextActive && gl_settings_changed) || layout != current_screen_layout())
+    if ((melonds::opengl::RenderContextAlive() && gl_settings_changed) || layout != current_screen_layout())
         melonds::opengl::refresh_opengl = true;
 #endif
 

@@ -25,5 +25,7 @@ namespace melonds::opengl {
     void deinitialize();
 
     void render_frame(bool software);
+
+    bool RenderContextAlive();
 }
 #endif //MELONDS_DS_OPENGL_HPP
