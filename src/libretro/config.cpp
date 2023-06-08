@@ -90,7 +90,7 @@ namespace Config {
         bool MicButtonRequired = true;
         bool RandomizeMac = false;
         melonds::ScreenSwapMode ScreenSwapMode;
-        melonds::CurrentRenderer CurrentRenderer;
+        melonds::Renderer CurrentRenderer;
         float CursorSize = 2.0;
 
         namespace Keys {
@@ -359,18 +359,18 @@ void melonds::check_variables(bool init) {
         var.key = Keys::OPENGL_RENDERER;
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
             if (string_is_equal(var.value, Values::ENABLED)) {
-                Config::_3DRenderer = static_cast<int>(CurrentRenderer::OpenGl);
+                Config::_3DRenderer = static_cast<int>(Renderer::OpenGl);
             }
             else {
-                Config::_3DRenderer = static_cast<int>(CurrentRenderer::Software);
+                Config::_3DRenderer = static_cast<int>(Renderer::Software);
             }
 
             if (melonds::opengl::RenderContextAlive())
-                Config::Retro::CurrentRenderer = static_cast<CurrentRenderer>(Config::_3DRenderer);
+                Config::Retro::CurrentRenderer = static_cast<Renderer>(Config::_3DRenderer);
         }
     }
 
-    if (Config::_3DRenderer == static_cast<int>(CurrentRenderer::OpenGl)) {
+    if (Config::_3DRenderer == static_cast<int>(Renderer::OpenGl)) {
         // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
         config::_render_settings.Soft_Threaded = false;
     }
@@ -522,7 +522,7 @@ void melonds::check_variables(bool init) {
 
     input_state.current_touch_mode = new_touch_mode;
 
-    update_screenlayout(layout, &screen_layout_data, Config::_3DRenderer == static_cast<int>(CurrentRenderer::OpenGl), Config::ScreenSwap);
+    update_screenlayout(layout, &screen_layout_data, Config::_3DRenderer == static_cast<int>(Renderer::OpenGl), Config::ScreenSwap);
 
     update_option_visibility();
 }

@@ -42,7 +42,7 @@ namespace melonds {
         Toggle,
     };
 
-    enum class CurrentRenderer
+    enum class Renderer
     {
         None,
         Software,
@@ -66,7 +66,7 @@ namespace Config::Retro {
     extern bool RandomizeMac;
     extern float CursorSize;
     extern melonds::ScreenSwapMode ScreenSwapMode;
-    extern melonds::CurrentRenderer CurrentRenderer;
+    extern melonds::Renderer CurrentRenderer;
 
     GPU::RenderSettings RenderSettings();
 }
