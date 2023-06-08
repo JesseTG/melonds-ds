@@ -49,6 +49,11 @@ namespace melonds {
         OpenGl,
     };
 
+    enum RendererType {
+        Software,
+        OpenGl
+    };
+
     /// The order of these values is important.
     enum class FirmwareLanguage
     {
