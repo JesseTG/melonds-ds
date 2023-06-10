@@ -678,7 +678,10 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::THREADED_RENDERER,
                 "Threaded Software Renderer",
                 nullptr,
-                nullptr,
+                "If enabled, the software renderer will run on a separate thread if possible. "
+                "Otherwise, it will run on the main thread. "
+                "Ignored if using the OpenGL renderer ."
+                "Takes effect next time the core restarts. ",
                 nullptr,
                 "video",
                 {
@@ -694,7 +697,9 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 Config::Retro::Keys::OPENGL_RENDERER,
                 "OpenGL Renderer",
                 nullptr,
-                "Restart required.",
+                "If enabled, uses OpenGL for all rendering if possible. "
+                "Will fall back to the software renderer if OpenGL is unavailable. "
+                "Takes effect next time the core restarts. ",
                 nullptr,
                 "video",
                 {
