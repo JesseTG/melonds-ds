@@ -72,6 +72,7 @@ namespace Config::Retro {
     extern float CursorSize;
     extern melonds::ScreenSwapMode ScreenSwapMode;
     extern melonds::Renderer CurrentRenderer;
+    extern melonds::Renderer ConfiguredRenderer;
 
     GPU::RenderSettings RenderSettings();
 }

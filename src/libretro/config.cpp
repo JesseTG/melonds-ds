@@ -29,7 +29,6 @@ namespace Config {
     bool ScreenSwap;
     bool ScreenFilter;
 
-    int _3DRenderer;
     bool Threaded3D;
 
     int GL_ScaleFactor;
@@ -91,6 +90,7 @@ namespace Config {
         bool RandomizeMac = false;
         melonds::ScreenSwapMode ScreenSwapMode;
         melonds::Renderer CurrentRenderer;
+        melonds::Renderer ConfiguredRenderer;
         float CursorSize = 2.0;
 
         namespace Keys {
@@ -358,10 +358,10 @@ void melonds::check_variables(bool init) {
         var.key = Keys::OPENGL_RENDERER;
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
             if (string_is_equal(var.value, Values::ENABLED)) {
-                Config::_3DRenderer = static_cast<int>(Renderer::OpenGl);
+                Config::Retro::ConfiguredRenderer = Renderer::OpenGl;
             }
             else {
-                Config::_3DRenderer = static_cast<int>(Renderer::Software);
+                Config::Retro::ConfiguredRenderer = Renderer::Software;
             }
 
             if (melonds::opengl::RenderContextAlive())
@@ -514,7 +514,7 @@ void melonds::check_variables(bool init) {
 
     input_state.current_touch_mode = new_touch_mode;
 
-    update_screenlayout(layout, &screen_layout_data, Config::_3DRenderer == static_cast<int>(Renderer::OpenGl), Config::ScreenSwap);
+    update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl, Config::ScreenSwap);
 
     update_option_visibility();
 }
