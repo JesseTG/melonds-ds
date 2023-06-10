@@ -473,6 +473,8 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
     NDS::Start();
 
+    log(RETRO_LOG_INFO, "Initialized emulated console and loaded emulated game");
+
 //    micInterface.interface_version = RETRO_MICROPHONE_INTERFACE_VERSION;
 //    if (environ_cb(RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE, &micInterface))
 //    { // ...and if the current audio driver supports microphones...
