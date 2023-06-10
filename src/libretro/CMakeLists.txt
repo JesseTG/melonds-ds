@@ -18,6 +18,7 @@ add_library(libretro MODULE
     platform/platform.cpp
     platform/semaphore.cpp
     platform/thread.cpp
+    render.cpp
     screenlayout.cpp
     )
 
