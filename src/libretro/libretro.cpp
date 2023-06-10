@@ -396,8 +396,10 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     log(RETRO_LOG_INFO, "OpenGL is not supported by this build, using software renderer");
 #endif
 
-    if (!NDS::Init())
+    if (!NDS::Init()) {
+        log(RETRO_LOG_ERROR, "Failed to initialize melonDS");
         return false;
+    }
 
     char game_name[256];
     const char *ptr = path_basename(info->path);
