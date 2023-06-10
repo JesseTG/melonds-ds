@@ -51,5 +51,6 @@ bool melonds::render::ReadyToRender() {
             return false;
     }
 
+    // Software rendering doesn't need us to set up any context, the frontend does that
     return true;
 }

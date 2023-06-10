@@ -195,6 +195,7 @@ static void melonds::render_frame() {
 }
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
+// TODO: Move to render.cpp
 static void melonds::render_software() {
     int frontbuf = GPU::FrontBuffer;
 
@@ -376,10 +377,10 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         return false;
     }
 
-
 #ifdef HAVE_OPENGL
     // Initialize the opengl state if needed
     switch (Config::Retro::ConfiguredRenderer) {
+        // Depending on which renderer we want to use...
         case Renderer::OpenGl:
             if (melonds::opengl::initialize()) {
                 Config::Retro::CurrentRenderer = Renderer::OpenGl;
