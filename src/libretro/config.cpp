@@ -29,6 +29,8 @@ namespace Config {
     bool ScreenSwap;
     bool ScreenFilter;
 
+    bool ScreenUseGL = false;
+
     bool Threaded3D;
 
     int GL_ScaleFactor;
@@ -104,6 +106,7 @@ namespace Config {
             static const char *const THREADED_RENDERER = "melonds_threaded_renderer";
             static const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
             static const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
+            static const char *const OPENGL_BLIT = "melonds_opengl_blit";
             static const char *const SCREEN_LAYOUT = "melonds_screen_layout";
             static const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
             static const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
@@ -403,6 +406,11 @@ void melonds::check_variables(bool init) {
     var.key = Keys::OPENGL_FILTERING;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         Config::ScreenFilter = string_is_equal(var.value, "linear");
+    }
+
+    var.key = Keys::OPENGL_BLIT;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        Config::ScreenUseGL = string_is_equal(var.value, Values::ENABLED);
     }
 
     if ((melonds::opengl::RenderContextAlive() && gl_settings_changed) || layout != current_screen_layout())
@@ -713,6 +721,21 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                         {nullptr, nullptr},
                 },
                 Config::Retro::Values::DISABLED
+        },
+        {
+            Config::Retro::Keys::OPENGL_BLIT,
+            "Blit with OpenGL",
+            nullptr,
+            "If enabled, uses OpenGL for blitting the software-rendered image to the screen. "
+            "Ignored if using the OpenGL renderer.",
+            nullptr,
+            Config::Retro::Category::VIDEO,
+            {
+                {Config::Retro::Values::DISABLED, nullptr},
+                {Config::Retro::Values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            Config::Retro::Values::DISABLED
         },
         {
                 Config::Retro::Keys::OPENGL_RESOLUTION,
