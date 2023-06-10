@@ -17,4 +17,10 @@
 #ifndef MELONDS_DS_RENDER_HPP
 #define MELONDS_DS_RENDER_HPP
 
+namespace melonds::render {
+    /// Returns true if all global state necessary for rendering is ready.
+    /// This includes the OpenGL context (if applicable) and the emulator's renderer.
+    bool ReadyToRender();
+}
+
 #endif //MELONDS_DS_RENDER_HPP

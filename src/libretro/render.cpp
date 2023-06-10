@@ -15,3 +15,41 @@
 */
 
 #include "render.hpp"
+
+#include <libretro.h>
+#include <glsm/glsm.h>
+#include <glsm/glsmsym.h>
+
+#include <GPU3D.h>
+#include <frontend/qt_sdl/Config.h>
+
+#include "config.hpp"
+#include "opengl.hpp"
+
+bool melonds::render::ReadyToRender() {
+    using melonds::Renderer;
+    if (GPU3D::CurrentRenderer == nullptr) {
+        // If the emulator doesn't yet have an assigned renderer...
+        return false;
+    }
+
+    switch (Config::Retro::CurrentRenderer) {
+        // Depending on the renderer we're using...
+        case Renderer::OpenGl:
+            if (!melonds::opengl::ContextInitialized()) {
+                // If the OpenGL context hasn't been initialized yet...
+                return false;
+            }
+            break;
+        case Renderer::Software:
+            if (Config::ScreenUseGL && !melonds::opengl::ContextInitialized()) {
+                // If we're using software rendering but OpenGL blitting, and OpenGL isn't ready...
+                return false;
+            }
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
