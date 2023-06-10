@@ -370,9 +370,6 @@ void melonds::check_variables(bool init) {
             else {
                 Config::Retro::ConfiguredRenderer = Renderer::Software;
             }
-
-            if (melonds::opengl::RenderContextAlive())
-                Config::Retro::CurrentRenderer = static_cast<Renderer>(Config::_3DRenderer);
         }
     }
 
