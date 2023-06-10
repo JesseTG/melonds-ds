@@ -386,8 +386,11 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
                 // TODO: Display a message stating that we're falling back to software rendering
             }
             break;
-        case Renderer::Software:
         default:
+            log(RETRO_LOG_WARN, "Unknown renderer %d, falling back to software rendering",
+                static_cast<int>(Config::Retro::ConfiguredRenderer));
+            // Intentional fall-through
+        case Renderer::Software:
             Config::Retro::CurrentRenderer = Renderer::Software;
             log(RETRO_LOG_INFO, "Using software renderer");
             break;
