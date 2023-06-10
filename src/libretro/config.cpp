@@ -93,6 +93,11 @@ namespace Config {
         melonds::Renderer ConfiguredRenderer;
         float CursorSize = 2.0;
 
+        namespace Category {
+            static const char *const VIDEO = "video";
+            static const char *const SYSTEM = "system";
+        }
+
         namespace Keys {
             static const char *const OPENGL_RENDERER = "melonds_opengl_renderer";
             static const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
