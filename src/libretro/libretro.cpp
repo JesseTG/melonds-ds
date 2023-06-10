@@ -154,10 +154,7 @@ PUBLIC_SYMBOL void retro_run(void) {
             Frontend::Mic_FeedSilence();
     }
 
-    if (melonds::opengl::RenderContextAlive() && Config::Retro::CurrentRenderer != melonds::Renderer::None) {
-        // retro_run might be
-        NDS::RunFrame();
-    }
+    NDS::RunFrame();
 
     // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
     melonds::render_frame();
