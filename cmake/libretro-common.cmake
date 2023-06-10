@@ -75,6 +75,13 @@ else ()
     target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
 endif ()
 
+# TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
+# TODO: Detect if libnx is available and we're building for Switch; if so, define HAVE_LIBNX
+# TODO: Detect if mmap is available; if so, define HAVE_MMAP
+# TODO: Detect if cocoatouch is available; if so, define HAVE_COCOATOUCH
+# TODO: Detect if OpenGL ES is available; if so, define HAVE_OPENGLES(_?[123](_[12])?)?
+# TODO: Detect if SSL is available; if so, define HAVE_SSL
+
 if (HAVE_OPENGL)
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/glsm/glsm.c

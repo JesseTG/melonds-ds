@@ -193,6 +193,7 @@ static void melonds::render_frame() {
 #endif
 }
 
+// TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
 static void melonds::render_software() {
     int frontbuf = GPU::FrontBuffer;
 
@@ -291,6 +292,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
         NDS::SetupDirectBoot(game_name);
     }
 
+    // TODO: Is this block necessary, given that I'm letting the frontend handle SRAM?
     if (Platform::FileExists(Config::SaveFilePath)) {
         void *save_data = nullptr;
         int64_t save_length = 0;
@@ -357,6 +359,8 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     Config::DSiNANDPath = "dsi_nand.bin";
     Config::DSiSDPath = "dsi_sd_card.bin";
 
+    // TODO: Ensure that the username is non-empty
+    // TODO: Cap the username to match the DS's limit
     const char *retro_username;
     if (environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username)
         Config::FirmwareUsername = retro_username;

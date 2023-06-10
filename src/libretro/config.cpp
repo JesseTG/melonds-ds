@@ -242,6 +242,7 @@ bool melonds::update_option_visibility() {
     return updated;
 }
 
+// TODO: Consider splitting the code that updates the emulator state into a separate function
 void melonds::check_variables(bool init) {
     using namespace Config::Retro;
     using retro::environment;
@@ -554,6 +555,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
         {nullptr, nullptr, nullptr},
 };
 
+// TODO: Use labels that are separate from option values
 /// These items intentionally share config keys with the original melonDS core,
 /// in order to simplify migration.
 struct retro_core_option_v2_definition melonds::option_defs_us[] = {
