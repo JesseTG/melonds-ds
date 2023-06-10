@@ -29,8 +29,6 @@ namespace Config {
     bool ScreenSwap;
     bool ScreenFilter;
 
-    bool ScreenUseGL = false;
-
     bool Threaded3D;
 
     int GL_ScaleFactor;
@@ -408,8 +406,9 @@ void melonds::check_variables(bool init) {
         Config::ScreenFilter = string_is_equal(var.value, "linear");
     }
 
-    if ((melonds::opengl::RenderContextAlive() && gl_settings_changed) || layout != current_screen_layout())
-        melonds::opengl::refresh_opengl = true;
+    if ((melonds::opengl::UsingOpenGl() && gl_settings_changed) || layout != current_screen_layout())
+        // If we're using OpenGL and the settings changed, or the screen layout changed...
+        melonds::opengl::RequestOpenGlRefresh();
 #endif
 
 #ifdef JIT_ENABLED

@@ -31,6 +31,7 @@
 
 namespace melonds::opengl {
     bool refresh_opengl = true;
+    static bool context_initialized = false;
     static GLuint shader[3];
     static GLuint screen_framebuffer_texture;
     static float screen_vertices[72];
@@ -60,9 +61,20 @@ namespace melonds::opengl {
     static void setup_opengl_frame_state();
 }
 
-bool melonds::opengl::RenderContextAlive()
-{
-    return GPU3D::CurrentRenderer != nullptr;
+bool melonds::opengl::ContextInitialized() {
+    return context_initialized;
+}
+
+bool melonds::opengl::UsingOpenGl() {
+    if (Config::Retro::CurrentRenderer == melonds::Renderer::OpenGl) {
+        return true;
+    }
+
+    return false;
+}
+
+void melonds::opengl::RequestOpenGlRefresh() {
+    refresh_opengl = true;
 }
 
 bool melonds::opengl::initialize() {

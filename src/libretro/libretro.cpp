@@ -101,7 +101,7 @@ PUBLIC_SYMBOL void retro_run(void) {
                     update_screenlayout(current_screen_layout(), &screen_layout_data,
                                         CurrentRenderer == Renderer::OpenGl,
                                         swap_screen_toggled);
-                    melonds::opengl::refresh_opengl = true;
+                    melonds::opengl::RequestOpenGlRefresh();
                 }
 
                 Config::ScreenSwap = input_state.swap_screens_btn;
@@ -117,7 +117,7 @@ PUBLIC_SYMBOL void retro_run(void) {
                 update_screenlayout(current_screen_layout(), &screen_layout_data,
                                     CurrentRenderer == Renderer::OpenGl,
                                     Config::ScreenSwap);
-                melonds::opengl::refresh_opengl = true;
+                melonds::opengl::RequestOpenGlRefresh();
             }
         }
     }

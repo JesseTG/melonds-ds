@@ -18,7 +18,8 @@
 #define MELONDS_DS_OPENGL_HPP
 
 namespace melonds::opengl {
-    extern bool refresh_opengl;
+    // Requests that the OpenGL context be refreshed.
+    void RequestOpenGlRefresh();
 
     bool initialize();
 
@@ -26,6 +27,7 @@ namespace melonds::opengl {
 
     void render_frame(bool software);
 
-    bool RenderContextAlive();
+    bool ContextInitialized();
+    bool UsingOpenGl();
 }
 #endif //MELONDS_DS_OPENGL_HPP
