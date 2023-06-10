@@ -101,12 +101,11 @@ namespace Config {
         }
 
         namespace Keys {
-            static const char *const OPENGL_RENDERER = "melonds_opengl_renderer";
             static const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
             static const char *const THREADED_RENDERER = "melonds_threaded_renderer";
             static const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
             static const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
-            static const char *const OPENGL_BLIT = "melonds_opengl_blit";
+            static const char *const RENDER_MODE = "melonds_render_mode";
             static const char *const SCREEN_LAYOUT = "melonds_screen_layout";
             static const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
             static const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
@@ -134,6 +133,7 @@ namespace Config {
         namespace Values {
             static const char *const DISABLED = "disabled";
             static const char *const ENABLED = "enabled";
+            static const char *const OPENGL = "opengl";
         }
     }
 }
@@ -174,10 +174,10 @@ bool melonds::update_option_visibility() {
     // Show/hide OpenGL core options
     bool show_opengl_options_prev = _show_opengl_options;
 
-    _show_opengl_options = true;
-    var.key = Keys::OPENGL_RENDERER;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, Values::DISABLED))
-        _show_opengl_options = false;
+    var.key = Keys::RENDER_MODE;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        _show_opengl_options = string_is_equal(var.value, Values::OPENGL);
+    }
 
     if (_show_opengl_options != show_opengl_options_prev) {
         option_display.visible = _show_opengl_options;
@@ -371,9 +371,9 @@ void melonds::check_variables(bool init) {
     // TODO: Fix the OpenGL software only render impl so you can switch at runtime
     if (init) {
         // If we're initializing the game...
-        var.key = Keys::OPENGL_RENDERER;
+        var.key = Keys::RENDER_MODE;
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-            if (string_is_equal(var.value, Values::ENABLED)) {
+            if (string_is_equal(var.value, Values::OPENGL)) {
                 Config::Retro::ConfiguredRenderer = Renderer::OpenGl;
             }
             else {
@@ -406,11 +406,6 @@ void melonds::check_variables(bool init) {
     var.key = Keys::OPENGL_FILTERING;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         Config::ScreenFilter = string_is_equal(var.value, "linear");
-    }
-
-    var.key = Keys::OPENGL_BLIT;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::ScreenUseGL = string_is_equal(var.value, Values::ENABLED);
     }
 
     if ((melonds::opengl::RenderContextAlive() && gl_settings_changed) || layout != current_screen_layout())
@@ -707,35 +702,20 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
 #endif
 #ifdef HAVE_OPENGL
         {
-                Config::Retro::Keys::OPENGL_RENDERER,
-                "OpenGL Renderer",
-                nullptr,
-                "If enabled, uses OpenGL for all rendering if possible. "
-                "Will fall back to the software renderer if OpenGL is unavailable. "
-                "Takes effect next time the core restarts. ",
-                nullptr,
-                "video",
-                {
-                        {Config::Retro::Values::DISABLED, nullptr},
-                        {Config::Retro::Values::ENABLED, nullptr},
-                        {nullptr, nullptr},
-                },
-                Config::Retro::Values::DISABLED
-        },
-        {
-            Config::Retro::Keys::OPENGL_BLIT,
-            "Blit with OpenGL",
+            Config::Retro::Keys::RENDER_MODE,
+            "Render Mode",
             nullptr,
-            "If enabled, uses OpenGL for blitting the software-rendered image to the screen. "
-            "Ignored if using the OpenGL renderer.",
+            "OpenGL mode uses OpenGL (or OpenGL ES) for rendering graphics. "
+            "If that doesn't work, software rendering is used as a fallback. "
+            "Changes take effect next time the core restarts. ",
             nullptr,
             Config::Retro::Category::VIDEO,
             {
-                {Config::Retro::Values::DISABLED, nullptr},
-                {Config::Retro::Values::ENABLED, nullptr},
+                {"software", "Software"},
+                {Config::Retro::Values::OPENGL, "OpenGL"},
                 {nullptr, nullptr},
             },
-            Config::Retro::Values::DISABLED
+            "software"
         },
         {
                 Config::Retro::Keys::OPENGL_RESOLUTION,
