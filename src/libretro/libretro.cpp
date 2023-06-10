@@ -412,10 +412,13 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
     Config::SaveFilePath = _save_directory + PLATFORM_DIR_SEPERATOR + std::string(game_name) + ".sav";
 
-    // GPU config must be initialized before NDS::Reset is called
-    GPU::InitRenderer(false);
+    // GPU config must be initialized before NDS::Reset is called.
+    // Ensure that there's a renderer, even if we're about to throw it out.
+    // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
+    GPU::InitRenderer(Config::Retro::CurrentRenderer == Renderer::OpenGl);
     GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
-    GPU::SetRenderSettings(false, render_settings);
+    GPU::SetRenderSettings(Config::Retro::CurrentRenderer == Renderer::OpenGl, render_settings);
+
     SPU::SetInterpolation(Config::AudioInterp);
     NDS::SetConsoleType(Config::ConsoleType);
 
