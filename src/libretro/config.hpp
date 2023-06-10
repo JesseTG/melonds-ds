@@ -44,9 +44,9 @@ namespace melonds {
 
     enum class Renderer
     {
-        None,
-        Software,
-        OpenGl,
+        None = -1,
+        Software = 0, // To match with values that melonDS expects
+        OpenGl = 1,
     };
 
     /// The order of these values is important.
