@@ -42,6 +42,7 @@
 #include "info.hpp"
 #include "screenlayout.hpp"
 #include "memory.hpp"
+#include "render.hpp"
 
 namespace melonds {
     static std::string _base_directory;
@@ -154,11 +155,14 @@ PUBLIC_SYMBOL void retro_run(void) {
             Frontend::Mic_FeedSilence();
     }
 
-    NDS::RunFrame();
+    if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
+        // NDS::RunFrame invokes rendering-related code
+        NDS::RunFrame();
 
-    // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
-    melonds::render_frame();
-    melonds::render_audio();
+        // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
+        melonds::render_frame();
+        melonds::render_audio();
+    }
 
     bool updated = false;
     if (retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
