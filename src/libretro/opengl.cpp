@@ -95,7 +95,7 @@ bool melonds::opengl::initialize() {
     return glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
 }
 
-void melonds::opengl::render_frame(bool software) {
+void melonds::opengl::render_frame() {
     using melonds::screen_layout_data;
     using melonds::input_state;
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
