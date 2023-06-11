@@ -58,6 +58,7 @@ namespace melonds::opengl {
     static bool context_framebuffer_lock(void *data);
 
     static bool setup_opengl();
+
     static void setup_opengl_frame_state();
 }
 
@@ -91,12 +92,7 @@ bool melonds::opengl::initialize() {
     params.stencil = false;
     params.framebuffer_lock = context_framebuffer_lock;
 
-    if (!glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params)) {
-        retro::log(RETRO_LOG_ERROR, "Could not setup opengl context, falling back to software rasterization.\n");
-        return false;
-    }
-
-    return true;
+    return glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
 }
 
 void melonds::opengl::render_frame(bool software) {
@@ -119,11 +115,11 @@ void melonds::opengl::render_frame(bool software) {
         GL_ShaderConfig.cursorPos[0] = (((float) (input_state.touch_x) - Config::Retro::CursorSize) /
                                         (VIDEO_HEIGHT * 1.35f));
         GL_ShaderConfig.cursorPos[1] =
-                (((float) (input_state.touch_y) - Config::Retro::CursorSize) / (VIDEO_WIDTH * 1.5f)) + 0.5f;
+            (((float) (input_state.touch_y) - Config::Retro::CursorSize) / (VIDEO_WIDTH * 1.5f)) + 0.5f;
         GL_ShaderConfig.cursorPos[2] = (((float) (input_state.touch_x) + Config::Retro::CursorSize) /
                                         (VIDEO_HEIGHT * 1.35f));
         GL_ShaderConfig.cursorPos[3] =
-                (((float) (input_state.touch_y) + Config::Retro::CursorSize) / ((float) VIDEO_WIDTH * 1.5f)) + 0.5f;
+            (((float) (input_state.touch_y) + Config::Retro::CursorSize) / ((float) VIDEO_WIDTH * 1.5f)) + 0.5f;
 
         glBindBuffer(GL_UNIFORM_BUFFER, ubo);
         void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
