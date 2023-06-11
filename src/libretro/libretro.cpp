@@ -55,8 +55,6 @@ namespace melonds {
     static void render_audio();
 
     static bool load_game(unsigned type, const struct retro_game_info *info);
-
-    static void render_software();
 }
 
 const std::string &retro::base_directory() {
@@ -184,48 +182,9 @@ static void melonds::render_frame() {
 #endif
         case Renderer::Software:
         default:
-            render_software();
+            render::RenderSoftware();
             break;
     }
-}
-
-// TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
-// TODO: Move to render.cpp
-static void melonds::render_software() {
-    int frontbuf = GPU::FrontBuffer;
-
-    if (screen_layout_data.hybrid) {
-        unsigned primary = screen_layout_data.displayed_layout == ScreenLayout::HybridTop ? 0 : 1;
-
-        screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
-
-        switch (screen_layout_data.hybrid_small_screen) {
-            case SmallScreenLayout::SmallScreenTop:
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][0], ScreenId::Bottom);
-                break;
-            case SmallScreenLayout::SmallScreenBottom:
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
-                break;
-            case SmallScreenLayout::SmallScreenDuplicate:
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][0], ScreenId::Top);
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
-                break;
-        }
-
-        if (input_state.cursor_enabled())
-            screen_layout_data.draw_cursor(input_state.touch_x, input_state.touch_y);
-    } else {
-        if (screen_layout_data.enable_top_screen)
-            screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][0], screen_layout_data.top_screen_offset);
-        if (screen_layout_data.enable_bottom_screen)
-            screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][1],
-                                           screen_layout_data.bottom_screen_offset);
-
-        if (input_state.cursor_enabled() && current_screen_layout() != ScreenLayout::TopOnly)
-            screen_layout_data.draw_cursor(input_state.touch_x, input_state.touch_y);
-    }
-    retro::video_refresh((uint8_t *) screen_layout_data.buffer_ptr, screen_layout_data.buffer_width,
-                         screen_layout_data.buffer_height, screen_layout_data.buffer_width * sizeof(uint32_t));
 }
 
 static void melonds::render_audio() {

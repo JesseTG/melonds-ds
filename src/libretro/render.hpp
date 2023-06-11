@@ -21,6 +21,9 @@ namespace melonds::render {
     /// Returns true if all global state necessary for rendering is ready.
     /// This includes the OpenGL context (if applicable) and the emulator's renderer.
     bool ReadyToRender();
+
+    /// Renders a frame with software rendering and submits it to libretro for display.
+    void RenderSoftware();
 }
 
 #endif //MELONDS_DS_RENDER_HPP
