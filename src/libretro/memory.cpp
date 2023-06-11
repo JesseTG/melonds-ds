@@ -39,6 +39,22 @@ namespace melonds {
     static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
 }
 
+static const char *const memory_type_name(unsigned type)
+{
+    switch (type) {
+        case RETRO_MEMORY_SAVE_RAM:
+            return "RETRO_MEMORY_SAVE_RAM";
+        case RETRO_MEMORY_RTC:
+            return "RETRO_MEMORY_RTC";
+        case RETRO_MEMORY_SYSTEM_RAM:
+            return "RETRO_MEMORY_SYSTEM_RAM";
+        case RETRO_MEMORY_VIDEO_RAM:
+            return "RETRO_MEMORY_VIDEO_RAM";
+        default:
+            return "<unknown>";
+    }
+}
+
 /// Savestates in melonDS can vary in size depending on the game,
 /// so we have to try saving the state first before we can know how big it'll be.
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
@@ -84,7 +100,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
-    retro::log(RETRO_LOG_DEBUG, "retro_get_memory_data(%d)\n", type);
+    retro::log(RETRO_LOG_DEBUG, "retro_get_memory_data(%s)\n", memory_type_name(type));
     switch (type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             return NDS::MainRAM;
