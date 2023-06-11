@@ -362,6 +362,9 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         return false;
     }
 
+    SPU::SetInterpolation(Config::AudioInterp);
+    NDS::SetConsoleType(Config::ConsoleType);
+
     char game_name[256];
     const char *ptr = path_basename(info->path);
     if (ptr)
@@ -378,9 +381,6 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     GPU::InitRenderer(Config::Retro::CurrentRenderer == Renderer::OpenGl);
     GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
     GPU::SetRenderSettings(Config::Retro::CurrentRenderer == Renderer::OpenGl, render_settings);
-
-    SPU::SetInterpolation(Config::AudioInterp);
-    NDS::SetConsoleType(Config::ConsoleType);
 
     NDS::Reset(); // Loads the BIOS, too
 
