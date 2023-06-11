@@ -25,7 +25,7 @@ namespace melonds::opengl {
 
     void deinitialize();
 
-    void render_frame(bool software);
+    void render_frame();
 
     bool ContextInitialized();
     bool UsingOpenGl();

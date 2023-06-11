@@ -137,18 +137,7 @@ void melonds::opengl::render_frame(bool software) {
 
     glActiveTexture(GL_TEXTURE0);
 
-    if (software) {
-        glBindTexture(GL_TEXTURE_2D, screen_framebuffer_texture);
-
-        if (GPU::Framebuffer[frontbuf][0] && GPU::Framebuffer[frontbuf][1]) {
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 192, GL_RGBA_INTEGER,
-                            GL_UNSIGNED_BYTE, GPU::Framebuffer[frontbuf][0]);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 192, 256, 192, GL_RGBA_INTEGER,
-                            GL_UNSIGNED_BYTE, GPU::Framebuffer[frontbuf][1]);
-        }
-    } else {
-        GPU::CurGLCompositor->BindOutputTexture(frontbuf);
-    }
+    GPU::CurGLCompositor->BindOutputTexture(frontbuf);
 
     GLint filter = Config::ScreenFilter ? GL_LINEAR : GL_NEAREST;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
@@ -181,23 +170,29 @@ void melonds::opengl::deinitialize() {
 
 static void melonds::opengl::context_reset() {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_reset()");
-    if (GPU3D::CurrentRenderer)
-    {
+    if (UsingOpenGl() && GPU3D::CurrentRenderer) { // If we're using OpenGL, but there's already a renderer in place...
         retro::log(RETRO_LOG_DEBUG, "GPU3D renderer is assigned; deinitializing it before resetting the context.");
         GPU::DeInitRenderer();
     }
 
+    // These glsm_ctl calls always succeed
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
-
-    if (!glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr))
-        return;
-
+    glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
-    setup_opengl();
 
-    if (GPU3D::CurrentRenderer)
-        GPU::InitRenderer(true);
-    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+    // Renderer might be software, but we might also still be blitting with OpenGL
+    GPU::InitRenderer(static_cast<int>(Config::Retro::CurrentRenderer));
+
+    bool success = setup_opengl();
+
+    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
+    context_initialized = success;
+
+    if (success) {
+        retro::log(RETRO_LOG_DEBUG, "OpenGL context reset successfully.");
+    } else {
+        retro::log(RETRO_LOG_ERROR, "OpenGL context reset failed.");
+    }
 }
 
 static void melonds::opengl::context_destroy() {

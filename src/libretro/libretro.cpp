@@ -176,22 +176,17 @@ PUBLIC_SYMBOL void retro_run(void) {
 }
 
 static void melonds::render_frame() {
-    using melonds::screen_layout_data;
-    using melonds::opengl::RenderContextAlive;
+    switch (Config::Retro::CurrentRenderer) {
 #ifdef HAVE_OPENGL
-    if (RenderContextAlive()) {
-        // If the hardware state needed for rendering is set up...
-        melonds::opengl::render_frame(Config::Retro::CurrentRenderer == Renderer::Software);
-    } else if (Config::Retro::CurrentRenderer == Renderer::Software) {
-        render_software();
-    }
-#else
-    if (Config::Retro::CurrentRenderer == CurrentRenderer::None) {
-        Config::Retro::CurrentRenderer = CurrentRenderer::Software;
-    }
-
-    render_software();
+        case Renderer::OpenGl:
+            melonds::opengl::render_frame();
+            break;
 #endif
+        case Renderer::Software:
+        default:
+            render_software();
+            break;
+    }
 }
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER

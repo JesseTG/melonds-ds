@@ -33,22 +33,9 @@ bool melonds::render::ReadyToRender() {
         return false;
     }
 
-    switch (Config::Retro::CurrentRenderer) {
-        // Depending on the renderer we're using...
-        case Renderer::OpenGl:
-            if (!melonds::opengl::ContextInitialized()) {
-                // If the OpenGL context hasn't been initialized yet...
-                return false;
-            }
-            break;
-        case Renderer::Software:
-            if (Config::ScreenUseGL && !melonds::opengl::ContextInitialized()) {
-                // If we're using software rendering but OpenGL blitting, and OpenGL isn't ready...
-                return false;
-            }
-            break;
-        default:
-            return false;
+    if (Config::Retro::CurrentRenderer == Renderer::OpenGl && !melonds::opengl::ContextInitialized()) {
+        // If we're using OpenGL, but it isn't ready...
+        return false;
     }
 
     // Software rendering doesn't need us to set up any context, the frontend does that
