@@ -338,7 +338,6 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         case Renderer::OpenGl:
             if (melonds::opengl::initialize()) {
                 Config::Retro::CurrentRenderer = Renderer::OpenGl;
-                log(RETRO_LOG_INFO, "Initialized OpenGL context");
             } else {
                 Config::Retro::CurrentRenderer = Renderer::Software;
                 log(RETRO_LOG_ERROR, "Failed to initialize OpenGL renderer, falling back to software rendering");
