@@ -147,15 +147,10 @@ namespace melonds::config {
 
 GPU::RenderSettings Config::Retro::RenderSettings() {
     GPU::RenderSettings settings {
-            .Soft_Threaded = !Config::Threaded3D,
+            .Soft_Threaded = Config::Threaded3D,
             .GL_ScaleFactor = Config::GL_ScaleFactor,
             .GL_BetterPolygons = Config::GL_BetterPolygons,
     };
-
-    if (ConfiguredRenderer == melonds::Renderer::OpenGl) {
-        // Running the software rendering thread at the same time as OpenGL is used will cause segfault on cleanup
-        settings.Soft_Threaded = false;
-    }
 
     return settings;
 }
