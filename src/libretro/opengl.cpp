@@ -163,8 +163,12 @@ void melonds::opengl::render_frame(bool software) {
 
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-    retro::video_refresh(RETRO_HW_FRAME_BUFFER_VALID, screen_layout_data.buffer_width, screen_layout_data.buffer_height,
-                         0);
+    retro::video_refresh(
+        RETRO_HW_FRAME_BUFFER_VALID,
+        screen_layout_data.buffer_width,
+        screen_layout_data.buffer_height,
+        0
+    );
 
 }
 
