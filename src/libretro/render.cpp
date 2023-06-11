@@ -24,6 +24,7 @@
 #include <frontend/qt_sdl/Config.h>
 
 #include "config.hpp"
+#include "input.hpp"
 #include "opengl.hpp"
 #include "screenlayout.hpp"
 #include "environment.hpp"
