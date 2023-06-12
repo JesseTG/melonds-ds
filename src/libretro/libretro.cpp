@@ -340,7 +340,6 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     NDS::SetConsoleType(Config::ConsoleType);
 
     if (Config::Retro::CurrentRenderer == Renderer::OpenGl) {
-        // TODO: If using the OpenGL renderer, most resources must be initialized after the OpenGL context due to tight coupling
         log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
         deferred_initialization_pending = true;
     } else {
@@ -384,6 +383,8 @@ static void melonds::initialize_bios() {
     }
 }
 
+// melonDS tightly couples the renderer with the rest of the emulation code,
+// so we can't initialize the emulator until the OpenGL context is ready.
 static bool melonds::load_game_deferred(unsigned type, const struct retro_game_info *info) {
     using retro::log;
 
