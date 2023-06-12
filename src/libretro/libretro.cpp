@@ -55,6 +55,8 @@ namespace melonds {
     static void render_audio();
 
     static bool load_game(unsigned type, const struct retro_game_info *info);
+
+    static void initialize_bios();
 }
 
 const std::string &retro::base_directory() {
@@ -277,34 +279,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     */
     game_info = info;
 
-    if (Config::ExternalBIOSEnable) {
-        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
-        // so we have to do it ourselves
-
-        // TODO: Don't always check all files; just check for the ones we need
-        // based on the console type
-        std::vector<std::string> required_roms = {"bios7.bin", "bios9.bin", "firmware.bin"};
-        std::vector<std::string> missing_roms;
-
-        // Check if any of the bioses / firmware files are missing
-        for (std::string &rom: required_roms) {
-            if (Platform::LocalFileExists(rom)) {
-                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
-            } else {
-                missing_roms.push_back(rom);
-                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
-            }
-        }
-
-        // Abort if there are any of the required roms are missing
-        if (!missing_roms.empty()) {
-            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
-        }
-
-        Config::ExternalBIOSEnable = false;
-    } else {
-        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
-    }
+    initialize_bios();
 
     // TODO: Ensure that the username is non-empty
     // TODO: Cap the username to match the DS's limit
@@ -457,4 +432,37 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 //    }
 
     return true;
+}
+
+static void melonds::initialize_bios() {
+    using retro::log;
+
+    if (Config::ExternalBIOSEnable) {
+        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
+        // so we have to do it ourselves
+
+        // TODO: Don't always check all files; just check for the ones we need
+        // based on the console type
+        std::array<std::string, 3> required_roms = {Config::BIOS7Path, Config::BIOS9Path, Config::FirmwarePath};
+        std::vector<std::string> missing_roms;
+
+        // Check if any of the bioses / firmware files are missing
+        for (std::string &rom: required_roms) {
+            if (Platform::LocalFileExists(rom)) {
+                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
+            } else {
+                missing_roms.push_back(rom);
+                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
+            }
+        }
+
+        // Abort if there are any of the required roms are missing
+        if (!missing_roms.empty()) {
+            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
+        }
+
+        Config::ExternalBIOSEnable = false;
+    } else {
+        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
+    }
 }
