@@ -49,12 +49,15 @@ namespace melonds {
     static std::string _save_directory;
     static const retro_game_info *game_info;
     static bool swap_screen_toggled = false;
+    static bool deferred_initialization_pending = false;
 
     static void render_frame();
 
     static void render_audio();
 
     static bool load_game(unsigned type, const struct retro_game_info *info);
+
+    static bool load_game_deferred(unsigned type, const struct retro_game_info *info);
 
     static void initialize_bios();
 }
@@ -91,6 +94,14 @@ PUBLIC_SYMBOL void retro_run(void) {
     using namespace melonds;
     using retro::log;
     using Config::Retro::CurrentRenderer;
+
+    if (deferred_initialization_pending) {
+        log(RETRO_LOG_DEBUG, "Starting deferred initialization");
+        deferred_initialization_pending = false;
+        melonds::load_game_deferred(0, melonds::game_info);
+        // TODO: If deferred initialization fails, exit the core
+        log(RETRO_LOG_DEBUG, "Completed deferred initialization");
+    }
 
     melonds::update_input(input_state);
 
@@ -328,6 +339,54 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     SPU::SetInterpolation(Config::AudioInterp);
     NDS::SetConsoleType(Config::ConsoleType);
 
+    if (Config::Retro::CurrentRenderer == Renderer::OpenGl) {
+        // TODO: If using the OpenGL renderer, most resources must be initialized after the OpenGL context due to tight coupling
+        log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
+        deferred_initialization_pending = true;
+    } else {
+        log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
+        load_game_deferred(type, info);
+    }
+
+    return true;
+}
+
+static void melonds::initialize_bios() {
+    using retro::log;
+
+    if (Config::ExternalBIOSEnable) {
+        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
+        // so we have to do it ourselves
+
+        // TODO: Don't always check all files; just check for the ones we need
+        // based on the console type
+        std::array<std::string, 3> required_roms = {Config::BIOS7Path, Config::BIOS9Path, Config::FirmwarePath};
+        std::vector<std::string> missing_roms;
+
+        // Check if any of the bioses / firmware files are missing
+        for (std::string &rom: required_roms) {
+            if (Platform::LocalFileExists(rom)) {
+                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
+            } else {
+                missing_roms.push_back(rom);
+                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
+            }
+        }
+
+        // Abort if there are any of the required roms are missing
+        if (!missing_roms.empty()) {
+            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
+        }
+
+        Config::ExternalBIOSEnable = false;
+    } else {
+        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
+    }
+}
+
+static bool melonds::load_game_deferred(unsigned type, const struct retro_game_info *info) {
+    using retro::log;
+
     char game_name[256];
     const char *ptr = path_basename(info->path);
     if (ptr)
@@ -429,37 +488,4 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 //    }
 
     return true;
-}
-
-static void melonds::initialize_bios() {
-    using retro::log;
-
-    if (Config::ExternalBIOSEnable) {
-        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
-        // so we have to do it ourselves
-
-        // TODO: Don't always check all files; just check for the ones we need
-        // based on the console type
-        std::array<std::string, 3> required_roms = {Config::BIOS7Path, Config::BIOS9Path, Config::FirmwarePath};
-        std::vector<std::string> missing_roms;
-
-        // Check if any of the bioses / firmware files are missing
-        for (std::string &rom: required_roms) {
-            if (Platform::LocalFileExists(rom)) {
-                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
-            } else {
-                missing_roms.push_back(rom);
-                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
-            }
-        }
-
-        // Abort if there are any of the required roms are missing
-        if (!missing_roms.empty()) {
-            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
-        }
-
-        Config::ExternalBIOSEnable = false;
-    } else {
-        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
-    }
 }

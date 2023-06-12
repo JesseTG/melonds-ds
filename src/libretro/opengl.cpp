@@ -195,6 +195,7 @@ static void melonds::opengl::context_reset() {
     }
 
     // TODO: Signal that deferred initialization can now take place
+    // (in case different frontends have different behavior)
 }
 
 static void melonds::opengl::context_destroy() {
@@ -211,7 +212,6 @@ static void melonds::opengl::context_destroy() {
 
 static bool melonds::opengl::setup_opengl() {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::setup_opengl()");
-    GPU::InitRenderer(true);
 
     if (!OpenGL::BuildShaderProgram(shaders::_vertex_shader, shaders::_fragment_shader, shader, "LibretroShader"))
         return false;
