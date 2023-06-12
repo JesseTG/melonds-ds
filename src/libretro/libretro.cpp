@@ -257,19 +257,6 @@ PUBLIC_SYMBOL void retro_reset(void) {
     if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
         NDS::SetupDirectBoot(game_name);
     }
-
-    // TODO: Is this block necessary, given that I'm letting the frontend handle SRAM?
-    if (Platform::FileExists(Config::SaveFilePath)) {
-        void *save_data = nullptr;
-        int64_t save_length = 0;
-
-        if (filestream_read_file(Config::SaveFilePath.c_str(), &save_data, &save_length)) {
-            retro::log(RETRO_LOG_INFO, "Loaded %d-byte save file from %s", save_length, Config::SaveFilePath.c_str());
-
-            NDS::LoadSave(static_cast<const uint8_t *>(save_data), save_length);
-            free(save_data);
-        }
-    }
 }
 
 static bool melonds::load_game(unsigned type, const struct retro_game_info *info) {
@@ -411,18 +398,6 @@ static bool melonds::load_game_deferred(unsigned type, const struct retro_game_i
 
     if (!NDSCart::LoadROM((const uint8_t *) info->data, info->size)) {
         retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
-    }
-
-    if (Platform::FileExists(Config::SaveFilePath)) {
-        void *save_data = nullptr;
-        int64_t save_length = 0;
-
-        if (filestream_read_file(Config::SaveFilePath.c_str(), &save_data, &save_length)) {
-            retro::log(RETRO_LOG_INFO, "Loaded %d-byte save file from %s\n", save_length, Config::SaveFilePath.c_str());
-
-            NDS::LoadSave(static_cast<const uint8_t *>(save_data), save_length);
-            free(save_data);
-        }
     }
 
     if (type == melonds::SLOT_1_2_BOOT) {
