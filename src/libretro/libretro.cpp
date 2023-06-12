@@ -229,10 +229,6 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->valid_extensions = "nds|ids|dsi";
 }
 
-PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned device) {
-    retro::log(RETRO_LOG_INFO, "Plugging device %u into port %u.\n", device, port);
-}
-
 PUBLIC_SYMBOL void retro_reset(void) {
     using melonds::game_info;
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");

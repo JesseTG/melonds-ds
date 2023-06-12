@@ -20,6 +20,7 @@
 #include <NDS.h>
 #include "environment.hpp"
 #include "utils.hpp"
+#include "libretro.hpp"
 
 namespace melonds {
 
@@ -48,6 +49,32 @@ const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,      "Touch joystick Y"},
         {0},
 };
+
+static const char *device_name(unsigned device) {
+    switch (device) {
+        case RETRO_DEVICE_NONE:
+            return "RETRO_DEVICE_NONE";
+        case RETRO_DEVICE_JOYPAD:
+            return "RETRO_DEVICE_JOYPAD";
+        case RETRO_DEVICE_MOUSE:
+            return "RETRO_DEVICE_MOUSE";
+        case RETRO_DEVICE_KEYBOARD:
+            return "RETRO_DEVICE_KEYBOARD";
+        case RETRO_DEVICE_LIGHTGUN:
+            return "RETRO_DEVICE_LIGHTGUN";
+        case RETRO_DEVICE_ANALOG:
+            return "RETRO_DEVICE_ANALOG";
+        case RETRO_DEVICE_POINTER:
+            return "RETRO_DEVICE_POINTER";
+        default:
+            return "<unknown>";
+    }
+}
+
+// Not really needed, but libretro requires all retro_* functions to be defined
+PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned device) {
+    retro::log(RETRO_LOG_DEBUG, "retro_set_controller_port_device(%d, %s)", port, device_name(device));
+}
 
 #define ADD_KEY_TO_MASK(key, i, bits) \
     do { \
