@@ -26,7 +26,7 @@ jobs:
             release: false
             # This profile is used to receive advanced notice of breaking changes
     env:
-      ARCHIVE_NAME: "melondsds_libretro-macos-x86_64"
+      ARCHIVE_NAME: "melondsds_libretro-macos-universal"
     steps:
       - uses: actions/checkout@v3
       - name: Create build directory
