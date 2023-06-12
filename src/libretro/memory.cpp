@@ -39,7 +39,7 @@ namespace melonds {
     static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
 }
 
-static const char *const memory_type_name(unsigned type)
+static const char *memory_type_name(unsigned type)
 {
     switch (type) {
         case RETRO_MEMORY_SAVE_RAM:
