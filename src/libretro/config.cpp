@@ -47,14 +47,15 @@ namespace Config {
 
     [[maybe_unused]] bool ExternalBIOSEnable = true;
 
-    [[maybe_unused]] std::string BIOS9Path;
-    [[maybe_unused]] std::string BIOS7Path;
-    [[maybe_unused]] std::string FirmwarePath;
+    // These path values are intentionally fixed
+    [[maybe_unused]] std::string BIOS9Path = "bios9.bin";
+    [[maybe_unused]] std::string BIOS7Path = "bios7.bin";
+    [[maybe_unused]] std::string FirmwarePath = "firmware.bin";
 
-    [[maybe_unused]] std::string DSiBIOS9Path;
-    [[maybe_unused]] std::string DSiBIOS7Path;
-    [[maybe_unused]] std::string DSiFirmwarePath;
-    [[maybe_unused]] std::string DSiNANDPath;
+    [[maybe_unused]] std::string DSiBIOS9Path = "dsi_bios9.bin";
+    [[maybe_unused]] std::string DSiBIOS7Path = "dsi_bios7.bin";
+    [[maybe_unused]] std::string DSiFirmwarePath = "dsi_firmware.bin";
+    [[maybe_unused]] std::string DSiNANDPath = "dsi_nand.bin";
 
     [[maybe_unused]] bool DLDIEnable;
     [[maybe_unused]] std::string DLDISDPath;
@@ -64,7 +65,7 @@ namespace Config {
     [[maybe_unused]] std::string DLDIFolderPath;
 
     [[maybe_unused]] bool DSiSDEnable;
-    [[maybe_unused]] std::string DSiSDPath;
+    [[maybe_unused]] std::string DSiSDPath = "dsi_sd_card.bin";
     [[maybe_unused]] int DSiSDSize;
     [[maybe_unused]] bool DSiSDReadOnly;
     [[maybe_unused]] bool DSiSDFolderSync;

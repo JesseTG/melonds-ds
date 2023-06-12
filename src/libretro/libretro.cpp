@@ -306,15 +306,6 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
     }
 
-    Config::BIOS7Path = "bios7.bin";
-    Config::BIOS9Path = "bios9.bin";
-    Config::FirmwarePath = "firmware.bin";
-    Config::DSiBIOS7Path = "dsi_bios7.bin";
-    Config::DSiBIOS9Path = "dsi_bios9.bin";
-    Config::DSiFirmwarePath = "dsi_firmware.bin";
-    Config::DSiNANDPath = "dsi_nand.bin";
-    Config::DSiSDPath = "dsi_sd_card.bin";
-
     // TODO: Ensure that the username is non-empty
     // TODO: Cap the username to match the DS's limit
     const char *retro_username;
