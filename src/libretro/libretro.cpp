@@ -89,6 +89,7 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
 
 PUBLIC_SYMBOL void retro_run(void) {
     using namespace melonds;
+    using retro::log;
     using Config::Retro::CurrentRenderer;
 
     melonds::update_input(input_state);
@@ -105,13 +106,13 @@ PUBLIC_SYMBOL void retro_run(void) {
                 }
 
                 Config::ScreenSwap = input_state.swap_screens_btn;
-                retro::log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", Config::ScreenSwap ? "on" : "off");
+                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", Config::ScreenSwap ? "on" : "off");
                 break;
             }
             case ScreenSwapMode::Hold: {
                 if (Config::ScreenSwap != input_state.swap_screens_btn) {
-                    retro::log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
-                               input_state.swap_screens_btn ? "Started" : "Stopped");
+                    log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
+                        input_state.swap_screens_btn ? "Started" : "Stopped");
                 }
                 Config::ScreenSwap = input_state.swap_screens_btn;
                 update_screenlayout(current_screen_layout(), &screen_layout_data,
