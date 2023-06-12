@@ -193,6 +193,8 @@ static void melonds::opengl::context_reset() {
     } else {
         retro::log(RETRO_LOG_ERROR, "OpenGL context reset failed.");
     }
+
+    // TODO: Signal that deferred initialization can now take place
 }
 
 static void melonds::opengl::context_destroy() {
