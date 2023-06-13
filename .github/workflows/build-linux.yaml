@@ -18,10 +18,10 @@ jobs:
       matrix:
         include:
           - repo: https://github.com/JesseTG/melonDS.git
-            commit: 46ee85de
+            commit: 96c5712
             release: true
           - repo: https://github.com/melonDS-emu/melonDS.git
-            commit: ca7fb4f
+            commit: master
             release: false
             # This profile is used to receive advanced notice of breaking changes
     env:

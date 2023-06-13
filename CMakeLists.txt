@@ -25,7 +25,7 @@ endif ()
 if (NOT MELONDS_REPOSITORY_TAG)
     set(
         MELONDS_REPOSITORY_TAG
-        "4ba7a2c5"
+        "391ad8c"
         CACHE STRING
         "melonDS repository commit hash or tag. Set this when using a new version of melonDS, or when using a custom branch."
         FORCE
