@@ -19,6 +19,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <types.h>
+#include <memory>
 
 namespace melonds {
     using std::size_t;
@@ -30,5 +32,53 @@ namespace melonds {
     constexpr unsigned NINTENDO_DS_MEMORY_SAVE_RAM = 0x101;
 
     void clear_memory_config();
+
+    class SaveManager {
+    public:
+        SaveManager();
+
+        ~SaveManager();
+
+        SaveManager(const SaveManager &) = delete;
+
+        SaveManager(SaveManager &&) = delete;
+
+        SaveManager &operator=(const SaveManager &) = delete;
+
+        /// Signals that SRAM was recently updated.
+        ///
+        /// \param savedata Pointer to the entire SRAM buffer.
+        /// Never changes during a game's lifetime.
+        /// \param savelen Length of the entire SRAM buffer.
+        /// Never changes during a game's lifetime.
+        /// \param writeoffset Starting position of the updated data
+        /// \param writelen Length of the updated data.
+        void Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen);
+
+        /// Allocates a buffer for SRAM of the given length.
+        /// Does nothing if the SRAM buffer is already of the given length.
+        /// Will clear whatever data is in the buffer.
+        void SetSaveSize(u32 savelen);
+
+        [[nodiscard]] const u8 *Sram() const {
+            return _sram;
+        }
+
+        u8 *Sram() {
+            return _sram;
+        }
+
+        [[nodiscard]] u32 SramLength() const {
+            return _sram_length;
+        }
+
+    private:
+        u8 *_sram;
+        u32 _sram_length;
+        u32 _buffer_length;
+    };
+
+    extern std::unique_ptr<SaveManager> NdsSaveManager;
+    extern std::unique_ptr<SaveManager> GbaSaveManager;
 }
 #endif //MELONDS_DS_MEMORY_HPP

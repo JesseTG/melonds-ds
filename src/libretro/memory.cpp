@@ -37,6 +37,53 @@ namespace AREngine {
 
 namespace melonds {
     static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
+
+    std::unique_ptr<SaveManager> NdsSaveManager = std::make_unique<SaveManager>();
+    std::unique_ptr<SaveManager> GbaSaveManager = std::make_unique<SaveManager>();
+}
+
+melonds::SaveManager::SaveManager() :
+    _sram(nullptr),
+    _sram_length(0),
+    _buffer_length(0) {
+}
+
+melonds::SaveManager::~SaveManager() {
+    delete[] _sram; // deleting null pointers is a no-op, no need to check
+}
+
+void melonds::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+
+    if (_sram_length != savelen) {
+        // If we loaded a game with a different SRAM length...
+
+        delete[] _sram;
+
+        _sram_length = savelen;
+        _sram = new u8[_sram_length];
+
+        memcpy(_sram, savedata, _sram_length);
+    } else {
+        if ((writeoffset + writelen) > savelen) {
+            // If the write goes past the end of the SRAM, we have to wrap around
+            u32 len = savelen - writeoffset;
+            memcpy(_sram + writeoffset, savedata + writeoffset, len);
+            len = writelen - len;
+            if (len > savelen) len = savelen;
+            memcpy(_sram, savedata, len);
+        } else {
+            memcpy(_sram + writeoffset, savedata + writeoffset, writelen);
+        }
+    }
+}
+
+void melonds::SaveManager::SetSaveSize(u32 savelen) {
+    if (_sram_length != savelen) {
+        delete[] _sram;
+
+        _sram_length = savelen;
+        _sram = new u8[_sram_length];
+    }
 }
 
 static const char *memory_type_name(unsigned type)
@@ -105,7 +152,7 @@ PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             return NDS::MainRAM;
         case RETRO_MEMORY_SAVE_RAM:
-            return NDSCart::GetSaveMemory();
+            return melonds::NdsSaveManager->Sram();
         default:
             return nullptr;
     }
