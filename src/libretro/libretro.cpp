@@ -345,12 +345,11 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     if (Config::Retro::CurrentRenderer == Renderer::OpenGl) {
         log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
         deferred_initialization_pending = true;
+        return true;
     } else {
         log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
-        load_game_deferred(type, info);
+        return load_game_deferred(type, info);
     }
-
-    return true;
 }
 
 static void melonds::initialize_bios() {
