@@ -33,6 +33,7 @@
 #include <GPU.h>
 #include <SPU.h>
 #include <GBACart.h>
+#include <retro_assert.h>
 
 #include "opengl.hpp"
 #include "environment.hpp"
@@ -44,12 +45,15 @@
 #include "memory.hpp"
 #include "render.hpp"
 
+using NDSCart::NDSCartData;
+
 namespace melonds {
     static std::string _base_directory;
     static std::string _save_directory;
     static const retro_game_info *game_info;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
+    static std::unique_ptr<NDSCartData> _loaded_nds_cart;
 
     static void render_frame();
 
@@ -226,6 +230,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_base_directory.clear();
     melonds::_save_directory.clear();
     melonds::clear_memory_config();
+    melonds::_loaded_nds_cart.reset();
     Platform::DeInit();
 }
 
@@ -265,6 +270,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
     using retro::environment;
     using retro::log;
+    using retro::set_message;
 
     /*
     * FIXME: Less bad than copying the whole data pointer, but still not great.
@@ -273,6 +279,15 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     * here.
     */
     game_info = info;
+
+    retro_assert(_loaded_nds_cart == nullptr);
+
+    _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8*>(info->data), static_cast<u32>(info->size));
+    if (!_loaded_nds_cart->IsValid()) {
+        _loaded_nds_cart.reset();
+        retro::set_error_message("Failed to load the ROM. Is it a valid NDS ROM?");
+        return false;
+    }
 
     initialize_bios();
 
