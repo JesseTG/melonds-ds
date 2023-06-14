@@ -277,7 +277,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
     initialize_bios();
 
     // TODO: Ensure that the username is non-empty
-    // TODO: Cap the username to match the DS's limit
+    // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
     const char *retro_username;
     if (environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username)
         Config::FirmwareUsername = retro_username;
