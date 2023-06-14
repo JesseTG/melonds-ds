@@ -335,7 +335,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 #endif
 
     if (!NDS::Init()) {
-        log(RETRO_LOG_ERROR, "Failed to initialize melonDS");
+        retro::set_error_message("Failed to initialize melonDS");
         return false;
     }
 
