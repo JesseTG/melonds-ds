@@ -375,6 +375,8 @@ static void melonds::initialize_bios() {
             }
         }
 
+        // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
+
         // Abort if there are any of the required roms are missing
         if (!missing_roms.empty()) {
             retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
