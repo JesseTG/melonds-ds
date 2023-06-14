@@ -204,7 +204,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::log(RETRO_LOG_WARN, "Frontend does not support any message interface");
     }
 
-    if (retro::_message_interface_version > 1) {
+    if (retro::_message_interface_version > 1 && retro::_message_interface_version != std::numeric_limits<unsigned>::max()) {
         retro::log(RETRO_LOG_WARN, "Message interface version %u is newer than expected", retro::_message_interface_version);
     }
 
