@@ -18,6 +18,7 @@
 #include <libretro.h>
 #include <retro_timers.h>
 #include <Platform.h>
+#include "../memory.hpp"
 #include "../environment.hpp"
 
 namespace Platform {
@@ -34,7 +35,8 @@ void Platform::Init(int, char **) {
 void Platform::DeInit() {
     retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
     _instance_id = 0;
-    // TODO: Clean up Platform resources
+    melonds::NdsSaveManager.reset();
+    melonds::GbaSaveManager.reset();
 }
 
 void Platform::StopEmu() {
@@ -92,16 +94,17 @@ void Platform::Sleep(u64 usecs) {
     sleep_impl(usecs);
 }
 
-/// This function is unused.
-/// Save data is managed by the frontend with \c retro_get_memory_data(RETRO_MEMORY_SAVE_RAM).
 void Platform::WriteNDSSave(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
 {
-    retro::log(RETRO_LOG_DEBUG, "Platform::WriteNDSSave(%p, %d, %d, %d)\n", savedata, savelen, writeoffset, writelen);
+    // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
+    if (melonds::NdsSaveManager) {
+        melonds::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    }
 }
 
-/// This function is unused.
-/// Save data is managed by the frontend.
 void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
 {
-    retro::log(RETRO_LOG_DEBUG, "Platform::WriteGBASave(%p, %d, %d, %d)\n", savedata, savelen, writeoffset, writelen);
+    if (melonds::GbaSaveManager) {
+        melonds::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    }
 }
