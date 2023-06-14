@@ -38,7 +38,6 @@ namespace retro {
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
-    static unsigned _message_interface_version;
 
     bool environment(unsigned cmd, void *data) {
         if (_environment) {
@@ -142,7 +141,10 @@ namespace retro {
         if (message == nullptr)
             return false;
 
-        switch (_message_interface_version) {
+        unsigned message_interface_version = numeric_limits<unsigned>::max();
+        environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &message_interface_version);
+
+        switch (message_interface_version) {
             // Given that the frontend supports...
             case 0:
             { // ...the basic messaging interface...
@@ -197,17 +199,6 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     }
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
-
-    if (!environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version)) {
-        // Get the message interface version the frontend supports. If we can't...
-        retro::_message_interface_version = std::numeric_limits<unsigned>::max(); // ...assume it supports none
-        retro::log(RETRO_LOG_WARN, "Frontend does not support any message interface");
-    }
-
-    if (retro::_message_interface_version > 1 && retro::_message_interface_version != std::numeric_limits<unsigned>::max()) {
-        retro::log(RETRO_LOG_WARN, "Message interface version %u is newer than expected", retro::_message_interface_version);
-    }
-
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void *) melonds::subsystems);
 
