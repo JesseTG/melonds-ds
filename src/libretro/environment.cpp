@@ -106,6 +106,35 @@ namespace retro {
         }
     }
 
+    bool set_error_message(const char* message, unsigned duration)
+    {
+        if (message == nullptr) {
+            log(RETRO_LOG_ERROR, "set_error_message: message is null");
+            return false;
+        }
+
+        if (duration == 0) {
+            log(RETRO_LOG_ERROR, "set_error_message: duration is 0");
+            return false;
+        }
+
+        struct retro_message_ext message_ext {
+            .msg = message,
+            .duration = duration,
+            .priority = retro::DEFAULT_ERROR_PRIORITY,
+            .target = RETRO_MESSAGE_TARGET_ALL,
+            .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
+            .progress = -1
+        };
+
+        return set_message(&message_ext);
+    }
+
+    bool set_error_message(const char* message)
+    {
+        return set_error_message(message, retro::DEFAULT_ERROR_DURATION);
+    }
+
     bool set_message(const struct retro_message_ext *message)
     {
         using std::numeric_limits;

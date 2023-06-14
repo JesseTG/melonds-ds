@@ -21,12 +21,17 @@
 #include <libretro.h>
 
 namespace retro {
+    constexpr unsigned DEFAULT_ERROR_DURATION = 5000; // in ms
+    constexpr unsigned DEFAULT_ERROR_PRIORITY = 3;
+
     /// For use by other parts of the core
     bool environment(unsigned cmd, void *data);
 
     void log(enum retro_log_level level, const char *fmt, ...);
     void log(enum retro_log_level level, const char* fmt, va_list va);
     bool set_message(const struct retro_message_ext *message);
+    bool set_error_message(const char* message, unsigned duration);
+    bool set_error_message(const char* message);
 
     bool supports_bitmasks();
     void input_poll();
