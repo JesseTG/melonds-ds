@@ -41,7 +41,7 @@ namespace melonds {
     };
 
     const struct retro_subsystem_info subsystems[] = {
-            {"Slot 1/2 Boot", "gba", slot_1_2_roms, 2, SLOT_1_2_BOOT},
+            {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, 2, MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
             {}
     };
 
