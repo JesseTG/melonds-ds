@@ -53,6 +53,7 @@ namespace melonds {
     static const retro_game_info *game_info;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
+    static bool first_frame_run = false;
     static std::unique_ptr<NDSCartData> _loaded_nds_cart;
 
     static void render_frame();
@@ -86,6 +87,7 @@ PUBLIC_SYMBOL void retro_init(void) {
         melonds::_save_directory = dir;
 
     Platform::Init(0, nullptr);
+    melonds::first_frame_run = false;
     // ScreenLayoutData is initialized in its constructor
 }
 
@@ -110,6 +112,13 @@ PUBLIC_SYMBOL void retro_run(void) {
             return;
         }
         log(RETRO_LOG_DEBUG, "Completed deferred initialization");
+    }
+
+    if (!first_frame_run) {
+        if (NdsSaveManager->SramLength() > 0) {
+            NDS::LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
+        }
+        first_frame_run = true;
     }
 
     melonds::update_input(input_state);
@@ -267,6 +276,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
     else
         strlcpy(game_name, game_info->path, sizeof(game_name));
     path_remove_extension(game_name);
+    melonds::first_frame_run = false;
 
     if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
         NDS::SetupDirectBoot(game_name);
