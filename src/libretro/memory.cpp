@@ -173,7 +173,7 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
                     return DSI_MEMORY_SIZE; // 16MB, the size of the DSi system RAM
             }
         case RETRO_MEMORY_SAVE_RAM:
-            return NDSCart::GetSaveMemoryLength();
+            return melonds::NdsSaveManager->SramLength();
         default:
             return 0;
     }
