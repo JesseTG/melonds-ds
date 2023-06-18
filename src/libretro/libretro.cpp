@@ -229,6 +229,10 @@ static void melonds::render_audio() {
 }
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
+    retro::log(RETRO_LOG_DEBUG, "retro_unload_game()");
+    // TODO: If this is homebrew, save the data
+    // No need to flush SRAM, Platform::WriteNDSSave has been doing that for us this whole time
+    NDS::Stop();
     NDS::DeInit();
     melonds::_loaded_nds_cart.reset();
 }
