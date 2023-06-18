@@ -429,8 +429,6 @@ static bool melonds::load_game_deferred(unsigned type, const struct retro_game_i
         strlcpy(game_name, info->path, sizeof(game_name));
     path_remove_extension(game_name);
 
-    Config::SaveFilePath = _save_directory + PLATFORM_DIR_SEPERATOR + std::string(game_name) + ".sav";
-
     // GPU config must be initialized before NDS::Reset is called.
     // Ensure that there's a renderer, even if we're about to throw it out.
     // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
@@ -442,36 +440,16 @@ static bool melonds::load_game_deferred(unsigned type, const struct retro_game_i
 
     // The ROM and save data must be loaded after NDS::Reset is called
 
-    if (!NDSCart::LoadROM((const uint8_t *) info->data, info->size)) {
-        retro::log(RETRO_LOG_ERROR, "Failed to load ROM");
-    }
+    retro_assert(_loaded_nds_cart != nullptr);
+    retro_assert(_loaded_nds_cart->IsValid());
 
-    if (type == melonds::SLOT_1_2_BOOT) {
-        char gba_game_name[256];
-        const char *gba_ptr = path_basename(info[1].path);
-        if (gba_ptr)
-            strlcpy(gba_game_name, gba_ptr, sizeof(gba_game_name));
-        else
-            strlcpy(gba_game_name, info[1].path, sizeof(gba_game_name));
-        path_remove_extension(gba_game_name);
-
-        std::string gba_save_path =
-            melonds::_save_directory + PLATFORM_DIR_SEPERATOR + std::string(gba_game_name) + ".srm";
-        if (!GBACart::LoadROM((const uint8_t *) info[1].data, info[1].size)) {
-            retro::log(RETRO_LOG_ERROR, "Failed to load GBA ROM");
-        }
-
-        if (Platform::FileExists(gba_save_path)) {
-            void *gba_save_data = nullptr;
-            int64_t gba_save_length = 0;
-
-            if (filestream_read_file(Config::SaveFilePath.c_str(), &gba_save_data, &gba_save_length)) {
-                retro::log(RETRO_LOG_INFO, "Loaded GBA save file from %s", Config::SaveFilePath.c_str());
-
-                GBACart::LoadSave(static_cast<const u8 *>(gba_save_data), gba_save_length);
-                free(gba_save_data);
-            }
-        }
+    bool inserted = NDSCart::InsertROM(std::move(*_loaded_nds_cart));
+    _loaded_nds_cart.reset();
+    if (!inserted) {
+        // If we failed to insert the ROM, we can't continue
+        retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", info->path);
+        retro::set_error_message("Failed to insert the loaded ROM. Please report this issue.");
+        return false;
     }
 
     if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
