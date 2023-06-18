@@ -101,9 +101,14 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (deferred_initialization_pending) {
         log(RETRO_LOG_DEBUG, "Starting deferred initialization");
+        bool game_loaded = melonds::load_game_deferred(0, melonds::game_info);
         deferred_initialization_pending = false;
-        melonds::load_game_deferred(0, melonds::game_info);
-        // TODO: If deferred initialization fails, exit the core
+        if (!game_loaded) {
+            // If we couldn't load the game...
+            log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
+            retro::environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+            return;
+        }
         log(RETRO_LOG_DEBUG, "Completed deferred initialization");
     }
 
