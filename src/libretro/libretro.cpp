@@ -301,6 +301,7 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
 
     retro_assert(_loaded_nds_cart == nullptr);
 
+    // First parse the ROM...
     _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8*>(info->data), static_cast<u32>(info->size));
     if (!_loaded_nds_cart->IsValid()) {
         _loaded_nds_cart.reset();
