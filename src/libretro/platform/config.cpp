@@ -50,23 +50,23 @@ bool Platform::GetConfigBool(ConfigEntry entry)
     switch (entry)
     {
 #ifdef JIT_ENABLED
-        case JIT_Enable: return Config::JIT_Enable != 0;
-        case JIT_LiteralOptimizations: return Config::JIT_LiteralOptimisations != 0;
-        case JIT_BranchOptimizations: return Config::JIT_BranchOptimisations != 0;
-        case JIT_FastMemory: return Config::JIT_FastMemory != 0;
+        case JIT_Enable: return Config::JIT_Enable;
+        case JIT_LiteralOptimizations: return Config::JIT_LiteralOptimisations;
+        case JIT_BranchOptimizations: return Config::JIT_BranchOptimisations;
+        case JIT_FastMemory: return Config::JIT_FastMemory;
 #endif
 
-        case ExternalBIOSEnable: return Config::ExternalBIOSEnable != 0;
+        case ExternalBIOSEnable: return Config::ExternalBIOSEnable;
 
-        case DLDI_Enable: return Config::DLDIEnable != 0;
-        case DLDI_ReadOnly: return Config::DLDIReadOnly != 0;
-        case DLDI_FolderSync: return Config::DLDIFolderSync != 0;
+        case DLDI_Enable: return Config::DLDIEnable;
+        case DLDI_ReadOnly: return Config::DLDIReadOnly;
+        case DLDI_FolderSync: return Config::DLDIFolderSync;
 
-        case DSiSD_Enable: return Config::DSiSDEnable != 0;
-        case DSiSD_ReadOnly: return Config::DSiSDReadOnly != 0;
-        case DSiSD_FolderSync: return Config::DSiSDFolderSync != 0;
+        case DSiSD_Enable: return Config::DSiSDEnable;
+        case DSiSD_ReadOnly: return Config::DSiSDReadOnly;
+        case DSiSD_FolderSync: return Config::DSiSDFolderSync;
 
-        case Firm_OverrideSettings: return Config::FirmwareOverrideSettings != 0;
+        case Firm_OverrideSettings: return Config::FirmwareOverrideSettings;
     }
 
     return false;
