@@ -229,6 +229,8 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
+    retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
+
     return melonds::load_game(type, info);
 }
 
