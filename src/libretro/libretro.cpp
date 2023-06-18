@@ -309,6 +309,13 @@ static bool melonds::load_game(unsigned type, const struct retro_game_info *info
         return false;
     }
 
+    retro::log(RETRO_LOG_DEBUG, "Loaded ROM: \"%s\"\n", info->path);
+
+    // Get the length of the ROM's SRAM, if any
+    u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
+    NdsSaveManager->SetSaveSize(sram_length);
+    // Homebrew is a special case, as it uses a file system rather than SRAM.
+
     initialize_bios();
 
     // TODO: Ensure that the username is non-empty
