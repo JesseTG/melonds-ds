@@ -54,4 +54,16 @@ namespace melonds {
             {controllers, 1},
             {NULL,        0},
     };
+
+    const char* get_game_type_name(unsigned game_type)
+    {
+        switch (game_type) {
+            case MELONDSDS_GAME_TYPE_NDS:
+                return "MELONDSDS_GAME_TYPE_NDS";
+            case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
+                return "MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT";
+            default:
+                return "<unknown>";
+        }
+    }
 }
