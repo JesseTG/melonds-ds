@@ -404,10 +404,9 @@ static void melonds::initialize_bios() {
 
         // Abort if there are any of the required roms are missing
         if (!missing_roms.empty()) {
+            Config::ExternalBIOSEnable = false;
             retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
         }
-
-        Config::ExternalBIOSEnable = false;
     } else {
         retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
     }
