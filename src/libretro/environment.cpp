@@ -229,6 +229,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
         retro::_log = log_callback.log;
+        retro::log(RETRO_LOG_DEBUG, "retro_set_environment(%p)", cb);
     }
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
