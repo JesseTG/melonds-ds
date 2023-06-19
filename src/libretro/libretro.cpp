@@ -50,7 +50,7 @@ using NDSCart::NDSCartData;
 namespace melonds {
     static std::string _base_directory;
     static std::string _save_directory;
-    static const retro_game_info *game_info;
+    static const retro_game_info *_nds_game_info;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
@@ -103,7 +103,7 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (deferred_initialization_pending) {
         log(RETRO_LOG_DEBUG, "Starting deferred initialization");
-        bool game_loaded = melonds::load_game_deferred(0, melonds::game_info);
+        bool game_loaded = melonds::load_game_deferred(0, melonds::_nds_game_info);
         deferred_initialization_pending = false;
         if (!game_loaded) {
             // If we couldn't load the game...
@@ -269,16 +269,16 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
 }
 
 PUBLIC_SYMBOL void retro_reset(void) {
-    using melonds::game_info;
+    using melonds::_nds_game_info;
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
     NDS::Reset();
 
     char game_name[256];
-    const char *ptr = path_basename(game_info->path);
+    const char *ptr = path_basename(_nds_game_info->path);
     if (ptr)
         strlcpy(game_name, ptr, sizeof(game_name));
     else
-        strlcpy(game_name, game_info->path, sizeof(game_name));
+        strlcpy(game_name, _nds_game_info->path, sizeof(game_name));
     path_remove_extension(game_name);
     melonds::first_frame_run = false;
 
@@ -301,7 +301,7 @@ static bool melonds::load_nds_game(unsigned type, const struct retro_game_info *
     * Since retro_reset callback doesn't pass the info struct we need to cache it
     * here.
     */
-    game_info = info;
+    _nds_game_info = info;
 
     retro_assert(_loaded_nds_cart == nullptr);
 
