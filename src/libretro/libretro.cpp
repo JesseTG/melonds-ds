@@ -68,6 +68,8 @@ namespace melonds {
     static bool load_game_deferred(unsigned type, const struct retro_game_info *info);
 
     static void initialize_bios();
+
+    static void set_up_direct_boot(const retro_game_info *nds_info);
 }
 
 const std::string &retro::base_directory() {
@@ -277,18 +279,9 @@ PUBLIC_SYMBOL void retro_reset(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
     NDS::Reset();
 
-    char game_name[256];
-    const char *ptr = path_basename(_nds_game_info->path);
-    if (ptr)
-        strlcpy(game_name, ptr, sizeof(game_name));
-    else
-        strlcpy(game_name, _nds_game_info->path, sizeof(game_name));
-    path_remove_extension(game_name);
     melonds::first_frame_run = false;
 
-    if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
-        NDS::SetupDirectBoot(game_name);
-    }
+    melonds::set_up_direct_boot(_nds_game_info);
 }
 
 static bool melonds::load_nds_game(unsigned type, const struct retro_game_info *info) {
@@ -425,14 +418,6 @@ static void melonds::initialize_bios() {
 static bool melonds::load_game_deferred(unsigned type, const struct retro_game_info *info) {
     using retro::log;
 
-    char game_name[256];
-    const char *ptr = path_basename(info->path);
-    if (ptr)
-        strlcpy(game_name, ptr, sizeof(game_name));
-    else
-        strlcpy(game_name, info->path, sizeof(game_name));
-    path_remove_extension(game_name);
-
     // GPU config must be initialized before NDS::Reset is called.
     // Ensure that there's a renderer, even if we're about to throw it out.
     // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
@@ -456,9 +441,7 @@ static bool melonds::load_game_deferred(unsigned type, const struct retro_game_i
         return false;
     }
 
-    if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
-        NDS::SetupDirectBoot(game_name);
-    }
+    set_up_direct_boot(nds_info);
 
     NDS::Start();
 
@@ -492,4 +475,18 @@ static bool melonds::load_game_deferred(unsigned type, const struct retro_game_i
 //    }
 
     return true;
+}
+
+static void melonds::set_up_direct_boot(const retro_game_info *nds_info) {
+    if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
+        char game_name[256];
+        const char *ptr = path_basename(nds_info->path);
+        if (ptr)
+            strlcpy(game_name, ptr, sizeof(game_name));
+        else
+            strlcpy(game_name, nds_info->path, sizeof(game_name));
+        path_remove_extension(game_name);
+
+        NDS::SetupDirectBoot(game_name);
+    }
 }
