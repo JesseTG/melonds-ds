@@ -268,6 +268,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_save_directory.clear();
     melonds::clear_memory_config();
     melonds::_loaded_nds_cart.reset();
+    melonds::_loaded_gba_cart.reset();
     Platform::DeInit();
 }
 
