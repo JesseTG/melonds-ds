@@ -121,6 +121,7 @@ namespace retro {
             .msg = message,
             .duration = duration,
             .priority = retro::DEFAULT_ERROR_PRIORITY,
+            .level = RETRO_LOG_ERROR,
             .target = RETRO_MESSAGE_TARGET_ALL,
             .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
             .progress = -1
