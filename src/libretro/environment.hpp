@@ -32,6 +32,8 @@ namespace retro {
     bool set_message(const struct retro_message_ext *message);
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);
+    bool set_warn_message(const char* message);
+    bool set_warn_message(const char* message, unsigned duration);
 
     bool supports_bitmasks();
     void input_poll();

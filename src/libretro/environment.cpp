@@ -130,10 +130,42 @@ namespace retro {
         return set_message(&message_ext);
     }
 
+    bool set_warn_message(const char* message, unsigned duration)
+    {
+        if (message == nullptr) {
+            log(RETRO_LOG_ERROR, "set_warn_message: message is null");
+            return false;
+        }
+
+        if (duration == 0) {
+            log(RETRO_LOG_ERROR, "set_warn_message: duration is 0");
+            return false;
+        }
+
+        struct retro_message_ext message_ext {
+            .msg = message,
+            .duration = duration,
+            .priority = retro::DEFAULT_ERROR_PRIORITY,
+            .level = RETRO_LOG_WARN,
+            .target = RETRO_MESSAGE_TARGET_ALL,
+            .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
+            .progress = -1
+        };
+
+        return set_message(&message_ext);
+    }
+
     bool set_error_message(const char* message)
     {
         return set_error_message(message, retro::DEFAULT_ERROR_DURATION);
     }
+
+
+    bool set_warn_message(const char* message)
+    {
+        return set_warn_message(message, retro::DEFAULT_ERROR_DURATION);
+    }
+
 
     bool set_message(const struct retro_message_ext *message)
     {
@@ -191,7 +223,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     struct retro_core_options_update_display_callback update_display_cb{melonds::update_option_visibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
 
-    environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *) melonds::content_overrides);
+    //environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *) melonds::content_overrides);
     environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *) melonds::ports);
 
     retro_log_callback log_callback = {nullptr};
