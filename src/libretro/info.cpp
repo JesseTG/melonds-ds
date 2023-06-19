@@ -26,9 +26,12 @@ namespace melonds {
             {}
     };
 
+    // NOTE: "srm" is a RetroArch convention for save RAM.
+    // If other frontends don't support this, we'll have to add a workaround.
     const struct retro_subsystem_memory_info gba_memory[] = {
             {"srm", 0x101},
     };
+    // TODO: Implement GBA SRAM. I want to send a PR to RetroArch for the APIs I need first.
 
     const struct retro_subsystem_memory_info nds_memory[] = {
             {"srm", RETRO_MEMORY_SAVE_RAM},
