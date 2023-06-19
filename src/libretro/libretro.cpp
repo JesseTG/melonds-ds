@@ -60,7 +60,7 @@ namespace melonds {
 
     static void render_audio();
 
-    static bool load_game(unsigned type, const struct retro_game_info *info);
+    static bool load_nds_game(unsigned type, const struct retro_game_info *info);
 
     static bool load_game_deferred(unsigned type, const struct retro_game_info *info);
 
@@ -93,7 +93,7 @@ PUBLIC_SYMBOL void retro_init(void) {
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game(\"%s\", %d)\n", info->path, info->size);
-    return melonds::load_game(0, info);
+    return melonds::load_nds_game(0, info);
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -244,7 +244,7 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
 
-    return melonds::load_game(type, info);
+    return melonds::load_nds_game(type, info);
 }
 
 PUBLIC_SYMBOL void retro_deinit(void) {
@@ -287,7 +287,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
     }
 }
 
-static bool melonds::load_game(unsigned type, const struct retro_game_info *info) {
+static bool melonds::load_nds_game(unsigned type, const struct retro_game_info *info) {
     melonds::clear_memory_config();
     melonds::check_variables(true);
 
