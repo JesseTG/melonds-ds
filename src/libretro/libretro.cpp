@@ -339,7 +339,7 @@ static bool melonds::load_games(const struct retro_game_info *nds_info, const st
                                                              static_cast<u32>(gba_info->size));
             if (!_loaded_gba_cart->IsValid()) {
                 _loaded_gba_cart.reset();
-                retro::set_error_message("Failed to load the GBA ROM. Is it a valid GBA ROM?");
+                retro::set_error_message("Failed to load the GBA ROM. Is it valid?");
                 return false;
             }
 
