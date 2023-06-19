@@ -19,6 +19,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 
 #include <compat/strl.h>
 #include <file/file_path.h>
