@@ -322,11 +322,11 @@ static bool melonds::load_games(const struct retro_game_info *nds_info, const st
         return false;
     }
 
-    retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\"\n", nds_info->path);
 
     // Get the length of the ROM's SRAM, if any
     u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
     NdsSaveManager->SetSaveSize(sram_length);
+    retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\" (%u-byte SRAM)\n", nds_info->path, sram_length);
     // Homebrew is a special case, as it uses a file system rather than SRAM.
 
     if (gba_info) {
@@ -345,8 +345,7 @@ static bool melonds::load_games(const struct retro_game_info *nds_info, const st
 
             u32 gba_sram_length = _loaded_gba_cart->Cart()->GetSaveMemoryLength();
             GbaSaveManager->SetSaveSize(gba_sram_length);
-
-            retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"\n", gba_info->path);
+            retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\" (%u-byte SRAM)\n", gba_info->path, gba_sram_length);
         }
     }
 

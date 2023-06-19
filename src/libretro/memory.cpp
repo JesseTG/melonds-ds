@@ -25,6 +25,7 @@
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
+#include "info.hpp"
 #include <retro_assert.h>
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
@@ -97,6 +98,8 @@ static const char *memory_type_name(unsigned type)
             return "RETRO_MEMORY_SYSTEM_RAM";
         case RETRO_MEMORY_VIDEO_RAM:
             return "RETRO_MEMORY_VIDEO_RAM";
+        case melonds::MELONDSDS_MEMORY_GBA_SAVE_RAM:
+            return "MELONDSDS_MEMORY_GBA_SAVE_RAM";
         default:
             return "<unknown>";
     }
