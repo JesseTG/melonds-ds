@@ -46,15 +46,18 @@
 #include "render.hpp"
 
 using NDSCart::NDSCartData;
+using GBACart::GBACartData;
 
 namespace melonds {
     static std::string _base_directory;
     static std::string _save_directory;
     static const retro_game_info *_nds_game_info;
+    static const retro_game_info *_gba_game_info;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
     static std::unique_ptr<NDSCartData> _loaded_nds_cart;
+    static std::unique_ptr<GBACartData> _loaded_gba_cart;
 
     static void render_frame();
 
