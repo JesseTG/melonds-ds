@@ -84,8 +84,6 @@ namespace Config {
     [[maybe_unused]] int AudioBitrate;
     int MicInputType;
 
-    std::string SaveFilePath;
-
     namespace Retro {
         bool MicButtonRequired = true;
         bool RandomizeMac = false;
