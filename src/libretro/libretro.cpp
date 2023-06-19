@@ -63,9 +63,9 @@ namespace melonds {
 
     static void render_audio();
 
-    static bool load_nds_game(unsigned type, const struct retro_game_info *info);
+    static bool load_games(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info);
 
-    static bool load_game_deferred(unsigned type, const struct retro_game_info *info);
+    static bool load_game_deferred(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info);
 
     static void initialize_bios();
 
@@ -98,7 +98,8 @@ PUBLIC_SYMBOL void retro_init(void) {
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game(\"%s\", %d)\n", info->path, info->size);
-    return melonds::load_nds_game(0, info);
+
+    return melonds::load_games(info, nullptr);
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -108,7 +109,7 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (deferred_initialization_pending) {
         log(RETRO_LOG_DEBUG, "Starting deferred initialization");
-        bool game_loaded = melonds::load_game_deferred(0, melonds::_nds_game_info);
+        bool game_loaded = melonds::load_game_deferred(melonds::_nds_game_info, melonds::_gba_game_info);
         deferred_initialization_pending = false;
         if (!game_loaded) {
             // If we couldn't load the game...
@@ -123,6 +124,13 @@ PUBLIC_SYMBOL void retro_run(void) {
         if (NdsSaveManager->SramLength() > 0) {
             NDS::LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
         }
+
+        if (GbaSaveManager->SramLength() > 0) {
+            GBACart::LoadSave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
+        }
+
+        // This has to be deferred even if we're not using OpenGL,
+        // because libretro doesn't set the SRAM until after retro_load_game
         first_frame_run = true;
     }
 
@@ -250,7 +258,7 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
 
-    return melonds::load_nds_game(type, info);
+    return melonds::load_games(&info[0], num > 1 ? &info[1] : nullptr);
 }
 
 PUBLIC_SYMBOL void retro_deinit(void) {
@@ -284,7 +292,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
     melonds::set_up_direct_boot(_nds_game_info);
 }
 
-static bool melonds::load_nds_game(unsigned type, const struct retro_game_info *info) {
+static bool melonds::load_games(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) {
     melonds::clear_memory_config();
     melonds::check_variables(true);
 
@@ -298,24 +306,47 @@ static bool melonds::load_nds_game(unsigned type, const struct retro_game_info *
     * Since retro_reset callback doesn't pass the info struct we need to cache it
     * here.
     */
-    _nds_game_info = info;
+    _nds_game_info = nds_info;
 
     retro_assert(_loaded_nds_cart == nullptr);
+    retro_assert(_loaded_gba_cart == nullptr);
 
     // First parse the ROM...
-    _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8*>(info->data), static_cast<u32>(info->size));
+    _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8 *>(nds_info->data),
+                                                     static_cast<u32>(nds_info->size));
     if (!_loaded_nds_cart->IsValid()) {
         _loaded_nds_cart.reset();
         retro::set_error_message("Failed to load the ROM. Is it a valid NDS ROM?");
         return false;
     }
 
-    retro::log(RETRO_LOG_DEBUG, "Loaded ROM: \"%s\"\n", info->path);
+    retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\"\n", nds_info->path);
 
     // Get the length of the ROM's SRAM, if any
     u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
     NdsSaveManager->SetSaveSize(sram_length);
     // Homebrew is a special case, as it uses a file system rather than SRAM.
+
+    if (gba_info) {
+        // If we want to load a GBA ROM...
+        if (Config::ConsoleType == ConsoleType::DSi) {
+            retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM.");
+        } else {
+            _gba_game_info = gba_info;
+            _loaded_gba_cart = std::make_unique<GBACartData>(static_cast<const u8 *>(gba_info->data),
+                                                             static_cast<u32>(gba_info->size));
+            if (!_loaded_gba_cart->IsValid()) {
+                _loaded_gba_cart.reset();
+                retro::set_error_message("Failed to load the GBA ROM. Is it a valid GBA ROM?");
+                return false;
+            }
+
+            u32 gba_sram_length = _loaded_gba_cart->Cart()->GetSaveMemoryLength();
+            GbaSaveManager->SetSaveSize(gba_sram_length);
+
+            retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"\n", gba_info->path);
+        }
+    }
 
     initialize_bios();
 
@@ -375,7 +406,7 @@ static bool melonds::load_nds_game(unsigned type, const struct retro_game_info *
         return true;
     } else {
         log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
-        return load_game_deferred(type, info);
+        return load_game_deferred(nds_info, gba_info);
     }
 }
 
@@ -415,7 +446,10 @@ static void melonds::initialize_bios() {
 
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
-static bool melonds::load_game_deferred(unsigned type, const struct retro_game_info *info) {
+static bool melonds::load_game_deferred(
+    const struct retro_game_info *nds_info,
+    const struct retro_game_info *gba_info
+) {
     using retro::log;
 
     // GPU config must be initialized before NDS::Reset is called.
@@ -436,9 +470,20 @@ static bool melonds::load_game_deferred(unsigned type, const struct retro_game_i
     _loaded_nds_cart.reset();
     if (!inserted) {
         // If we failed to insert the ROM, we can't continue
-        retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", info->path);
+        retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
         retro::set_error_message("Failed to insert the loaded ROM. Please report this issue.");
         return false;
+    }
+
+    if (gba_info && _loaded_gba_cart) {
+        inserted = GBACart::InsertROM(std::move(*_loaded_gba_cart));
+        _loaded_gba_cart.reset();
+        if (!inserted) {
+            // If we failed to insert the ROM, we can't continue
+            retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", gba_info->path);
+            retro::set_error_message("Failed to insert the loaded ROM. Please report this issue.");
+            return false;
+        }
     }
 
     set_up_direct_boot(nds_info);
