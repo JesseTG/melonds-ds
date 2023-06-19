@@ -343,9 +343,9 @@ static bool melonds::load_games(const struct retro_game_info *nds_info, const st
                 return false;
             }
 
-            u32 gba_sram_length = _loaded_gba_cart->Cart()->GetSaveMemoryLength();
-            GbaSaveManager->SetSaveSize(gba_sram_length);
-            retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\" (%u-byte SRAM)\n", gba_info->path, gba_sram_length);
+            // u32 gba_sram_length = _loaded_gba_cart->Cart()->GetSaveMemoryLength();
+            // GbaSaveManager->SetSaveSize(gba_sram_length);
+            // retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\" (%u-byte SRAM)\n", gba_info->path, gba_sram_length);
         }
     }
 
