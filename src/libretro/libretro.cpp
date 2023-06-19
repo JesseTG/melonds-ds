@@ -238,6 +238,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     NDS::Stop();
     NDS::DeInit();
     melonds::_loaded_nds_cart.reset();
+    melonds::_loaded_gba_cart.reset();
 }
 
 PUBLIC_SYMBOL unsigned retro_get_region(void) {
