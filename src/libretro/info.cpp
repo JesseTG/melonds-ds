@@ -23,7 +23,7 @@ namespace melonds {
                     false,
                            true
             },
-            {NULL,  false, false}
+            {}
     };
 
     const struct retro_subsystem_memory_info gba_memory[] = {
@@ -47,12 +47,12 @@ namespace melonds {
 
     const struct retro_controller_description controllers[] = {
             {"Nintendo DS", RETRO_DEVICE_JOYPAD},
-            {NULL, 0},
+            {},
     };
 
     const struct retro_controller_info ports[] = {
             {controllers, 1},
-            {NULL,        0},
+            {},
     };
 
     const char* get_game_type_name(unsigned game_type)
