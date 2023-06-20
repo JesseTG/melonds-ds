@@ -128,8 +128,8 @@ namespace Config {
             static const char *const LANGUAGE = "melonds_language";
             static const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
             static const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
-            static const char *const HOMEBREW_DEDICATED_CARD_SIZE = "melonds_homebrew_dedicated_card_size";
-            static const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_to_host";
+            static const char *const HOMEBREW_DEDICATED_CARD_SIZE = "melonds_homebrew_dedicated_sdcard_size";
+            static const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
         }
 
         namespace Values {
