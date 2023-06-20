@@ -57,7 +57,7 @@ namespace Config {
     [[maybe_unused]] std::string DSiFirmwarePath = "dsi_firmware.bin";
     [[maybe_unused]] std::string DSiNANDPath = "dsi_nand.bin";
 
-    [[maybe_unused]] bool DLDIEnable;
+    [[maybe_unused]] bool DLDIEnable = true;
     [[maybe_unused]] std::string DLDISDPath;
     [[maybe_unused]] int DLDISize;
     [[maybe_unused]] bool DLDIReadOnly;
@@ -95,6 +95,7 @@ namespace Config {
         namespace Category {
             static const char *const VIDEO = "video";
             static const char *const SYSTEM = "system";
+            static const char *const SAVE = "save";
         }
 
         namespace Keys {
@@ -125,12 +126,22 @@ namespace Config {
             static const char *const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
             static const char *const USE_FIRMWARE_SETTINGS = "melonds_use_fw_settings";
             static const char *const LANGUAGE = "melonds_language";
+            static const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
+            static const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
+            static const char *const HOMEBREW_DEDICATED_CARD_SIZE = "melonds_homebrew_dedicated_card_size";
+            static const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_to_host";
         }
 
         namespace Values {
             static const char *const DISABLED = "disabled";
             static const char *const ENABLED = "enabled";
             static const char *const OPENGL = "opengl";
+            static const char *const SHARED256M = "shared-256m";
+            static const char *const SHARED512M = "shared-512m";
+            static const char *const SHARED1G = "shared-1g";
+            static const char *const SHARED2G = "shared-2g";
+            static const char *const SHARED4G = "shared-4g";
+            static const char *const DEDICATED = "dedicated";
         }
     }
 }
@@ -540,6 +551,11 @@ struct retro_core_option_v2_category option_cats_us[] = {
                 "audio",
                 "Audio",
                 "Change audio settings."
+        },
+        {
+            Config::Retro::Category::SAVE,
+            "Save Data",
+            "Change save data settings."
         },
         {
                 "screen",
@@ -1023,6 +1039,82 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                         {nullptr, nullptr},
                 },
                 "Bottom"
+        },
+        {
+            Config::Retro::Keys::HOMEBREW_SAVE_MODE,
+            "Virtual SD Card",
+            nullptr,
+            "Determines how homebrew saves data to the virtual SD card. "
+            "If set to Disabled, the game won't see an SD card and data won't be saved. "
+            "If set to Dedicated, the game uses its own virtual SD card. "
+            "If set to Shared, the game uses one of five shared virtual SD cards (each of which is a different size). "
+            "Card images are dynamically-sized, so they'll only take up as much space as they need. "
+            "Changing this setting does not transfer existing data. "
+            "Changes take effect with next restart.",
+            nullptr,
+            Config::Retro::Category::SAVE,
+            {
+                {Config::Retro::Values::DISABLED, "Disabled"},
+                {Config::Retro::Values::SHARED256M, "Shared (256 MiB)"},
+                {Config::Retro::Values::SHARED512M, "Shared (512 MiB)"},
+                {Config::Retro::Values::SHARED1G, "Shared (1 GiB)"},
+                {Config::Retro::Values::SHARED2G, "Shared (2 GiB)"},
+                {Config::Retro::Values::SHARED4G, "Shared (4 GiB)"},
+                {Config::Retro::Values::DEDICATED, "Dedicated"},
+                {nullptr, nullptr},
+            },
+            Config::Retro::Values::DEDICATED
+        },
+        {
+            Config::Retro::Keys::HOMEBREW_READ_ONLY,
+            "Read-Only Mode",
+            nullptr,
+            "If enabled, homebrew applications will see the virtual SD card as read-only. "
+            "Changes take effect with next restart.",
+            nullptr,
+            Config::Retro::Category::SAVE,
+            {
+                {Config::Retro::Values::DISABLED, nullptr},
+                {Config::Retro::Values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            Config::Retro::Values::DISABLED
+        },
+        {
+            Config::Retro::Keys::HOMEBREW_SYNC_TO_HOST,
+            "Sync SD Card to Host",
+            nullptr,
+            "If enabled, the virtual SD card's files will be synced to this core's save directory. "
+            "Enable this if you want to add files to the virtual SD card from outside the core. "
+            "Syncing happens when loading and unloading a game, "
+            "so external changes won't have any effect while the core is running.",
+            nullptr,
+            Config::Retro::Category::SAVE,
+            {
+                {Config::Retro::Values::DISABLED, nullptr},
+                {Config::Retro::Values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            Config::Retro::Values::DISABLED
+        },
+        {
+            Config::Retro::Keys::HOMEBREW_DEDICATED_CARD_SIZE,
+            "Dedicated SD Card Size",
+            nullptr,
+            "The size of new dedicated virtual SD cards. "
+            "Will not alter the size of existing card images.",
+            nullptr,
+            Config::Retro::Category::SAVE,
+            {
+                {"0", "Auto"},
+                {"256", "256 MiB"},
+                {"512", "512 MiB"},
+                {"1024", "1 GiB"},
+                {"2048", "2 GiB"},
+                {"4096", "4 GiB"},
+                {nullptr, nullptr},
+            },
+            "0",
         },
 #ifdef HAVE_OPENGL
         {
