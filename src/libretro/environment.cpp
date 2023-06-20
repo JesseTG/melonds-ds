@@ -29,7 +29,6 @@
 
 namespace retro {
     static void set_core_options();
-
     static retro_environment_t _environment;
     static retro_video_refresh_t _video_refresh;
     static retro_audio_sample_batch_t _audio_sample_batch;
@@ -38,179 +37,177 @@ namespace retro {
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
+}
 
-    bool environment(unsigned cmd, void *data) {
-        if (_environment) {
-            return _environment(cmd, data);
-        } else {
+bool retro::environment(unsigned cmd, void *data) {
+    if (_environment) {
+        return _environment(cmd, data);
+    } else {
+        return false;
+    }
+}
+
+int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
+    if (_input_state) {
+        return _input_state(port, device, index, id);
+    } else {
+        return 0;
+    }
+}
+
+void retro::input_poll() {
+    if (_input_poll) {
+        _input_poll();
+    }
+}
+
+size_t retro::audio_sample_batch(const int16_t *data, size_t frames) {
+    if (_audio_sample_batch) {
+        return _audio_sample_batch(data, frames);
+    } else {
+        return 0;
+    }
+}
+
+void retro::video_refresh(const void *data, unsigned width, unsigned height, size_t pitch) {
+    if (_video_refresh) {
+        _video_refresh(data, width, height, pitch);
+    }
+}
+
+void retro::log(enum retro_log_level level, const char *fmt, ...) {
+    if (fmt == nullptr)
+        return;
+
+    va_list va;
+    va_start(va, fmt);
+    log(level, fmt, va);
+    va_end(va);
+}
+
+void retro::log(enum retro_log_level level, const char* fmt, va_list va)
+{
+    if (fmt == nullptr)
+        return;
+
+    if (_log) {
+        // We can't pass the va_list directly to the libretro callback,
+        // so we have to construct the string and print that
+        char text[1024];
+        vsnprintf(text, sizeof(text), fmt, va);
+        size_t text_length = strlen(text);
+        if (text[text_length - 1] == '\n')
+            text[text_length - 1] = '\0';
+
+        _log(level, "%s\n", text);
+    } else {
+        vfprintf(stderr, fmt, va);
+    }
+}
+
+bool retro::set_error_message(const char* message, unsigned duration)
+{
+    if (message == nullptr) {
+        log(RETRO_LOG_ERROR, "set_error_message: message is null");
+        return false;
+    }
+
+    if (duration == 0) {
+        log(RETRO_LOG_ERROR, "set_error_message: duration is 0");
+        return false;
+    }
+
+    struct retro_message_ext message_ext {
+        .msg = message,
+        .duration = duration,
+        .priority = retro::DEFAULT_ERROR_PRIORITY,
+        .level = RETRO_LOG_ERROR,
+        .target = RETRO_MESSAGE_TARGET_ALL,
+        .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
+        .progress = -1
+    };
+
+    return set_message(&message_ext);
+}
+
+bool retro::set_warn_message(const char* message, unsigned duration)
+{
+    if (message == nullptr) {
+        log(RETRO_LOG_ERROR, "set_warn_message: message is null");
+        return false;
+    }
+
+    if (duration == 0) {
+        log(RETRO_LOG_ERROR, "set_warn_message: duration is 0");
+        return false;
+    }
+
+    struct retro_message_ext message_ext {
+        .msg = message,
+        .duration = duration,
+        .priority = retro::DEFAULT_ERROR_PRIORITY,
+        .level = RETRO_LOG_WARN,
+        .target = RETRO_MESSAGE_TARGET_ALL,
+        .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
+        .progress = -1
+    };
+
+    return set_message(&message_ext);
+}
+
+bool retro::set_error_message(const char* message)
+{
+    return set_error_message(message, retro::DEFAULT_ERROR_DURATION);
+}
+
+bool retro::set_warn_message(const char* message)
+{
+    return set_warn_message(message, retro::DEFAULT_ERROR_DURATION);
+}
+
+bool retro::set_message(const struct retro_message_ext *message)
+{
+    using std::numeric_limits;
+
+    if (message == nullptr)
+        return false;
+
+    unsigned message_interface_version = numeric_limits<unsigned>::max();
+    environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &message_interface_version);
+
+    switch (message_interface_version) {
+        // Given that the frontend supports...
+        case 0:
+        { // ...the basic messaging interface...
+            // Let's match the semantics of RETRO_ENVIRONMENT_SET_MESSAGE, since that's all we have
+            float target_refresh_rate = 60.0f; // In FPS
+            environment(RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE, &target_refresh_rate);
+
+            struct retro_message msg {
+                .msg = message->msg,
+                // convert from ms to frames
+                .frames = static_cast<unsigned int>((message->duration / 1000) * target_refresh_rate)
+            };
+
+            return environment(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+        }
+        default:
+            // ...a newer interface than we know about...
+            // intentional fall-through
+        case 1:
+        { // ...the extended messaging interface...
+            return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void *)message);
+        }
+        case numeric_limits<unsigned>::max():
+        { // ...no messaging interface at all...
+            log(message->level, "%s", message->msg);
             return false;
         }
     }
+}
 
-    int16_t input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
-        if (_input_state) {
-            return _input_state(port, device, index, id);
-        } else {
-            return 0;
-        }
-    }
-
-    void input_poll() {
-        if (_input_poll) {
-            _input_poll();
-        }
-    }
-
-    size_t audio_sample_batch(const int16_t *data, size_t frames) {
-        if (_audio_sample_batch) {
-            return _audio_sample_batch(data, frames);
-        } else {
-            return 0;
-        }
-    }
-
-    void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch) {
-        if (_video_refresh) {
-            _video_refresh(data, width, height, pitch);
-        }
-    }
-
-    void log(enum retro_log_level level, const char *fmt, ...) {
-        if (fmt == nullptr)
-            return;
-
-        va_list va;
-        va_start(va, fmt);
-        log(level, fmt, va);
-        va_end(va);
-    }
-
-    void log(enum retro_log_level level, const char* fmt, va_list va)
-    {
-        if (fmt == nullptr)
-            return;
-
-        if (_log) {
-            // We can't pass the va_list directly to the libretro callback,
-            // so we have to construct the string and print that
-            char text[1024];
-            vsnprintf(text, sizeof(text), fmt, va);
-            size_t text_length = strlen(text);
-            if (text[text_length - 1] == '\n')
-                text[text_length - 1] = '\0';
-
-            _log(level, "%s\n", text);
-        } else {
-            vfprintf(stderr, fmt, va);
-        }
-    }
-
-    bool set_error_message(const char* message, unsigned duration)
-    {
-        if (message == nullptr) {
-            log(RETRO_LOG_ERROR, "set_error_message: message is null");
-            return false;
-        }
-
-        if (duration == 0) {
-            log(RETRO_LOG_ERROR, "set_error_message: duration is 0");
-            return false;
-        }
-
-        struct retro_message_ext message_ext {
-            .msg = message,
-            .duration = duration,
-            .priority = retro::DEFAULT_ERROR_PRIORITY,
-            .level = RETRO_LOG_ERROR,
-            .target = RETRO_MESSAGE_TARGET_ALL,
-            .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
-            .progress = -1
-        };
-
-        return set_message(&message_ext);
-    }
-
-    bool set_warn_message(const char* message, unsigned duration)
-    {
-        if (message == nullptr) {
-            log(RETRO_LOG_ERROR, "set_warn_message: message is null");
-            return false;
-        }
-
-        if (duration == 0) {
-            log(RETRO_LOG_ERROR, "set_warn_message: duration is 0");
-            return false;
-        }
-
-        struct retro_message_ext message_ext {
-            .msg = message,
-            .duration = duration,
-            .priority = retro::DEFAULT_ERROR_PRIORITY,
-            .level = RETRO_LOG_WARN,
-            .target = RETRO_MESSAGE_TARGET_ALL,
-            .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
-            .progress = -1
-        };
-
-        return set_message(&message_ext);
-    }
-
-    bool set_error_message(const char* message)
-    {
-        return set_error_message(message, retro::DEFAULT_ERROR_DURATION);
-    }
-
-
-    bool set_warn_message(const char* message)
-    {
-        return set_warn_message(message, retro::DEFAULT_ERROR_DURATION);
-    }
-
-
-    bool set_message(const struct retro_message_ext *message)
-    {
-        using std::numeric_limits;
-
-        if (message == nullptr)
-            return false;
-
-        unsigned message_interface_version = numeric_limits<unsigned>::max();
-        environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &message_interface_version);
-
-        switch (message_interface_version) {
-            // Given that the frontend supports...
-            case 0:
-            { // ...the basic messaging interface...
-                // Let's match the semantics of RETRO_ENVIRONMENT_SET_MESSAGE, since that's all we have
-                float target_refresh_rate = 60.0f; // In FPS
-                environment(RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE, &target_refresh_rate);
-
-                struct retro_message msg {
-                    .msg = message->msg,
-                    // convert from ms to frames
-                    .frames = static_cast<unsigned int>((message->duration / 1000) * target_refresh_rate)
-                };
-
-                return environment(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
-            }
-            default:
-                // ...a newer interface than we know about...
-                // intentional fall-through
-            case 1:
-            { // ...the extended messaging interface...
-                return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void *)message);
-            }
-            case numeric_limits<unsigned>::max():
-            { // ...no messaging interface at all...
-                log(message->level, "%s", message->msg);
-                return false;
-            }
-        }
-    }
-
-    bool supports_bitmasks() {
-        return _supports_bitmasks;
-    }
+bool retro::supports_bitmasks() {
+    return _supports_bitmasks;
 }
 
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
