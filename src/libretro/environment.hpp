@@ -17,6 +17,7 @@
 #ifndef MELONDS_DS_ENVIRONMENT_HPP
 #define MELONDS_DS_ENVIRONMENT_HPP
 
+#include <optional>
 #include <string>
 #include <libretro.h>
 
@@ -34,6 +35,7 @@ namespace retro {
     bool set_error_message(const char* message);
     bool set_warn_message(const char* message);
     bool set_warn_message(const char* message, unsigned duration);
+    bool get_variable(struct retro_variable *variable);
 
     bool supports_bitmasks();
     void input_poll();
@@ -41,8 +43,10 @@ namespace retro {
     size_t audio_sample_batch(const int16_t *data, size_t frames);
     void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch);
 
-    const std::string& base_directory();
-    const std::string& save_directory();
+    const std::optional<std::string>& get_save_directory();
+    const std::optional<std::string>& get_system_directory();
+
+    void clear_environment();
 }
 
 #endif //MELONDS_DS_ENVIRONMENT_HPP

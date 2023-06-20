@@ -34,7 +34,8 @@ FILE *Platform::OpenFile(const std::string& path, const std::string& mode, bool 
 }
 
 FILE *Platform::OpenLocalFile(const std::string& path, const std::string& mode) {
-    std::string fullpath = retro::base_directory() + PLATFORM_DIR_SEPERATOR + path;
+    std::string directory = retro::get_system_directory().value_or("");
+    std::string fullpath = directory + PLATFORM_DIR_SEPERATOR + path;
     FILE* f = OpenFile(fullpath, mode, true);
     return f;
 }

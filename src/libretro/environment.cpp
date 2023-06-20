@@ -27,6 +27,10 @@
 #include "libretro.hpp"
 #include "config.hpp"
 
+using std::string;
+using std::optional;
+using std::nullopt;
+
 namespace retro {
     static void set_core_options();
     static retro_environment_t _environment;
@@ -37,6 +41,10 @@ namespace retro {
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
+
+    // Cached so that the save directory won't change during a session
+    static optional<string> _save_directory;
+    static optional<string> _system_directory;
 }
 
 bool retro::environment(unsigned cmd, void *data) {
@@ -210,6 +218,26 @@ bool retro::supports_bitmasks() {
     return _supports_bitmasks;
 }
 
+bool retro::get_variable(struct retro_variable *var)
+{
+    return environment(RETRO_ENVIRONMENT_GET_VARIABLE, var);
+}
+
+const optional<string>& retro::get_save_directory()
+{
+    return _save_directory;
+}
+
+const optional<string>& retro::get_system_directory()
+{
+    return _system_directory;
+}
+
+void retro::clear_environment() {
+    _save_directory = nullopt;
+    _system_directory = nullopt;
+}
+
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     using retro::environment;
     retro::_environment = cb;
@@ -230,6 +258,14 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     }
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
+
+    const char *save_dir = nullptr;
+    if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir)
+        retro::_save_directory = save_dir;
+
+    const char *system_dir = nullptr;
+    if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
+        retro::_system_directory = system_dir;
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void *) melonds::subsystems);
 

@@ -50,8 +50,6 @@ using NDSCart::NDSCartData;
 using GBACart::GBACartData;
 
 namespace melonds {
-    static std::string _base_directory;
-    static std::string _save_directory;
     static const retro_game_info *_nds_game_info;
     static const retro_game_info *_gba_game_info;
     static bool swap_screen_toggled = false;
@@ -73,24 +71,10 @@ namespace melonds {
     static void set_up_direct_boot(const retro_game_info *nds_info);
 }
 
-const std::string &retro::base_directory() {
-    return melonds::_base_directory;
-}
-
-const std::string &retro::save_directory() {
-    return melonds::_save_directory;
-}
-
 PUBLIC_SYMBOL void retro_init(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_init");
-    const char *dir = nullptr;
 
     srand(time(nullptr));
-    if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-        melonds::_base_directory = dir;
-
-    if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
-        melonds::_save_directory = dir;
 
     Platform::Init(0, nullptr);
     melonds::first_frame_run = false;
@@ -264,8 +248,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 
 PUBLIC_SYMBOL void retro_deinit(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
-    melonds::_base_directory.clear();
-    melonds::_save_directory.clear();
+    retro::clear_environment();
     melonds::clear_memory_config();
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
