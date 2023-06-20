@@ -59,8 +59,8 @@ namespace Config {
 
     [[maybe_unused]] bool DLDIEnable = true;
     [[maybe_unused]] std::string DLDISDPath;
-    [[maybe_unused]] int DLDISize;
-    [[maybe_unused]] bool DLDIReadOnly;
+    [[maybe_unused]] int DLDISize = 0;
+    [[maybe_unused]] bool DLDIReadOnly = false;
     [[maybe_unused]] bool DLDIFolderSync;
     [[maybe_unused]] std::string DLDIFolderPath;
 
