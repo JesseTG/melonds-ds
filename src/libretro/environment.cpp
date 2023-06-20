@@ -45,6 +45,10 @@ namespace retro {
     // Cached so that the save directory won't change during a session
     static optional<string> _save_directory;
     static optional<string> _system_directory;
+    static optional<struct retro_game_info> _loaded_nds_info;
+    static optional<struct retro_game_info_ext> _loaded_nds_info_ext;
+    static optional<struct retro_game_info> _loaded_gba_info;
+    static optional<struct retro_game_info_ext> _loaded_gba_info_ext;
 }
 
 bool retro::environment(unsigned cmd, void *data) {
@@ -233,9 +237,49 @@ const optional<string>& retro::get_system_directory()
     return _system_directory;
 }
 
+const optional<struct retro_game_info>& retro::get_loaded_nds_info() {
+    return _loaded_nds_info;
+}
+
+const optional<struct retro_game_info_ext>& retro::get_loaded_nds_info_ext() {
+    return _loaded_nds_info_ext;
+}
+
+const optional<struct retro_game_info>& retro::get_loaded_gba_info() {
+    return _loaded_gba_info;
+}
+
+const optional<struct retro_game_info_ext>& retro::get_loaded_gba_info_ext() {
+    return _loaded_gba_info_ext;
+}
+
+void retro::set_loaded_content_info(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) {
+    if (nds_info) {
+        _loaded_nds_info = *nds_info;
+    }
+
+    if (gba_info) {
+        _loaded_gba_info = *gba_info;
+    }
+
+    const struct retro_game_info_ext *info_array;
+    if (environment(RETRO_ENVIRONMENT_GET_GAME_INFO_EXT, &info_array) && info_array) {
+        // If the frontend supports extended game info, and has any to give...
+        _loaded_nds_info_ext = info_array[0];
+
+        if (gba_info) {
+            _loaded_gba_info_ext = info_array[1];
+        }
+    }
+}
+
 void retro::clear_environment() {
     _save_directory = nullopt;
     _system_directory = nullopt;
+    _loaded_nds_info = nullopt;
+    _loaded_nds_info_ext = nullopt;
+    _loaded_gba_info = nullopt;
+    _loaded_gba_info_ext = nullopt;
 }
 
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {

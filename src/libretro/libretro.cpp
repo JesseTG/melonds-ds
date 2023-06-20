@@ -46,12 +46,12 @@
 #include "memory.hpp"
 #include "render.hpp"
 
+using std::optional;
+
 using NDSCart::NDSCartData;
 using GBACart::GBACartData;
 
 namespace melonds {
-    static const retro_game_info *_nds_game_info;
-    static const retro_game_info *_gba_game_info;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
@@ -62,13 +62,13 @@ namespace melonds {
 
     static void render_audio();
 
-    static bool load_games(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info);
+    static bool load_games(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info);
 
-    static bool load_game_deferred(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info);
+    static bool load_game_deferred(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info);
 
     static void initialize_bios();
 
-    static void set_up_direct_boot(const retro_game_info *nds_info);
+    static void set_up_direct_boot(const retro_game_info& nds_info);
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -84,7 +84,8 @@ PUBLIC_SYMBOL void retro_init(void) {
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game(\"%s\", %d)\n", info->path, info->size);
 
-    return melonds::load_games(info, nullptr);
+    retro::set_loaded_content_info(info, nullptr);
+    return melonds::load_games(*info, std::nullopt);
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -94,7 +95,7 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (deferred_initialization_pending) {
         log(RETRO_LOG_DEBUG, "Starting deferred initialization");
-        bool game_loaded = melonds::load_game_deferred(melonds::_nds_game_info, melonds::_gba_game_info);
+        bool game_loaded = melonds::load_game_deferred(retro::get_loaded_nds_info(), retro::get_loaded_gba_info());
         deferred_initialization_pending = false;
         if (!game_loaded) {
             // If we couldn't load the game...
@@ -243,7 +244,8 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
 
-    return melonds::load_games(&info[0], num > 1 ? &info[1] : nullptr);
+    retro::set_loaded_content_info(&info[0], num > 1 ? &info[1] : nullptr);
+    return melonds::load_games(retro::get_loaded_nds_info(), retro::get_loaded_gba_info());
 }
 
 PUBLIC_SYMBOL void retro_deinit(void) {
@@ -268,16 +270,18 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
 }
 
 PUBLIC_SYMBOL void retro_reset(void) {
-    using melonds::_nds_game_info;
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
     NDS::Reset();
 
     melonds::first_frame_run = false;
 
-    melonds::set_up_direct_boot(_nds_game_info);
+    const auto& nds_info = retro::get_loaded_nds_info();
+    if (nds_info) {
+        melonds::set_up_direct_boot(nds_info.value());
+    }
 }
 
-static bool melonds::load_games(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) {
+static bool melonds::load_games(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info) {
     melonds::clear_memory_config();
     melonds::check_variables(true);
 
@@ -286,12 +290,9 @@ static bool melonds::load_games(const struct retro_game_info *nds_info, const st
     using retro::set_message;
 
     /*
-    * FIXME: Less bad than copying the whole data pointer, but still not great.
     * NDS::Reset() calls wipes the cart buffer so on invoke we need a reload from info->data.
-    * Since retro_reset callback doesn't pass the info struct we need to cache it
-    * here.
+    * Since retro_reset callback doesn't pass the info struct we need to cache it.
     */
-    _nds_game_info = nds_info;
 
     retro_assert(_loaded_nds_cart == nullptr);
     retro_assert(_loaded_gba_cart == nullptr);
@@ -317,7 +318,6 @@ static bool melonds::load_games(const struct retro_game_info *nds_info, const st
         if (Config::ConsoleType == ConsoleType::DSi) {
             retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM.");
         } else {
-            _gba_game_info = gba_info;
             _loaded_gba_cart = std::make_unique<GBACartData>(static_cast<const u8 *>(gba_info->data),
                                                              static_cast<u32>(gba_info->size));
             if (!_loaded_gba_cart->IsValid()) {
@@ -431,8 +431,8 @@ static void melonds::initialize_bios() {
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
 static bool melonds::load_game_deferred(
-    const struct retro_game_info *nds_info,
-    const struct retro_game_info *gba_info
+    const optional<struct retro_game_info>& nds_info,
+    const optional<struct retro_game_info>& gba_info
 ) {
     using retro::log;
 
@@ -470,7 +470,7 @@ static bool melonds::load_game_deferred(
         }
     }
 
-    set_up_direct_boot(nds_info);
+    set_up_direct_boot(nds_info.value());
 
     NDS::Start();
 
@@ -506,14 +506,14 @@ static bool melonds::load_game_deferred(
     return true;
 }
 
-static void melonds::set_up_direct_boot(const retro_game_info *nds_info) {
+static void melonds::set_up_direct_boot(const retro_game_info& nds_info) {
     if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
         char game_name[256];
-        const char *ptr = path_basename(nds_info->path);
+        const char *ptr = path_basename(nds_info.path);
         if (ptr)
             strlcpy(game_name, ptr, sizeof(game_name));
         else
-            strlcpy(game_name, nds_info->path, sizeof(game_name));
+            strlcpy(game_name, nds_info.path, sizeof(game_name));
         path_remove_extension(game_name);
 
         NDS::SetupDirectBoot(game_name);
