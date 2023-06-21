@@ -170,6 +170,10 @@ PUBLIC_SYMBOL void retro_run(void) {
     }
 
     if (!first_frame_run) {
+        // Apply the save data from the core's SRAM buffer to the cart's SRAM;
+        // we need to do this in the first frame of retro_run because
+        // retro_get_memory_data is used to copy the loaded SRAM
+        // in between retro_load and the first retro_run call.
         if (NdsSaveManager->SramLength() > 0) {
             NDS::LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
         }
@@ -469,6 +473,10 @@ static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
             retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
         }
     }
+
+    // Homebrew is a special case, as it uses an SD card rather than SRAM.
+    // No need to explicitly load or save homebrew SD card images;
+    // the CartHomebrew class does that
 }
 
 static void melonds::init_bios() {
