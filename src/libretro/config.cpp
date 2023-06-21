@@ -19,11 +19,15 @@
 #include <frontend/qt_sdl/Config.h>
 #include <GPU.h>
 #include <string/stdstring.h>
+#include <file/file_path.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "opengl.hpp"
+
+using std::string;
+using std::optional;
 
 namespace Config {
     bool ScreenSwap;
@@ -154,6 +158,8 @@ namespace melonds::config {
 #ifdef JIT_ENABLED
     static bool _show_jit_options = true;
 #endif
+
+    static void check_homebrew_save_options(bool initializing);
 }
 
 GPU::RenderSettings Config::Retro::RenderSettings() {
@@ -531,11 +537,160 @@ void melonds::check_variables(bool init) {
         Config::ExternalBIOSEnable = string_is_equal(var.value, Values::ENABLED);
     }
 
+    config::check_homebrew_save_options(init);
+
     input_state.current_touch_mode = new_touch_mode;
 
     update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl, Config::ScreenSwap);
 
     update_option_visibility();
+}
+
+/**
+ * Reads the frontend's saved homebrew save data options and applies them to the emulator.
+ * @param initializing Whether the emulator is initializing a game.
+ * If false, the emulator will not update options that require a restart to take effect.
+ */
+static void melonds::config::check_homebrew_save_options(bool initializing)
+{
+    using namespace Config::Retro;
+    using retro::environment;
+    using retro::get_variable;
+    using retro::set_variable;
+
+    // TODO: return if the loaded cart is not a homebrew ROM
+    if (!initializing)
+        return;
+    // All of these options take effect when a game starts, so there's no need to update them mid-game
+
+    const optional<struct retro_game_info>& game_info = retro::get_loaded_nds_info();
+
+    if (!game_info)
+        // If there's no game loaded, there's no need to update the save mode
+        return;
+
+    struct retro_variable var = {nullptr, nullptr};
+
+    var.key = Keys::HOMEBREW_READ_ONLY;
+    if (get_variable(&var) && var.value) {
+        Config::DLDIReadOnly = string_is_equal(var.value, Values::ENABLED);
+    }
+    else {
+        Config::DLDIReadOnly = false;
+        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_READ_ONLY, Values::DISABLED);
+    }
+
+    var.key = Keys::HOMEBREW_SYNC_TO_HOST;
+    if (get_variable(&var) && var.value) {
+        Config::DLDIFolderSync = string_is_equal(var.value, Values::ENABLED);
+    }
+    else {
+        Config::DLDIFolderSync = false;
+        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SYNC_TO_HOST, Values::DISABLED);
+    }
+
+    var.key = Keys::HOMEBREW_DEDICATED_CARD_SIZE;
+    int dedicated_card_size = 0;
+    if (get_variable(&var) && var.value) {
+        try {
+            dedicated_card_size = std::stoi(var.value);
+            switch (dedicated_card_size) {
+                case 0:
+                case 256:
+                case 512:
+                case 1024:
+                case 2048:
+                case 4096:
+                    break;
+                default:
+                    retro::log(RETRO_LOG_WARN, "Invalid homebrew dedicated card size \"%s\"; defaulting to Auto", var.value);
+                    dedicated_card_size = 0;
+                    break;
+            }
+        }
+        catch (...) {
+            retro::log(RETRO_LOG_WARN, "Invalid homebrew dedicated card size \"%s\"; defaulting to Auto", var.value);
+            dedicated_card_size = 0;
+        }
+    }
+    else {
+        dedicated_card_size = 0;
+        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to Auto", Keys::HOMEBREW_DEDICATED_CARD_SIZE);
+    }
+
+    var.key = Keys::HOMEBREW_SAVE_MODE;
+
+    const optional<string>& save_directory = retro::get_save_directory();
+    if (save_directory && get_variable(&var) && var.value) {
+        char game_name[256];
+        memset(game_name, 0, sizeof(game_name));
+        const char *ptr = path_basename(game_info->path);
+        strlcpy(game_name, ptr ? ptr : game_info->path, sizeof(game_name));
+        path_remove_extension(game_name);
+
+        auto set_config = [&save_directory](int size, const char* name) {
+            char dldi_path[1024];
+            memset(dldi_path, 0, sizeof(dldi_path));
+            fill_pathname_join_special(dldi_path, save_directory->c_str(), name, sizeof(dldi_path));
+
+            Config::DLDIFolderPath = string(dldi_path);
+
+            strlcat(dldi_path, ".dldi", sizeof(dldi_path));
+
+            Config::DLDISDPath = string(dldi_path);
+            Config::DLDIEnable = true;
+            Config::DLDISize = size;
+        };
+
+        if (string_is_equal(var.value, Values::DISABLED)) {
+            Config::DLDIEnable = false;
+            Config::DLDISize = 0;
+            Config::DLDIFolderPath = "";
+            Config::DLDISDPath = "";
+        }
+        else if (string_is_equal(var.value, Values::DEDICATED)) {
+            set_config(0, game_name);
+
+            // If the SD card image exists, set the DLDISize to auto; else set it to the dedicated card size
+            Config::DLDISize = path_is_valid(Config::DLDISDPath.c_str()) ? 0 : dedicated_card_size;
+        }
+        else if (string_is_equal(var.value, Values::SHARED256M)) {
+            set_config(256, Values::SHARED256M);
+        }
+        else if (string_is_equal(var.value, Values::SHARED512M)) {
+            set_config(512, Values::SHARED512M);
+        }
+        else if (string_is_equal(var.value, Values::SHARED1G)) {
+            set_config(1024, Values::SHARED1G);
+        }
+        else if (string_is_equal(var.value, Values::SHARED2G)) {
+            set_config(2048, Values::SHARED2G);
+        }
+        else if (string_is_equal(var.value, Values::SHARED4G)) {
+            set_config(4096, Values::SHARED4G);
+        }
+        else {
+            retro::log(RETRO_LOG_WARN, "Invalid homebrew save mode \"%s\"; defaulting to %s", var.value, Values::DEDICATED);
+            set_config(0, game_name);
+
+            // If the SD card image exists, set the DLDISize to auto; else set it to the dedicated card size
+            Config::DLDISize = path_is_valid(Config::DLDISDPath.c_str()) ? 0 : dedicated_card_size;
+        }
+    }
+    else {
+        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SAVE_MODE, Values::DISABLED);
+        Config::DLDIEnable = false;
+        Config::DLDISize = 0;
+        Config::DLDIFolderPath = "";
+        Config::DLDISDPath = "";
+    }
+
+    retro::log(RETRO_LOG_DEBUG, "DLDIEnable: %s", Config::DLDIEnable ? "true" : "false");
+    retro::log(RETRO_LOG_DEBUG, "DLDIReadOnly: %s", Config::DLDIReadOnly ? "true" : "false");
+    retro::log(RETRO_LOG_DEBUG, "DLDIFolderSync: %s", Config::DLDIFolderSync ? "true" : "false");
+    retro::log(RETRO_LOG_DEBUG, "DLDISize: %d", Config::DLDISize);
+    retro::log(RETRO_LOG_DEBUG, "DLDISDPath: %s", Config::DLDISDPath.c_str());
+    retro::log(RETRO_LOG_DEBUG, "DLDIFolderPath: %s", Config::DLDIFolderPath.c_str());
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
