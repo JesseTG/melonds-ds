@@ -538,8 +538,12 @@ static bool melonds::load_game_deferred(
 
     retro_assert(_loaded_nds_cart != nullptr);
     retro_assert(_loaded_nds_cart->IsValid());
+    retro_assert(NDSCart::CartROM == nullptr);
 
     bool inserted = NDSCart::InsertROM(std::move(*_loaded_nds_cart));
+
+    retro_assert(NDSCart::CartROM != nullptr);
+
     _loaded_nds_cart.reset();
     if (!inserted) {
         // If we failed to insert the ROM, we can't continue
