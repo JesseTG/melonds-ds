@@ -330,8 +330,10 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
 
     const char *save_dir = nullptr;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir)
+    if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
+        retro::log(RETRO_LOG_INFO, "Save directory: \"%s\"", save_dir);
         retro::_save_directory = save_dir;
+    }
 
     const char *system_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
