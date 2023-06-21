@@ -29,7 +29,6 @@ namespace retro {
     bool environment(unsigned cmd, void *data) noexcept;
 
     void log(enum retro_log_level level, const char *fmt, ...) noexcept;
-    void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
     bool set_message(const struct retro_message_ext *message);
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);

@@ -49,6 +49,8 @@ namespace retro {
     static optional<struct retro_game_info_ext> _loaded_nds_info_ext;
     static optional<struct retro_game_info> _loaded_gba_info;
     static optional<struct retro_game_info_ext> _loaded_gba_info_ext;
+
+    static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
 }
 
 bool retro::environment(unsigned cmd, void *data) noexcept {
@@ -99,13 +101,11 @@ void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
 
 void retro::log(enum retro_log_level level, const char* fmt, va_list va) noexcept
 {
-    if (fmt == nullptr)
-        return;
-
     if (_log) {
         // We can't pass the va_list directly to the libretro callback,
         // so we have to construct the string and print that
         char text[1024];
+        memset(text, 0, sizeof(text));
         vsnprintf(text, sizeof(text), fmt, va);
         size_t text_length = strlen(text);
         if (text[text_length - 1] == '\n')
