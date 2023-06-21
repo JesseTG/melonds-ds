@@ -16,6 +16,7 @@
 
 #include <Platform.h>
 
+#include <file/file_path.h>
 #include <utility>
 #include "../environment.hpp"
 #include "../utils.hpp"
@@ -34,6 +35,10 @@ FILE *Platform::OpenFile(const std::string& path, const std::string& mode, bool 
 }
 
 FILE *Platform::OpenLocalFile(const std::string& path, const std::string& mode) {
+    if (path_is_absolute(path.c_str())) {
+        return OpenFile(path, mode, true);
+    }
+
     std::string directory = retro::get_system_directory().value_or("");
     std::string fullpath = directory + PLATFORM_DIR_SEPERATOR + path;
     FILE* f = OpenFile(fullpath, mode, true);
