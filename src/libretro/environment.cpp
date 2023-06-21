@@ -227,6 +227,32 @@ bool retro::get_variable(struct retro_variable *var)
     return environment(RETRO_ENVIRONMENT_GET_VARIABLE, var);
 }
 
+const char* retro::get_variable(const char *key) {
+    struct retro_variable var = { key, nullptr };
+    if (!environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var)) {
+        // Get the requested variable. If that failed...
+        return nullptr;
+    }
+
+    if (key) {
+        // If we wanted a specific variable...
+        return var.value;
+    }
+
+    // Return the environment string instead
+    return var.key;
+
+}
+
+bool retro::set_variable(const char* key, const char* value) {
+    if (!key) {
+        return false;
+    }
+
+    struct retro_variable var = { key, value };
+    return environment(RETRO_ENVIRONMENT_SET_VARIABLE, &var);
+}
+
 const optional<string>& retro::get_save_directory()
 {
     return _save_directory;
