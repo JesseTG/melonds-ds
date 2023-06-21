@@ -26,10 +26,10 @@ namespace retro {
     constexpr unsigned DEFAULT_ERROR_PRIORITY = 3;
 
     /// For use by other parts of the core
-    bool environment(unsigned cmd, void *data);
+    bool environment(unsigned cmd, void *data) noexcept;
 
-    void log(enum retro_log_level level, const char *fmt, ...);
-    void log(enum retro_log_level level, const char* fmt, va_list va);
+    void log(enum retro_log_level level, const char *fmt, ...) noexcept;
+    void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
     bool set_message(const struct retro_message_ext *message);
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);
@@ -53,7 +53,7 @@ namespace retro {
     const std::optional<struct retro_game_info>& get_loaded_gba_info();
     const std::optional<struct retro_game_info_ext>& get_loaded_gba_info_ext();
 
-    void set_loaded_content_info(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info);
+    void set_loaded_content_info(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) noexcept;
 
     void clear_environment();
 }

@@ -51,7 +51,7 @@ namespace retro {
     static optional<struct retro_game_info_ext> _loaded_gba_info_ext;
 }
 
-bool retro::environment(unsigned cmd, void *data) {
+bool retro::environment(unsigned cmd, void *data) noexcept {
     if (_environment) {
         return _environment(cmd, data);
     } else {
@@ -87,7 +87,7 @@ void retro::video_refresh(const void *data, unsigned width, unsigned height, siz
     }
 }
 
-void retro::log(enum retro_log_level level, const char *fmt, ...) {
+void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -97,7 +97,7 @@ void retro::log(enum retro_log_level level, const char *fmt, ...) {
     va_end(va);
 }
 
-void retro::log(enum retro_log_level level, const char* fmt, va_list va)
+void retro::log(enum retro_log_level level, const char* fmt, va_list va) noexcept
 {
     if (fmt == nullptr)
         return;
@@ -279,7 +279,7 @@ const optional<struct retro_game_info_ext>& retro::get_loaded_gba_info_ext() {
     return _loaded_gba_info_ext;
 }
 
-void retro::set_loaded_content_info(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) {
+void retro::set_loaded_content_info(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) noexcept {
     if (nds_info) {
         _loaded_nds_info = *nds_info;
     }
