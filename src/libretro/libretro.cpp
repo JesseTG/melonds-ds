@@ -45,6 +45,7 @@
 #include "screenlayout.hpp"
 #include "memory.hpp"
 #include "render.hpp"
+#include "exceptions.hpp"
 
 using std::optional;
 
@@ -57,19 +58,35 @@ namespace melonds {
     static bool first_frame_run = false;
     static std::unique_ptr<NDSCartData> _loaded_nds_cart;
     static std::unique_ptr<GBACartData> _loaded_gba_cart;
+    static const char *const INTERNAL_ERROR_MESSAGE =
+        "An internal error occurred with melonDS DS. "
+        "Please contact the developer with the log file.";
 
+    static const char *const UNKNOWN_ERROR_MESSAGE =
+        "An unknown error has occurred with melonDS DS. "
+        "Please contact the developer with the log file.";
+
+    // functions for loading games
+    static bool handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept;
+    static bool load_games(
+        const optional<retro_game_info> &nds_info,
+        const optional<retro_game_info> &gba_info
+    );
+    static void init_firmware_overrides();
+    static void parse_nds_rom(const struct retro_game_info &info);
+    static void init_nds_save(const NDSCartData &nds_cart);
+    static void parse_gba_rom(const struct retro_game_info &info);
+    static void init_bios();
+    static void init_rendering();
+    static bool load_game_deferred(
+        const optional<retro_game_info> &nds_info,
+        const optional<retro_game_info> &gba_info
+    );
+    static void set_up_direct_boot(const retro_game_info &nds_info);
+
+    // functions for running games
     static void render_frame();
-
     static void render_audio();
-
-    static bool parse_roms(const struct retro_game_info& nds_info, const optional<struct retro_game_info>& gba_info);
-    static bool load_games(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info);
-
-    static bool load_game_deferred(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info);
-
-    static void initialize_bios();
-
-    static void set_up_direct_boot(const retro_game_info& nds_info);
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -82,11 +99,56 @@ PUBLIC_SYMBOL void retro_init(void) {
     // ScreenLayoutData is initialized in its constructor
 }
 
+static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
+    // First initialize the content info...
+    switch (type) {
+        case melonds::MELONDSDS_GAME_TYPE_NDS:
+            // ...which refers to a Nintendo DS game...
+            retro::set_loaded_content_info(info, nullptr);
+            break;
+        case melonds::MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
+            // ...which refers to both a Nintendo DS and Game Boy Advance game...
+            if (num < 2) {
+                retro::log(RETRO_LOG_ERROR, "Invalid number of ROMs for slot-1/2 boot");
+                retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
+                return false;
+            }
+            retro::set_loaded_content_info(info, (info == nullptr) ? nullptr : info + 1);
+            break;
+        default:
+            retro::log(RETRO_LOG_ERROR, "Unknown game type %d", type);
+            retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
+            return false;
+    }
+
+    // ...then load the game.
+    return melonds::load_games(retro::get_loaded_nds_info(), retro::get_loaded_gba_info());
+}
+catch (const melonds::invalid_rom_exception &e) {
+    // Thrown for invalid ROMs
+    retro::set_error_message(e.what());
+    _loaded_nds_cart.reset();
+    _loaded_gba_cart.reset();
+    return false;
+}
+catch (const std::exception &e) {
+    retro::log(RETRO_LOG_ERROR, "%s", e.what());
+    retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
+    _loaded_nds_cart.reset();
+    _loaded_gba_cart.reset();
+    return false;
+}
+catch (...) {
+    retro::set_error_message(melonds::UNKNOWN_ERROR_MESSAGE);
+    _loaded_nds_cart.reset();
+    _loaded_gba_cart.reset();
+    return false;
+}
+
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game(\"%s\", %d)\n", info->path, info->size);
 
-    retro::set_loaded_content_info(info, nullptr);
-    return melonds::load_games(*info, std::nullopt);
+    return melonds::handle_load_game(melonds::MELONDSDS_GAME_TYPE_NDS, info, 1);
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -245,8 +307,7 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
     retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
 
-    retro::set_loaded_content_info(&info[0], num > 1 ? &info[1] : nullptr);
-    return melonds::load_games(retro::get_loaded_nds_info(), retro::get_loaded_gba_info());
+    return melonds::handle_load_game(type, info, num);
 }
 
 PUBLIC_SYMBOL void retro_deinit(void) {
@@ -265,7 +326,7 @@ PUBLIC_SYMBOL unsigned retro_api_version(void) {
 PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->library_name = "melonDS DS";
     info->block_extract = false;
-    info->library_version = "0.0.0";
+    info->library_version = "TODO: Version number";
     info->need_fullpath = false;
     info->valid_extensions = "nds|ids|dsi";
 }
@@ -276,39 +337,48 @@ PUBLIC_SYMBOL void retro_reset(void) {
 
     melonds::first_frame_run = false;
 
-    const auto& nds_info = retro::get_loaded_nds_info();
+    const auto &nds_info = retro::get_loaded_nds_info();
     if (nds_info) {
         melonds::set_up_direct_boot(nds_info.value());
     }
 }
 
-static bool melonds::parse_roms(
-    const struct retro_game_info &nds_info,
-    const optional<struct retro_game_info> &gba_info) {
+static void melonds::parse_nds_rom(const struct retro_game_info &info) {
+    _loaded_nds_cart = std::make_unique<NDSCartData>(
+        static_cast<const u8 *>(info.data),
+        static_cast<u32>(info.size)
+    );
 
-    _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8 *>(nds_info.data),
-                                                     static_cast<u32>(nds_info.size));
     if (!_loaded_nds_cart->IsValid()) {
-        retro::set_error_message("Failed to parse the DS ROM image. Is it valid?");
-        return false;
+        throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
     }
 
-    if (gba_info) {
-        // Not an error if no GBA ROM is provided
-        _loaded_gba_cart = std::make_unique<GBACartData>(static_cast<const u8 *>(gba_info->data),
-                                                         static_cast<u32>(gba_info->size));
+    retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\"", info.path);
+}
+
+static void melonds::parse_gba_rom(const struct retro_game_info &info) {
+    if (Config::ConsoleType == ConsoleType::DSi) {
+        retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM.");
+    } else {
+        _loaded_gba_cart = std::make_unique<GBACartData>(
+            static_cast<const u8 *>(info.data),
+            static_cast<u32>(info.size)
+        );
+
         if (!_loaded_gba_cart->IsValid()) {
-            retro::set_error_message("Failed to parse the GBA ROM image. Is it valid?");
-            return false;
+            throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
         }
-    }
 
-    return true;
+        retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
+    }
 }
 
 // TODO: Support loading the firmware without a ROM
 // TODO: Support loading a specified GBA save file
-static bool melonds::load_games(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info) {
+static bool melonds::load_games(
+    const optional<struct retro_game_info> &nds_info,
+    const optional<struct retro_game_info> &gba_info
+) {
     melonds::clear_memory_config();
     melonds::check_variables(true);
 
@@ -324,85 +394,30 @@ static bool melonds::load_games(const optional<struct retro_game_info>& nds_info
     retro_assert(_loaded_nds_cart == nullptr);
     retro_assert(_loaded_gba_cart == nullptr);
 
+    init_firmware_overrides();
+
     // First parse the ROMs...
-    if (!parse_roms(*nds_info, gba_info)) {
-        _loaded_nds_cart.reset();
-        _loaded_gba_cart.reset();
-        return false;
+    if (nds_info) {
+        parse_nds_rom(*nds_info);
+
+        // sanity check; parse_nds_rom does the real validation
+        retro_assert(_loaded_nds_cart != nullptr);
+        retro_assert(_loaded_nds_cart->IsValid());
+
+        init_nds_save(*_loaded_nds_cart);
     }
-
-
-    // Get the length of the ROM's SRAM, if any
-    u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
-    NdsSaveManager->SetSaveSize(sram_length);
-    retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\" (%u-byte SRAM)\n", nds_info->path, sram_length);
-    // Homebrew is a special case, as it uses a file system rather than SRAM.
 
     if (gba_info) {
-        // If we want to load a GBA ROM...
-        if (Config::ConsoleType == ConsoleType::DSi) {
-            retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM.");
-        } else {
-            _loaded_gba_cart = std::make_unique<GBACartData>(static_cast<const u8 *>(gba_info->data),
-                                                             static_cast<u32>(gba_info->size));
-            if (!_loaded_gba_cart->IsValid()) {
-                _loaded_gba_cart.reset();
-                retro::set_error_message("Failed to load the GBA ROM. Is it valid?");
-                return false;
-            }
-
-            // u32 gba_sram_length = _loaded_gba_cart->Cart()->GetSaveMemoryLength();
-            // GbaSaveManager->SetSaveSize(gba_sram_length);
-            // retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\" (%u-byte SRAM)\n", gba_info->path, gba_sram_length);
-        }
+        parse_gba_rom(*gba_info);
     }
 
-    initialize_bios();
-
-    // TODO: Ensure that the username is non-empty
-    // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
-    const char *retro_username;
-    if (environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username)
-        Config::FirmwareUsername = retro_username;
-    else
-        Config::FirmwareUsername = "melonDS";
-
+    init_bios();
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
-    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
-    if (!environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt)) {
-        log(RETRO_LOG_ERROR, "Failed to set XRGB8888, which is not supported.\n");
-        return false;
-    }
-
-#ifdef HAVE_OPENGL
-    // Initialize the opengl state if needed
-    switch (Config::Retro::ConfiguredRenderer) {
-        // Depending on which renderer we want to use...
-        case Renderer::OpenGl:
-            if (melonds::opengl::initialize()) {
-                Config::Retro::CurrentRenderer = Renderer::OpenGl;
-            } else {
-                Config::Retro::CurrentRenderer = Renderer::Software;
-                log(RETRO_LOG_ERROR, "Failed to initialize OpenGL renderer, falling back to software rendering");
-                // TODO: Display a message stating that we're falling back to software rendering
-            }
-            break;
-        default:
-            log(RETRO_LOG_WARN, "Unknown renderer %d, falling back to software rendering",
-                static_cast<int>(Config::Retro::ConfiguredRenderer));
-            // Intentional fall-through
-        case Renderer::Software:
-            Config::Retro::CurrentRenderer = Renderer::Software;
-            log(RETRO_LOG_INFO, "Using software renderer");
-            break;
-    }
-#else
-    log(RETRO_LOG_INFO, "OpenGL is not supported by this build, using software renderer");
-#endif
+    init_rendering();
 
     if (!NDS::Init()) {
-        retro::set_error_message("Failed to initialize melonDS");
+        retro::log(RETRO_LOG_ERROR, "Failed to initialize melonDS DS.");
         return false;
     }
 
@@ -419,10 +434,50 @@ static bool melonds::load_games(const optional<struct retro_game_info>& nds_info
     }
 }
 
-static void melonds::initialize_bios() {
+
+static void melonds::init_firmware_overrides() {
+    // TODO: Ensure that the username is non-empty
+    // TODO: Make firmware overrides configurable
+    // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
+
+    const char *retro_username;
+    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username)
+        Config::FirmwareUsername = retro_username;
+    else
+        Config::FirmwareUsername = "melonDS";
+}
+
+// Does not load the NDS SRAM, since retro_get_memory is used for that.
+// But it will allocate the buffer and load homebrew save data.
+static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
+    if (nds_cart.Header().IsHomebrew()) {
+        // If this cart is a homebrew ROM...
+
+        // Homebrew is a special case, as it uses an SD card rather than SRAM.
+        // TODO: Get the save data path
+        // TODO: Load the homebrew save data image
+    } else {
+        // This is a retail ROM
+
+        // Get the length of the ROM's SRAM, if any
+        u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
+        NdsSaveManager->SetSaveSize(sram_length);
+
+        if (sram_length > 0) {
+            retro::log(RETRO_LOG_DEBUG, "Allocated %u-byte SRAM buffer for loaded NDS ROM.", sram_length);
+        } else {
+            retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
+        }
+    }
+}
+
+static void melonds::init_bios() {
     using retro::log;
 
+    // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
     if (Config::ExternalBIOSEnable) {
+        // If the player wants to use their own BIOS dumps...
+
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
         // so we have to do it ourselves
 
@@ -449,15 +504,15 @@ static void melonds::initialize_bios() {
             retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
         }
     } else {
-        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using FreeBIOS instead.");
+        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using internal FreeBIOS instead.");
     }
 }
 
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
 static bool melonds::load_game_deferred(
-    const optional<struct retro_game_info>& nds_info,
-    const optional<struct retro_game_info>& gba_info
+    const optional<struct retro_game_info> &nds_info,
+    const optional<struct retro_game_info> &gba_info
 ) {
     using retro::log;
 
@@ -468,9 +523,10 @@ static bool melonds::load_game_deferred(
     GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
     GPU::SetRenderSettings(Config::Retro::CurrentRenderer == Renderer::OpenGl, render_settings);
 
-    NDS::Reset(); // Loads the BIOS, too
+    // Loads the BIOS, too
+    NDS::Reset();
 
-    // The ROM and save data must be loaded after NDS::Reset is called
+    // The ROM must be inserted after NDS::Reset is called
 
     retro_assert(_loaded_nds_cart != nullptr);
     retro_assert(_loaded_nds_cart->IsValid());
@@ -531,7 +587,44 @@ static bool melonds::load_game_deferred(
     return true;
 }
 
-static void melonds::set_up_direct_boot(const retro_game_info& nds_info) {
+static void melonds::init_rendering() {
+    using retro::environment;
+    using retro::log;
+
+    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+    if (!environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt)) {
+        throw std::runtime_error("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
+    }
+
+#ifdef HAVE_OPENGL
+    // Initialize the opengl state if needed
+    switch (Config::Retro::ConfiguredRenderer) {
+        // Depending on which renderer we want to use...
+        case Renderer::OpenGl:
+            if (melonds::opengl::initialize()) {
+                Config::Retro::CurrentRenderer = Renderer::OpenGl;
+            } else {
+                Config::Retro::CurrentRenderer = Renderer::Software;
+                log(RETRO_LOG_ERROR, "Failed to initialize OpenGL renderer, falling back to software rendering");
+                // TODO: Display a message stating that we're falling back to software rendering
+            }
+            break;
+        default:
+            log(RETRO_LOG_WARN, "Unknown renderer %d, falling back to software rendering",
+                static_cast<int>(Config::Retro::ConfiguredRenderer));
+            // Intentional fall-through
+        case Renderer::Software:
+            Config::Retro::CurrentRenderer = Renderer::Software;
+            log(RETRO_LOG_INFO, "Using software renderer");
+            break;
+    }
+#else
+    log(RETRO_LOG_INFO, "OpenGL is not supported by this build, using software renderer");
+#endif
+}
+
+// Decrypts the ROM's secure area
+static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
     if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
         char game_name[256];
         const char *ptr = path_basename(nds_info.path);
@@ -542,5 +635,6 @@ static void melonds::set_up_direct_boot(const retro_game_info& nds_info) {
         path_remove_extension(game_name);
 
         NDS::SetupDirectBoot(game_name);
+        retro::log(RETRO_LOG_DEBUG, "Initialized direct boot for \"%s\"", game_name);
     }
 }
