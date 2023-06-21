@@ -136,11 +136,11 @@ namespace Config {
             static const char *const DISABLED = "disabled";
             static const char *const ENABLED = "enabled";
             static const char *const OPENGL = "opengl";
-            static const char *const SHARED256M = "shared-256m";
-            static const char *const SHARED512M = "shared-512m";
-            static const char *const SHARED1G = "shared-1g";
-            static const char *const SHARED2G = "shared-2g";
-            static const char *const SHARED4G = "shared-4g";
+            static const char *const SHARED256M = "shared0256m";
+            static const char *const SHARED512M = "shared0512m";
+            static const char *const SHARED1G = "shared1024m";
+            static const char *const SHARED2G = "shared2048m";
+            static const char *const SHARED4G = "shared4096m";
             static const char *const DEDICATED = "dedicated";
         }
     }
