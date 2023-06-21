@@ -62,6 +62,7 @@ namespace melonds {
 
     static void render_audio();
 
+    static bool parse_roms(const struct retro_game_info& nds_info, const optional<struct retro_game_info>& gba_info);
     static bool load_games(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info);
 
     static bool load_game_deferred(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info);
@@ -281,6 +282,32 @@ PUBLIC_SYMBOL void retro_reset(void) {
     }
 }
 
+static bool melonds::parse_roms(
+    const struct retro_game_info &nds_info,
+    const optional<struct retro_game_info> &gba_info) {
+
+    _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8 *>(nds_info.data),
+                                                     static_cast<u32>(nds_info.size));
+    if (!_loaded_nds_cart->IsValid()) {
+        retro::set_error_message("Failed to parse the DS ROM image. Is it valid?");
+        return false;
+    }
+
+    if (gba_info) {
+        // Not an error if no GBA ROM is provided
+        _loaded_gba_cart = std::make_unique<GBACartData>(static_cast<const u8 *>(gba_info->data),
+                                                         static_cast<u32>(gba_info->size));
+        if (!_loaded_gba_cart->IsValid()) {
+            retro::set_error_message("Failed to parse the GBA ROM image. Is it valid?");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// TODO: Support loading the firmware without a ROM
+// TODO: Support loading a specified GBA save file
 static bool melonds::load_games(const optional<struct retro_game_info>& nds_info, const optional<struct retro_game_info>& gba_info) {
     melonds::clear_memory_config();
     melonds::check_variables(true);
@@ -297,12 +324,10 @@ static bool melonds::load_games(const optional<struct retro_game_info>& nds_info
     retro_assert(_loaded_nds_cart == nullptr);
     retro_assert(_loaded_gba_cart == nullptr);
 
-    // First parse the ROM...
-    _loaded_nds_cart = std::make_unique<NDSCartData>(static_cast<const u8 *>(nds_info->data),
-                                                     static_cast<u32>(nds_info->size));
-    if (!_loaded_nds_cart->IsValid()) {
+    // First parse the ROMs...
+    if (!parse_roms(*nds_info, gba_info)) {
         _loaded_nds_cart.reset();
-        retro::set_error_message("Failed to load the ROM. Is it a valid NDS ROM?");
+        _loaded_gba_cart.reset();
         return false;
     }
 
