@@ -22,17 +22,15 @@
 
 int Platform::GetConfigInt(ConfigEntry entry)
 {
-    const int imgsizes[] = {0, 256, 512, 1024, 2048, 4096};
-
     switch (entry)
     {
 #ifdef JIT_ENABLED
         case JIT_MaxBlockSize: return Config::JIT_MaxBlockSize;
 #endif
 
-        case DLDI_ImageSize: return imgsizes[Config::DLDISize];
+        case DLDI_ImageSize: return Config::DLDISize;
 
-        case DSiSD_ImageSize: return imgsizes[Config::DSiSDSize];
+        case DSiSD_ImageSize: return Config::DSiSDSize;
 
         case Firm_Language: return Config::FirmwareLanguage;
         case Firm_BirthdayMonth: return Config::FirmwareBirthdayMonth;
