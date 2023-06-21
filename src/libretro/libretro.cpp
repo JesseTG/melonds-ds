@@ -452,7 +452,7 @@ static void melonds::init_firmware_overrides() {
 }
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
-// But it will allocate the buffer and load homebrew save data.
+// But it will allocate the SRAM buffer
 static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
     if (nds_cart.Header().IsHomebrew()) {
         // If this cart is a homebrew ROM...
