@@ -339,8 +339,10 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     }
 
     const char *system_dir = nullptr;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
+    if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
+        retro::log(RETRO_LOG_INFO, "System directory: \"%s\"", system_dir);
         retro::_system_directory = system_dir;
+    }
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void *) melonds::subsystems);
 
