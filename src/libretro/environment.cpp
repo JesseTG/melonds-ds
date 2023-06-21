@@ -95,12 +95,15 @@ void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
 
     va_list va;
     va_start(va, fmt);
-    log(level, fmt, va);
+    vlog(level, fmt, va);
     va_end(va);
 }
 
-void retro::log(enum retro_log_level level, const char* fmt, va_list va) noexcept
+void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept
 {
+    if (fmt == nullptr)
+        return;
+
     if (_log) {
         // We can't pass the va_list directly to the libretro callback,
         // so we have to construct the string and print that

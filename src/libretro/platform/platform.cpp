@@ -79,7 +79,7 @@ void Platform::Log(Platform::LogLevel level, const char* fmt...)
     retro_log_level retro_level = to_retro_log_level(level);
     va_list va;
     va_start(va, fmt);
-    retro::log(retro_level, fmt, va);
+    retro::vlog(retro_level, fmt, va);
     va_end(va);
 }
 
