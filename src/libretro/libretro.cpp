@@ -454,14 +454,8 @@ static void melonds::init_firmware_overrides() {
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
 // But it will allocate the SRAM buffer
 static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
-    if (nds_cart.Header().IsHomebrew()) {
-        // If this cart is a homebrew ROM...
-
-        // Homebrew is a special case, as it uses an SD card rather than SRAM.
-        // TODO: Get the save data path
-        // TODO: Load the homebrew save data image
-    } else {
-        // This is a retail ROM
+     if (!nds_cart.Header().IsHomebrew()) {
+        // If this is a retail ROM...
 
         // Get the length of the ROM's SRAM, if any
         u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
