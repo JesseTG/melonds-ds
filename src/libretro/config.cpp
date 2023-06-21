@@ -96,6 +96,7 @@ namespace Config {
             static const char *const VIDEO = "video";
             static const char *const SYSTEM = "system";
             static const char *const SAVE = "save";
+            static const char *const SCREEN = "screen";
         }
 
         namespace Keys {
@@ -559,7 +560,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
             "Change save data settings."
         },
         {
-                "screen",
+            Config::Retro::Category::SCREEN,
                 "Screen",
                 "Change screen settings."
         },
@@ -843,7 +844,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "Choose mode for interactions with the touch screen.",
                 nullptr,
-                "screen",
+                Config::Retro::Category::SCREEN,
                 {
                         {"Mouse", nullptr},
                         {"Touch", nullptr},
@@ -859,7 +860,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "Choose if the 'Swap screens' button should work on press or on hold.",
                 nullptr,
-                "screen",
+                Config::Retro::Category::SCREEN,
                 {
                         {"Toggle", nullptr},
                         {"Hold", nullptr},
@@ -873,7 +874,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "Choose how many screens should be displayed and how they should be displayed.",
                 nullptr,
-                "screen",
+                Config::Retro::Category::SCREEN,
                 {
                         {"Top/Bottom", nullptr},
                         {"Bottom/Top", nullptr},
@@ -893,7 +894,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "Choose how large the gap between the 2 screens should be.",
                 nullptr,
-                "screen",
+                Config::Retro::Category::SCREEN,
                 {
                         {"0", nullptr},
                         {"1", nullptr},
@@ -1032,7 +1033,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 "Choose the position of the small screen when using a 'hybrid' mode, or if it should show both screens.",
                 nullptr,
-                "screen",
+                Config::Retro::Category::SCREEN,
                 {
                         {"Bottom", nullptr},
                         {"Top", nullptr},
@@ -1124,7 +1125,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
                 nullptr,
                 nullptr,
                 nullptr,
-                "screen",
+                Config::Retro::Category::SCREEN,
                 {
                         {"2", nullptr},
                         {"3", nullptr},
