@@ -638,7 +638,6 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
             strlcpy(game_name, ptr, sizeof(game_name));
         else
             strlcpy(game_name, nds_info.path, sizeof(game_name));
-        path_remove_extension(game_name);
 
         NDS::SetupDirectBoot(game_name);
         retro::log(RETRO_LOG_DEBUG, "Initialized direct boot for \"%s\"", game_name);
