@@ -99,6 +99,46 @@ void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
     va_end(va);
 }
 
+void retro::debug(const char *fmt, ...) noexcept {
+    if (fmt == nullptr)
+        return;
+
+    va_list va;
+    va_start(va, fmt);
+    vlog(RETRO_LOG_DEBUG, fmt, va);
+    va_end(va);
+}
+
+void retro::info(const char *fmt, ...) noexcept {
+    if (fmt == nullptr)
+        return;
+
+    va_list va;
+    va_start(va, fmt);
+    vlog(RETRO_LOG_INFO, fmt, va);
+    va_end(va);
+}
+
+void retro::warn(const char *fmt, ...) noexcept {
+    if (fmt == nullptr)
+        return;
+
+    va_list va;
+    va_start(va, fmt);
+    vlog(RETRO_LOG_WARN, fmt, va);
+    va_end(va);
+}
+
+void retro::error(const char *fmt, ...) noexcept {
+    if (fmt == nullptr)
+        return;
+
+    va_list va;
+    va_start(va, fmt);
+    vlog(RETRO_LOG_ERROR, fmt, va);
+    va_end(va);
+}
+
 void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept
 {
     if (fmt == nullptr)
