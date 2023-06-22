@@ -16,6 +16,8 @@
 
 #include "info.hpp"
 
+#include <retro_miscellaneous.h>
+
 namespace melonds {
     const struct retro_system_content_info_override content_overrides[] = {
             {
@@ -31,20 +33,19 @@ namespace melonds {
     const struct retro_subsystem_memory_info gba_memory[] = {
             {"srm", 0x101},
     };
-    // TODO: Implement GBA SRAM. I want to send a PR to RetroArch for the APIs I need first.
 
     const struct retro_subsystem_memory_info nds_memory[] = {
             {"srm", RETRO_MEMORY_SAVE_RAM},
     };
 
     const struct retro_subsystem_rom_info slot_1_2_roms[] = {
-            {"Nintendo DS (Slot 1)", "nds", false, false, true, nds_memory, 1},
+            {"Nintendo DS (Slot 1)", "nds", false, false, true, nds_memory, ARRAY_SIZE(melonds::nds_memory)},
             {"GBA (Slot 2)", "gba", false, false, true, nullptr, 0},
-            {}
+            {"GBA Save Data", "srm", false, false, false, nullptr, 0},
     };
 
     const struct retro_subsystem_info subsystems[] = {
-            {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, 2, MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
+            {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, ARRAY_SIZE(melonds::slot_1_2_roms), MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
             {}
     };
 
