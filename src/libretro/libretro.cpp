@@ -300,6 +300,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_unload_game()");
     // No need to flush SRAM to the buffer, Platform::WriteNDSSave has been doing that for us this whole time
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
+    // TODO: If GBA SRAM is used, flush it back to disk (also flush it periodically in case of failure)
     NDS::Stop();
     NDS::DeInit();
     melonds::_loaded_nds_cart.reset();
@@ -402,11 +403,6 @@ static bool melonds::load_games(
     using retro::log;
     using retro::set_message;
 
-    /*
-    * NDS::Reset() calls wipes the cart buffer so on invoke we need a reload from info->data.
-    * Since retro_reset callback doesn't pass the info struct we need to cache it.
-    */
-
     retro_assert(_loaded_nds_cart == nullptr);
     retro_assert(_loaded_gba_cart == nullptr);
 
@@ -414,6 +410,8 @@ static bool melonds::load_games(
 
     // First parse the ROMs...
     if (nds_info) {
+        // NDS::Reset() calls wipes the cart buffer so on invoke we need a reload from info->data.
+        // Since retro_reset callback doesn't pass the info struct we need to cache it.
         parse_nds_rom(*nds_info);
 
         // sanity check; parse_nds_rom does the real validation
