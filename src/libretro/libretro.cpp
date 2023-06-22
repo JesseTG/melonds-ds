@@ -192,8 +192,8 @@ static void melonds::install_sram(
         GBACart::LoadSave(melonds::GbaSaveManager->Sram(), melonds::GbaSaveManager->SramLength());
     }
 
-    // We could've loaded the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
-    // but doing so here helps keep things tidier.
+    // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
+    // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
