@@ -18,64 +18,56 @@
 
 #include <retro_miscellaneous.h>
 
-namespace melonds {
-    const struct retro_system_content_info_override content_overrides[] = {
-            {
-                    "srm|sav",
-                    false,
-                           false
-                           // persistent_data is set to false so that the frontend releases the opened file handle.
-                           // (We're gonna write back to the file later, so we don't want it to be locked.)
-            },
-            {
-                "nds|dsi|ids|gba",
-                false,
-                true
-                // We need to keep the ROM around for reloads
-            },
-            {}
-    };
-
-    // NOTE: "srm" is a RetroArch convention for save RAM.
-    // If other frontends don't support this, we'll have to add a workaround.
-    const struct retro_subsystem_memory_info gba_memory[] = {
-            {"srm", 0x101},
-    };
-
-    const struct retro_subsystem_memory_info nds_memory[] = {
-            {"srm", RETRO_MEMORY_SAVE_RAM},
-    };
-
-    const struct retro_subsystem_rom_info slot_1_2_roms[] = {
-            {"Nintendo DS (Slot 1)", "nds", false, false, true, nds_memory, ARRAY_SIZE(melonds::nds_memory)},
-            {"GBA (Slot 2)", "gba", false, false, true, nullptr, 0},
-            {"GBA Save Data", "srm", false, false, false, nullptr, 0},
-    };
-
-    const struct retro_subsystem_info subsystems[] = {
-            {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, ARRAY_SIZE(melonds::slot_1_2_roms), MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
-            {}
-    };
-
-    const struct retro_controller_description controllers[] = {
-            {"Nintendo DS", RETRO_DEVICE_JOYPAD},
-            {},
-    };
-
-    const struct retro_controller_info ports[] = {
-            {controllers, 1},
-            {},
-    };
-
-    const char* get_game_type_name(unsigned game_type)
+const struct retro_system_content_info_override melonds::content_overrides[] = {
     {
-        switch (game_type) {
-            case MELONDSDS_GAME_TYPE_NDS:
-                return "MELONDSDS_GAME_TYPE_NDS";
-            case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
-                return "MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT";
-            default:
-                return "<unknown>";
-        }
+        "srm|sav",
+        false,
+        false
+        // persistent_data is set to false so that the frontend releases the opened file handle.
+        // (We're gonna write back to the file later, so we don't want it to be locked.)
+    },
+    {
+        "nds|dsi|ids|gba",
+        false,
+        true
+        // We need to keep the ROM around for reloads
+    },
+    {}
+};
+
+
+static const struct retro_subsystem_memory_info nds_memory[] = {
+    {"srm", RETRO_MEMORY_SAVE_RAM},
+};
+
+static const struct retro_subsystem_rom_info slot_1_2_roms[] = {
+    {"Nintendo DS (Slot 1)", "nds",     false, false, true,  nds_memory, ARRAY_SIZE(nds_memory)},
+    {"GBA (Slot 2)",         "gba",     false, false, true,  nullptr, 0},
+    {"GBA Save Data",        "srm|sav", false, false, false, nullptr, 0},
+};
+
+const struct retro_subsystem_info melonds::subsystems[] = {
+    {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, ARRAY_SIZE(slot_1_2_roms), MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
+    {}
+};
+
+const struct retro_controller_description melonds::controllers[] = {
+    {"Nintendo DS", RETRO_DEVICE_JOYPAD},
+    {},
+};
+
+const struct retro_controller_info melonds::ports[] = {
+    {controllers, 1},
+    {},
+};
+
+const char* melonds::get_game_type_name(unsigned game_type) {
+    switch (game_type) {
+        case MELONDSDS_GAME_TYPE_NDS:
+            return "MELONDSDS_GAME_TYPE_NDS";
+        case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
+            return "MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT";
+        default:
+            return "<unknown>";
     }
 }
