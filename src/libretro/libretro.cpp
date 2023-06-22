@@ -77,6 +77,7 @@ namespace melonds {
     static void parse_nds_rom(const struct retro_game_info &info);
     static void init_nds_save(const NDSCartData &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
+    static void init_gba_save(const GBACartData &gba_cart, const struct retro_game_info& gba_save_info);
     static void init_bios();
     static void init_rendering();
     static bool load_game_deferred(
@@ -377,6 +378,15 @@ static void melonds::parse_gba_rom(const struct retro_game_info &info) {
 
         retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
     }
+}
+
+static void melonds::init_gba_save(
+    const GBACart::GBACartData& gba_cart,
+    const struct retro_game_info& gba_save_info
+) {
+    // TODO: Load the given save file into the GBA's SRAM
+    // TODO: Set the GBACart's SRAM size to the size of the save file
+    // Get the length of the ROM's SRAM, if any
 }
 
 // TODO: Support loading the firmware without a ROM
