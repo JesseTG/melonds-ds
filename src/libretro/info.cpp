@@ -21,9 +21,17 @@
 namespace melonds {
     const struct retro_system_content_info_override content_overrides[] = {
             {
-                    "nds|dsi|gba",
+                    "srm|sav",
                     false,
-                           true
+                           false
+                           // persistent_data is set to false so that the frontend releases the opened file handle.
+                           // (We're gonna write back to the file later, so we don't want it to be locked.)
+            },
+            {
+                "nds|dsi|ids|gba",
+                false,
+                true
+                // We need to keep the ROM around for reloads
             },
             {}
     };

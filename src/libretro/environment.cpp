@@ -321,7 +321,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     struct retro_core_options_update_display_callback update_display_cb{melonds::update_option_visibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
 
-    //environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *) melonds::content_overrides);
+    environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *) melonds::content_overrides);
     environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *) melonds::ports);
 
     retro_log_callback log_callback = {nullptr};
