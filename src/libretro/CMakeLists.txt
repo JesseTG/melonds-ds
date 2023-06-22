@@ -4,6 +4,7 @@ add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     ../rthreads/rsemaphore.c
     config.cpp
+    content.cpp
     environment.cpp
     info.cpp
     input.cpp
