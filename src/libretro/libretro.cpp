@@ -78,7 +78,7 @@ namespace melonds {
     static void parse_nds_rom(const struct retro_game_info &info);
     static void init_nds_save(const NDSCartData &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
-    static void init_gba_save(const GBACartData &gba_cart, const struct retro_game_info& gba_save_info);
+    static void init_gba_save(GBACartData &gba_cart, const struct retro_game_info& gba_save_info);
     static void init_bios();
     static void init_rendering();
     static void load_games_deferred(
@@ -87,6 +87,11 @@ namespace melonds {
         const optional<retro_game_info> &gba_save_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
+    static void install_sram(
+        const optional<retro_game_info>& nds_info,
+        const optional<retro_game_info>& gba_info,
+        const optional<retro_game_info>& gba_save_info
+    );
 
     // functions for running games
     static void render_frame();
@@ -166,6 +171,31 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     return melonds::handle_load_game(melonds::MELONDSDS_GAME_TYPE_NDS, info, 1);
 }
 
+static void melonds::install_sram(
+    const optional<retro_game_info>& nds_info,
+    const optional<retro_game_info>& gba_info,
+    const optional<retro_game_info> &gba_save_info
+) {
+    // Nintendo DS SRAM is loaded by the frontend
+    // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
+    // This is where we install the SRAM data into the emulated DS.
+    if (nds_info && melonds::NdsSaveManager->SramLength() > 0) {
+        // If we're loading a NDS game that has SRAM...
+        NDS::LoadSave(melonds::NdsSaveManager->Sram(), melonds::NdsSaveManager->SramLength());
+    }
+
+    // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
+    // but is not processed by retro_get_memory (again due to libretro limits).
+    if (gba_info && gba_save_info && melonds::GbaSaveManager->SramLength() > 0) {
+        // If we're loading a GBA game that has existing SRAM...
+        // TODO: If the SRAM has certain metadata (like what mgba appends), truncate it.
+        GBACart::LoadSave(melonds::GbaSaveManager->Sram(), melonds::GbaSaveManager->SramLength());
+    }
+
+    // We could've loaded the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
+    // but doing so here helps keep things tidier.
+}
+
 PUBLIC_SYMBOL void retro_run(void) {
     using namespace melonds;
     using retro::log;
@@ -196,13 +226,11 @@ PUBLIC_SYMBOL void retro_run(void) {
         // we need to do this in the first frame of retro_run because
         // retro_get_memory_data is used to copy the loaded SRAM
         // in between retro_load and the first retro_run call.
-        if (NdsSaveManager->SramLength() > 0) {
-            NDS::LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
-        }
-
-        if (GbaSaveManager->SramLength() > 0) {
-            GBACart::LoadSave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
-        }
+        install_sram(
+            retro::content::get_loaded_nds_info(),
+            retro::content::get_loaded_gba_info(),
+            retro::content::get_loaded_gba_save_info()
+        );
 
         // This has to be deferred even if we're not using OpenGL,
         // because libretro doesn't set the SRAM until after retro_load_game
@@ -385,29 +413,26 @@ static void melonds::parse_nds_rom(const struct retro_game_info &info) {
 }
 
 static void melonds::parse_gba_rom(const struct retro_game_info &info) {
-    if (Config::ConsoleType == ConsoleType::DSi) {
-        retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM.");
-    } else {
-        _loaded_gba_cart = std::make_unique<GBACartData>(
-            static_cast<const u8 *>(info.data),
-            static_cast<u32>(info.size)
-        );
+    _loaded_gba_cart = std::make_unique<GBACartData>(
+        static_cast<const u8 *>(info.data),
+        static_cast<u32>(info.size)
+    );
 
-        if (!_loaded_gba_cart->IsValid()) {
-            throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
-        }
-
-        retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
+    if (!_loaded_gba_cart->IsValid()) {
+        throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
     }
+
+    retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
 }
 
 static void melonds::init_gba_save(
-    const GBACart::GBACartData& gba_cart,
+    GBACart::GBACartData& gba_cart,
     const struct retro_game_info& gba_save_info
 ) {
-    // TODO: Load the given save file into the GBA's SRAM
-    // TODO: Set the GBACart's SRAM size to the size of the save file
-    // Get the length of the ROM's SRAM, if any
+    melonds::GbaSaveManager->SetSaveSize(gba_save_info.size);
+    gba_cart.Cart()->SetupSave(gba_save_info.size);
+    retro::debug("Allocated %u-byte GBA SRAM", gba_cart.Cart()->GetSaveMemoryLength());
+    // Actually installing the SRAM will be done later, after NDS::Reset is called
 }
 
 // TODO: Support loading the firmware without a ROM
@@ -442,14 +467,17 @@ static void melonds::load_games(
     }
 
     if (gba_info) {
-        parse_gba_rom(*gba_info);
+        if (Config::ConsoleType == ConsoleType::DSi) {
+            retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
+        } else {
+            parse_gba_rom(*gba_info);
 
-        // sanity check; parse_gba_rom does the real validation
-        retro_assert(_loaded_gba_cart != nullptr);
-        retro_assert(_loaded_gba_cart->IsValid());
-
-        if (gba_save_info) {
-            init_gba_save(*_loaded_gba_cart, *gba_save_info);
+            if (gba_save_info) {
+                init_gba_save(*_loaded_gba_cart, *gba_save_info);
+            }
+            else {
+                retro::info("No GBA SRAM was provided.");
+            }
         }
     }
 
@@ -517,6 +545,8 @@ static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
         } else {
             retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
         }
+        // The actual SRAM file is installed later; it's loaded into the core via retro_get_memory_data,
+        // and it's applied in the first frame of retro_run.
     }
 }
 
@@ -524,6 +554,7 @@ static void melonds::init_bios() {
     using retro::log;
 
     // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
+    // TODO: If a GBA cart is loaded, remind the user that GBA/NDS connectivity doesn't work on FreeBIOS
     if (Config::ExternalBIOSEnable) {
         // If the player wants to use their own BIOS dumps...
 
@@ -578,30 +609,39 @@ static void melonds::load_games_deferred(
 
     // The ROM must be inserted after NDS::Reset is called
 
-    retro_assert(_loaded_nds_cart != nullptr);
-    retro_assert(_loaded_nds_cart->IsValid());
     retro_assert(NDSCart::CartROM == nullptr);
 
-    bool inserted = NDSCart::InsertROM(std::move(*_loaded_nds_cart));
+    if (_loaded_nds_cart) {
+        // If we want to insert a NDS ROM that was previously loaded...
+        retro_assert(_loaded_nds_cart->IsValid());
 
-    _loaded_nds_cart.reset();
-    if (!inserted) {
-        // If we failed to insert the ROM, we can't continue
-        retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
-        throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
+        bool inserted = NDSCart::InsertROM(std::move(*_loaded_nds_cart));
+
+        _loaded_nds_cart.reset();
+        if (!inserted) {
+            // If we failed to insert the ROM, we can't continue
+            retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
+            throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
+        }
+
+        // Just to be sure
+        retro_assert(NDSCart::CartROM != nullptr);
+        retro_assert(_loaded_nds_cart == nullptr);
     }
 
-    // Gotta make this assertion after we know that insertion succeeded
-    retro_assert(NDSCart::CartROM != nullptr);
+    retro_assert(GBACart::CartROM == nullptr);
 
     if (gba_info && _loaded_gba_cart) {
-        inserted = GBACart::InsertROM(std::move(*_loaded_gba_cart));
-        _loaded_gba_cart.reset();
+        // If we want to insert a GBA ROM that was previously loaded...
+        bool inserted = GBACart::InsertROM(std::move(_loaded_gba_cart));
         if (!inserted) {
             // If we failed to insert the ROM, we can't continue
             retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", gba_info->path);
             throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
         }
+
+        retro_assert(GBACart::CartROM != nullptr);
+        retro_assert(_loaded_gba_cart == nullptr);
     }
 
     set_up_direct_boot(nds_info.value());
