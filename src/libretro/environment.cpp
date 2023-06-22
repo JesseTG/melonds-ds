@@ -85,6 +85,10 @@ void retro::video_refresh(const void *data, unsigned width, unsigned height, siz
     }
 }
 
+bool retro::shutdown() noexcept {
+   return environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+}
+
 void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
     if (fmt == nullptr)
         return;

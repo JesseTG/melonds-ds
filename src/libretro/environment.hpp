@@ -45,6 +45,8 @@ namespace retro {
     size_t audio_sample_batch(const int16_t *data, size_t frames);
     void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch);
 
+    bool shutdown() noexcept;
+
     const std::optional<std::string>& get_save_directory();
     const std::optional<std::string>& get_system_directory();
 
