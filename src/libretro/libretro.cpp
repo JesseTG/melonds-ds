@@ -69,9 +69,10 @@ namespace melonds {
 
     // functions for loading games
     static bool handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept;
-    static bool load_games(
+    static void load_games(
         const optional<retro_game_info> &nds_info,
-        const optional<retro_game_info> &gba_info
+        const optional<retro_game_info> &gba_info,
+        const optional<retro_game_info> &gba_save_info
     );
     static void init_firmware_overrides();
     static void parse_nds_rom(const struct retro_game_info &info);
@@ -80,9 +81,10 @@ namespace melonds {
     static void init_gba_save(const GBACartData &gba_cart, const struct retro_game_info& gba_save_info);
     static void init_bios();
     static void init_rendering();
-    static bool load_game_deferred(
-        const optional<retro_game_info> &nds_info,
-        const optional<retro_game_info> &gba_info
+    static void load_games_deferred(
+        const optional<retro_game_info>& nds_info,
+        const optional<retro_game_info>& gba_info,
+        const optional<retro_game_info> &gba_save_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
 
@@ -110,12 +112,17 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
             break;
         case melonds::MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
             // ...which refers to both a Nintendo DS and Game Boy Advance game...
-            if (num < 2) {
-                retro::log(RETRO_LOG_ERROR, "Invalid number of ROMs for slot-1/2 boot");
-                retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
-                return false;
+            switch (num) {
+                case 2: // NDS ROM and GBA ROM
+                    retro::content::set_loaded_content_info(info, info + 1);
+                    break;
+                case 3: // NDS ROM, GBA ROM, and GBA SRAM
+                    retro::content::set_loaded_content_info(info, info + 1, info + 2);
+                    break;
+                default:
+                    retro::log(RETRO_LOG_ERROR, "Invalid number of ROMs (%u) for slot-1/2 boot", num);
+                    retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
             }
-            retro::content::set_loaded_content_info(info, (info == nullptr) ? nullptr : info + 1);
             break;
         default:
             retro::log(RETRO_LOG_ERROR, "Unknown game type %d", type);
@@ -124,7 +131,13 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
     }
 
     // ...then load the game.
-    return melonds::load_games(retro::content::get_loaded_nds_info(), retro::content::get_loaded_gba_info());
+    melonds::load_games(
+        retro::content::get_loaded_nds_info(),
+        retro::content::get_loaded_gba_info(),
+        retro::content::get_loaded_gba_save_info()
+    );
+
+    return true;
 }
 catch (const melonds::invalid_rom_exception &e) {
     // Thrown for invalid ROMs
@@ -159,16 +172,23 @@ PUBLIC_SYMBOL void retro_run(void) {
     using Config::Retro::CurrentRenderer;
 
     if (deferred_initialization_pending) {
-        log(RETRO_LOG_DEBUG, "Starting deferred initialization");
-        bool game_loaded = melonds::load_game_deferred(retro::content::get_loaded_nds_info(), retro::content::get_loaded_gba_info());
-        deferred_initialization_pending = false;
-        if (!game_loaded) {
-            // If we couldn't load the game...
+        try {
+            log(RETRO_LOG_DEBUG, "Starting deferred initialization");
+            melonds::load_games_deferred(
+                retro::content::get_loaded_nds_info(),
+                retro::content::get_loaded_gba_info(),
+                retro::content::get_loaded_gba_save_info()
+            );
+            deferred_initialization_pending = false;
+
+            log(RETRO_LOG_DEBUG, "Completed deferred initialization");
+        }
+        catch (const std::exception& e) {
             log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
-            retro::environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+            retro::set_error_message(e.what());
+            retro::shutdown();
             return;
         }
-        log(RETRO_LOG_DEBUG, "Completed deferred initialization");
     }
 
     if (!first_frame_run) {
@@ -391,10 +411,10 @@ static void melonds::init_gba_save(
 }
 
 // TODO: Support loading the firmware without a ROM
-// TODO: Support loading a specified GBA save file
-static bool melonds::load_games(
+static void melonds::load_games(
     const optional<struct retro_game_info> &nds_info,
-    const optional<struct retro_game_info> &gba_info
+    const optional<struct retro_game_info> &gba_info,
+    const optional<struct retro_game_info> &gba_save_info
 ) {
     melonds::clear_memory_config();
     melonds::check_variables(true);
@@ -423,6 +443,14 @@ static bool melonds::load_games(
 
     if (gba_info) {
         parse_gba_rom(*gba_info);
+
+        // sanity check; parse_gba_rom does the real validation
+        retro_assert(_loaded_gba_cart != nullptr);
+        retro_assert(_loaded_gba_cart->IsValid());
+
+        if (gba_save_info) {
+            init_gba_save(*_loaded_gba_cart, *gba_save_info);
+        }
     }
 
     init_bios();
@@ -432,7 +460,7 @@ static bool melonds::load_games(
 
     if (!NDS::Init()) {
         retro::log(RETRO_LOG_ERROR, "Failed to initialize melonDS DS.");
-        return false;
+        throw std::runtime_error("Failed to initialize NDS emulator.");
     }
 
     SPU::SetInterpolation(Config::AudioInterp);
@@ -441,10 +469,9 @@ static bool melonds::load_games(
     if (Config::Retro::CurrentRenderer == Renderer::OpenGl) {
         log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
         deferred_initialization_pending = true;
-        return true;
     } else {
         log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
-        return load_game_deferred(nds_info, gba_info);
+        load_games_deferred(nds_info, gba_info, gba_save_info);
     }
 }
 
@@ -532,9 +559,10 @@ static void melonds::init_bios() {
 
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
-static bool melonds::load_game_deferred(
-    const optional<struct retro_game_info> &nds_info,
-    const optional<struct retro_game_info> &gba_info
+static void melonds::load_games_deferred(
+    const optional<retro_game_info>& nds_info,
+    const optional<retro_game_info>& gba_info,
+    const optional<retro_game_info> &gba_save_info
 ) {
     using retro::log;
 
@@ -560,8 +588,7 @@ static bool melonds::load_game_deferred(
     if (!inserted) {
         // If we failed to insert the ROM, we can't continue
         retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
-        retro::set_error_message("Failed to insert the loaded ROM. Please report this issue.");
-        return false;
+        throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
     }
 
     // Gotta make this assertion after we know that insertion succeeded
@@ -573,8 +600,7 @@ static bool melonds::load_game_deferred(
         if (!inserted) {
             // If we failed to insert the ROM, we can't continue
             retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", gba_info->path);
-            retro::set_error_message("Failed to insert the loaded ROM. Please report this issue.");
-            return false;
+            throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
         }
     }
 
@@ -610,8 +636,6 @@ static bool melonds::load_game_deferred(
 //            log_cb(RETRO_LOG_WARN, "[melonDS] Failed to initialize microphone, emulated device will receive silence\n");
 //        }
 //    }
-
-    return true;
 }
 
 static void melonds::init_rendering() {
