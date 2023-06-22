@@ -18,13 +18,19 @@
 #define MELONDS_DS_CONTENT_HPP
 
 #include <optional>
+#include <string>
+
 #include <libretro.h>
 
 namespace retro::content {
     const std::optional<struct retro_game_info>& get_loaded_nds_info();
+    const std::optional<std::string>& get_loaded_nds_path();
     const std::optional<struct retro_game_info_ext>& get_loaded_nds_info_ext();
+    const std::optional<std::string>& get_loaded_gba_path();
     const std::optional<struct retro_game_info>& get_loaded_gba_info();
     const std::optional<struct retro_game_info_ext>& get_loaded_gba_info_ext();
+    const std::optional<struct retro_game_info>& get_loaded_gba_save_info();
+    const std::optional<std::string>& get_loaded_gba_save_path();
 
     void set_loaded_content_info(
         const struct retro_game_info* nds_info,
