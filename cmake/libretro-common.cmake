@@ -50,6 +50,7 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/streams/interface_stream.c
     ${libretro-common_SOURCE_DIR}/streams/memory_stream.c
     ${libretro-common_SOURCE_DIR}/streams/network_stream.c
+    ${libretro-common_SOURCE_DIR}/streams/rzip_stream.c
     ${libretro-common_SOURCE_DIR}/streams/stdin_stream.c
     ${libretro-common_SOURCE_DIR}/streams/trans_stream.c
     ${libretro-common_SOURCE_DIR}/streams/trans_stream_pipe.c
@@ -81,6 +82,7 @@ endif ()
 # TODO: Detect if cocoatouch is available; if so, define HAVE_COCOATOUCH
 # TODO: Detect if OpenGL ES is available; if so, define HAVE_OPENGLES(_?[123](_[12])?)?
 # TODO: Detect if SSL is available; if so, define HAVE_SSL
+# TODO: Detect if zlib is available; if so, define HAVE_ZLIB (do this when I get around to supporting compressed GBA saves)
 
 if (HAVE_OPENGL)
     target_sources(libretro-common PRIVATE
