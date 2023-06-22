@@ -17,8 +17,27 @@
 #ifndef MELONDS_DS_CONTENT_HPP
 #define MELONDS_DS_CONTENT_HPP
 
-namespace retro::content {
+#include <optional>
+#include <libretro.h>
 
+namespace retro::content {
+    const std::optional<struct retro_game_info>& get_loaded_nds_info();
+    const std::optional<struct retro_game_info_ext>& get_loaded_nds_info_ext();
+    const std::optional<struct retro_game_info>& get_loaded_gba_info();
+    const std::optional<struct retro_game_info_ext>& get_loaded_gba_info_ext();
+
+    void set_loaded_content_info(
+        const struct retro_game_info* nds_info,
+        const struct retro_game_info* gba_info
+    ) noexcept;
+
+    void set_loaded_content_info(
+        const struct retro_game_info* nds_info,
+        const struct retro_game_info* gba_info,
+        const struct retro_game_info* gba_save_info
+    ) noexcept;
+
+    void clear() noexcept;
 }
 
 #endif //MELONDS_DS_CONTENT_HPP

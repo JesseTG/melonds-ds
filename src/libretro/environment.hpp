@@ -48,13 +48,6 @@ namespace retro {
     const std::optional<std::string>& get_save_directory();
     const std::optional<std::string>& get_system_directory();
 
-    const std::optional<struct retro_game_info>& get_loaded_nds_info();
-    const std::optional<struct retro_game_info_ext>& get_loaded_nds_info_ext();
-    const std::optional<struct retro_game_info>& get_loaded_gba_info();
-    const std::optional<struct retro_game_info_ext>& get_loaded_gba_info_ext();
-
-    void set_loaded_content_info(const struct retro_game_info *nds_info, const struct retro_game_info *gba_info) noexcept;
-
     void clear_environment();
 }
 

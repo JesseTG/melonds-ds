@@ -20,6 +20,8 @@
 #include <GPU.h>
 #include <string/stdstring.h>
 #include <file/file_path.h>
+
+#include "content.hpp"
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "screenlayout.hpp"
@@ -563,7 +565,7 @@ static void melonds::config::check_homebrew_save_options(bool initializing)
         return;
     // All of these options take effect when a game starts, so there's no need to update them mid-game
 
-    const optional<struct retro_game_info>& game_info = retro::get_loaded_nds_info();
+    const optional<struct retro_game_info>& game_info = retro::content::get_loaded_nds_info();
 
     if (!game_info)
         // If there's no game loaded, there's no need to update the save mode

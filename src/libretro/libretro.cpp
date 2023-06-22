@@ -37,6 +37,7 @@
 #include <retro_assert.h>
 
 #include "opengl.hpp"
+#include "content.hpp"
 #include "environment.hpp"
 #include "config.hpp"
 #include "input.hpp"
@@ -104,7 +105,7 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
     switch (type) {
         case melonds::MELONDSDS_GAME_TYPE_NDS:
             // ...which refers to a Nintendo DS game...
-            retro::set_loaded_content_info(info, nullptr);
+            retro::content::set_loaded_content_info(info, nullptr);
             break;
         case melonds::MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
             // ...which refers to both a Nintendo DS and Game Boy Advance game...
@@ -113,7 +114,7 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
                 retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
                 return false;
             }
-            retro::set_loaded_content_info(info, (info == nullptr) ? nullptr : info + 1);
+            retro::content::set_loaded_content_info(info, (info == nullptr) ? nullptr : info + 1);
             break;
         default:
             retro::log(RETRO_LOG_ERROR, "Unknown game type %d", type);
@@ -122,7 +123,7 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
     }
 
     // ...then load the game.
-    return melonds::load_games(retro::get_loaded_nds_info(), retro::get_loaded_gba_info());
+    return melonds::load_games(retro::content::get_loaded_nds_info(), retro::content::get_loaded_gba_info());
 }
 catch (const melonds::invalid_rom_exception &e) {
     // Thrown for invalid ROMs
@@ -158,7 +159,7 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (deferred_initialization_pending) {
         log(RETRO_LOG_DEBUG, "Starting deferred initialization");
-        bool game_loaded = melonds::load_game_deferred(retro::get_loaded_nds_info(), retro::get_loaded_gba_info());
+        bool game_loaded = melonds::load_game_deferred(retro::content::get_loaded_nds_info(), retro::content::get_loaded_gba_info());
         deferred_initialization_pending = false;
         if (!game_loaded) {
             // If we couldn't load the game...
@@ -317,6 +318,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 PUBLIC_SYMBOL void retro_deinit(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
     retro::clear_environment();
+    retro::content::clear();
     melonds::clear_memory_config();
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
@@ -341,7 +343,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
 
     melonds::first_frame_run = false;
 
-    const auto &nds_info = retro::get_loaded_nds_info();
+    const auto &nds_info = retro::content::get_loaded_nds_info();
     if (nds_info) {
         melonds::set_up_direct_boot(nds_info.value());
     }
