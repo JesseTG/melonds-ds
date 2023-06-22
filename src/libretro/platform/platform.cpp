@@ -106,5 +106,6 @@ void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u3
 {
     if (melonds::GbaSaveManager) {
         melonds::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+        // TODO: Set a flag indicating that the SRAM is ready to be flushed to disk
     }
 }

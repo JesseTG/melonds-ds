@@ -23,6 +23,7 @@
 
 namespace melonds
 {
+    // TODO: Allow separate strings for user-facing and log-facing messages
     class invalid_rom_exception : public std::runtime_error {
     public:
         explicit invalid_rom_exception(const std::string &what_arg) : std::runtime_error(what_arg) {}
