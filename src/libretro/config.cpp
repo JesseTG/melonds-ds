@@ -1244,7 +1244,9 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             "If enabled, the virtual SD card's files will be synced to this core's save directory. "
             "Enable this if you want to add files to the virtual SD card from outside the core. "
             "Syncing happens when loading and unloading a game, "
-            "so external changes won't have any effect while the core is running.",
+            "so external changes won't have any effect while the core is running. "
+            "Takes effect at the next boot. "
+            "Adjusting this setting may overwrite existing save data.",
             nullptr,
             Config::Retro::Category::SAVE,
             {
