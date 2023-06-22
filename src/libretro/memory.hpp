@@ -33,6 +33,7 @@ namespace melonds {
 
     void clear_memory_config();
 
+    /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
     class SaveManager {
     public:
         SaveManager();
