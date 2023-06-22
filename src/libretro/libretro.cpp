@@ -558,8 +558,6 @@ static bool melonds::load_game_deferred(
 
     bool inserted = NDSCart::InsertROM(std::move(*_loaded_nds_cart));
 
-    retro_assert(NDSCart::CartROM != nullptr);
-
     _loaded_nds_cart.reset();
     if (!inserted) {
         // If we failed to insert the ROM, we can't continue
@@ -567,6 +565,9 @@ static bool melonds::load_game_deferred(
         retro::set_error_message("Failed to insert the loaded ROM. Please report this issue.");
         return false;
     }
+
+    // Gotta make this assertion after we know that insertion succeeded
+    retro_assert(NDSCart::CartROM != nullptr);
 
     if (gba_info && _loaded_gba_cart) {
         inserted = GBACart::InsertROM(std::move(*_loaded_gba_cart));
