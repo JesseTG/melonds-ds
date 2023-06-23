@@ -8,6 +8,7 @@ At the moment, melonDS DS does not have a stable release.
 Once it attains feature parity with the original core,
 I will set up a process for stable releases
 and submit it for inclusion in the official RetroArch distribution.
+
 In the meantime, I suggest [building melonDS DS from source](#building).
 
 # Installation
@@ -42,7 +43,7 @@ Usage instructions may vary depending on your chosen libretro frontend.
 ### Installing Nintendo DS BIOS
 
 melonDS includes a high-level BIOS replacement that works with most games.
-However, some functionality requires original Nintendo DS or DSi BIOS:
+However, some functionality requires original Nintendo DS or DSi BIOS files:
 
 - Game Boy Advance connectivity requires native Nintendo DS BIOS and firmware.
 - DSi mode requires native Nintendo DSi BIOS, firmware, and NAND files.
@@ -84,27 +85,22 @@ Enhancements over the original [melonDS][melonds-libretro] core include:
 ## Upstream Parity
 
 melonDS DS is not a fork of an existing code base;
-instead, it uses standalone melonDS DS as a statically-linked dependency.
-This means melonDS DS is less sensitive to large changes and merge conflicts;
-as a result, it can take advantage of improvements to standalone melonDS
+instead, it uses standalone melonDS as a statically-linked dependency.
+This means melonDS DS is less sensitive to large changes and merge conflicts.
+As a result, it can take advantage of improvements to standalone melonDS
 almost as quickly as they're released!
 
-This project does not fork melonDS; instead, it uses it as a dependency (with all necessary changes being contributed upstream).
-As a result, melonDS DS is _much_ easier for the maintainer to upgrade.
+## Homebrew Save Data
 
-# Missing Features
+The existing melonDS core does not support save data for homebrew games.
+However, melonDS DS does!
 
-The following features from melonDS or the original core have not been implemented:
+You can keep homebrew save data on its own virtual SD card,
+or use one of five shared virtual cards.
+No extra setup is required;
+the options menu will tell you everything you need to know.
 
-
-- **Wi-fi:** melonDS fully supports Wi-fi emulation,
-  including Nintendo Wi-Fi Connection services for supported Nintendo DS games
-  via [Wiimmfi][wiimfi].
-  However, I haven't implemented support for it in melonDS DS yet.
-  It's on th
-- libretro-styled cheats. the original cheat engine is supported
-- some lesser-known platforms are not yet available.
-- Lua scripting, this is only in the frontend
+**NOTE:** melonDS DS does not support savestates for homebrew games.
 
 ## Missing Features
 
@@ -144,12 +140,12 @@ If you want to see them, you should contribute to the upstream project!
 ## Games
 
 melonDS DS is compatible with all games that melonDS supports,
-unless otherwise noted in the Missing Features section.
+unless otherwise noted in the [Missing Features section](#missing-features).
 If this is not the case, please [report it][issue-tracker].
 
 ## Libretro Frontends
 
-melonDS DS only specifically targets RetroArch,
+melonDS DS primarily targets RetroArch,
 but you may be able to use it with other libretro frontends.
 If you encounter problems with other frontends, please [report them][issue-tracker]!
 Support is not guaranteed, but I'll do the best I can.
@@ -165,11 +161,12 @@ This is a rough roadmap for achieving that goal:
 4. Implement support for migrating configuration from the existing core.
 5. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
 6. Get melonDS DS included in the official RetroArch distribution.
-7. Improve screen layout selection (e.g. toggling between multiple layouts, rotation).
-8. Produce builds for platforms other than Windows, macOS, and Linux.
-9. Add support for DSi mode (including DSiWare),
-   subject to the limitations described in [the Missing Features section](#missing-features).
-10. Add support for the DSi camera using `retro_camera_callback`.
+7. Implement support for [RetroAchievements][retroachievements].
+8. Improve screen layout selection (e.g. toggling between multiple layouts, rotation).
+9. Produce builds for platforms other than Windows, macOS, and Linux.
+10. Add support for DSi mode (including DSiWare),
+    subject to the limitations described in [the Missing Features section](#missing-features).
+11. Add support for the DSi camera using `retro_camera_callback`.
 
 # Building
 
@@ -273,3 +270,5 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [issue-tracker]: https://github.com/JesseTG/melonds-ds/issues
 [memory-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Memory_Expansion_Pak
 [solar-sensor]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Solar_Sensors
+[retroachievements]: https://retroachievements.org
+[wiimfi]: https://wiimmfi.de
