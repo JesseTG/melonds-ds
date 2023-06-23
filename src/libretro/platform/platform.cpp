@@ -82,6 +82,7 @@ void Platform::Log(Platform::LogLevel level, const char* fmt...)
     va_start(va, fmt);
     retro::vlog(retro_level, fmt, va);
     va_end(va);
+    // TODO: Prepend fmt with "[melonDS] " to differentiate emulator logs from core logs
 }
 
 /// This function exists to avoid causing potential recursion problems
