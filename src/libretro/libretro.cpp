@@ -25,6 +25,7 @@
 #include <file/file_path.h>
 #include <libretro.h>
 #include <streams/rzip_stream.h>
+#include <streams/file_stream.h>
 
 #include <NDS.h>
 #include <NDSCart.h>
@@ -49,6 +50,7 @@
 #include "exceptions.hpp"
 
 using std::optional;
+using std::nullopt;
 
 using NDSCart::NDSCartData;
 using GBACart::GBACartData;
@@ -90,11 +92,12 @@ namespace melonds {
         const optional<retro_game_info>& nds_info,
         const optional<retro_game_info>& gba_info
     );
-    static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
 
     // functions for running games
     static void render_frame();
     static void render_audio();
+    static void flush_save_data() noexcept;
+    static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -194,10 +197,46 @@ static void melonds::install_sram(
     // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
 }
 
+static void melonds::flush_save_data() noexcept {
+    if (TimeToGbaFlush != std::nullopt) {
+        if (*TimeToGbaFlush > 0) { // std::optional::operator> checks the optional's validity for us
+            // If we have a GBA SRAM flush coming up...
+            *TimeToGbaFlush -= 1;
+        }
+
+        if (*TimeToGbaFlush <= 0) {
+            // If it's time to flush the GBA's SRAM...
+            const optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
+            if (gba_save_info) {
+                // If we actually have GBA save data loaded...
+                flush_gba_sram(*gba_save_info);
+            }
+            TimeToGbaFlush = std::nullopt; // Reset the timer
+        }
+    }
+}
+
 static void melonds::flush_gba_sram(const retro_game_info& gba_save_info) noexcept {
-    // TODO: Open the file
-    // TODO: Write back to the file
+
     const char* save_data_path = gba_save_info.path;
+    if (save_data_path == nullptr || GbaSaveManager == nullptr) {
+        // No save data path was provided, or the GBA save manager isn't initialized
+        return; // TODO: Report this error
+    }
+    const u8* gba_sram = GbaSaveManager->Sram();
+    u32 gba_sram_length = GbaSaveManager->SramLength();
+
+    if (gba_sram == nullptr || gba_sram_length == 0) {
+        return; // TODO: Report this error
+    }
+
+    if (!filestream_write_file(save_data_path, gba_sram, gba_sram_length)) {
+        retro::error("Failed to write %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
+        // TODO: Report this to the user
+    }
+    else {
+        retro::debug("Flushed %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
+    }
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -310,6 +349,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
         melonds::render_frame();
         melonds::render_audio();
+        melonds::flush_save_data();
     }
 
     bool updated = false;
@@ -350,7 +390,10 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_unload_game()");
     // No need to flush SRAM to the buffer, Platform::WriteNDSSave has been doing that for us this whole time
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
-    // TODO: If GBA SRAM is used, flush it back to disk (also flush it periodically in case of failure)
+    const optional<struct retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
+    if (gba_save_info) {
+        melonds::flush_gba_sram(*gba_save_info);
+    }
     NDS::Stop();
     NDS::DeInit();
     melonds::_loaded_nds_cart.reset();

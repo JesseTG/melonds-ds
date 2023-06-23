@@ -97,6 +97,7 @@ namespace Config {
         melonds::Renderer CurrentRenderer;
         melonds::Renderer ConfiguredRenderer;
         float CursorSize = 2.0;
+        int FlushDelay = 120; // TODO: Make configurable
 
         namespace Category {
             static const char *const VIDEO = "video";

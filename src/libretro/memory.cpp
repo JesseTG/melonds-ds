@@ -43,6 +43,8 @@ namespace melonds {
     std::unique_ptr<SaveManager> GbaSaveManager = std::make_unique<SaveManager>();
 }
 
+std::optional<int> melonds::TimeToGbaFlush = std::nullopt;
+
 melonds::SaveManager::SaveManager() :
     _sram(nullptr),
     _sram_length(0),

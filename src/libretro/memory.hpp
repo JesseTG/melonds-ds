@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <types.h>
 #include <memory>
+#include <optional>
 
 namespace melonds {
     using std::size_t;
@@ -81,5 +82,8 @@ namespace melonds {
 
     extern std::unique_ptr<SaveManager> NdsSaveManager;
     extern std::unique_ptr<SaveManager> GbaSaveManager;
+
+    // Time until GBA save data is flushed, in frames
+    extern std::optional<int> TimeToGbaFlush;
 }
 #endif //MELONDS_DS_MEMORY_HPP

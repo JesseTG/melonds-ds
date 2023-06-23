@@ -69,6 +69,9 @@ namespace Config::Retro {
     extern melonds::Renderer CurrentRenderer;
     extern melonds::Renderer ConfiguredRenderer;
 
+    // The number of frames to wait for the save data buffer to not change before saving.
+    extern int FlushDelay;
+
     GPU::RenderSettings RenderSettings();
 }
 

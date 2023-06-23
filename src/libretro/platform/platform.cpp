@@ -20,6 +20,7 @@
 #include <Platform.h>
 #include "../memory.hpp"
 #include "../environment.hpp"
+#include "../config.hpp"
 
 namespace Platform {
     static int _instance_id;
@@ -99,6 +100,9 @@ void Platform::WriteNDSSave(const u8* savedata, u32 savelen, u32 writeoffset, u3
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
     if (melonds::NdsSaveManager) {
         melonds::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+
+        // No need to maintain a flush timer for NDS SRAM,
+        // because retro_get_memory lets us delegate autosave to the frontend.
     }
 }
 
@@ -106,6 +110,11 @@ void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u3
 {
     if (melonds::GbaSaveManager) {
         melonds::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
-        // TODO: Set a flag indicating that the SRAM is ready to be flushed to disk
+
+        // Start the countdown until we flush the SRAM back to disk.
+        // The timer resets every time we write to SRAM,
+        // so that a sequence of SRAM writes doesn't result in
+        // a sequence of disk writes.
+        melonds::TimeToGbaFlush = Config::Retro::FlushDelay;
     }
 }
