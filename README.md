@@ -102,7 +102,7 @@ the options menu will tell you everything you need to know.
 
 **NOTE:** melonDS DS does not support savestates for homebrew games.
 
-## Missing Features
+# Missing Features
 
 These features have not yet been implemented in standalone [melonDS][melonds],
 or they're not feasible to port to melonDS DS.
