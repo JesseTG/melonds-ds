@@ -102,7 +102,11 @@ namespace melonds {
 
 PUBLIC_SYMBOL void retro_init(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_init");
-
+    retro_assert(melonds::_loaded_nds_cart == nullptr);
+    retro_assert(melonds::_loaded_gba_cart == nullptr);
+    retro_assert(retro::content::get_loaded_nds_info() == nullopt);
+    retro_assert(retro::content::get_loaded_gba_info() == nullopt);
+    retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
     srand(time(nullptr));
 
     Platform::Init(0, nullptr);
@@ -111,6 +115,12 @@ PUBLIC_SYMBOL void retro_init(void) {
 }
 
 static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
+    retro_assert(_loaded_nds_cart == nullptr);
+    retro_assert(_loaded_gba_cart == nullptr);
+    retro_assert(retro::content::get_loaded_nds_info() == nullopt);
+    retro_assert(retro::content::get_loaded_gba_info() == nullopt);
+    retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
+
     // First initialize the content info...
     switch (type) {
         case melonds::MELONDSDS_GAME_TYPE_NDS:
