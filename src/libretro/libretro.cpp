@@ -199,7 +199,7 @@ static void melonds::install_sram(
     // but is not processed by retro_get_memory (again due to libretro limits).
     if (gba_info && melonds::GbaSaveManager->SramLength() > 0) {
         // If we're loading a GBA game that has existing SRAM...
-        // TODO: If the SRAM has certain metadata (like what mgba appends), truncate it.
+        // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
         GBACart::LoadSave(melonds::GbaSaveManager->Sram(), melonds::GbaSaveManager->SramLength());
     }
 
