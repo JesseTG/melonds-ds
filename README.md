@@ -236,7 +236,7 @@ The following CMake variables can be used to configure the build:
 | `MELONDS_REPOSITORY_URL`         | The Git repo from which melonDS will be cloned. Set this to use a fork.           |
 | `MELONDS_REPOSITORY_TAG`         | The melonDS commit to use in the build.                                           |
 | `LIBRETRO_COMMON_REPOSITORY_URL` | The Git repo from which `libretro-common` will be cloned. Set this to use a fork. |
-| `LIBRETRO_COMMON_REPOSITORY_TAG` | The `libretro-common` to use in the build.                                        |
+| `LIBRETRO_COMMON_REPOSITORY_TAG` | The `libretro-common` commit to use in the build.                                 |
 
 See [here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) for more information
 about the variables that CMake defines.
