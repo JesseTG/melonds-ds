@@ -38,9 +38,8 @@ int Platform::GetConfigInt(ConfigEntry entry)
         case Firm_Color: return Config::FirmwareFavouriteColour;
 
         case AudioBitrate: return Config::AudioBitrate;
+        default: return 0;
     }
-
-    return 0;
 }
 
 bool Platform::GetConfigBool(ConfigEntry entry)
@@ -65,9 +64,8 @@ bool Platform::GetConfigBool(ConfigEntry entry)
         case DSiSD_FolderSync: return Config::DSiSDFolderSync;
 
         case Firm_OverrideSettings: return Config::FirmwareOverrideSettings;
+        default: return false;
     }
-
-    return false;
 }
 
 std::string Platform::GetConfigString(ConfigEntry entry)
@@ -91,9 +89,8 @@ std::string Platform::GetConfigString(ConfigEntry entry)
 
         case Firm_Username: return Config::FirmwareUsername;
         case Firm_Message: return Config::FirmwareMessage;
+        default: return "";
     }
-
-    return "";
 }
 
 bool Platform::GetConfigArray(ConfigEntry entry, void* data)
@@ -127,8 +124,7 @@ bool Platform::GetConfigArray(ConfigEntry entry, void* data)
                 if (o >= 12) return true;
             }
         }
+        default:
             return false;
     }
-
-    return false;
 }
