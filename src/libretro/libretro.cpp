@@ -704,6 +704,14 @@ static void melonds::init_bios() {
     } else {
         retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using internal FreeBIOS instead.");
     }
+
+    if (!Config::ExternalBIOSEnable && _loaded_gba_cart) {
+        // If we're using FreeBIOS and are trying to load a GBA cart...
+        retro::set_warn_message(
+            "FreeBIOS does not support GBA connectivity. "
+            "Please install a native BIOS and enable it in the options menu."
+        );
+    }
 }
 
 // melonDS tightly couples the renderer with the rest of the emulation code,
