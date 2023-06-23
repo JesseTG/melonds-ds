@@ -21,10 +21,10 @@
 const struct retro_system_content_info_override melonds::content_overrides[] = {
     {
         "srm|sav",
-        false,
+        true,
         false
-        // persistent_data is set to false so that the frontend releases the opened file handle.
-        // (We're gonna write back to the file later, so we don't want it to be locked.)
+        // We don't want the frontend to maintain an open handle the GBA save data,
+        // as we may want to write back changes later.
     },
     {
         "nds|dsi|ids|gba",
@@ -43,7 +43,7 @@ static const struct retro_subsystem_memory_info nds_memory[] = {
 static const struct retro_subsystem_rom_info slot_1_2_roms[] = {
     {"Nintendo DS (Slot 1)", "nds",     false, false, true,  nds_memory, ARRAY_SIZE(nds_memory)},
     {"GBA (Slot 2)",         "gba",     false, false, true,  nullptr, 0},
-    {"GBA Save Data",        "srm|sav", false, false, false, nullptr, 0},
+    {"GBA Save Data",        "srm|sav", true, true, false, nullptr, 0},
 };
 
 const struct retro_subsystem_info melonds::subsystems[] = {
