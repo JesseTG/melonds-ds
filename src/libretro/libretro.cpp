@@ -24,7 +24,7 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <libretro.h>
-#include <streams/file_stream.h>
+#include <streams/rzip_stream.h>
 
 #include <NDS.h>
 #include <NDSCart.h>
@@ -83,15 +83,14 @@ namespace melonds {
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
-        const optional<retro_game_info>& gba_info,
-        const optional<retro_game_info> &gba_save_info
+        const optional<retro_game_info>& gba_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
     static void install_sram(
         const optional<retro_game_info>& nds_info,
-        const optional<retro_game_info>& gba_info,
-        const optional<retro_game_info>& gba_save_info
+        const optional<retro_game_info>& gba_info
     );
+    static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
 
     // functions for running games
     static void render_frame();
@@ -173,8 +172,7 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
 
 static void melonds::install_sram(
     const optional<retro_game_info>& nds_info,
-    const optional<retro_game_info>& gba_info,
-    const optional<retro_game_info> &gba_save_info
+    const optional<retro_game_info>& gba_info
 ) {
     // Nintendo DS SRAM is loaded by the frontend
     // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
@@ -186,7 +184,7 @@ static void melonds::install_sram(
 
     // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
     // but is not processed by retro_get_memory (again due to libretro limits).
-    if (gba_info && gba_save_info && melonds::GbaSaveManager->SramLength() > 0) {
+    if (gba_info && melonds::GbaSaveManager->SramLength() > 0) {
         // If we're loading a GBA game that has existing SRAM...
         // TODO: If the SRAM has certain metadata (like what mgba appends), truncate it.
         GBACart::LoadSave(melonds::GbaSaveManager->Sram(), melonds::GbaSaveManager->SramLength());
@@ -194,6 +192,12 @@ static void melonds::install_sram(
 
     // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
     // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
+}
+
+static void melonds::flush_gba_sram(const retro_game_info& gba_save_info) noexcept {
+    // TODO: Open the file
+    // TODO: Write back to the file
+    const char* save_data_path = gba_save_info.path;
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -206,8 +210,7 @@ PUBLIC_SYMBOL void retro_run(void) {
             log(RETRO_LOG_DEBUG, "Starting deferred initialization");
             melonds::load_games_deferred(
                 retro::content::get_loaded_nds_info(),
-                retro::content::get_loaded_gba_info(),
-                retro::content::get_loaded_gba_save_info()
+                retro::content::get_loaded_gba_info()
             );
             deferred_initialization_pending = false;
 
@@ -228,8 +231,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         // in between retro_load and the first retro_run call.
         install_sram(
             retro::content::get_loaded_nds_info(),
-            retro::content::get_loaded_gba_info(),
-            retro::content::get_loaded_gba_save_info()
+            retro::content::get_loaded_gba_info()
         );
 
         // This has to be deferred even if we're not using OpenGL,
@@ -425,14 +427,77 @@ static void melonds::parse_gba_rom(const struct retro_game_info &info) {
     retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
 }
 
+// Loads the GBA SRAM
 static void melonds::init_gba_save(
     GBACart::GBACartData& gba_cart,
     const struct retro_game_info& gba_save_info
 ) {
-    melonds::GbaSaveManager->SetSaveSize(gba_save_info.size);
-    gba_cart.Cart()->SetupSave(gba_save_info.size);
+    // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
+    // because we'll overwrite it later and don't want the frontend to hold open any file handles.
+
+    if (path_contains_compressed_file(gba_save_info.path)) {
+        // If this save file is in an archive (e.g. /path/to/file.7z#mygame.srm)...
+
+        // We don't support GBA SRAM files in archives right now;
+        // libretro-common has APIs for extracting and re-inserting them,
+        // but I just can't be bothered.
+        retro::set_error_message(
+            "melonDS DS does not support archived GBA save data right now. "
+            "Please extract it and try again. "
+            "Continuing without using the save data."
+        );
+
+        return;
+    }
+
+    // rzipstream opens the file as-is if it's not rzip-formatted
+    rzipstream_t* gba_save_file = rzipstream_open(gba_save_info.path, RETRO_VFS_FILE_ACCESS_READ);
+    if (!gba_save_file) {
+        throw std::runtime_error("Failed to open GBA save file");
+    }
+
+    if (rzipstream_is_compressed(gba_save_file)) {
+        // If this save data is compressed in libretro's rzip format...
+        // (not to be confused with a standard archive format like zip or 7z)
+
+        // We don't support rzip-compressed GBA save files right now;
+        // I can't be bothered.
+        retro::set_error_message(
+            "melonDS DS does not support compressed GBA save data right now. "
+            "Please disable save data compression in the frontend and try again. "
+            "Continuing without using the save data."
+        );
+
+        rzipstream_close(gba_save_file);
+        return;
+    }
+
+    int64_t gba_save_file_size = rzipstream_get_size(gba_save_file);
+    if (gba_save_file_size < 0) {
+        // If we couldn't get the uncompressed size of the GBA save file...
+        rzipstream_close(gba_save_file);
+        throw std::runtime_error("Failed to get GBA save file size");
+    }
+
+    void* gba_save_data = malloc(gba_save_file_size);
+    if (!gba_save_data) {
+        rzipstream_close(gba_save_file);
+        throw std::runtime_error("Failed to allocate memory for GBA save file");
+    }
+
+    if (rzipstream_read(gba_save_file, gba_save_data, gba_save_file_size) != gba_save_file_size) {
+        rzipstream_close(gba_save_file);
+        free(gba_save_data);
+        throw std::runtime_error("Failed to read GBA save file");
+    }
+
+    melonds::GbaSaveManager->SetSaveSize(gba_save_file_size);
+    gba_cart.Cart()->SetupSave(gba_save_file_size);
+    gba_cart.Cart()->LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
     retro::debug("Allocated %u-byte GBA SRAM", gba_cart.Cart()->GetSaveMemoryLength());
     // Actually installing the SRAM will be done later, after NDS::Reset is called
+    free(gba_save_data);
+    rzipstream_close(gba_save_file);
 }
 
 // TODO: Support loading the firmware without a ROM
@@ -499,7 +564,7 @@ static void melonds::load_games(
         deferred_initialization_pending = true;
     } else {
         log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
-        load_games_deferred(nds_info, gba_info, gba_save_info);
+        load_games_deferred(nds_info, gba_info);
     }
 }
 
@@ -592,8 +657,7 @@ static void melonds::init_bios() {
 // so we can't initialize the emulator until the OpenGL context is ready.
 static void melonds::load_games_deferred(
     const optional<retro_game_info>& nds_info,
-    const optional<retro_game_info>& gba_info,
-    const optional<retro_game_info> &gba_save_info
+    const optional<retro_game_info>& gba_info
 ) {
     using retro::log;
 
