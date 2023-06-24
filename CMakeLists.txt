@@ -8,6 +8,7 @@ project("melonDS DS"
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
 
+include(CheckSymbolExists)
 include(FetchContent)
 
 find_package(Git)
@@ -79,55 +80,40 @@ FetchContent_MakeAvailable(melonDS libretro-common)
 
 option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 
-if (ENABLE_THREADS)
-    find_package(Threads)
-
-    if (Threads_FOUND)
-        set(HAVE_THREADS ON)
-    endif ()
-endif ()
-
-if (ENABLE_OGLRENDERER)
-    find_package(OpenGL)
-
-    if (OpenGL_OpenGL_FOUND)
-        # Upstream melonDS uses GLAD to load OpenGL, but we want to use libretro's loader.
-        # So instead of patching melonDS, let's change how it's compiled.
-        set(HAVE_OPENGL ON)
-        file(GLOB melonDS_cpp_sources "${melonDS_SOURCE_DIR}/src/*.cpp")
-        # Get all C++ source files within melonDS' main directory.
-        # Need to specify C++ files because melonDS uses assembly,
-        # which chokes if the glsym headers are included.
-
-        # Now ensure that melonDS can find libretro's headers...
-        target_include_directories(core SYSTEM PRIVATE "${libretro-common_SOURCE_DIR}/include")
-
-        # ...and that the #defines that libretro needs here are provided.
-        # Also, that the header that includes GLAD is *excluded* (PLATFORMOGL_H).
-        target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER)
-
-        if (APPLE)
-            # macOS uses a different OpenGL header path.
-            set(MELONDSDS_OPENGL_INCLUDES "-include;OpenGL/gl.h;-include;OpenGL/glext.h")
-        else()
-            set(MELONDSDS_OPENGL_INCLUDES "-include;GL/gl.h;-include;GL/glext.h")
-        endif()
-
-        # Now let's include the relevant headers before each melonDS C++ source file.
-        set_source_files_properties(
-            ${melonDS_cpp_sources}
-            TARGET_DIRECTORY
-            core
-            PROPERTIES
-            COMPILE_OPTIONS "${MELONDSDS_OPENGL_INCLUDES};-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
-        # TODO: Adapt for GLES2 and GLES3
-    endif ()
-endif ()
-
+include(cmake/ConfigureFeatures.cmake)
 include(cmake/libretro-common.cmake)
 
-# TODO: Rename these (but not the accompanying #defines) to ENABLE_xxx
-# TODO: Detect whether these should be set depending on the OS
-option(HAVE_STRL "Build with strlcpy() support" ON)
+if (OpenGL_OpenGL_FOUND)
+    # Upstream melonDS uses GLAD to load OpenGL, but we want to use libretro's loader.
+    # So instead of patching melonDS, let's change how it's compiled.
+
+    file(GLOB melonDS_cpp_sources "${melonDS_SOURCE_DIR}/src/*.cpp")
+    # Get all C++ source files within melonDS' main directory.
+    # Need to specify C++ files because melonDS uses assembly,
+    # which chokes if the glsym headers are included.
+
+    # Now ensure that melonDS can find libretro's headers...
+    target_include_directories(core SYSTEM PRIVATE "${libretro-common_SOURCE_DIR}/include")
+
+    # ...and that the #defines that libretro needs here are provided.
+    # Also, that the header that includes GLAD is *excluded* (PLATFORMOGL_H).
+    target_compile_definitions(core PUBLIC PLATFORMOGL_H HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER)
+
+    if (APPLE)
+        # macOS uses a different OpenGL header path.
+        set(MELONDSDS_OPENGL_INCLUDES "-include;OpenGL/gl.h;-include;OpenGL/glext.h")
+    else()
+        set(MELONDSDS_OPENGL_INCLUDES "-include;GL/gl.h;-include;GL/glext.h")
+    endif()
+
+    # Now let's include the relevant headers before each melonDS C++ source file.
+    set_source_files_properties(
+        ${melonDS_cpp_sources}
+        TARGET_DIRECTORY
+        core
+        PROPERTIES
+        COMPILE_OPTIONS "${MELONDSDS_OPENGL_INCLUDES};-include;glsm/glsm.h;-include;glsm/glsmsym.h;-include;glsym/glsym_gl.h")
+    # TODO: Adapt for GLES2 and GLES3
+endif ()
 
 add_subdirectory(src/libretro)

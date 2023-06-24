@@ -95,7 +95,6 @@ if (HAVE_OPENGL)
     target_link_libraries(libretro-common PUBLIC OpenGL::GL)
 endif ()
 
-check_symbol_exists(strlcpy "string.h" HAVE_STRL)
 if (HAVE_STRL)
     target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
 else ()
