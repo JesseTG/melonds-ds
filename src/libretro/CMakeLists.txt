@@ -23,11 +23,6 @@ add_library(libretro MODULE
     screenlayout.cpp
     )
 
-
-if (HAVE_OPENGL)
-    target_sources(libretro PRIVATE opengl.cpp)
-endif ()
-
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
@@ -42,10 +37,11 @@ if (HAVE_THREADS)
 endif ()
 
 if (HAVE_OPENGL)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER PLATFORMOGL_H)
     if (APPLE)
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-framework,OpenGL")
     endif ()
+    target_sources(libretro PRIVATE opengl.cpp)
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER PLATFORMOGL_H)
     target_link_libraries(libretro PUBLIC OpenGL::GL)
 endif ()
 
