@@ -3,13 +3,22 @@ set(CMAKE_CXX_STANDARD 17)
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     ../rthreads/rsemaphore.c
+    ../rthreads/rsemaphore.h
     config.cpp
+    config.hpp
     content.cpp
+    content.hpp
     environment.cpp
+    environment.hpp
+    exceptions.hpp
     info.cpp
+    info.hpp
     input.cpp
+    input.hpp
     libretro.cpp
+    libretro.hpp
     memory.cpp
+    memory.hpp
     platform/camera.cpp
     platform/config.cpp
     platform/file.cpp
@@ -20,7 +29,9 @@ add_library(libretro MODULE
     platform/semaphore.cpp
     platform/thread.cpp
     render.cpp
+    render.hpp
     screenlayout.cpp
+    screenlayout.hpp
     )
 
 target_include_directories(libretro SYSTEM PUBLIC
