@@ -40,6 +40,7 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/lists/nested_list.c
     ${libretro-common_SOURCE_DIR}/lists/string_list.c
     ${libretro-common_SOURCE_DIR}/memmap/memalign.c
+    ${libretro-common_SOURCE_DIR}/memmap/memmap.c
     ${libretro-common_SOURCE_DIR}/playlists/label_sanitization.c
     ${libretro-common_SOURCE_DIR}/queues/fifo_queue.c
     ${libretro-common_SOURCE_DIR}/queues/generic_queue.c
