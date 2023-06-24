@@ -84,6 +84,7 @@ FetchContent_MakeAvailable(melonDS libretro-common)
 
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/libretro-common.cmake)
+include(cmake/utils.cmake)
 
 if (OpenGL_OpenGL_FOUND)
     # Upstream melonDS uses GLAD to load OpenGL, but we want to use libretro's loader.
@@ -119,3 +120,5 @@ if (OpenGL_OpenGL_FOUND)
 endif ()
 
 add_subdirectory(src/libretro)
+
+dump_cmake_variables()
