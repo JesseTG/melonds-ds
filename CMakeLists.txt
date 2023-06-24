@@ -10,6 +10,8 @@ project("melonDS DS"
     LANGUAGES C CXX)
 
 include(CheckSymbolExists)
+include(CheckIncludeFile)
+include(CheckIncludeFiles)
 include(FetchContent)
 
 find_package(Git)
