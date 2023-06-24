@@ -22,4 +22,6 @@ if (ENABLE_OGLRENDERER)
     endif()
 endif()
 
-check_symbol_exists(strlcpy "string.h;bsd/string.h" HAVE_STRL)
+check_symbol_exists(strlcpy "bsd/string.h;string.h" HAVE_STRL)
+check_symbol_exists(mmap "sys/mman.h" HAVE_MMAP)
+check_include_file("sys/mman.h" HAVE_MMAN)
