@@ -77,14 +77,6 @@ else ()
     target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
 endif ()
 
-# TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
-# TODO: Detect if libnx is available and we're building for Switch; if so, define HAVE_LIBNX
-# TODO: Detect if mmap is available; if so, define HAVE_MMAP
-# TODO: Detect if cocoatouch is available; if so, define HAVE_COCOATOUCH
-# TODO: Detect if OpenGL ES is available; if so, define HAVE_OPENGLES(_?[123](_[12])?)?
-# TODO: Detect if SSL is available; if so, define HAVE_SSL
-# TODO: Detect if zlib is available; if so, define HAVE_ZLIB (do this when I get around to supporting compressed GBA saves)
-
 if (HAVE_OPENGL)
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/glsm/glsm.c
@@ -96,12 +88,52 @@ if (HAVE_OPENGL)
     target_link_libraries(libretro-common PUBLIC OpenGL::GL)
 endif ()
 
+if (HAVE_OPENGL_MODERN)
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGL_MODERN)
+endif ()
+
+if (HAVE_OPENGLES)
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES)
+endif ()
+
+if (HAVE_OPENGLES3)
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES3)
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES_3)
+endif ()
+
+if (HAVE_OPENGLES2)
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES2)
+    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES_2)
+endif ()
+
+if (HAVE_EGL)
+    target_compile_definitions(libretro-common PUBLIC HAVE_EGL)
+    target_link_libraries(libretro-common PUBLIC OpenGL::EGL)
+endif ()
+
 if (HAVE_STRL)
     target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
 else ()
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/compat/compat_strldup.c
     )
+endif ()
+
+if (HAVE_MMAP)
+    target_compile_definitions(libretro-common PUBLIC HAVE_MMAP)
+endif ()
+
+if (HAVE_MMAN)
+    target_compile_definitions(libretro-common PUBLIC HAVE_MMAN)
+endif ()
+
+if (HAVE_ZLIB)
+    target_compile_definitions(libretro-common PUBLIC HAVE_ZLIB)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/file/archive_file_zlib.c
+        ${libretro-common_SOURCE_DIR}/streams/trans_stream_zlib.c
+    )
+    target_link_libraries(libretro-common PUBLIC ZLIB::ZLIB)
 endif ()
 
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")

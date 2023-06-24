@@ -45,6 +45,32 @@ if (HAVE_OPENGL)
     target_link_libraries(libretro PUBLIC OpenGL::GL)
 endif ()
 
+if (HAVE_OPENGL_MODERN)
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGL_MODERN)
+endif ()
+
+if (HAVE_OPENGLES3)
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES3)
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES_3)
+endif ()
+
+if (HAVE_OPENGLES2)
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES2)
+    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES_2)
+endif ()
+
+if (HAVE_MMAP)
+    target_compile_definitions(libretro PUBLIC HAVE_MMAP)
+endif()
+
+if (HAVE_MMAN)
+    target_compile_definitions(libretro PUBLIC HAVE_MMAN)
+endif()
+
+if (HAVE_EGL)
+    target_compile_definitions(libretro PUBLIC HAVE_EGL)
+endif ()
+
 if (APPLE)
     target_compile_definitions(libretro PUBLIC GL_SILENCE_DEPRECATION)
     # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
