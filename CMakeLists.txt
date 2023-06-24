@@ -81,7 +81,6 @@ FetchContent_GetProperties(libretro-common)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${CMAKE_MODULE_PATH}")
 FetchContent_MakeAvailable(melonDS libretro-common)
 
-option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/libretro-common.cmake)

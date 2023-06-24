@@ -1,6 +1,10 @@
 # Detects the presence of various libraries or functions and sets the appropriate HAVE_* variables.
 # Other files are used to actually configure the build.
 
+option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
+option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
+option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
+
 if (ENABLE_THREADS)
     find_package(Threads)
 
