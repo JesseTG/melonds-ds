@@ -55,6 +55,19 @@ namespace melonds {
         OpenGl = 1,
     };
 
+    enum class BitDepth {
+        Auto = 0,
+        _10Bit = 1,
+        _16Bit = 2,
+    };
+
+    enum class AudioInterpolation {
+        None = 0,
+        Linear = 1,
+        Cosine = 2,
+        Cubic = 3,
+    };
+
     /// The order of these values is important.
     enum class FirmwareLanguage
     {
