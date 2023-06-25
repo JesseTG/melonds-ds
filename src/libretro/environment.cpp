@@ -39,6 +39,7 @@ namespace retro {
     static retro_input_poll_t _input_poll;
     static retro_input_state_t _input_state;
     static retro_log_printf_t _log;
+    static optional<struct retro_microphone_interface> _microphone_interface;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
 
@@ -306,9 +307,15 @@ const optional<string>& retro::get_system_directory()
     return _system_directory;
 }
 
+const optional<struct retro_microphone_interface>& retro::get_mic_interface() noexcept
+{
+    return _microphone_interface;
+}
+
 void retro::clear_environment() {
     _save_directory = nullopt;
     _system_directory = nullopt;
+    _microphone_interface = nullopt;
 }
 
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
@@ -351,6 +358,24 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     vfs.iface = nullptr;
     if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs))
         filestream_vfs_init(&vfs);
+
+    struct retro_microphone_interface microphoneInterface;
+    microphoneInterface.interface_version = RETRO_MICROPHONE_INTERFACE_VERSION;
+    if (environment(RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE, &microphoneInterface)) {
+        retro::_microphone_interface = microphoneInterface;
+
+        if (microphoneInterface.interface_version == RETRO_MICROPHONE_INTERFACE_VERSION)
+        {
+            retro::debug("Microphone support available in current audio driver (version %u)", microphoneInterface.interface_version);
+        }
+        else {
+            retro::warn("Expected mic interface version %u, got %u.",
+                   RETRO_MICROPHONE_INTERFACE_VERSION, microphoneInterface.interface_version);
+        }
+    }
+    else {
+        retro::warn("Microphone interface not available; substituting silence instead.");
+    }
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {
