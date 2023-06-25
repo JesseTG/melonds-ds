@@ -91,7 +91,7 @@ namespace Config {
     int MicInputType;
 
     namespace Retro {
-        bool MicButtonRequired = true;
+        melonds::MicButtonMode MicButtonMode = melonds::MicButtonMode::Hold;
         bool RandomizeMac = false;
         melonds::ScreenSwapMode ScreenSwapMode;
         melonds::Renderer CurrentRenderer;
