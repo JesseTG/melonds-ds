@@ -50,7 +50,7 @@ namespace retro {
     static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
 }
 
-bool retro::environment(unsigned cmd, void *data) noexcept {
+bool retro::environment(unsigned cmd, void* data) noexcept {
     if (_environment) {
         return _environment(cmd, data);
     } else {
@@ -72,7 +72,7 @@ void retro::input_poll() {
     }
 }
 
-size_t retro::audio_sample_batch(const int16_t *data, size_t frames) {
+size_t retro::audio_sample_batch(const int16_t* data, size_t frames) {
     if (_audio_sample_batch) {
         return _audio_sample_batch(data, frames);
     } else {
@@ -80,17 +80,17 @@ size_t retro::audio_sample_batch(const int16_t *data, size_t frames) {
     }
 }
 
-void retro::video_refresh(const void *data, unsigned width, unsigned height, size_t pitch) {
+void retro::video_refresh(const void* data, unsigned width, unsigned height, size_t pitch) {
     if (_video_refresh) {
         _video_refresh(data, width, height, pitch);
     }
 }
 
 bool retro::shutdown() noexcept {
-   return environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+    return environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
 }
 
-void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
+void retro::log(enum retro_log_level level, const char* fmt, ...) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -100,7 +100,7 @@ void retro::log(enum retro_log_level level, const char *fmt, ...) noexcept {
     va_end(va);
 }
 
-void retro::debug(const char *fmt, ...) noexcept {
+void retro::debug(const char* fmt, ...) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -110,7 +110,7 @@ void retro::debug(const char *fmt, ...) noexcept {
     va_end(va);
 }
 
-void retro::info(const char *fmt, ...) noexcept {
+void retro::info(const char* fmt, ...) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -120,7 +120,7 @@ void retro::info(const char *fmt, ...) noexcept {
     va_end(va);
 }
 
-void retro::warn(const char *fmt, ...) noexcept {
+void retro::warn(const char* fmt, ...) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -130,7 +130,7 @@ void retro::warn(const char *fmt, ...) noexcept {
     va_end(va);
 }
 
-void retro::error(const char *fmt, ...) noexcept {
+void retro::error(const char* fmt, ...) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -140,8 +140,7 @@ void retro::error(const char *fmt, ...) noexcept {
     va_end(va);
 }
 
-void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept
-{
+void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept {
     if (fmt == nullptr)
         return;
 
@@ -161,8 +160,7 @@ void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexce
     }
 }
 
-bool retro::set_error_message(const char* message, unsigned duration)
-{
+bool retro::set_error_message(const char* message, unsigned duration) {
     if (message == nullptr) {
         log(RETRO_LOG_ERROR, "set_error_message: message is null");
         return false;
@@ -186,8 +184,7 @@ bool retro::set_error_message(const char* message, unsigned duration)
     return set_message(&message_ext);
 }
 
-bool retro::set_warn_message(const char* message, unsigned duration)
-{
+bool retro::set_warn_message(const char* message, unsigned duration) {
     if (message == nullptr) {
         log(RETRO_LOG_ERROR, "set_warn_message: message is null");
         return false;
@@ -211,18 +208,15 @@ bool retro::set_warn_message(const char* message, unsigned duration)
     return set_message(&message_ext);
 }
 
-bool retro::set_error_message(const char* message)
-{
+bool retro::set_error_message(const char* message) {
     return set_error_message(message, retro::DEFAULT_ERROR_DURATION);
 }
 
-bool retro::set_warn_message(const char* message)
-{
+bool retro::set_warn_message(const char* message) {
     return set_warn_message(message, retro::DEFAULT_ERROR_DURATION);
 }
 
-bool retro::set_message(const struct retro_message_ext *message)
-{
+bool retro::set_message(const struct retro_message_ext* message) {
     using std::numeric_limits;
 
     if (message == nullptr)
@@ -233,8 +227,7 @@ bool retro::set_message(const struct retro_message_ext *message)
 
     switch (message_interface_version) {
         // Given that the frontend supports...
-        case 0:
-        { // ...the basic messaging interface...
+        case 0: { // ...the basic messaging interface...
             // Let's match the semantics of RETRO_ENVIRONMENT_SET_MESSAGE, since that's all we have
             float target_refresh_rate = 60.0f; // In FPS
             environment(RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE, &target_refresh_rate);
@@ -250,12 +243,10 @@ bool retro::set_message(const struct retro_message_ext *message)
         default:
             // ...a newer interface than we know about...
             // intentional fall-through
-        case 1:
-        { // ...the extended messaging interface...
-            return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void *)message);
+        case 1: { // ...the extended messaging interface...
+            return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void*) message);
         }
-        case numeric_limits<unsigned>::max():
-        { // ...no messaging interface at all...
+        case numeric_limits<unsigned>::max(): { // ...no messaging interface at all...
             log(message->level, "%s", message->msg);
             return false;
         }
@@ -266,13 +257,12 @@ bool retro::supports_bitmasks() {
     return _supports_bitmasks;
 }
 
-bool retro::get_variable(struct retro_variable *var)
-{
+bool retro::get_variable(struct retro_variable* var) {
     return environment(RETRO_ENVIRONMENT_GET_VARIABLE, var);
 }
 
-const char* retro::get_variable(const char *key) {
-    struct retro_variable var = { key, nullptr };
+const char* retro::get_variable(const char* key) {
+    struct retro_variable var = {key, nullptr};
     if (!environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var)) {
         // Get the requested variable. If that failed...
         return nullptr;
@@ -293,22 +283,19 @@ bool retro::set_variable(const char* key, const char* value) {
         return false;
     }
 
-    struct retro_variable var = { key, value };
+    struct retro_variable var = {key, value};
     return environment(RETRO_ENVIRONMENT_SET_VARIABLE, &var);
 }
 
-const optional<string>& retro::get_save_directory()
-{
+const optional<string>& retro::get_save_directory() {
     return _save_directory;
 }
 
-const optional<string>& retro::get_system_directory()
-{
+const optional<string>& retro::get_system_directory() {
     return _system_directory;
 }
 
-const optional<struct retro_microphone_interface>& retro::get_mic_interface() noexcept
-{
+const optional<struct retro_microphone_interface>& retro::get_mic_interface() noexcept {
     return _microphone_interface;
 }
 
@@ -328,8 +315,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     struct retro_core_options_update_display_callback update_display_cb{melonds::update_option_visibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
 
-    environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void *) melonds::content_overrides);
-    environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void *) melonds::ports);
+    environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void*) melonds::content_overrides);
+    environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*) melonds::ports);
 
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
@@ -339,19 +326,19 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
 
-    const char *save_dir = nullptr;
+    const char* save_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
         retro::log(RETRO_LOG_INFO, "Save directory: \"%s\"", save_dir);
         retro::_save_directory = save_dir;
     }
 
-    const char *system_dir = nullptr;
+    const char* system_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
         retro::log(RETRO_LOG_INFO, "System directory: \"%s\"", system_dir);
         retro::_system_directory = system_dir;
     }
 
-    environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void *) melonds::subsystems);
+    environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) melonds::subsystems);
 
     struct retro_vfs_interface_info vfs{};
     vfs.required_interface_version = FILESTREAM_REQUIRED_VFS_VERSION;
@@ -415,8 +402,8 @@ static void retro::set_core_options() {
 #ifndef HAVE_NO_LANGEXTRA
         unsigned language = 0;
         struct retro_core_options_v2_intl core_options_intl{
-                &melonds::options_us,
-                nullptr
+            &melonds::options_us,
+            nullptr
         };
 
         if (environment(RETRO_ENVIRONMENT_GET_LANGUAGE, &language) &&
@@ -430,16 +417,16 @@ static void retro::set_core_options() {
     } else {
         size_t option_index = 0;
         size_t num_options = 0;
-        struct retro_core_option_definition *option_v1_defs_us = nullptr;
+        struct retro_core_option_definition* option_v1_defs_us = nullptr;
 #ifndef HAVE_NO_LANGEXTRA
         size_t num_options_intl = 0;
         unsigned language = 0;
-        struct retro_core_option_v2_definition *option_defs_intl = nullptr;
-        struct retro_core_option_definition *option_v1_defs_intl = nullptr;
+        struct retro_core_option_v2_definition* option_defs_intl = nullptr;
+        struct retro_core_option_definition* option_v1_defs_intl = nullptr;
         struct retro_core_options_intl core_options_v1_intl;
 #endif
-        struct retro_variable *variables = nullptr;
-        char **values_buf = nullptr;
+        struct retro_variable* variables = nullptr;
+        char** values_buf = nullptr;
 
         /* Determine total number of options */
         while (true) {
@@ -451,15 +438,15 @@ static void retro::set_core_options() {
 
         if (version >= 1) {
             /* Allocate US array */
-            option_v1_defs_us = (struct retro_core_option_definition *)
-                    calloc(num_options + 1, sizeof(struct retro_core_option_definition));
+            option_v1_defs_us = (struct retro_core_option_definition*)
+                calloc(num_options + 1, sizeof(struct retro_core_option_definition));
 
             /* Copy parameters from option_defs_us array */
             for (int i = 0; i < num_options; i++) {
-                struct retro_core_option_v2_definition *option_def_us = &melonds::option_defs_us[i];
-                struct retro_core_option_value *option_values = option_def_us->values;
-                struct retro_core_option_definition *option_v1_def_us = &option_v1_defs_us[i];
-                struct retro_core_option_value *option_v1_values = option_v1_def_us->values;
+                struct retro_core_option_v2_definition* option_def_us = &melonds::option_defs_us[i];
+                struct retro_core_option_value* option_values = option_def_us->values;
+                struct retro_core_option_definition* option_v1_def_us = &option_v1_defs_us[i];
+                struct retro_core_option_value* option_v1_values = option_v1_def_us->values;
 
                 option_v1_def_us->key = option_def_us->key;
                 option_v1_def_us->desc = option_def_us->desc;
@@ -492,15 +479,15 @@ static void retro::set_core_options() {
                 }
 
                 /* Allocate intl array */
-                option_v1_defs_intl = (struct retro_core_option_definition *)
-                        calloc(num_options_intl + 1, sizeof(struct retro_core_option_definition));
+                option_v1_defs_intl = (struct retro_core_option_definition*)
+                    calloc(num_options_intl + 1, sizeof(struct retro_core_option_definition));
 
                 /* Copy parameters from option_defs_intl array */
                 for (int i = 0; i < num_options_intl; i++) {
-                    struct retro_core_option_v2_definition *option_def_intl = &option_defs_intl[i];
-                    struct retro_core_option_value *option_values = option_def_intl->values;
-                    struct retro_core_option_definition *option_v1_def_intl = &option_v1_defs_intl[i];
-                    struct retro_core_option_value *option_v1_values = option_v1_def_intl->values;
+                    struct retro_core_option_v2_definition* option_def_intl = &option_defs_intl[i];
+                    struct retro_core_option_value* option_values = option_def_intl->values;
+                    struct retro_core_option_definition* option_v1_def_intl = &option_v1_defs_intl[i];
+                    struct retro_core_option_value* option_v1_values = option_v1_def_intl->values;
 
                     option_v1_def_intl->key = option_def_intl->key;
                     option_v1_def_intl->desc = option_def_intl->desc;
@@ -527,19 +514,19 @@ static void retro::set_core_options() {
 #endif
         } else {
             /* Allocate arrays */
-            variables = (struct retro_variable *) calloc(num_options + 1,
-                                                         sizeof(struct retro_variable));
-            values_buf = (char **) calloc(num_options, sizeof(char *));
+            variables = (struct retro_variable*) calloc(num_options + 1,
+                                                        sizeof(struct retro_variable));
+            values_buf = (char**) calloc(num_options, sizeof(char*));
 
             if (!variables || !values_buf)
                 goto error;
 
             /* Copy parameters from option_defs_us array */
             for (int i = 0; i < num_options; i++) {
-                const char *key = melonds::option_defs_us[i].key;
-                const char *desc = melonds::option_defs_us[i].desc;
-                const char *default_value = melonds::option_defs_us[i].default_value;
-                struct retro_core_option_value *values = melonds::option_defs_us[i].values;
+                const char* key = melonds::option_defs_us[i].key;
+                const char* desc = melonds::option_defs_us[i].desc;
+                const char* default_value = melonds::option_defs_us[i].default_value;
+                struct retro_core_option_value* values = melonds::option_defs_us[i].values;
                 size_t buf_len = 3;
                 size_t default_index = 0;
 
@@ -567,7 +554,7 @@ static void retro::set_core_options() {
                         buf_len += num_values - 1;
                         buf_len += strlen(desc);
 
-                        values_buf[i] = (char *) calloc(buf_len, sizeof(char));
+                        values_buf[i] = (char*) calloc(buf_len, sizeof(char));
                         if (!values_buf[i])
                             goto error;
 
