@@ -44,14 +44,6 @@ namespace melonds {
         [[nodiscard]] bool cursor_enabled() const;
     };
 
-    enum class MicInputMode
-    {
-        None,
-        HostMic,
-        WhiteNoise,
-        BlowNoise,
-    };
-
     extern InputState input_state;
 
     void update_input(InputState &state);

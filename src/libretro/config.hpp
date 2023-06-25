@@ -68,6 +68,14 @@ namespace melonds {
         Cubic = 3,
     };
 
+    enum class MicInputMode
+    {
+        None,
+        HostMic,
+        WhiteNoise,
+        BlowNoise,
+    };
+
     /// The order of these values is important.
     enum class FirmwareLanguage
     {
