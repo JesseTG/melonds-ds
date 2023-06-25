@@ -59,6 +59,7 @@ namespace melonds {
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
+    static retro_microphone_t* _microphone;
     static std::unique_ptr<NDSCartData> _loaded_nds_cart;
     static std::unique_ptr<GBACartData> _loaded_gba_cart;
     static const char *const INTERNAL_ERROR_MESSAGE =
@@ -88,12 +89,14 @@ namespace melonds {
         const optional<retro_game_info>& gba_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
+    static void init_microphone();
     static void install_sram(
         const optional<retro_game_info>& nds_info,
         const optional<retro_game_info>& gba_info
     );
 
     // functions for running games
+    static void read_microphone(melonds::InputState& input_state) noexcept;
     static void render_frame();
     static void render_audio();
     static void flush_save_data() noexcept;
@@ -319,11 +322,57 @@ PUBLIC_SYMBOL void retro_run(void) {
         }
     }
 
+    if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
+        read_microphone(input_state);
+
+        // NDS::RunFrame invokes rendering-related code
+        NDS::RunFrame();
+
+        // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
+        melonds::render_frame();
+        melonds::render_audio();
+        melonds::flush_save_data();
+    }
+
+    bool updated = false;
+    if (retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+        melonds::update_variables(false);
+
+        struct retro_system_av_info updated_av_info{};
+        retro_get_system_av_info(&updated_av_info);
+        retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
+        screen_layout_data.clean_screenlayout_buffer();
+    }
+}
+
+static void melonds::read_microphone(melonds::InputState& input_state) noexcept {
     auto mic_input_mode = static_cast<MicInputMode>(Config::MicInputType);
 
-    if (Config::Retro::MicButtonRequired && !input_state.holding_noise_btn) {
-        mic_input_mode = melonds::MicInputMode::None;
+    switch (Config::Retro::MicButtonMode) {
+        // If the microphone button...
+        case MicButtonMode::Hold: {
+            // ...must be held...
+            if (!input_state.holding_noise_btn) {
+                // ...but it isn't...
+                mic_input_mode = MicInputMode::None;
+            }
+            break;
+        }
+        case MicButtonMode::Toggle: {
+            // ...must be toggled...
+            if (input_state.holding_noise_btn && !input_state.previous_holding_noise_btn) {
+                // ...and it was...
+                // TODO: Toggle the mic mode
+            }
+            break;
+        }
+        case MicButtonMode::Always: {
+            // ...is unnecessary...
+            // Do nothing, the mic input mode is already set
+        }
     }
+
+    // TODO: Update the mic state
 
     switch (mic_input_mode) {
         case MicInputMode::WhiteNoise: // random noise
@@ -341,35 +390,18 @@ PUBLIC_SYMBOL void retro_run(void) {
         case MicInputMode::HostMic: // microphone input
         {
             s16 tmp[735];
-//                if (micHandle && micInterface.interface_version &&
-//                    micInterface.get_mic_state(micHandle)) { // If the microphone is enabled and supported...
-//                    micInterface.read_mic(micHandle, tmp, 735);
-//                    NDS::MicInputFrame(tmp, 735);
-//                    break;
-//                } // If the mic isn't available, go to the default case
+
+            const auto& micInterface = retro::get_mic_interface();
+            if (_microphone && micInterface && micInterface->get_mic_state(_microphone)) {
+                // If the microphone is enabled and supported...
+                micInterface->read_mic(_microphone, tmp, 735);
+                NDS::MicInputFrame(tmp, 735);
+                break;
+            } // If the mic isn't available, feed silence instead
         }
+        // Intentional fall-through
         default:
             Frontend::Mic_FeedSilence();
-    }
-
-    if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
-        // NDS::RunFrame invokes rendering-related code
-        NDS::RunFrame();
-
-        // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
-        melonds::render_frame();
-        melonds::render_audio();
-        melonds::flush_save_data();
-    }
-
-    bool updated = false;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
-        melonds::check_variables(false);
-
-        struct retro_system_av_info updated_av_info{};
-        retro_get_system_av_info(&updated_av_info);
-        retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
-        screen_layout_data.clean_screenlayout_buffer();
     }
 }
 
@@ -560,7 +592,7 @@ static void melonds::load_games(
     const optional<struct retro_game_info> &gba_save_info
 ) {
     melonds::clear_memory_config();
-    melonds::check_variables(true);
+    melonds::update_variables(true);
 
     using retro::environment;
     using retro::log;
@@ -770,37 +802,11 @@ static void melonds::load_games_deferred(
     }
 
     set_up_direct_boot(nds_info.value());
+    init_microphone();
 
     NDS::Start();
 
     log(RETRO_LOG_INFO, "Initialized emulated console and loaded emulated game");
-
-//    micInterface.interface_version = RETRO_MICROPHONE_INTERFACE_VERSION;
-//    if (environ_cb(RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE, &micInterface))
-//    { // ...and if the current audio driver supports microphones...
-//        if (micInterface.interface_version != RETRO_MICROPHONE_INTERFACE_VERSION)
-//        {
-//            log_cb(RETRO_LOG_WARN, "[melonDS] Expected mic interface version %u, got %u. Compatibility issues are possible.\n",
-//                   RETRO_MICROPHONE_INTERFACE_VERSION, micInterface.interface_version);
-//        }
-//
-//        log_cb(RETRO_LOG_DEBUG, "[melonDS] Microphone support available in current audio driver (version %u)\n",
-//               micInterface.interface_version);
-//
-//        retro_microphone_params_t params = {
-//                .rate = 44100 // The core engine assumes this rate
-//        };
-//        micHandle = micInterface.open_mic(&params);
-//
-//        if (micHandle)
-//        {
-//            log_cb(RETRO_LOG_INFO, "[melonDS] Initialized microphone\n");
-//        }
-//        else
-//        {
-//            log_cb(RETRO_LOG_WARN, "[melonDS] Failed to initialize microphone, emulated device will receive silence\n");
-//        }
-//    }
 }
 
 static void melonds::init_rendering() {
@@ -851,5 +857,22 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
 
         NDS::SetupDirectBoot(game_name);
         retro::log(RETRO_LOG_DEBUG, "Initialized direct boot for \"%s\"", game_name);
+    }
+}
+
+static void melonds::init_microphone() {
+    const optional<struct retro_microphone_interface>& micInterface = retro::get_mic_interface();
+    retro_microphone_params_t params = {
+        .rate = 44100 // The core engine assumes this rate
+    };
+    _microphone = micInterface->open_mic(&params);
+
+    if (_microphone)
+    {
+        retro::info("Initialized microphone");
+    }
+    else
+    {
+        retro::warn("Failed to initialize microphone, emulated device will receive silence");
     }
 }
