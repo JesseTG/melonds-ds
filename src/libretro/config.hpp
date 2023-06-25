@@ -42,6 +42,12 @@ namespace melonds {
         Toggle,
     };
 
+    enum class MicButtonMode {
+        Hold,
+        Toggle,
+        Always,
+    };
+
     enum class Renderer
     {
         None = -1,
