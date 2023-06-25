@@ -172,10 +172,10 @@ namespace melonds::config {
 }
 
 GPU::RenderSettings Config::Retro::RenderSettings() {
-    GPU::RenderSettings settings {
-            .Soft_Threaded = Config::Threaded3D,
-            .GL_ScaleFactor = Config::GL_ScaleFactor,
-            .GL_BetterPolygons = Config::GL_BetterPolygons,
+    GPU::RenderSettings settings{
+        .Soft_Threaded = Config::Threaded3D,
+        .GL_ScaleFactor = Config::GL_ScaleFactor,
+        .GL_BetterPolygons = Config::GL_BetterPolygons,
     };
 
     return settings;
@@ -395,8 +395,7 @@ void melonds::update_variables(bool init) noexcept {
         if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
             if (string_is_equal(var.value, Values::OPENGL)) {
                 Config::Retro::ConfiguredRenderer = Renderer::OpenGl;
-            }
-            else {
+            } else {
                 Config::Retro::ConfiguredRenderer = Renderer::Software;
             }
         }
@@ -499,7 +498,8 @@ void melonds::update_variables(bool init) noexcept {
 
     input_state.current_touch_mode = new_touch_mode;
 
-    update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl, Config::ScreenSwap);
+    update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl,
+                        Config::ScreenSwap);
 
     update_option_visibility();
 }
@@ -571,8 +571,7 @@ static void melonds::config::check_audio_options(bool initializing) noexcept {
  * @param initializing Whether the emulator is initializing a game.
  * If false, the emulator will not update options that require a restart to take effect.
  */
-static void melonds::config::check_homebrew_save_options(bool initializing)
-{
+static void melonds::config::check_homebrew_save_options(bool initializing) noexcept {
     using namespace Config::Retro;
     using retro::environment;
     using retro::get_variable;
@@ -594,19 +593,17 @@ static void melonds::config::check_homebrew_save_options(bool initializing)
     var.key = Keys::HOMEBREW_READ_ONLY;
     if (get_variable(&var) && var.value) {
         Config::DLDIReadOnly = string_is_equal(var.value, Values::ENABLED);
-    }
-    else {
+    } else {
         Config::DLDIReadOnly = false;
-        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_READ_ONLY, Values::DISABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_READ_ONLY, Values::DISABLED);
     }
 
     var.key = Keys::HOMEBREW_SYNC_TO_HOST;
     if (get_variable(&var) && var.value) {
         Config::DLDIFolderSync = string_is_equal(var.value, Values::ENABLED);
-    }
-    else {
+    } else {
         Config::DLDIFolderSync = false;
-        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SYNC_TO_HOST, Values::DISABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SYNC_TO_HOST, Values::DISABLED);
     }
 
     var.key = Keys::HOMEBREW_DEDICATED_CARD_SIZE;
@@ -623,19 +620,18 @@ static void melonds::config::check_homebrew_save_options(bool initializing)
                 case 4096:
                     break;
                 default:
-                    retro::log(RETRO_LOG_WARN, "Invalid homebrew dedicated card size \"%s\"; defaulting to Auto", var.value);
+                    retro::warn("Invalid homebrew dedicated card size \"%s\"; defaulting to Auto", var.value);
                     dedicated_card_size = 0;
                     break;
             }
         }
         catch (...) {
-            retro::log(RETRO_LOG_WARN, "Invalid homebrew dedicated card size \"%s\"; defaulting to Auto", var.value);
+            retro::warn("Invalid homebrew dedicated card size \"%s\"; defaulting to Auto", var.value);
             dedicated_card_size = 0;
         }
-    }
-    else {
+    } else {
         dedicated_card_size = 0;
-        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to Auto", Keys::HOMEBREW_DEDICATED_CARD_SIZE);
+        retro::warn("Failed to get value for %s; defaulting to Auto", Keys::HOMEBREW_DEDICATED_CARD_SIZE);
     }
 
     var.key = Keys::HOMEBREW_SAVE_MODE;
@@ -644,7 +640,7 @@ static void melonds::config::check_homebrew_save_options(bool initializing)
     if (save_directory && get_variable(&var) && var.value) {
         char game_name[256];
         memset(game_name, 0, sizeof(game_name));
-        const char *ptr = path_basename(game_info->path);
+        const char* ptr = path_basename(game_info->path);
         strlcpy(game_name, ptr ? ptr : game_info->path, sizeof(game_name));
         path_remove_extension(game_name);
 
@@ -667,38 +663,30 @@ static void melonds::config::check_homebrew_save_options(bool initializing)
             Config::DLDISize = 0;
             Config::DLDIFolderPath = "";
             Config::DLDISDPath = "";
-        }
-        else if (string_is_equal(var.value, Values::DEDICATED)) {
+        } else if (string_is_equal(var.value, Values::DEDICATED)) {
             set_config(0, game_name);
 
             // If the SD card image exists, set the DLDISize to auto; else set it to the dedicated card size
             Config::DLDISize = path_is_valid(Config::DLDISDPath.c_str()) ? 0 : dedicated_card_size;
-        }
-        else if (string_is_equal(var.value, Values::SHARED256M)) {
+        } else if (string_is_equal(var.value, Values::SHARED256M)) {
             set_config(256, Values::SHARED256M);
-        }
-        else if (string_is_equal(var.value, Values::SHARED512M)) {
+        } else if (string_is_equal(var.value, Values::SHARED512M)) {
             set_config(512, Values::SHARED512M);
-        }
-        else if (string_is_equal(var.value, Values::SHARED1G)) {
+        } else if (string_is_equal(var.value, Values::SHARED1G)) {
             set_config(1024, Values::SHARED1G);
-        }
-        else if (string_is_equal(var.value, Values::SHARED2G)) {
+        } else if (string_is_equal(var.value, Values::SHARED2G)) {
             set_config(2048, Values::SHARED2G);
-        }
-        else if (string_is_equal(var.value, Values::SHARED4G)) {
+        } else if (string_is_equal(var.value, Values::SHARED4G)) {
             set_config(4096, Values::SHARED4G);
-        }
-        else {
-            retro::log(RETRO_LOG_WARN, "Invalid homebrew save mode \"%s\"; defaulting to %s", var.value, Values::DEDICATED);
+        } else {
+            retro::warn("Invalid homebrew save mode \"%s\"; defaulting to %s", var.value, Values::DEDICATED);
             set_config(0, game_name);
 
             // If the SD card image exists, set the DLDISize to auto; else set it to the dedicated card size
             Config::DLDISize = path_is_valid(Config::DLDISDPath.c_str()) ? 0 : dedicated_card_size;
         }
-    }
-    else {
-        retro::log(RETRO_LOG_WARN, "Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SAVE_MODE, Values::DISABLED);
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SAVE_MODE, Values::DISABLED);
         Config::DLDIEnable = false;
         Config::DLDISize = 0;
         Config::DLDIFolderPath = "";
@@ -714,44 +702,41 @@ static void melonds::config::check_homebrew_save_options(bool initializing)
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
-        {
-                "system",
-                "System",
-                "Change system settings."
-        },
-        {
-                "video",
-                "Video",
-                "Change video settings."
-        },
-        {
-                "audio",
-                "Audio",
-                "Change audio settings."
-        },
-        {
-            Config::Retro::Category::SAVE,
-            "Save Data",
-            "Change save data settings."
-        },
-        {
-            Config::Retro::Category::SCREEN,
-                "Screen",
-                "Change screen settings."
-        },
+    {
+        "system",
+        "System",
+        "Change system settings."
+    },
+    {
+        "video",
+        "Video",
+        "Change video settings."
+    },
+    {
+        "audio",
+        "Audio",
+        "Change audio settings."
+    },
+    {
+        Config::Retro::Category::SAVE,
+        "Save Data",
+        "Change save data settings."
+    },
+    {
+        Config::Retro::Category::SCREEN,
+        "Screen",
+        "Change screen settings."
+    },
 #ifdef JIT_ENABLED
-        {
-                "cpu",
-                "CPU Emulation",
-                "Change CPU emulation settings."
-        },
+    {
+        "cpu",
+        "CPU Emulation",
+        "Change CPU emulation settings."
+    },
 #endif
-        {nullptr, nullptr, nullptr},
+    {nullptr, nullptr, nullptr},
 };
 
-// TODO: Use labels that are separate from option values
-/// These items intentionally share config keys with the original melonDS core,
-/// in order to simplify migration.
 struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         {
                 Config::Retro::Keys::CONSOLE_MODE,
@@ -1297,166 +1282,166 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             "0",
         },
 #ifdef HAVE_OPENGL
+    {
+        Config::Retro::Keys::HYBRID_RATIO,
+        "Hybrid Ratio (OpenGL Only)",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
         {
-                Config::Retro::Keys::HYBRID_RATIO,
-                "Hybrid Ratio (OpenGL Only)",
-                nullptr,
-                nullptr,
-                nullptr,
-                Config::Retro::Category::SCREEN,
-                {
-                        {"2", nullptr},
-                        {"3", nullptr},
-                        {nullptr, nullptr},
-                },
-                "2"
+            {"2", nullptr},
+            {"3", nullptr},
+            {nullptr, nullptr},
         },
+        "2"
+    },
 #endif
 #ifdef JIT_ENABLED
+    {
+        Config::Retro::Keys::JIT_ENABLE,
+        "JIT Enable (Restart)",
+        nullptr,
+        "Recompiles emulated machine code as it runs. "
+        "Restart required to take effect. "
+        "If unsure, leave enabled.",
+        nullptr,
+        "cpu",
         {
-                Config::Retro::Keys::JIT_ENABLE,
-                "JIT Enable (Restart)",
-                nullptr,
-                "Recompiles emulated machine code as it runs. "
-                "Restart required to take effect. "
-                "If unsure, leave enabled.",
-                nullptr,
-                "cpu",
-                {
-                        {Config::Retro::Values::DISABLED, nullptr},
-                        {Config::Retro::Values::ENABLED, nullptr},
-                        {nullptr, nullptr},
-                },
-                Config::Retro::Values::ENABLED
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
         },
+        Config::Retro::Values::ENABLED
+    },
+    {
+        Config::Retro::Keys::JIT_BLOCK_SIZE,
+        "JIT Block Size",
+        nullptr,
+        nullptr,
+        nullptr,
+        "cpu",
         {
-                Config::Retro::Keys::JIT_BLOCK_SIZE,
-                "JIT Block Size",
-                nullptr,
-                nullptr,
-                nullptr,
-                "cpu",
-                {
-                        {"1", nullptr},
-                        {"2", nullptr},
-                        {"3", nullptr},
-                        {"4", nullptr},
-                        {"5", nullptr},
-                        {"6", nullptr},
-                        {"7", nullptr},
-                        {"8", nullptr},
-                        {"9", nullptr},
-                        {"10", nullptr},
-                        {"11", nullptr},
-                        {"12", nullptr},
-                        {"13", nullptr},
-                        {"14", nullptr},
-                        {"15", nullptr},
-                        {"16", nullptr},
-                        {"17", nullptr},
-                        {"18", nullptr},
-                        {"19", nullptr},
-                        {"20", nullptr},
-                        {"21", nullptr},
-                        {"22", nullptr},
-                        {"23", nullptr},
-                        {"24", nullptr},
-                        {"25", nullptr},
-                        {"26", nullptr},
-                        {"27", nullptr},
-                        {"28", nullptr},
-                        {"29", nullptr},
-                        {"30", nullptr},
-                        {"31", nullptr},
-                        {"32", nullptr},
-                        {nullptr, nullptr},
-                },
-                "32"
+            {"1", nullptr},
+            {"2", nullptr},
+            {"3", nullptr},
+            {"4", nullptr},
+            {"5", nullptr},
+            {"6", nullptr},
+            {"7", nullptr},
+            {"8", nullptr},
+            {"9", nullptr},
+            {"10", nullptr},
+            {"11", nullptr},
+            {"12", nullptr},
+            {"13", nullptr},
+            {"14", nullptr},
+            {"15", nullptr},
+            {"16", nullptr},
+            {"17", nullptr},
+            {"18", nullptr},
+            {"19", nullptr},
+            {"20", nullptr},
+            {"21", nullptr},
+            {"22", nullptr},
+            {"23", nullptr},
+            {"24", nullptr},
+            {"25", nullptr},
+            {"26", nullptr},
+            {"27", nullptr},
+            {"28", nullptr},
+            {"29", nullptr},
+            {"30", nullptr},
+            {"31", nullptr},
+            {"32", nullptr},
+            {nullptr, nullptr},
         },
+        "32"
+    },
+    {
+        Config::Retro::Keys::JIT_BRANCH_OPTIMISATIONS,
+        "JIT Branch Optimisations",
+        nullptr,
+        nullptr,
+        nullptr,
+        "cpu",
         {
-                Config::Retro::Keys::JIT_BRANCH_OPTIMISATIONS,
-                "JIT Branch Optimisations",
-                nullptr,
-                nullptr,
-                nullptr,
-                "cpu",
-                {
-                        {Config::Retro::Values::DISABLED, nullptr},
-                        {Config::Retro::Values::ENABLED, nullptr},
-                        {nullptr, nullptr},
-                },
-                Config::Retro::Values::ENABLED
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
         },
+        Config::Retro::Values::ENABLED
+    },
+    {
+        Config::Retro::Keys::JIT_LITERAL_OPTIMISATIONS,
+        "JIT Literal Optimisations",
+        nullptr,
+        nullptr,
+        nullptr,
+        "cpu",
         {
-                Config::Retro::Keys::JIT_LITERAL_OPTIMISATIONS,
-                "JIT Literal Optimisations",
-                nullptr,
-                nullptr,
-                nullptr,
-                "cpu",
-                {
-                        {Config::Retro::Values::DISABLED, nullptr},
-                        {Config::Retro::Values::ENABLED, nullptr},
-                        {nullptr, nullptr},
-                },
-                Config::Retro::Values::ENABLED
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
         },
+        Config::Retro::Values::ENABLED
+    },
+    {
+        Config::Retro::Keys::JIT_FAST_MEMORY,
+        "JIT Fast Memory",
+        nullptr,
+        nullptr,
+        nullptr,
+        "cpu",
         {
-                Config::Retro::Keys::JIT_FAST_MEMORY,
-                "JIT Fast Memory",
-                nullptr,
-                nullptr,
-                nullptr,
-                "cpu",
-                {
-                        {Config::Retro::Values::DISABLED, nullptr},
-                        {Config::Retro::Values::ENABLED, nullptr},
-                        {nullptr, nullptr},
-                },
-                Config::Retro::Values::ENABLED
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
         },
+        Config::Retro::Values::ENABLED
+    },
 #endif
-        {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{nullptr}}, nullptr},
+    {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{nullptr}}, nullptr},
 };
 
 
 struct retro_core_options_v2 melonds::options_us = {
-        option_cats_us,
-        option_defs_us
+    option_cats_us,
+    option_defs_us
 };
 
 
 #ifndef HAVE_NO_LANGEXTRA
-struct retro_core_options_v2 *melonds::options_intl[] = {
-        &options_us, /* RETRO_LANGUAGE_ENGLISH */
-        nullptr,        /* RETRO_LANGUAGE_JAPANESE */
-        nullptr,        /* RETRO_LANGUAGE_FRENCH */
-        nullptr,        /* RETRO_LANGUAGE_SPANISH */
-        nullptr,        /* RETRO_LANGUAGE_GERMAN */
-        nullptr,        /* RETRO_LANGUAGE_ITALIAN */
-        nullptr,        /* RETRO_LANGUAGE_DUTCH */
-        nullptr,        /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
-        nullptr,        /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
-        nullptr,        /* RETRO_LANGUAGE_RUSSIAN */
-        nullptr,        /* RETRO_LANGUAGE_KOREAN */
-        nullptr,        /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
-        nullptr,        /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
-        nullptr,        /* RETRO_LANGUAGE_ESPERANTO */
-        nullptr,        /* RETRO_LANGUAGE_POLISH */
-        nullptr,        /* RETRO_LANGUAGE_VIETNAMESE */
-        nullptr,        /* RETRO_LANGUAGE_ARABIC */
-        nullptr,        /* RETRO_LANGUAGE_GREEK */
-        nullptr,        /* RETRO_LANGUAGE_TURKISH */
-        nullptr,        /* RETRO_LANGUAGE_SLOVAK */
-        nullptr,        /* RETRO_LANGUAGE_PERSIAN */
-        nullptr,        /* RETRO_LANGUAGE_HEBREW */
-        nullptr,        /* RETRO_LANGUAGE_ASTURIAN */
-        nullptr,        /* RETRO_LANGUAGE_FINNISH */
-        nullptr,        /* RETRO_LANGUAGE_INDONESIAN */
-        nullptr,        /* RETRO_LANGUAGE_SWEDISH */
-        nullptr,        /* RETRO_LANGUAGE_UKRAINIAN */
-        nullptr,        /* RETRO_LANGUAGE_CZECH */
-        nullptr,        /* RETRO_LANGUAGE_CATALAN_VALENCIA */
-        nullptr,        /* RETRO_LANGUAGE_CATALAN */
+struct retro_core_options_v2* melonds::options_intl[] = {
+    &options_us, /* RETRO_LANGUAGE_ENGLISH */
+    nullptr,        /* RETRO_LANGUAGE_JAPANESE */
+    nullptr,        /* RETRO_LANGUAGE_FRENCH */
+    nullptr,        /* RETRO_LANGUAGE_SPANISH */
+    nullptr,        /* RETRO_LANGUAGE_GERMAN */
+    nullptr,        /* RETRO_LANGUAGE_ITALIAN */
+    nullptr,        /* RETRO_LANGUAGE_DUTCH */
+    nullptr,        /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
+    nullptr,        /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
+    nullptr,        /* RETRO_LANGUAGE_RUSSIAN */
+    nullptr,        /* RETRO_LANGUAGE_KOREAN */
+    nullptr,        /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
+    nullptr,        /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
+    nullptr,        /* RETRO_LANGUAGE_ESPERANTO */
+    nullptr,        /* RETRO_LANGUAGE_POLISH */
+    nullptr,        /* RETRO_LANGUAGE_VIETNAMESE */
+    nullptr,        /* RETRO_LANGUAGE_ARABIC */
+    nullptr,        /* RETRO_LANGUAGE_GREEK */
+    nullptr,        /* RETRO_LANGUAGE_TURKISH */
+    nullptr,        /* RETRO_LANGUAGE_SLOVAK */
+    nullptr,        /* RETRO_LANGUAGE_PERSIAN */
+    nullptr,        /* RETRO_LANGUAGE_HEBREW */
+    nullptr,        /* RETRO_LANGUAGE_ASTURIAN */
+    nullptr,        /* RETRO_LANGUAGE_FINNISH */
+    nullptr,        /* RETRO_LANGUAGE_INDONESIAN */
+    nullptr,        /* RETRO_LANGUAGE_SWEDISH */
+    nullptr,        /* RETRO_LANGUAGE_UKRAINIAN */
+    nullptr,        /* RETRO_LANGUAGE_CZECH */
+    nullptr,        /* RETRO_LANGUAGE_CATALAN_VALENCIA */
+    nullptr,        /* RETRO_LANGUAGE_CATALAN */
 };
 #endif
