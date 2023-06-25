@@ -100,11 +100,11 @@ namespace Config {
         int FlushDelay = 120; // TODO: Make configurable
 
         namespace Category {
-            static const char *const VIDEO = "video";
-            static const char *const AUDIO = "audio";
-            static const char *const SYSTEM = "system";
-            static const char *const SAVE = "save";
-            static const char *const SCREEN = "screen";
+            static const char* const VIDEO = "video";
+            static const char* const AUDIO = "audio";
+            static const char* const SYSTEM = "system";
+            static const char* const SAVE = "save";
+            static const char* const SCREEN = "screen";
         }
 
         namespace Keys {
@@ -142,19 +142,22 @@ namespace Config {
         }
 
         namespace Values {
-            static const char *const ALWAYS = "always";
-            static const char *const AUTO = "auto";
-            static const char *const DISABLED = "disabled";
-            static const char *const ENABLED = "enabled";
-            static const char *const HOLD = "hold";
-            static const char *const OPENGL = "opengl";
-            static const char *const SHARED256M = "shared0256m";
-            static const char *const SHARED512M = "shared0512m";
-            static const char *const SHARED1G = "shared1024m";
-            static const char *const SHARED2G = "shared2048m";
-            static const char *const SHARED4G = "shared4096m";
-            static const char *const TOGGLE = "toggle";
-            static const char *const DEDICATED = "dedicated";
+            static const char* const ALWAYS = "always";
+            static const char* const AUTO = "auto";
+            static const char* const DISABLED = "disabled";
+            static const char* const DS = "ds";
+            static const char* const DSI = "dsi";
+            static const char* const ENABLED = "enabled";
+            static const char* const HOLD = "hold";
+            static const char* const OPENGL = "opengl";
+            static const char* const SHARED256M = "shared0256m";
+            static const char* const SHARED512M = "shared0512m";
+            static const char* const SHARED1G = "shared1024m";
+            static const char* const SHARED2G = "shared2048m";
+            static const char* const SHARED4G = "shared4096m";
+            static const char* const SOFTWARE = "software";
+            static const char* const TOGGLE = "toggle";
+            static const char* const DEDICATED = "dedicated";
         }
     }
 }
