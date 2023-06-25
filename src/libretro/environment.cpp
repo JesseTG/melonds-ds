@@ -355,8 +355,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
             retro::_microphone_interface = microphoneInterface;
 
             if (microphoneInterface.interface_version == RETRO_MICROPHONE_INTERFACE_VERSION) {
-                retro::debug("Microphone support available in current audio driver (version %u)",
-                             microphoneInterface.interface_version);
+                retro::debug("Microphone support available (version %u)", microphoneInterface.interface_version);
             } else {
                 retro::warn("Expected mic interface version %u, got %u.",
                             RETRO_MICROPHONE_INTERFACE_VERSION, microphoneInterface.interface_version);
