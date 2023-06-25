@@ -144,6 +144,7 @@ namespace Config {
         namespace Values {
             static const char* const ALWAYS = "always";
             static const char* const AUTO = "auto";
+            static const char* const DEDICATED = "dedicated";
             static const char* const DISABLED = "disabled";
             static const char* const DS = "ds";
             static const char* const DSI = "dsi";
@@ -157,7 +158,6 @@ namespace Config {
             static const char* const SHARED4G = "shared4096m";
             static const char* const SOFTWARE = "software";
             static const char* const TOGGLE = "toggle";
-            static const char* const DEDICATED = "dedicated";
         }
     }
 }
