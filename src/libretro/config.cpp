@@ -108,37 +108,37 @@ namespace Config {
         }
 
         namespace Keys {
-            static const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
-            static const char *const THREADED_RENDERER = "melonds_threaded_renderer";
-            static const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
-            static const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
-            static const char *const RENDER_MODE = "melonds_render_mode";
-            static const char *const SCREEN_LAYOUT = "melonds_screen_layout";
-            static const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
-            static const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
-            static const char *const JIT_ENABLE = "melonds_jit_enable";
-            static const char *const JIT_BLOCK_SIZE = "melonds_jit_block_size";
-            static const char *const JIT_BRANCH_OPTIMISATIONS = "melonds_jit_branch_optimisations";
-            static const char *const JIT_LITERAL_OPTIMISATIONS = "melonds_jit_literal_optimisations";
-            static const char *const JIT_FAST_MEMORY = "melonds_jit_fast_memory";
-            static const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
-            static const char *const CONSOLE_MODE = "melonds_console_mode";
-            static const char *const BOOT_DIRECTLY = "melonds_boot_directly";
-            static const char *const SCREEN_GAP = "melonds_screen_gap";
-            static const char *const SWAPSCREEN_MODE = "melonds_swapscreen_mode";
-            static const char *const RANDOMIZE_MAC_ADDRESS = "melonds_randomize_mac_address";
-            static const char *const TOUCH_MODE = "melonds_touch_mode";
-            static const char *const MIC_INPUT_BUTTON = "melonds_need_button_mic_input";
-            static const char *const DSI_SDCARD = "melonds_dsi_sdcard";
-            static const char *const MIC_INPUT = "melonds_mic_input";
-            static const char *const AUDIO_BITRATE = "melonds_audio_bitrate";
-            static const char *const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
-            static const char *const USE_FIRMWARE_SETTINGS = "melonds_use_fw_settings";
-            static const char *const LANGUAGE = "melonds_language";
-            static const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
-            static const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
-            static const char *const HOMEBREW_DEDICATED_CARD_SIZE = "melonds_homebrew_dedicated_sdcard_size";
-            static const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
+            static const char* const OPENGL_RESOLUTION = "melonds_opengl_resolution";
+            static const char* const THREADED_RENDERER = "melonds_threaded_renderer";
+            static const char* const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
+            static const char* const OPENGL_FILTERING = "melonds_opengl_filtering";
+            static const char* const RENDER_MODE = "melonds_render_mode";
+            static const char* const SCREEN_LAYOUT = "melonds_screen_layout";
+            static const char* const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
+            static const char* const HYBRID_RATIO = "melonds_hybrid_ratio";
+            static const char* const JIT_ENABLE = "melonds_jit_enable";
+            static const char* const JIT_BLOCK_SIZE = "melonds_jit_block_size";
+            static const char* const JIT_BRANCH_OPTIMISATIONS = "melonds_jit_branch_optimisations";
+            static const char* const JIT_LITERAL_OPTIMISATIONS = "melonds_jit_literal_optimisations";
+            static const char* const JIT_FAST_MEMORY = "melonds_jit_fast_memory";
+            static const char* const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
+            static const char* const CONSOLE_MODE = "melonds_console_mode";
+            static const char* const BOOT_DIRECTLY = "melonds_boot_directly";
+            static const char* const SCREEN_GAP = "melonds_screen_gap";
+            static const char* const SWAPSCREEN_MODE = "melonds_swapscreen_mode";
+            static const char* const RANDOMIZE_MAC_ADDRESS = "melonds_randomize_mac_address";
+            static const char* const TOUCH_MODE = "melonds_touch_mode";
+            static const char* const MIC_INPUT_BUTTON = "melonds_mic_input_active";
+            static const char* const DSI_SDCARD = "melonds_dsi_sdcard";
+            static const char* const MIC_INPUT = "melonds_mic_input";
+            static const char* const AUDIO_BITDEPTH = "melonds_audio_bitdepth";
+            static const char* const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
+            static const char* const USE_FIRMWARE_SETTINGS = "melonds_use_fw_settings";
+            static const char* const LANGUAGE = "melonds_language";
+            static const char* const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
+            static const char* const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
+            static const char* const HOMEBREW_DEDICATED_CARD_SIZE = "melonds_homebrew_dedicated_sdcard_size";
+            static const char* const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
         }
 
         namespace Values {
@@ -167,7 +167,8 @@ namespace melonds::config {
     static bool _show_jit_options = true;
 #endif
 
-    static void check_homebrew_save_options(bool initializing);
+    static void check_audio_options(bool initializing) noexcept;
+    static void check_homebrew_save_options(bool initializing) noexcept;
 }
 
 GPU::RenderSettings Config::Retro::RenderSettings() {
@@ -464,58 +465,6 @@ void melonds::check_variables(bool init) noexcept {
         Config::DSiSDEnable = string_is_equal(var.value, Values::ENABLED);
     }
 
-    var.key = Keys::MIC_INPUT;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "Microphone Input"))
-            Config::MicInputType = static_cast<int>(MicInputMode::HostMic);
-        else if (string_is_equal(var.value, "Blow Noise"))
-            Config::MicInputType = static_cast<int>(MicInputMode::BlowNoise);
-        else if (string_is_equal(var.value, "White Noise"))
-            Config::MicInputType = static_cast<int>(MicInputMode::WhiteNoise);
-        else
-            Config::MicInputType = static_cast<int>(MicInputMode::None);
-
-        if (static_cast<MicInputMode>(Config::MicInputType) !=
-            MicInputMode::HostMic /*&& micInterface.interface_version && micHandle*/) {
-            // If the player wants to stop using the real mic as the DS mic's input...
-            // micInterface.set_mic_state(micHandle, false);
-        }
-    }
-
-    var.key = Keys::MIC_INPUT_BUTTON;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::Retro::MicButtonRequired = string_is_equal(var.value, "With Button");
-
-//        if (noise_button_required &&
-//            micInterface.interface_version &&
-//            micHandle != NULL &&
-//            !input_state.holding_noise_btn) { // If the player wants to require the noise button for mic input and they aren't already holding it...
-//            micInterface.set_mic_state(micHandle, false);
-//        }
-    }
-
-    var.key = Keys::AUDIO_BITRATE;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "10-bit"))
-            Config::AudioBitrate = 1;
-        else if (string_is_equal(var.value, "16-bit"))
-            Config::AudioBitrate = 2;
-        else
-            Config::AudioBitrate = 0;
-    }
-
-    var.key = Keys::AUDIO_INTERPOLATION;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "Cubic"))
-            Config::AudioInterp = 3;
-        else if (string_is_equal(var.value, "Cosine"))
-            Config::AudioInterp = 2;
-        else if (string_is_equal(var.value, "Linear"))
-            Config::AudioInterp = 1;
-        else
-            Config::AudioInterp = 0;
-    }
-
     var.key = Keys::USE_FIRMWARE_SETTINGS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         if (string_is_equal(var.value, Values::DISABLED))
@@ -546,12 +495,75 @@ void melonds::check_variables(bool init) noexcept {
     }
 
     config::check_homebrew_save_options(init);
+    config::check_audio_options(init);
 
     input_state.current_touch_mode = new_touch_mode;
 
     update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl, Config::ScreenSwap);
 
     update_option_visibility();
+}
+
+static void melonds::config::check_audio_options(bool initializing) noexcept {
+    using namespace Config::Retro;
+    using retro::environment;
+
+    struct retro_variable var = {nullptr};
+    var.key = Keys::MIC_INPUT_BUTTON;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (string_is_equal(var.value, Values::HOLD)) {
+            Config::Retro::MicButtonMode = MicButtonMode::Hold;
+        } else if (string_is_equal(var.value, Values::TOGGLE)) {
+            Config::Retro::MicButtonMode = MicButtonMode::Toggle;
+        } else if (string_is_equal(var.value, Values::ALWAYS)) {
+            Config::Retro::MicButtonMode = MicButtonMode::Always;
+        } else {
+            Config::Retro::MicButtonMode = MicButtonMode::Hold;
+        }
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::HOLD);
+        Config::Retro::MicButtonMode = MicButtonMode::Hold;
+    }
+
+    var.key = Keys::MIC_INPUT;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (string_is_equal(var.value, "Microphone Input"))
+            Config::MicInputType = static_cast<int>(MicInputMode::HostMic);
+        else if (string_is_equal(var.value, "Blow Noise"))
+            Config::MicInputType = static_cast<int>(MicInputMode::BlowNoise);
+        else if (string_is_equal(var.value, "White Noise"))
+            Config::MicInputType = static_cast<int>(MicInputMode::WhiteNoise);
+        else
+            Config::MicInputType = static_cast<int>(MicInputMode::None);
+
+        if (static_cast<MicInputMode>(Config::MicInputType) !=
+            MicInputMode::HostMic /*&& micInterface.interface_version && micHandle*/) {
+            // If the player wants to stop using the real mic as the DS mic's input...
+            // micInterface.set_mic_state(micHandle, false);
+        }
+    }
+
+    var.key = Keys::AUDIO_BITDEPTH;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (string_is_equal(var.value, "10-bit"))
+            Config::AudioBitrate = 1;
+        else if (string_is_equal(var.value, "16-bit"))
+            Config::AudioBitrate = 2;
+        else
+            Config::AudioBitrate = 0;
+    }
+
+    var.key = Keys::AUDIO_INTERPOLATION;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (string_is_equal(var.value, "Cubic"))
+            Config::AudioInterp = 3;
+        else if (string_is_equal(var.value, "Cosine"))
+            Config::AudioInterp = 2;
+        else if (string_is_equal(var.value, "Linear"))
+            Config::AudioInterp = 1;
+        else
+            Config::AudioInterp = 0;
+    }
 }
 
 /**
