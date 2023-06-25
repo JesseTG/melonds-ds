@@ -142,20 +142,29 @@ namespace Config {
         }
 
         namespace Values {
+            static const char* const _10BIT = "10bit";
+            static const char* const _16BIT = "16bit";
             static const char* const ALWAYS = "always";
             static const char* const AUTO = "auto";
+            static const char* const BLOW = "blow";
+            static const char* const COSINE = "cosine";
+            static const char* const CUBIC = "cubic";
             static const char* const DEDICATED = "dedicated";
             static const char* const DISABLED = "disabled";
             static const char* const DS = "ds";
             static const char* const DSI = "dsi";
             static const char* const ENABLED = "enabled";
             static const char* const HOLD = "hold";
+            static const char* const LINEAR = "linear";
+            static const char* const MICROPHONE = "microphone";
+            static const char* const NOISE = "noise";
             static const char* const OPENGL = "opengl";
             static const char* const SHARED256M = "shared0256m";
             static const char* const SHARED512M = "shared0512m";
             static const char* const SHARED1G = "shared1024m";
             static const char* const SHARED2G = "shared2048m";
             static const char* const SHARED4G = "shared4096m";
+            static const char* const SILENCE = "silence";
             static const char* const SOFTWARE = "software";
             static const char* const TOGGLE = "toggle";
         }
@@ -528,13 +537,14 @@ static void melonds::config::check_audio_options(bool initializing) noexcept {
         Config::Retro::MicButtonMode = MicButtonMode::Hold;
     }
 
+    // TODO: Support loading WAV files from the system directory (list them and add modify the config object)
     var.key = Keys::MIC_INPUT;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "Microphone Input"))
+        if (string_is_equal(var.value, Values::MICROPHONE))
             Config::MicInputType = static_cast<int>(MicInputMode::HostMic);
-        else if (string_is_equal(var.value, "Blow Noise"))
+        else if (string_is_equal(var.value, Values::BLOW))
             Config::MicInputType = static_cast<int>(MicInputMode::BlowNoise);
-        else if (string_is_equal(var.value, "White Noise"))
+        else if (string_is_equal(var.value, Values::NOISE))
             Config::MicInputType = static_cast<int>(MicInputMode::WhiteNoise);
         else
             Config::MicInputType = static_cast<int>(MicInputMode::None);
@@ -544,28 +554,39 @@ static void melonds::config::check_audio_options(bool initializing) noexcept {
             // If the player wants to stop using the real mic as the DS mic's input...
             // micInterface.set_mic_state(micHandle, false);
         }
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::SILENCE);
+        Config::MicInputType = static_cast<int>(MicInputMode::None);
     }
 
     var.key = Keys::AUDIO_BITDEPTH;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "10-bit"))
-            Config::AudioBitrate = 1;
-        else if (string_is_equal(var.value, "16-bit"))
-            Config::AudioBitrate = 2;
+        if (string_is_equal(var.value, Values::_10BIT))
+            Config::AudioBitrate = static_cast<int>(BitDepth::_10Bit);
+        else if (string_is_equal(var.value, Values::_16BIT))
+            Config::AudioBitrate = static_cast<int>(BitDepth::_16Bit);
         else
-            Config::AudioBitrate = 0;
+            Config::AudioBitrate = static_cast<int>(BitDepth::Auto);
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::AUTO);
+        Config::AudioBitrate = static_cast<int>(BitDepth::Auto);
     }
 
     var.key = Keys::AUDIO_INTERPOLATION;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "Cubic"))
-            Config::AudioInterp = 3;
-        else if (string_is_equal(var.value, "Cosine"))
-            Config::AudioInterp = 2;
-        else if (string_is_equal(var.value, "Linear"))
-            Config::AudioInterp = 1;
+        if (string_is_equal(var.value, Values::CUBIC))
+            Config::AudioInterp = static_cast<int>(AudioInterpolation::Cubic);
+        else if (string_is_equal(var.value, Values::COSINE))
+            Config::AudioInterp = static_cast<int>(AudioInterpolation::Cosine);
+        else if (string_is_equal(var.value, Values::LINEAR))
+            Config::AudioInterp = static_cast<int>(AudioInterpolation::Linear);
         else
-            Config::AudioInterp = 0;
+            Config::AudioInterp = static_cast<int>(AudioInterpolation::None);
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::DISABLED);
+        Config::AudioInterp = static_cast<int>(AudioInterpolation::None);
     }
 }
 
@@ -740,6 +761,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
     {nullptr, nullptr, nullptr},
 };
 
+/// All descriptive text uses semantic line breaks. https://sembr.org
 struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     // System
     {
@@ -945,35 +967,42 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "nearest"
     },
 #endif
+
+    // Audio Settings
     {
         Config::Retro::Keys::MIC_INPUT,
-        "Microphone Audio Type",
+        "Microphone Input Mode",
         nullptr,
-        "Choose the type of input that the emulated microphone will receive. "
-        "Silence will always return silence. "
-        "Blow will loop a built-in blowing sound. "
-        "Noise will provide random white noise. "
-        "Microphone will use your microphone if available, falling back to Silence if not.",
+        "Choose the sound that the emulated microphone will receive:\n"
+        "\n"
+        "Silence: No audio input.\n"
+        "Blow: Loop a built-in blowing sound.\n"
+        "Noise: Random white noise.\n"
+        "Microphone: Use your real microphone if available, fall back to Silence if not.",
         nullptr,
         Config::Retro::Category::AUDIO,
         {
-            {"silence", "Silence"},
-            {"blow", "Blow"},
-            {"noise", "Noise"},
-            {"microphone", "microphone"},
+            {Config::Retro::Values::SILENCE, "Silence"},
+            {Config::Retro::Values::BLOW, "Blow"},
+            {Config::Retro::Values::NOISE, "Noise"},
+            {Config::Retro::Values::MICROPHONE, "Microphone"},
             {nullptr, nullptr},
         },
-        "microphone"
+        Config::Retro::Values::MICROPHONE
     },
     {
         Config::Retro::Keys::MIC_INPUT_BUTTON,
-        "Microphone Input Mode",
+        "Microphone Button Mode",
         nullptr,
-        "Set whether the microphone input will receive continuous input. "
-        "Hold enables the microphone while the configured microphone button is held, or silence otherwise. "
-        "Toggle toggles the microphone when the configured microphone button is pressed. "
-        "Always enables the microphone at all times without needing a button press. "
-        "Ignored if microphone input is set to Silence.",
+        "Set the behavior of the Microphone button, "
+        "even if Microphone Input Mode is set to Blow or Noise. "
+        "The microphone receives silence when disabled by the button.\n"
+        "\n"
+        "Hold: Button enables mic input while held.\n"
+        "Toggle: Button enables mic input when pressed, disables it when pressed again.\n"
+        "Always: Button is ignored, mic input is always enabled.\n"
+        "\n"
+        "Ignored if Microphone Input Mode is set to Silence.",
         nullptr,
         Config::Retro::Category::AUDIO,
         {
@@ -988,13 +1017,17 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::AUDIO_BITDEPTH,
         "Audio Bit Depth",
         nullptr,
-        nullptr,
+        "The audio playback bit depth. "
+        "Automatic uses 10-bit audio for DS mode "
+        "and 16-bit audio for DSi mode.\n"
+        "\n"
+        "If unsure, leave this set to Automatic.",
         nullptr,
         Config::Retro::Category::AUDIO,
         {
             {Config::Retro::Values::AUTO, "Automatic"},
-            {"10bit", "10-bit"},
-            {"16bit", "16-bit"},
+            {Config::Retro::Values::_10BIT, "10-bit"},
+            {Config::Retro::Values::_16BIT, "16-bit"},
             {nullptr, nullptr},
         },
         Config::Retro::Values::AUTO
@@ -1003,18 +1036,20 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::AUDIO_INTERPOLATION,
         "Audio Interpolation",
         nullptr,
-        nullptr,
+        "Interpolates audio output for improved quality. "
+        "Disable this to match the behavior of the original DS hardware.",
         nullptr,
         Config::Retro::Category::AUDIO,
         {
-            {Config::Retro::Values::DISABLED, "None"},
-            {"linear", "Linear"},
-            {"cosine", "Cosine"},
-            {"cubic", "Cubic"},
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::LINEAR, "Linear"},
+            {Config::Retro::Values::COSINE, "Cosine"},
+            {Config::Retro::Values::CUBIC, "Cubic"},
             {nullptr, nullptr},
         },
         Config::Retro::Values::DISABLED
     },
+
     {
         Config::Retro::Keys::TOUCH_MODE,
         "Touch Mode",
