@@ -71,8 +71,8 @@ if (NOT LIBRETRO_COMMON_REPOSITORY_TAG)
     )
 endif ()
 
-message(STATUS "Using libretro-common: ${LIBRETRO_COMMON_REPOSITORY_URL} (commit ${LIBRETRO_COMMON_REPOSITORY_TAG})")
-message(STATUS "Using melonDS: ${MELONDS_REPOSITORY_URL} (commit ${MELONDS_REPOSITORY_TAG})")
+message(STATUS "Using libretro-common: ${LIBRETRO_COMMON_REPOSITORY_URL} (ref ${LIBRETRO_COMMON_REPOSITORY_TAG})")
+message(STATUS "Using melonDS: ${MELONDS_REPOSITORY_URL} (ref ${MELONDS_REPOSITORY_TAG})")
 
 FetchContent_Declare(
     libretro-common
