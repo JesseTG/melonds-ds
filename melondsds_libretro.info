@@ -11,7 +11,7 @@ database = "Nintendo - Nintendo DS|Nintendo - Nintendo DS (Download Play)|Ninten
 license = "GPLv3"
 permissions = ""
 display_version = "Git"
-supports_no_game = "false"
+supports_no_game = "true"
 hw_render = "true"
 required_hw_api = "OpenGL Core >= 3.1"
 

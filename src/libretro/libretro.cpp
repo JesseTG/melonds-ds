@@ -83,7 +83,7 @@ namespace melonds {
     static void init_nds_save(const NDSCartData &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
     static void init_gba_save(GBACartData &gba_cart, const struct retro_game_info& gba_save_info);
-    static void init_bios();
+    static void init_bios(bool ds_game_loaded);
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
@@ -182,7 +182,12 @@ catch (...) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
-    retro::log(RETRO_LOG_DEBUG, "retro_load_game(\"%s\", %d)\n", info->path, info->size);
+    if (info) {
+        retro::debug("retro_load_game(\"%s\", %d)", info->path, info->size);
+    }
+    else {
+        retro::debug("retro_load_game(<no content>)");
+    }
 
     return melonds::handle_load_game(melonds::MELONDSDS_GAME_TYPE_NDS, info, 1);
 }
@@ -628,7 +633,7 @@ static void melonds::load_games(
         }
     }
 
-    init_bios();
+    init_bios(nds_info != nullopt);
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
     init_rendering();
@@ -697,7 +702,7 @@ static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
     }
 }
 
-static void melonds::init_bios() {
+static void melonds::init_bios(bool ds_game_loaded) {
     using retro::log;
 
     // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
@@ -733,12 +738,20 @@ static void melonds::init_bios() {
         retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using internal FreeBIOS instead.");
     }
 
-    if (!Config::ExternalBIOSEnable && _loaded_gba_cart) {
-        // If we're using FreeBIOS and are trying to load a GBA cart...
-        retro::set_warn_message(
-            "FreeBIOS does not support GBA connectivity. "
-            "Please install a native BIOS and enable it in the options menu."
-        );
+    if (!Config::ExternalBIOSEnable) {
+        // If we're using FreeBIOS...
+
+        if (!ds_game_loaded) {
+            // If we're not loading a DS game...
+            throw std::runtime_error("Booting without content requires a native BIOS.");
+        }
+        else if (_loaded_gba_cart) {
+            // If we're using FreeBIOS and are trying to load a GBA cart...
+            retro::set_warn_message(
+                "FreeBIOS does not support GBA connectivity. "
+                "Please install a native BIOS and enable it in the options menu."
+            );
+        }
     }
 }
 
@@ -797,7 +810,9 @@ static void melonds::load_games_deferred(
         retro_assert(_loaded_gba_cart == nullptr);
     }
 
-    set_up_direct_boot(nds_info.value());
+    if (nds_info) {
+        set_up_direct_boot(*nds_info);
+    }
 
     NDS::Start();
 

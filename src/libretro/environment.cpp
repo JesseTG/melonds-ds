@@ -342,6 +342,10 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs))
         filestream_vfs_init(&vfs);
 
+    bool supports_no_game = true;
+    if (environment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &supports_no_game))
+        retro::log(RETRO_LOG_INFO, "Frontend supports no-game mode.");
+
     retro::microphone::init_interface();
 }
 
