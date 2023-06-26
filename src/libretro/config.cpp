@@ -151,11 +151,17 @@ namespace Config {
             static const char* const COSINE = "cosine";
             static const char* const CUBIC = "cubic";
             static const char* const DEDICATED = "dedicated";
+            static const char* const DEFAULT = "default";
             static const char* const DISABLED = "disabled";
             static const char* const DS = "ds";
             static const char* const DSI = "dsi";
             static const char* const ENABLED = "enabled";
+            static const char* const ENGLISH = "en";
+            static const char* const FRENCH = "fr";
+            static const char* const GERMAN = "de";
             static const char* const HOLD = "hold";
+            static const char* const ITALIAN = "it";
+            static const char* const JAPANESE = "ja";
             static const char* const LINEAR = "linear";
             static const char* const MICROPHONE = "microphone";
             static const char* const NOISE = "noise";
@@ -167,6 +173,7 @@ namespace Config {
             static const char* const SHARED4G = "shared4096m";
             static const char* const SILENCE = "silence";
             static const char* const SOFTWARE = "software";
+            static const char* const SPANISH = "es";
             static const char* const TOGGLE = "toggle";
         }
     }
@@ -484,6 +491,31 @@ void melonds::apply_variables(bool init) noexcept {
     config::apply_audio_options(init);
 }
 
+static melonds::FirmwareLanguage get_firmware_language(const optional<retro_language>& language) {
+    using melonds::FirmwareLanguage;
+
+    if (!language)
+        return FirmwareLanguage::English;
+
+    switch (*language) {
+        case RETRO_LANGUAGE_ENGLISH:
+        case RETRO_LANGUAGE_BRITISH_ENGLISH:
+            return FirmwareLanguage::English;
+        case RETRO_LANGUAGE_JAPANESE:
+            return FirmwareLanguage::Japanese;
+        case RETRO_LANGUAGE_FRENCH:
+            return FirmwareLanguage::French;
+        case RETRO_LANGUAGE_GERMAN:
+            return FirmwareLanguage::German;
+        case RETRO_LANGUAGE_ITALIAN:
+            return FirmwareLanguage::Italian;
+        case RETRO_LANGUAGE_SPANISH:
+            return FirmwareLanguage::Spanish;
+        default:
+            return FirmwareLanguage::English;
+    }
+}
+
 static void melonds::config::check_system_options(bool initializing) noexcept {
     using retro::environment;
     using namespace Config::Retro;
@@ -528,22 +560,24 @@ static void melonds::config::check_system_options(bool initializing) noexcept {
 
     var.key = Keys::LANGUAGE;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "Japanese"))
-            Config::FirmwareLanguage = 0;
-        else if (string_is_equal(var.value, "English"))
-            Config::FirmwareLanguage = 1;
-        else if (string_is_equal(var.value, "French"))
-            Config::FirmwareLanguage = 2;
-        else if (string_is_equal(var.value, "German"))
-            Config::FirmwareLanguage = 3;
-        else if (string_is_equal(var.value, "Italian"))
-            Config::FirmwareLanguage = 4;
-        else if (string_is_equal(var.value, "Spanish"))
-            Config::FirmwareLanguage = 5;
+        if (string_is_equal(var.value, Values::AUTO))
+            Config::FirmwareLanguage = static_cast<int>(get_firmware_language(retro::get_language()));
+        else if (string_is_equal(var.value, Values::JAPANESE))
+            Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::Japanese);
+        else if (string_is_equal(var.value, Values::ENGLISH))
+            Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::English);
+        else if (string_is_equal(var.value, Values::FRENCH))
+            Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::French);
+        else if (string_is_equal(var.value, Values::GERMAN))
+            Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::German);
+        else if (string_is_equal(var.value, Values::ITALIAN))
+            Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::Italian);
+        else if (string_is_equal(var.value, Values::SPANISH))
+            Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::Spanish);
     }
     else {
         retro::warn("Failed to get value for %s; defaulting to English", var.key);
-        Config::FirmwareLanguage = 1;
+        Config::FirmwareLanguage = static_cast<int>(FirmwareLanguage::English);
     }
 
     var.key = Keys::USE_EXTERNAL_BIOS;
@@ -837,7 +871,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::BOOT_DIRECTLY,
         "Boot Game Directly",
         nullptr,
-        "Whether melonDS should directly boot the game or enter the DS menu beforehand. "
+        "If enabled, melonDS will bypass the native DS menu and boot the loaded game directly. "
         "If disabled, compatible BIOS and firmware files must be provided in the system directory. "
         "Ignored if the core is loaded without a game, "
         "or if suitable BIOS/firmware files weren't found.",
@@ -871,22 +905,23 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::LANGUAGE,
         "Language",
         nullptr,
-        "The language mode of the emulated DS. "
-        "Ignored if 'Use Firmware Settings' is enabled or if no valid firmware file was found. "
+        "The language mode of the emulated console. "
+        "Ignored if 'Use Firmware Settings' is enabled."
         "Not every game honors this setting. "
-        "'Default' uses the frontend's language if supported by the DS, or English if not.",
+        "Automatic uses the frontend's language if supported by the DS, or English if not.",
         nullptr,
         "system",
         {
-            {"Japanese", nullptr},
-            {"English", nullptr},
-            {"French", nullptr},
-            {"German", nullptr},
-            {"Italian", nullptr},
-            {"Spanish", nullptr},
+            {Config::Retro::Values::AUTO, "Automatic"},
+            {Config::Retro::Values::ENGLISH, "English"},
+            {Config::Retro::Values::JAPANESE, "Japanese"},
+            {Config::Retro::Values::FRENCH, "French"},
+            {Config::Retro::Values::GERMAN, "German"},
+            {Config::Retro::Values::ITALIAN, "Italian"},
+            {Config::Retro::Values::SPANISH, "Spanish"},
             {nullptr, nullptr},
         },
-        "English"
+        Config::Retro::Values::DEFAULT
     },
     {
         Config::Retro::Keys::RANDOMIZE_MAC_ADDRESS,
