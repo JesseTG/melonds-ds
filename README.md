@@ -102,6 +102,15 @@ the options menu will tell you everything you need to know.
 
 **NOTE:** melonDS DS does not support savestates for homebrew games.
 
+## Microphone Support
+
+melonDS DS supports libretro's new microphone API,
+allowing you to use your computer's microphone as a DS microphone!
+
+**NOTE:** The most recent stable release of RetroArch (as of this writing)
+does not yet include microphone support.
+You will need to use a nightly build.
+
 # Missing Features
 
 These features have not yet been implemented in standalone [melonDS][melonds],
