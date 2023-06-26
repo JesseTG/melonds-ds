@@ -737,6 +737,13 @@ static void melonds::config::apply_audio_options(bool initializing) noexcept {
             retro::warn("Failed to %s microphone", is_using_host_mic ? "open" : "close");
         }
     }
+    else {
+        bool is_using_host_mic = static_cast<MicInputMode>(Config::MicInputType) == MicInputMode::HostMic;
+
+        if (is_using_host_mic) {
+            retro::set_warn_message("This frontend doesn't support microphones.");
+        }
+    }
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
