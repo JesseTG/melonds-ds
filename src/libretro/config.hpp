@@ -26,6 +26,7 @@
 namespace melonds {
     bool update_option_visibility();
     void update_variables(bool init) noexcept;
+    void apply_variables(bool init) noexcept;
     extern struct retro_core_options_v2 options_us;
     extern struct retro_core_option_v2_definition option_defs_us[];
 #ifndef HAVE_NO_LANGEXTRA
@@ -44,7 +45,7 @@ namespace melonds {
 
     enum class MicButtonMode {
         Hold,
-        Toggle,
+        //Toggle,
         Always,
     };
 

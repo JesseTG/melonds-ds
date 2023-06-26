@@ -27,6 +27,7 @@
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "opengl.hpp"
+#include "microphone.hpp"
 
 using std::string;
 using std::optional;
@@ -181,6 +182,8 @@ namespace melonds::config {
 
     static void check_audio_options(bool initializing) noexcept;
     static void check_homebrew_save_options(bool initializing) noexcept;
+
+    static void apply_audio_options(bool initializing) noexcept;
 }
 
 GPU::RenderSettings Config::Retro::RenderSettings() {
@@ -516,6 +519,10 @@ void melonds::update_variables(bool init) noexcept {
     update_option_visibility();
 }
 
+void melonds::apply_variables(bool init) noexcept {
+    config::apply_audio_options(init);
+}
+
 static void melonds::config::check_audio_options(bool initializing) noexcept {
     using namespace Config::Retro;
     using retro::environment;
@@ -525,8 +532,8 @@ static void melonds::config::check_audio_options(bool initializing) noexcept {
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         if (string_is_equal(var.value, Values::HOLD)) {
             Config::Retro::MicButtonMode = MicButtonMode::Hold;
-        } else if (string_is_equal(var.value, Values::TOGGLE)) {
-            Config::Retro::MicButtonMode = MicButtonMode::Toggle;
+//        } else if (string_is_equal(var.value, Values::TOGGLE)) {
+//            Config::Retro::MicButtonMode = MicButtonMode::Toggle;
         } else if (string_is_equal(var.value, Values::ALWAYS)) {
             Config::Retro::MicButtonMode = MicButtonMode::Always;
         } else {
@@ -548,12 +555,6 @@ static void melonds::config::check_audio_options(bool initializing) noexcept {
             Config::MicInputType = static_cast<int>(MicInputMode::WhiteNoise);
         else
             Config::MicInputType = static_cast<int>(MicInputMode::None);
-
-        if (static_cast<MicInputMode>(Config::MicInputType) !=
-            MicInputMode::HostMic /*&& micInterface.interface_version && micHandle*/) {
-            // If the player wants to stop using the real mic as the DS mic's input...
-            // micInterface.set_mic_state(micHandle, false);
-        }
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::SILENCE);
         Config::MicInputType = static_cast<int>(MicInputMode::None);
@@ -723,6 +724,19 @@ static void melonds::config::check_homebrew_save_options(bool initializing) noex
     retro::log(RETRO_LOG_DEBUG, "DLDISize: %d", Config::DLDISize);
     retro::log(RETRO_LOG_DEBUG, "DLDISDPath: %s", Config::DLDISDPath.c_str());
     retro::log(RETRO_LOG_DEBUG, "DLDIFolderPath: %s", Config::DLDIFolderPath.c_str());
+}
+
+static void melonds::config::apply_audio_options(bool initializing) noexcept {
+    if (retro::microphone::is_interface_available()) {
+        bool is_using_host_mic = static_cast<MicInputMode>(Config::MicInputType) == MicInputMode::HostMic;
+        // Open the mic if the user wants it (and it isn't already open)
+        // Close the mic if the user wants it (and it is open)
+        bool ok = retro::microphone::set_open(is_using_host_mic);
+        if (!ok) {
+            // If we couldn't open or close the microphone...
+            retro::warn("Failed to %s microphone", is_using_host_mic ? "open" : "close");
+        }
+    }
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {

@@ -36,6 +36,7 @@
 #include <SPU.h>
 #include <GBACart.h>
 #include <retro_assert.h>
+#include <retro_miscellaneous.h>
 
 #include "opengl.hpp"
 #include "content.hpp"
@@ -48,6 +49,7 @@
 #include "memory.hpp"
 #include "render.hpp"
 #include "exceptions.hpp"
+#include "microphone.hpp"
 
 using std::optional;
 using std::nullopt;
@@ -337,6 +339,7 @@ PUBLIC_SYMBOL void retro_run(void) {
     bool updated = false;
     if (retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
         melonds::update_variables(false);
+        melonds::apply_variables(false);
 
         struct retro_system_av_info updated_av_info{};
         retro_get_system_av_info(&updated_av_info);
@@ -358,21 +361,15 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
             }
             break;
         }
-        case MicButtonMode::Toggle: {
-            // ...must be toggled...
-            if (input_state.holding_noise_btn && !input_state.previous_holding_noise_btn) {
-                // ...and it was...
-                // TODO: Toggle the mic mode
-            }
-            break;
-        }
         case MicButtonMode::Always: {
             // ...is unnecessary...
             // Do nothing, the mic input mode is already set
         }
     }
 
-    // TODO: Update the mic state
+    if (retro::microphone::is_open()) {
+        retro::microphone::set_state(input_state.holding_noise_btn || Config::Retro::MicButtonMode == MicButtonMode::Always);
+    }
 
     switch (mic_input_mode) {
         case MicInputMode::WhiteNoise: // random noise
@@ -389,15 +386,15 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
         }
         case MicInputMode::HostMic: // microphone input
         {
-            s16 tmp[735];
-
-            const auto& micInterface = retro::get_mic_interface();
-            if (_microphone && micInterface && micInterface->get_mic_state(_microphone)) {
-                // If the microphone is enabled and supported...
-                micInterface->read_mic(_microphone, tmp, 735);
-                NDS::MicInputFrame(tmp, 735);
+            const auto mic_state = retro::microphone::get_state();
+            if (mic_state.has_value() && mic_state.value()) {
+                // If the microphone is open and turned on...
+                s16 samples[735];
+                retro::microphone::read(samples, ARRAY_SIZE(samples));
+                NDS::MicInputFrame(samples, ARRAY_SIZE(samples));
                 break;
-            } // If the mic isn't available, feed silence instead
+            }
+            // If the mic isn't available, feed silence instead
         }
         // Intentional fall-through
         default:
@@ -593,6 +590,7 @@ static void melonds::load_games(
 ) {
     melonds::clear_memory_config();
     melonds::update_variables(true);
+    melonds::apply_variables(true);
 
     using retro::environment;
     using retro::log;
@@ -704,7 +702,6 @@ static void melonds::init_bios() {
     using retro::log;
 
     // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
-    // TODO: If a GBA cart is loaded, remind the user that GBA/NDS connectivity doesn't work on FreeBIOS
     if (Config::ExternalBIOSEnable) {
         // If the player wants to use their own BIOS dumps...
 
@@ -802,7 +799,6 @@ static void melonds::load_games_deferred(
     }
 
     set_up_direct_boot(nds_info.value());
-    init_microphone();
 
     NDS::Start();
 
@@ -857,22 +853,5 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
 
         NDS::SetupDirectBoot(game_name);
         retro::log(RETRO_LOG_DEBUG, "Initialized direct boot for \"%s\"", game_name);
-    }
-}
-
-static void melonds::init_microphone() {
-    const optional<struct retro_microphone_interface>& micInterface = retro::get_mic_interface();
-    retro_microphone_params_t params = {
-        .rate = 44100 // The core engine assumes this rate
-    };
-    _microphone = micInterface->open_mic(&params);
-
-    if (_microphone)
-    {
-        retro::info("Initialized microphone");
-    }
-    else
-    {
-        retro::warn("Failed to initialize microphone, emulated device will receive silence");
     }
 }

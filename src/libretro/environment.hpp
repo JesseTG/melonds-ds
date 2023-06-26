@@ -53,7 +53,6 @@ namespace retro {
 
     const std::optional<std::string>& get_save_directory();
     const std::optional<std::string>& get_system_directory();
-    const std::optional<struct retro_microphone_interface>& get_mic_interface() noexcept;
 
     void clear_environment();
 }

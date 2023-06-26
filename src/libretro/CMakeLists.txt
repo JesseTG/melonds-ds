@@ -17,6 +17,8 @@ add_library(libretro MODULE
     input.hpp
     libretro.cpp
     libretro.hpp
+    microphone.cpp
+    microphone.hpp
     memory.cpp
     memory.hpp
     platform/camera.cpp
