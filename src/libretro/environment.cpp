@@ -287,6 +287,15 @@ bool retro::set_variable(const char* key, const char* value) {
     return environment(RETRO_ENVIRONMENT_SET_VARIABLE, &var);
 }
 
+optional<retro_language> retro::get_language() noexcept {
+    retro_language language;
+    if (!environment(RETRO_ENVIRONMENT_GET_LANGUAGE, &language)) {
+        return nullopt;
+    }
+
+    return language;
+}
+
 const optional<string>& retro::get_save_directory() {
     return _save_directory;
 }
