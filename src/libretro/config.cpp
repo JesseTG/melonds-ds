@@ -180,6 +180,7 @@ namespace melonds::config {
     static bool _show_jit_options = true;
 #endif
 
+    static void check_system_options(bool initializing) noexcept;
     static void check_audio_options(bool initializing) noexcept;
     static void check_homebrew_save_options(bool initializing) noexcept;
 
@@ -296,19 +297,6 @@ void melonds::update_variables(bool init) noexcept {
 #ifdef HAVE_OPENGL
     bool gl_settings_changed = false;
 #endif
-
-    var.key = Keys::CONSOLE_MODE;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        if (string_is_equal(var.value, "DSi"))
-            Config::ConsoleType = ConsoleType::DSi;
-        else
-            Config::ConsoleType = ConsoleType::DS;
-    }
-
-    var.key = Keys::BOOT_DIRECTLY;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::DirectBoot = string_is_equal(var.value, Values::ENABLED);
-    }
 
     // TODO: Use standard melonDS config settings
     ScreenLayout layout = ScreenLayout::TopBottom;
@@ -479,12 +467,63 @@ void melonds::update_variables(bool init) noexcept {
         Config::DSiSDEnable = string_is_equal(var.value, Values::ENABLED);
     }
 
+
+    config::check_system_options(init);
+    config::check_homebrew_save_options(init);
+    config::check_audio_options(init);
+
+    input_state.current_touch_mode = new_touch_mode;
+
+    update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl,
+                        Config::ScreenSwap);
+
+    update_option_visibility();
+}
+
+void melonds::apply_variables(bool init) noexcept {
+    config::apply_audio_options(init);
+}
+
+static void melonds::config::check_system_options(bool initializing) noexcept {
+    using retro::environment;
+    using namespace Config::Retro;
+    struct retro_variable var = {nullptr};
+
+    if (!initializing)
+        return;
+    // All of these options take effect when a game starts, so there's no need to update them mid-game
+
+    var.key = Keys::CONSOLE_MODE;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        if (string_is_equal(var.value, Values::DSI))
+            Config::ConsoleType = ConsoleType::DSi;
+        else
+            Config::ConsoleType = ConsoleType::DS;
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::DS);
+        Config::ConsoleType = ConsoleType::DS;
+    }
+
+    var.key = Keys::BOOT_DIRECTLY;
+    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+        Config::DirectBoot = string_is_equal(var.value, Values::ENABLED);
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::DS);
+        Config::DirectBoot = true;
+    }
+
     var.key = Keys::USE_FIRMWARE_SETTINGS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         if (string_is_equal(var.value, Values::DISABLED))
             Config::FirmwareOverrideSettings = true;
         else
             Config::FirmwareOverrideSettings = false;
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::DISABLED);
+        Config::FirmwareOverrideSettings = false;
     }
 
     var.key = Keys::LANGUAGE;
@@ -502,25 +541,19 @@ void melonds::update_variables(bool init) noexcept {
         else if (string_is_equal(var.value, "Spanish"))
             Config::FirmwareLanguage = 5;
     }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to English", var.key);
+        Config::FirmwareLanguage = 1;
+    }
 
     var.key = Keys::USE_EXTERNAL_BIOS;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         Config::ExternalBIOSEnable = string_is_equal(var.value, Values::ENABLED);
     }
-
-    config::check_homebrew_save_options(init);
-    config::check_audio_options(init);
-
-    input_state.current_touch_mode = new_touch_mode;
-
-    update_screenlayout(layout, &screen_layout_data, Config::Retro::ConfiguredRenderer == Renderer::OpenGl,
-                        Config::ScreenSwap);
-
-    update_option_visibility();
-}
-
-void melonds::apply_variables(bool init) noexcept {
-    config::apply_audio_options(init);
+    else {
+        retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::ENABLED);
+        Config::ExternalBIOSEnable = true;
+    }
 }
 
 static void melonds::config::check_audio_options(bool initializing) noexcept {
