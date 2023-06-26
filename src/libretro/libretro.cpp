@@ -61,7 +61,6 @@ namespace melonds {
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
-    static retro_microphone_t* _microphone;
     static std::unique_ptr<NDSCartData> _loaded_nds_cart;
     static std::unique_ptr<GBACartData> _loaded_gba_cart;
     static const char *const INTERNAL_ERROR_MESSAGE =
