@@ -108,6 +108,11 @@ bool retro::microphone::set_state(bool on) noexcept {
         return false; // Can't set the state
     }
 
+    if (_microphone_interface->get_mic_state(_microphone_handle) == on) {
+        // If the microphone is already in the desired state...
+        return true; // Good; we want it in that state anyway
+    }
+
     return _microphone_interface->set_mic_state(_microphone_handle, on);
 }
 optional<bool> retro::microphone::get_state() noexcept
