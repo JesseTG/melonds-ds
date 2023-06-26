@@ -586,7 +586,6 @@ static void melonds::init_gba_save(
     rzipstream_close(gba_save_file);
 }
 
-// TODO: Support loading the firmware without a ROM
 static void melonds::load_games(
     const optional<struct retro_game_info> &nds_info,
     const optional<struct retro_game_info> &gba_info,
