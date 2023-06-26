@@ -99,6 +99,7 @@ namespace Config::Retro {
 
     // The number of frames to wait for the save data buffer to not change before saving.
     extern int FlushDelay;
+    extern unsigned PowerStatusUpdateInterval;
 
     GPU::RenderSettings RenderSettings();
 }

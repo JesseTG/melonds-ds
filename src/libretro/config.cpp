@@ -99,6 +99,7 @@ namespace Config {
         melonds::Renderer ConfiguredRenderer;
         float CursorSize = 2.0;
         int FlushDelay = 120; // TODO: Make configurable
+        unsigned PowerStatusUpdateInterval = 60 * 5; // TODO: Make configurable
 
         namespace Category {
             static const char* const VIDEO = "video";

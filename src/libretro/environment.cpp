@@ -42,6 +42,7 @@ namespace retro {
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
+    static bool _supports_power_status;
 
     // Cached so that the save directory won't change during a session
     static optional<string> _save_directory;
@@ -295,6 +296,16 @@ const optional<string>& retro::get_system_directory() {
     return _system_directory;
 }
 
+bool retro::supports_power_status() noexcept {
+    return _supports_power_status;
+}
+
+optional<struct retro_device_power_status> retro::get_power_status() noexcept {
+    struct retro_device_power_status power_status;
+    bool success = environment(RETRO_ENVIRONMENT_GET_POWER_STATUS, &power_status);
+    return success ? std::make_optional(power_status) : nullopt;
+}
+
 void retro::clear_environment() {
     _save_directory = nullopt;
     _system_directory = nullopt;
@@ -343,6 +354,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         filestream_vfs_init(&vfs);
 
     retro::microphone::init_interface();
+
+    retro::_supports_power_status = environment(RETRO_ENVIRONMENT_GET_POWER_STATUS, nullptr);
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {

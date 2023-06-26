@@ -54,6 +54,9 @@ namespace retro {
     const std::optional<std::string>& get_save_directory();
     const std::optional<std::string>& get_system_directory();
 
+    bool supports_power_status() noexcept;
+    std::optional<struct retro_device_power_status> get_power_status() noexcept;
+
     void clear_environment();
 }
 
