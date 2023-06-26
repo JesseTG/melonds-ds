@@ -105,6 +105,7 @@ namespace Config {
             static const char* const AUDIO = "audio";
             static const char* const SYSTEM = "system";
             static const char* const SAVE = "save";
+            static const char* const DSI = "dsi";
             static const char* const SCREEN = "screen";
         }
 
@@ -130,7 +131,6 @@ namespace Config {
             static const char* const RANDOMIZE_MAC_ADDRESS = "melonds_randomize_mac_address";
             static const char* const TOUCH_MODE = "melonds_touch_mode";
             static const char* const MIC_INPUT_BUTTON = "melonds_mic_input_active";
-            static const char* const DSI_SDCARD = "melonds_dsi_sdcard";
             static const char* const MIC_INPUT = "melonds_mic_input";
             static const char* const AUDIO_BITDEPTH = "melonds_audio_bitdepth";
             static const char* const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
@@ -140,6 +140,10 @@ namespace Config {
             static const char* const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
             static const char* const HOMEBREW_DEDICATED_CARD_SIZE = "melonds_homebrew_dedicated_sdcard_size";
             static const char* const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
+            static const char* const DSI_SD_SAVE_MODE = "melonds_dsi_sdcard";
+            static const char* const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
+            static const char* const DSI_SD_DEDICATED_CARD_SIZE = "melonds_dsi_sdcard_dedicated_sdcard_size";
+            static const char* const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";
         }
 
         namespace Values {
@@ -190,6 +194,7 @@ namespace melonds::config {
     static void check_system_options(bool initializing) noexcept;
     static void check_audio_options(bool initializing) noexcept;
     static void check_homebrew_save_options(bool initializing) noexcept;
+    static void check_dsi_sd_options(bool initializing) noexcept;
 
     static void apply_audio_options(bool initializing) noexcept;
 }
@@ -469,14 +474,9 @@ void melonds::update_variables(bool init) noexcept {
     }
 #endif
 
-    var.key = Keys::DSI_SDCARD;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        Config::DSiSDEnable = string_is_equal(var.value, Values::ENABLED);
-    }
-
-
     config::check_system_options(init);
     config::check_homebrew_save_options(init);
+    config::check_dsi_sd_options(init);
     config::check_audio_options(init);
 
     input_state.current_touch_mode = new_touch_mode;
@@ -793,6 +793,140 @@ static void melonds::config::check_homebrew_save_options(bool initializing) noex
     retro::log(RETRO_LOG_DEBUG, "DLDIFolderPath: %s", Config::DLDIFolderPath.c_str());
 }
 
+/**
+ * Reads the frontend's saved DSi save data options and applies them to the emulator.
+ * @param initializing Whether the emulator is initializing a game.
+ * If false, the emulator will not update options that require a restart to take effect.
+ */
+static void melonds::config::check_dsi_sd_options(bool initializing) noexcept {
+    using namespace Config::Retro;
+    using retro::environment;
+    using retro::get_variable;
+    using retro::set_variable;
+
+    if (!initializing)
+        return;
+    // All of these options take effect when a game starts, so there's no need to update them mid-game
+
+    const optional<struct retro_game_info>& game_info = retro::content::get_loaded_nds_info();
+
+    if (!game_info)
+        // If there's no game loaded, there's no need to update the save mode
+        return;
+
+    struct retro_variable var = {nullptr, nullptr};
+
+    var.key = Keys::DSI_SD_READ_ONLY;
+    if (get_variable(&var) && var.value) {
+        Config::DSiSDReadOnly = string_is_equal(var.value, Values::ENABLED);
+    } else {
+        Config::DSiSDReadOnly = false;
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::DSI_SD_READ_ONLY, Values::DISABLED);
+    }
+
+    var.key = Keys::DSI_SD_SYNC_TO_HOST;
+    if (get_variable(&var) && var.value) {
+        Config::DSiSDFolderSync = string_is_equal(var.value, Values::ENABLED);
+    } else {
+        Config::DSiSDFolderSync = false;
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::DSI_SD_SYNC_TO_HOST, Values::DISABLED);
+    }
+
+    var.key = Keys::DSI_SD_DEDICATED_CARD_SIZE;
+    int dedicated_card_size = 0;
+    if (get_variable(&var) && var.value) {
+        try {
+            dedicated_card_size = std::stoi(var.value);
+            switch (dedicated_card_size) {
+                case 0:
+                case 256:
+                case 512:
+                case 1024:
+                case 2048:
+                case 4096:
+                    break;
+                default:
+                    retro::warn("Invalid DSi dedicated card size \"%s\"; defaulting to Auto", var.value);
+                    dedicated_card_size = 0;
+                    break;
+            }
+        }
+        catch (...) {
+            retro::warn("Invalid DSi dedicated card size \"%s\"; defaulting to Auto", var.value);
+            dedicated_card_size = 0;
+        }
+    } else {
+        dedicated_card_size = 0;
+        retro::warn("Failed to get value for %s; defaulting to Auto", Keys::DSI_SD_DEDICATED_CARD_SIZE);
+    }
+
+    var.key = Keys::DSI_SD_SAVE_MODE;
+
+    const optional<string>& save_directory = retro::get_save_directory();
+    if (save_directory && get_variable(&var) && var.value) {
+        char game_name[256];
+        memset(game_name, 0, sizeof(game_name));
+        const char* ptr = path_basename(game_info->path);
+        strlcpy(game_name, ptr ? ptr : game_info->path, sizeof(game_name));
+        path_remove_extension(game_name);
+
+        auto set_config = [&save_directory](int size, const char* name) {
+            char sd_path[1024];
+            memset(sd_path, 0, sizeof(sd_path));
+            fill_pathname_join_special(sd_path, save_directory->c_str(), name, sizeof(sd_path));
+
+            Config::DSiSDFolderPath = string(sd_path);
+
+            strlcat(sd_path, ".dsisd", sizeof(sd_path));
+
+            Config::DSiSDPath = string(sd_path);
+            Config::DSiSDEnable = true;
+            Config::DSiSDSize = size;
+        };
+
+        if (string_is_equal(var.value, Values::DISABLED)) {
+            Config::DSiSDEnable = false;
+            Config::DSiSDSize = 0;
+            Config::DSiSDFolderPath = "";
+            Config::DSiSDPath = "";
+        } else if (string_is_equal(var.value, Values::DEDICATED)) {
+            set_config(0, game_name);
+
+            // If the SD card image exists, set the DSiSDSize to auto; else set it to the dedicated card size
+            Config::DSiSDSize = path_is_valid(Config::DSiSDPath.c_str()) ? 0 : dedicated_card_size;
+        } else if (string_is_equal(var.value, Values::SHARED256M)) {
+            set_config(256, Values::SHARED256M);
+        } else if (string_is_equal(var.value, Values::SHARED512M)) {
+            set_config(512, Values::SHARED512M);
+        } else if (string_is_equal(var.value, Values::SHARED1G)) {
+            set_config(1024, Values::SHARED1G);
+        } else if (string_is_equal(var.value, Values::SHARED2G)) {
+            set_config(2048, Values::SHARED2G);
+        } else if (string_is_equal(var.value, Values::SHARED4G)) {
+            set_config(4096, Values::SHARED4G);
+        } else {
+            retro::warn("Invalid homebrew save mode \"%s\"; defaulting to %s", var.value, Values::DEDICATED);
+            set_config(0, game_name);
+
+            // If the SD card image exists, set the DSiSDSize to auto; else set it to the dedicated card size
+            Config::DSiSDSize = path_is_valid(Config::DSiSDPath.c_str()) ? 0 : dedicated_card_size;
+        }
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SAVE_MODE, Values::DISABLED);
+        Config::DSiSDEnable = false;
+        Config::DSiSDSize = 0;
+        Config::DSiSDFolderPath = "";
+        Config::DSiSDPath = "";
+    }
+
+    retro::log(RETRO_LOG_DEBUG, "DSiSDEnable: %s", Config::DSiSDEnable ? "true" : "false");
+    retro::log(RETRO_LOG_DEBUG, "DSiSDReadOnly: %s", Config::DSiSDReadOnly ? "true" : "false");
+    retro::log(RETRO_LOG_DEBUG, "DSiSDFolderSync: %s", Config::DSiSDFolderSync ? "true" : "false");
+    retro::log(RETRO_LOG_DEBUG, "DSiSDSize: %d", Config::DSiSDSize);
+    retro::log(RETRO_LOG_DEBUG, "DSiSDPath: %s", Config::DSiSDPath.c_str());
+    retro::log(RETRO_LOG_DEBUG, "DSiSDFolderPath: %s", Config::DSiSDFolderPath.c_str());
+}
+
 static void melonds::config::apply_audio_options(bool initializing) noexcept {
     if (retro::microphone::is_interface_available()) {
         bool is_using_host_mic = static_cast<MicInputMode>(Config::MicInputType) == MicInputMode::HostMic;
@@ -818,6 +952,11 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "system",
         "System",
         "Change system settings."
+    },
+    {
+        Config::Retro::Category::DSI,
+        "DSi",
+        "Change system settings specific to the Nintendo DSi."
     },
     {
         "video",
@@ -938,20 +1077,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Values::DISABLED
     },
     {
-        Config::Retro::Keys::DSI_SDCARD,
-        "Enable DSi SD Card",
-        nullptr,
-        nullptr,
-        nullptr,
-        "system",
-        {
-            {Config::Retro::Values::DISABLED, nullptr},
-            {Config::Retro::Values::ENABLED, nullptr},
-            {nullptr, nullptr},
-        },
-        Config::Retro::Values::DISABLED
-    },
-    {
         Config::Retro::Keys::USE_EXTERNAL_BIOS,
         "Use external BIOS if available",
         nullptr,
@@ -967,6 +1092,86 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::ENABLED
+    },
+
+    // DSi
+    {
+        Config::Retro::Keys::DSI_SD_SAVE_MODE,
+        "Virtual SD Card (DSi)",
+        nullptr,
+        "Determines how the emulated DSi saves data to the virtual SD card. "
+        "If set to Disabled, the DSi won't see an SD card and data won't be saved. "
+        "If set to Dedicated, the game uses its own virtual SD card. "
+        "If set to Shared, the game uses one of five shared virtual SD cards (each of which is a different size). "
+        "Card images are dynamically-sized, so they'll only take up as much space as they need. "
+        "Changing this setting does not transfer existing data. "
+        "Changes take effect with next restart.",
+        nullptr,
+        Config::Retro::Category::DSI,
+        {
+            {Config::Retro::Values::DISABLED, "Disabled"},
+            {Config::Retro::Values::SHARED256M, "Shared (256 MiB)"},
+            {Config::Retro::Values::SHARED512M, "Shared (512 MiB)"},
+            {Config::Retro::Values::SHARED1G, "Shared (1 GiB)"},
+            {Config::Retro::Values::SHARED2G, "Shared (2 GiB)"},
+            {Config::Retro::Values::SHARED4G, "Shared (4 GiB)"},
+            {Config::Retro::Values::DEDICATED, "Dedicated"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::DEDICATED
+    },
+    {
+        Config::Retro::Keys::DSI_SD_READ_ONLY,
+        "Read-Only Mode (DSi)",
+        nullptr,
+        "If enabled, the emulated DSi sees the virtual SD card as read-only. "
+        "Changes take effect with next restart.",
+        nullptr,
+        Config::Retro::Category::DSI,
+        {
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::DISABLED
+    },
+    {
+        Config::Retro::Keys::DSI_SD_SYNC_TO_HOST,
+        "Sync SD Card to Host (DSi)",
+        nullptr,
+        "If enabled, the virtual SD card's files will be synced to this core's save directory. "
+        "Enable this if you want to add files to the virtual SD card from outside the core. "
+        "Syncing happens when loading and unloading a game, "
+        "so external changes won't have any effect while the core is running. "
+        "Takes effect at the next boot. "
+        "Adjusting this setting may overwrite existing save data.",
+        nullptr,
+        Config::Retro::Category::DSI,
+        {
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::DISABLED
+    },
+    {
+        Config::Retro::Keys::DSI_SD_DEDICATED_CARD_SIZE,
+        "Dedicated SD Card Size (DSi)",
+        nullptr,
+        "The size of new dedicated virtual SD cards. "
+        "Will not alter the size of existing card images.",
+        nullptr,
+        Config::Retro::Category::DSI,
+        {
+            {"0", "Auto"},
+            {"256", "256 MiB"},
+            {"512", "512 MiB"},
+            {"1024", "1 GiB"},
+            {"2048", "2 GiB"},
+            {"4096", "4 GiB"},
+            {nullptr, nullptr},
+        },
+        "0",
     },
 
     // Video
@@ -1343,6 +1548,8 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         "Bottom"
     },
+
+    // Homebrew Save Data
     {
         Config::Retro::Keys::HOMEBREW_SAVE_MODE,
         "Virtual SD Card",
