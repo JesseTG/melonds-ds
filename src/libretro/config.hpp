@@ -77,15 +77,14 @@ namespace melonds {
         BlowNoise,
     };
 
-    /// The order of these values is important.
     enum class FirmwareLanguage
     {
-        Japanese,
-        English,
-        French,
-        German,
-        Italian,
-        Spanish,
+        Japanese = 0,
+        English = 1,
+        French = 2,
+        German = 3,
+        Italian = 4,
+        Spanish = 5,
     };
 }
 
