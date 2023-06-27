@@ -6,9 +6,16 @@ if (CMAKE_MESSAGE_LOG_LEVEL)
     message(STATUS "Message log level is set to ${CMAKE_MESSAGE_LOG_LEVEL}")
 endif ()
 
+set(DESCRIPTION "\
+An enhanced remake of the melonDS core for libretro that prioritizes upstream compatibility. \
+This core supports a variety of modern features, like hardware-accelerated internal res increases, \
+as well as increased accuracy for some popular games. \
+While not as mature as Desmume--and therefore not as compatible with the DS library as a whole--this core is a good first choice to try, \
+with the Desmume core(s) as a fallback.\
+")
 project("melonDS DS"
     VERSION 0.0.0
-    DESCRIPTION "An enhanced remake of the melonDS core for libretro that prioritizes upstream compatibility."
+    DESCRIPTION "${DESCRIPTION}"
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
 
