@@ -37,6 +37,7 @@
 #include <GBACart.h>
 #include <retro_assert.h>
 #include <retro_miscellaneous.h>
+#include <string/stdstring.h>
 
 #include "opengl.hpp"
 #include "content.hpp"
@@ -656,12 +657,11 @@ static void melonds::load_games(
 
 
 static void melonds::init_firmware_overrides() {
-    // TODO: Ensure that the username is non-empty
     // TODO: Make firmware overrides configurable
     // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
 
     const char *retro_username;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username)
+    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username && !string_is_empty(retro_username))
         Config::FirmwareUsername = retro_username;
     else
         Config::FirmwareUsername = "melonDS";
