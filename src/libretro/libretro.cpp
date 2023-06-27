@@ -161,9 +161,10 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
 
     return true;
 }
-catch (const melonds::invalid_rom_exception &e) {
+catch (const melonds::emulator_exception &e) {
     // Thrown for invalid ROMs
-    retro::set_error_message(e.what());
+    retro::error("%s", e.what());
+    retro::set_error_message(e.user_message());
     _loaded_nds_cart.reset();
     _loaded_gba_cart.reset();
     return false;

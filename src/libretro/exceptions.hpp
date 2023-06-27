@@ -23,10 +23,30 @@
 
 namespace melonds
 {
-    // TODO: Allow separate strings for user-facing and log-facing messages
-    class invalid_rom_exception : public std::runtime_error {
+    class emulator_exception : public std::runtime_error {
     public:
-        explicit invalid_rom_exception(const std::string &what_arg) : std::runtime_error(what_arg) {}
+        explicit emulator_exception(const std::string &what_arg) : std::runtime_error(what_arg), _user_message(what_arg) {}
+        emulator_exception(const std::string &what_arg, const std::string &user_message) : std::runtime_error(what_arg), _user_message(user_message) {}
+
+        const char *user_message() const noexcept {
+            return _user_message.c_str();
+        }
+    private:
+        std::string _user_message;
+    };
+
+    /// Thrown when attempting to load a file that is not a valid NDS or GBA ROM.
+    class invalid_rom_exception : public emulator_exception {
+    public:
+        explicit invalid_rom_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
+        invalid_rom_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
+    };
+
+    /// Thrown when attempting to use FreeBIOS with unsupported functionality.
+    class unsupported_bios_exception : public emulator_exception {
+    public:
+        explicit unsupported_bios_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
+        unsupported_bios_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
     };
 }
 
