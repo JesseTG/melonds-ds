@@ -174,6 +174,7 @@ This is a rough roadmap for achieving that goal:
 8. Add support for DSi mode (including DSiWare),
    subject to the limitations described in [the Missing Features section](#missing-features).
 9. Add support for the DSi camera using `retro_camera_callback`.
+10. Support Action Replay cheat codes.
 
 # Building
 
