@@ -2,7 +2,7 @@
 display_name = "Nintendo - DS (melonDS DS)"
 authors = "Jesse Talavera-Greenberg, Arisotura"
 supported_extensions = "nds|ids|dsi"
-corename = "melonDS"
+corename = "melonDS DS"
 manufacturer = "Nintendo"
 categories = "Emulator"
 systemname = "Nintendo DS"
