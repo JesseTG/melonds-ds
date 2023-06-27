@@ -48,7 +48,7 @@ jobs:
         run: |
           mkdir -pv "$ZIP_ROOT"
           cp -f "$BUILD_DIR/src/libretro/melondsds_libretro.dylib" "$ZIP_ROOT"
-          cp -f "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
+          cp -f "$BUILD_DIR/melondsds_libretro.info" "$ZIP_ROOT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release

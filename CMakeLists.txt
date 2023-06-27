@@ -84,7 +84,7 @@ FetchContent_GetProperties(libretro-common)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${CMAKE_MODULE_PATH}")
 FetchContent_MakeAvailable(melonDS libretro-common)
 
-
+configure_file("${CMAKE_SOURCE_DIR}/melondsds_libretro.info.in" "${CMAKE_BINARY_DIR}/melondsds_libretro.info")
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/libretro-common.cmake)
 include(cmake/utils.cmake)
