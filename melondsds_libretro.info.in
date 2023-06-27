@@ -1,4 +1,3 @@
-# TODO: Generate this file with CMake
 display_name = "Nintendo - DS (melonDS DS)"
 authors = "Jesse Talavera-Greenberg, Arisotura"
 supported_extensions = "nds|ids|dsi"
