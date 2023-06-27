@@ -323,6 +323,9 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void*) melonds::content_overrides);
     environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*) melonds::ports);
 
+    bool yes = true;
+    environment(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &yes);
+
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
         retro::_log = log_callback.log;
