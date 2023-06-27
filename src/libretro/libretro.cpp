@@ -579,9 +579,9 @@ static void melonds::init_gba_save(
     }
 
     melonds::GbaSaveManager->SetSaveSize(gba_save_file_size);
-    gba_cart.Cart()->SetupSave(gba_save_file_size);
-    gba_cart.Cart()->LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
-    retro::debug("Allocated %u-byte GBA SRAM", gba_cart.Cart()->GetSaveMemoryLength());
+    gba_cart.GetCart()->SetupSave(gba_save_file_size);
+    gba_cart.GetCart()->LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
+    retro::debug("Allocated %u-byte GBA SRAM", gba_cart.GetCart()->GetSaveMemoryLength());
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);
@@ -671,7 +671,7 @@ static void melonds::init_firmware_overrides() {
 // But it will allocate the SRAM buffer
 static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
     using std::runtime_error;
-     if (nds_cart.Header().IsHomebrew()) {
+     if (nds_cart.GetHeader().IsHomebrew()) {
          // If this is a homebrew ROM...
 
          // Homebrew is a special case, as it uses an SD card rather than SRAM.
@@ -688,7 +688,7 @@ static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
      }
      else {
         // Get the length of the ROM's SRAM, if any
-        u32 sram_length = _loaded_nds_cart->Cart()->GetSaveMemoryLength();
+        u32 sram_length = _loaded_nds_cart->GetCart()->GetSaveMemoryLength();
         NdsSaveManager->SetSaveSize(sram_length);
 
         if (sram_length > 0) {
