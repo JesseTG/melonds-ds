@@ -47,7 +47,7 @@ bool melonds::render::ReadyToRender() {
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
 // TODO: Pass input state and screen layout as an argument
-void melonds::render::RenderSoftware() {
+void melonds::render::RenderSoftware(const InputState& input_state) {
     int frontbuf = GPU::FrontBuffer;
 
     if (screen_layout_data.hybrid) {

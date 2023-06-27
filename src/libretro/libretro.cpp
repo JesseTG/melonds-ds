@@ -98,7 +98,7 @@ namespace melonds {
 
     // functions for running games
     static void read_microphone(melonds::InputState& input_state) noexcept;
-    static void render_frame();
+    static void render_frame(const InputState& input_state);
     static void render_audio();
     static void flush_save_data() noexcept;
     static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
@@ -335,7 +335,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         NDS::RunFrame();
 
         // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
-        melonds::render_frame();
+        melonds::render_frame(input_state);
         melonds::render_audio();
         melonds::flush_save_data();
     }
@@ -406,16 +406,16 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
     }
 }
 
-static void melonds::render_frame() {
+static void melonds::render_frame(const InputState& input_state) {
     switch (Config::Retro::CurrentRenderer) {
 #ifdef HAVE_OPENGL
         case Renderer::OpenGl:
-            melonds::opengl::render_frame();
+            melonds::opengl::render_frame(input_state);
             break;
 #endif
         case Renderer::Software:
         default:
-            render::RenderSoftware();
+            render::RenderSoftware(input_state);
             break;
     }
 }
