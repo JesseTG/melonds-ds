@@ -469,9 +469,9 @@ PUBLIC_SYMBOL unsigned retro_api_version(void) {
 }
 
 PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
-    info->library_name = "melonDS DS";
+    info->library_name = MELONDSDS_NAME;
     info->block_extract = false;
-    info->library_version = "TODO: Version number";
+    info->library_version = MELONDSDS_VERSION;
     info->need_fullpath = false;
     info->valid_extensions = "nds|ids|dsi";
 }
