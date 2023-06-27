@@ -1011,9 +1011,12 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Boot Game Directly",
         nullptr,
         "If enabled, melonDS will bypass the native DS menu and boot the loaded game directly. "
-        "If disabled, compatible BIOS and firmware files must be provided in the system directory. "
-        "Ignored if the core is loaded without a game, "
-        "or if suitable BIOS/firmware files weren't found.",
+        "If disabled, native BIOS and firmware files must be provided in the system directory. "
+        "Ignored if any of the following is true:\n"
+        "\n"
+        "- The core is loaded without a game\n"
+        "- Native BIOS/firmware files weren't found\n"
+        "- The loaded game is a DSiWare game\n",
         nullptr,
         Config::Retro::Category::SYSTEM,
         {
