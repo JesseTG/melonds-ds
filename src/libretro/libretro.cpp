@@ -711,8 +711,7 @@ static void melonds::init_bios(bool ds_game_loaded) {
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
         // so we have to do it ourselves
 
-        // TODO: Don't always check all files; just check for the ones we need
-        // based on the console type
+        // TODO: Check for the DSi firmware/BIOS/NAND if in DSi mode
         std::array<std::string, 3> required_roms = {Config::BIOS7Path, Config::BIOS9Path, Config::FirmwarePath};
         std::vector<std::string> missing_roms;
 
