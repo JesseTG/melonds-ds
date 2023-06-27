@@ -8,6 +8,8 @@ add_library(libretro MODULE
     config.hpp
     content.cpp
     content.hpp
+    dsi.cpp
+    dsi.hpp
     environment.cpp
     environment.hpp
     exceptions.hpp
