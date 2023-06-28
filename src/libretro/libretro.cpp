@@ -51,6 +51,7 @@
 #include "render.hpp"
 #include "exceptions.hpp"
 #include "microphone.hpp"
+#include "dsi.hpp"
 
 using std::optional;
 using std::nullopt;
@@ -84,7 +85,8 @@ namespace melonds {
     static void init_nds_save(const NDSCartData &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
     static void init_gba_save(GBACartData &gba_cart, const struct retro_game_info& gba_save_info);
-    static void init_bios(bool ds_game_loaded);
+    static void init_nds_bios(bool ds_game_loaded);
+    static void init_dsi_bios();
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
@@ -615,7 +617,10 @@ static void melonds::load_games(
         retro_assert(_loaded_nds_cart != nullptr);
         retro_assert(_loaded_nds_cart->IsValid());
 
-        init_nds_save(*_loaded_nds_cart);
+        if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
+            // If this ROM represents DSiWare (rather than a cartridge)...
+            init_nds_save(*_loaded_nds_cart);
+        }
     }
 
     if (gba_info) {
@@ -633,7 +638,17 @@ static void melonds::load_games(
         }
     }
 
-    init_bios(nds_info != nullopt);
+    switch (Config::ConsoleType) {
+        case ConsoleType::DS:
+            init_nds_bios(nds_info != nullopt);
+            break;
+        case ConsoleType::DSi:
+            init_dsi_bios();
+            break;
+        default:
+            retro_assert(false);
+    }
+
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
     init_rendering();
@@ -701,8 +716,9 @@ static void melonds::init_nds_save(const NDSCart::NDSCartData &nds_cart) {
     }
 }
 
-static void melonds::init_bios(bool ds_game_loaded) {
+static void melonds::init_nds_bios(bool ds_game_loaded) {
     using retro::log;
+    retro_assert(Config::ConsoleType == ConsoleType::DS);
 
     // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
     if (Config::ExternalBIOSEnable) {
@@ -711,17 +727,16 @@ static void melonds::init_bios(bool ds_game_loaded) {
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
         // so we have to do it ourselves
 
-        // TODO: Check for the DSi firmware/BIOS/NAND if in DSi mode
-        std::array<std::string, 3> required_roms = {Config::BIOS7Path, Config::BIOS9Path, Config::FirmwarePath};
-        std::vector<std::string> missing_roms;
+        std::array<const std::string*, 3> required_roms = {&Config::BIOS7Path, &Config::BIOS9Path, &Config::FirmwarePath};
+        std::vector<const std::string*> missing_roms;
 
         // Check if any of the bioses / firmware files are missing
-        for (std::string &rom: required_roms) {
-            if (Platform::LocalFileExists(rom)) {
-                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
+        for (const std::string* rom: required_roms) {
+            if (Platform::LocalFileExists(*rom)) {
+                log(RETRO_LOG_INFO, "Found %s", rom->c_str());
             } else {
                 missing_roms.push_back(rom);
-                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
+                log(RETRO_LOG_WARN, "Could not find %s", rom->c_str());
             }
         }
 
@@ -741,7 +756,7 @@ static void melonds::init_bios(bool ds_game_loaded) {
 
         if (!ds_game_loaded) {
             // If we're not loading a DS game...
-            throw std::runtime_error("Booting without content requires a native BIOS.");
+            throw melonds::unsupported_bios_exception("Booting without content requires a native BIOS.");
         }
         else if (_loaded_gba_cart) {
             // If we're using FreeBIOS and are trying to load a GBA cart...
@@ -750,6 +765,36 @@ static void melonds::init_bios(bool ds_game_loaded) {
                 "Please install a native BIOS and enable it in the options menu."
             );
         }
+    }
+}
+
+static void melonds::init_dsi_bios() {
+    using retro::info;
+    using retro::warn;
+
+    retro_assert(Config::ConsoleType == ConsoleType::DSi);
+    if (!Config::ExternalBIOSEnable) {
+        throw melonds::unsupported_bios_exception("DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
+    }
+
+    std::array<const std::string*, 4> required_roms = {&Config::DSiBIOS7Path, &Config::DSiBIOS9Path, &Config::DSiFirmwarePath, &Config::DSiNANDPath};
+    std::vector<std::string> missing_roms;
+
+    // Check if any of the bioses / firmware files are missing
+    for (const std::string* rom: required_roms) {
+        if (Platform::LocalFileExists(*rom)) {
+            info("Found %s", rom->c_str());
+        } else {
+            missing_roms.push_back(*rom);
+            warn("Could not find %s", rom->c_str());
+        }
+    }
+
+    // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
+
+    // Abort if there are any of the required roms are missing
+    if (!missing_roms.empty()) {
+        throw melonds::missing_bios_exception(std::move(missing_roms));
     }
 }
 
