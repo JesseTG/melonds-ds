@@ -31,6 +31,8 @@ namespace melonds
         const char *user_message() const noexcept {
             return _user_message.c_str();
         }
+    protected:
+        emulator_exception() : std::runtime_error(""), _user_message("") {}
     private:
         std::string _user_message;
     };
