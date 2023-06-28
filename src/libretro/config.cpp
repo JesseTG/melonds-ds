@@ -1086,6 +1086,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "If enabled, melonDS will attempt to load a BIOS file from the system directory. "
         "If no valid BIOS is present, melonDS will fall back to its built-in FreeBIOS. "
         "Note that GBA connectivity requires a native BIOS. "
+        "Takes effect at the next restart. "
         "If unsure, leave this enabled.",
         nullptr,
         "system",
