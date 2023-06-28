@@ -91,7 +91,6 @@ namespace melonds {
         const optional<retro_game_info>& gba_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
-    static void init_microphone();
     static void install_sram(
         const optional<retro_game_info>& nds_info,
         const optional<retro_game_info>& gba_info
