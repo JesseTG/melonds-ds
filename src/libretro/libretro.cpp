@@ -630,7 +630,7 @@ static void melonds::load_games(
             verify_nds_bios(nds_info != nullopt);
             break;
         case ConsoleType::DSi:
-            init_dsi_bios();
+            verify_dsi_bios();
             break;
         default:
             retro_assert(false);
