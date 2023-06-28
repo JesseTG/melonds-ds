@@ -82,8 +82,8 @@ namespace melonds {
     static void init_nds_save(const NdsCart &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
     static void init_gba_save(GbaCart &gba_cart, const struct retro_game_info& gba_save_info);
-    static void init_nds_bios(bool ds_game_loaded);
-    static void init_dsi_bios();
+    static void verify_nds_bios(bool ds_game_loaded);
+    static void verify_dsi_bios();
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
@@ -627,7 +627,7 @@ static void melonds::load_games(
 
     switch (Config::ConsoleType) {
         case ConsoleType::DS:
-            init_nds_bios(nds_info != nullopt);
+            verify_nds_bios(nds_info != nullopt);
             break;
         case ConsoleType::DSi:
             init_dsi_bios();
@@ -706,7 +706,7 @@ static void melonds::init_nds_save(const NdsCart &nds_cart) {
     }
 }
 
-static void melonds::init_nds_bios(bool ds_game_loaded) {
+static void melonds::verify_nds_bios(bool ds_game_loaded) {
     using retro::log;
     retro_assert(Config::ConsoleType == ConsoleType::DS);
 
@@ -758,7 +758,7 @@ static void melonds::init_nds_bios(bool ds_game_loaded) {
     }
 }
 
-static void melonds::init_dsi_bios() {
+static void melonds::verify_dsi_bios() {
     using retro::info;
     using retro::warn;
 
