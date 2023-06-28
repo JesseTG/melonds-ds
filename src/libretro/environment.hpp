@@ -59,6 +59,8 @@ namespace retro {
     std::optional<struct retro_device_power_status> get_power_status() noexcept;
 
     void clear_environment();
+
+    extern int TimeToPowerStatusUpdate;
 }
 
 #endif //MELONDS_DS_ENVIRONMENT_HPP

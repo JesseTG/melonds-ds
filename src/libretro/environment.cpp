@@ -305,6 +305,8 @@ const optional<string>& retro::get_system_directory() {
     return _system_directory;
 }
 
+int retro::TimeToPowerStatusUpdate;
+
 bool retro::supports_power_status() noexcept {
     return _supports_power_status;
 }
@@ -371,7 +373,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     retro::microphone::init_interface();
 
-    retro::_supports_power_status = environment(RETRO_ENVIRONMENT_GET_POWER_STATUS, nullptr);
+    retro::_supports_power_status |= environment(RETRO_ENVIRONMENT_GET_POWER_STATUS, nullptr);
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {
