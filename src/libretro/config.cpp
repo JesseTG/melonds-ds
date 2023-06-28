@@ -15,6 +15,7 @@
 */
 
 #include "config.hpp"
+#include <charconv>
 #include <cstring>
 #include <frontend/qt_sdl/Config.h>
 #include <GPU.h>
@@ -28,7 +29,9 @@
 #include "input.hpp"
 #include "opengl.hpp"
 #include "microphone.hpp"
+#include "utils.hpp"
 
+using std::from_chars;
 using std::string;
 using std::optional;
 
@@ -93,6 +96,7 @@ namespace Config {
 
     namespace Retro {
         melonds::MicButtonMode MicButtonMode = melonds::MicButtonMode::Hold;
+        int DsPowerOkThreshold = 15;
         bool RandomizeMac = false;
         melonds::ScreenSwapMode ScreenSwapMode;
         melonds::Renderer CurrentRenderer;
@@ -145,6 +149,7 @@ namespace Config {
             static const char* const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
             static const char* const DSI_SD_DEDICATED_CARD_SIZE = "melonds_dsi_sdcard_dedicated_sdcard_size";
             static const char* const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";
+            static const char* const DS_POWER_OKAY = "melonds_ds_power_okay";
         }
 
         namespace Values {
@@ -588,6 +593,19 @@ static void melonds::config::check_system_options(bool initializing) noexcept {
     else {
         retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::ENABLED);
         Config::ExternalBIOSEnable = true;
+    }
+
+    var.key = Keys::DS_POWER_OKAY;
+    if (retro::get_variable(&var) && var.value) {
+        auto result = std::from_chars(var.value, var.value + strlen(var.value), Config::Retro::DsPowerOkThreshold);
+        if (result.ec == std::errc::invalid_argument || !utils::in_range(Config::Retro::DsPowerOkThreshold, 0, 100)) {
+            retro::warn("Invalid power threshold \"%s\"; defaulting to 20%%", var.value);
+            Config::Retro::DsPowerOkThreshold = 20;
+        }
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to 20%%", var.key);
+        Config::Retro::DsPowerOkThreshold = 20;
     }
 }
 
@@ -1098,7 +1116,33 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         Config::Retro::Values::ENABLED
     },
-
+    {
+        Config::Retro::Keys::DS_POWER_OKAY,
+        "DS Low Battery Threshold",
+        nullptr,
+        "If the host's battery level falls below this percentage, "
+        "the emulated DS will report that its battery level is low. "
+        "Ignored if running in DSi mode, "
+        "no battery is available, "
+        "or the frontend can't query the power status.",
+        nullptr,
+        Config::Retro::Category::SYSTEM,
+        {
+            {"0", "Always OK"},
+            {"10", "10%"},
+            {"20", "20%"},
+            {"30", "30%"},
+            {"40", "40%"},
+            {"50", "50%"},
+            {"60", "60%"},
+            {"70", "70%"},
+            {"80", "80%"},
+            {"90", "90%"},
+            {"100", "Always Low"},
+            {nullptr, nullptr},
+        },
+        "20"
+    },
     // DSi
     {
         Config::Retro::Keys::DSI_SD_SAVE_MODE,
