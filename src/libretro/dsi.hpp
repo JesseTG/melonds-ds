@@ -14,28 +14,17 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_LIBRETRO_HPP
-#define MELONDS_DS_LIBRETRO_HPP
+#ifndef MELONDS_DS_DSI_HPP
+#define MELONDS_DS_DSI_HPP
 
 #include <libretro.h>
-#ifdef HAVE_OPENGL
-#include <glsym/glsym.h>
-#endif
-
+#include <NDS_Header.h>
 #include <NDSCart.h>
-#include <GBACart.h>
 
-/**!
- * Contains global state that's accessible to the entire core.
- */
+#include "libretro.hpp"
 
-#define PUBLIC_SYMBOL [[maybe_unused]]
-
-#ifndef GIT_VERSION
-#define GIT_VERSION ""
-#endif
-
-using NdsCart = NDSCart::CartCommon;
-using GbaCart = GBACart::CartCommon;
-
-#endif //MELONDS_DS_LIBRETRO_HPP
+namespace melonds::dsi {
+    void install_dsiware(const retro_game_info& nds_info, const NdsCart& cart);
+    void uninstall_dsiware();
+}
+#endif //MELONDS_DS_DSI_HPP

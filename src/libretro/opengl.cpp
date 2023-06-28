@@ -95,9 +95,8 @@ bool melonds::opengl::initialize() {
     return glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
 }
 
-void melonds::opengl::render_frame() {
+void melonds::opengl::render_frame(const InputState& input_state) {
     using melonds::screen_layout_data;
-    using melonds::input_state;
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
     int frontbuf = GPU::FrontBuffer;

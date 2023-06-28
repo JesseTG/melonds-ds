@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - repo: https://github.com/JesseTG/melonDS.git
-            commit: 9703712
+            commit: 5679b2f
             release: true
           - repo: https://github.com/melonDS-emu/melonDS.git
             commit: master
@@ -58,7 +58,7 @@ jobs:
         run: |
           mkdir --parents "$CORES_PATH" "$INFO_PATH"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.dll" "$CORES_PATH"
-          cp --force "${{github.workspace}}/melondsds_libretro.info" "$INFO_PATH"
+          cp --force "$BUILD_DIR/melondsds_libretro.info" "$INFO_PATH"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release

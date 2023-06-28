@@ -1,19 +1,32 @@
-# TODO: Generate this file with CMake
-display_name = "Nintendo - DS (melonDS DS)"
-authors = "Jesse Talavera-Greenberg, Arisotura"
+# Software Information
+display_name = "Nintendo - DS (@CMAKE_PROJECT_NAME@)"
+authors = "Jesse Talavera-Greenberg|Arisotura"
 supported_extensions = "nds|ids|dsi"
-corename = "melonDS"
-manufacturer = "Nintendo"
+corename = "@CMAKE_PROJECT_NAME@"
 categories = "Emulator"
-systemname = "Nintendo DS"
-systemid = "nds"
-database = "Nintendo - Nintendo DS|Nintendo - Nintendo DS (Download Play)|Nintendo - Nintendo DSi|Nintendo - Nintendo DSi Decrypted|Nintendo - Nintendo DSi (Digital)"
 license = "GPLv3"
 permissions = ""
-display_version = "Git"
-supports_no_game = "false"
+display_version = "@CMAKE_PROJECT_VERSION@"
+
+# Hardware Information
+manufacturer = "Nintendo"
+systemname = "Nintendo DS"
+systemid = "nds"
+
+# Libretro Features
+core_options = "true"
+core_options_version = "2.0"
+database = "Nintendo - Nintendo DS|Nintendo - Nintendo DS (Download Play)|Nintendo - Nintendo DSi|Nintendo - Nintendo DSi Decrypted|Nintendo - Nintendo DSi (Digital)"
 hw_render = "true"
+input_descriptors = "true"
+libretro_saves = "true"
+load_subsystem = "true"
+needs_fullpath = "false"
 required_hw_api = "OpenGL Core >= 3.1"
+savestate = "true"
+savestate_features = "serialized"
+single_purpose = "false"
+supports_no_game = "true"
 
 # Firmware / BIOS
 firmware_count = 8
@@ -38,9 +51,6 @@ firmware5_opt = "true"
 firmware6_desc = "dsi_nand.bin (DSi NAND)"
 firmware6_path = "dsi_nand.bin"
 firmware6_opt = "true"
-firmware7_desc = "dsi_sd_card.bin (DSi SD card)"
-firmware7_path = "dsi_sd_card.bin"
-firmware7_opt = "true"
 notes = "(!) bios7.bin (md5): df692a80a5b1bc90728bc3dfc76cd948|(!) bios9.bin (md5): a392174eb3e572fed6447e956bde4b25"
 
-description = "A port of the melonDS emulator to libretro. This core supports a variety of modern features, like hardware-accelerated internal res increases, as well as increased accuracy for some popular games. While not as mature as Desmume--and therefore not as compatible with the DS library as a whole--this core is a good first choice to try, with the Desmume core(s) as a fallback."
+description = "@CMAKE_PROJECT_DESCRIPTION@"

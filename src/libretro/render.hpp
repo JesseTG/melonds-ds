@@ -17,13 +17,15 @@
 #ifndef MELONDS_DS_RENDER_HPP
 #define MELONDS_DS_RENDER_HPP
 
+#include "input.hpp"
+
 namespace melonds::render {
     /// Returns true if all global state necessary for rendering is ready.
     /// This includes the OpenGL context (if applicable) and the emulator's renderer.
     bool ReadyToRender();
 
     /// Renders a frame with software rendering and submits it to libretro for display.
-    void RenderSoftware();
+    void RenderSoftware(const InputState& input_state);
 }
 
 #endif //MELONDS_DS_RENDER_HPP

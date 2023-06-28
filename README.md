@@ -166,16 +166,15 @@ This is a rough roadmap for achieving that goal:
 
 1. Attain feature parity with the [existing libretro core][melonds-libretro].
 2. Implement support for Nintendo Wi-Fi Connection.
-3. Implement microphone support.
-4. Implement support for migrating configuration from the existing core.
-5. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
-6. Get melonDS DS included in the official RetroArch distribution.
-7. Implement support for [RetroAchievements][retroachievements].
-8. Improve screen layout selection (e.g. toggling between multiple layouts, rotation).
-9. Produce builds for platforms other than Windows, macOS, and Linux.
-10. Add support for DSi mode (including DSiWare),
-    subject to the limitations described in [the Missing Features section](#missing-features).
-11. Add support for the DSi camera using `retro_camera_callback`.
+3. Implement support for migrating configuration from the existing core.
+4. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
+5. Get melonDS DS included in the official RetroArch distribution.
+6. Improve screen layout selection (e.g. toggling between multiple layouts, rotation).
+7. Produce builds for platforms other than Windows, macOS, and Linux.
+8. Add support for DSi mode (including DSiWare),
+   subject to the limitations described in [the Missing Features section](#missing-features).
+9. Add support for the DSi camera using `retro_camera_callback`.
+10. Support Action Replay cheat codes.
 
 # Building
 

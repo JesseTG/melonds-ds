@@ -17,6 +17,8 @@
 #ifndef MELONDS_DS_OPENGL_HPP
 #define MELONDS_DS_OPENGL_HPP
 
+#include "input.hpp"
+
 namespace melonds::opengl {
     // Requests that the OpenGL context be refreshed.
     void RequestOpenGlRefresh();
@@ -25,7 +27,7 @@ namespace melonds::opengl {
 
     void deinitialize();
 
-    void render_frame();
+    void render_frame(const InputState& input_state);
 
     bool ContextInitialized();
     bool UsingOpenGl();
