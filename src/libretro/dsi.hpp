@@ -21,8 +21,10 @@
 #include <NDS_Header.h>
 #include <NDSCart.h>
 
+#include "libretro.hpp"
+
 namespace melonds::dsi {
-    void install_dsiware(const retro_game_info& nds_info, const NDSCart::NDSCartData& cart);
+    void install_dsiware(const retro_game_info& nds_info, const NdsCart& cart);
     void uninstall_dsiware();
 }
 #endif //MELONDS_DS_DSI_HPP

@@ -23,7 +23,7 @@ namespace melonds::dsi {
     static bool _was_dsiware_title_installed;
 }
 
-void melonds::dsi::install_dsiware(const retro_game_info& nds_info, const NDSCart::NDSCartData& cart) {
+void melonds::dsi::install_dsiware(const retro_game_info& nds_info, const NdsCart& cart) {
     retro_assert(cart.GetHeader().IsDSiWare());
     retro_assert(DSi_NAND::GetFile() != nullptr);
     // TODO: If title is already loaded, skip this step (and don't delete it at the end)

@@ -22,6 +22,9 @@
 #include <glsym/glsym.h>
 #endif
 
+#include <NDSCart.h>
+#include <GBACart.h>
+
 /**!
  * Contains global state that's accessible to the entire core.
  */
@@ -31,5 +34,8 @@
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
 #endif
+
+using NdsCart = NDSCart::CartCommon;
+using GbaCart = GBACart::CartCommon;
 
 #endif //MELONDS_DS_LIBRETRO_HPP
