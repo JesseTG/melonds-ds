@@ -636,9 +636,6 @@ static void melonds::load_games(
             retro_assert(false);
     }
 
-//    if (nds_info && _loaded_nds_cart && _loaded_nds_cart->GetHeader().IsDSiWare()) {
-//        //dsi::install_dsiware(*_loaded_nds_cart);
-//    }
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
     init_rendering();
