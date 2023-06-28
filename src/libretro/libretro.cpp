@@ -38,6 +38,8 @@
 #include <retro_assert.h>
 #include <retro_miscellaneous.h>
 #include <string/stdstring.h>
+#include <SPI.h>
+#include <DSi_I2C.h>
 
 #include "opengl.hpp"
 #include "content.hpp"
@@ -97,6 +99,7 @@ namespace melonds {
 
     // functions for running games
     static void read_microphone(melonds::InputState& input_state) noexcept;
+    static void update_power_status();
     static void render_frame(const InputState& input_state);
     static void render_audio();
     static void flush_save_data() noexcept;
@@ -335,6 +338,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         NDS::RunFrame();
 
         // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
+        melonds::update_power_status();
         melonds::render_frame(input_state);
         melonds::render_audio();
         melonds::flush_save_data();
@@ -404,6 +408,43 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
         default:
             Frontend::Mic_FeedSilence();
     }
+}
+
+static void melonds::update_power_status() {
+    if (!retro::supports_power_status())
+        // If this frontend or device doesn't support querying the power status...
+        return;
+
+    if (retro::TimeToPowerStatusUpdate > 0) {
+        // If we'll be checking the power status soon...
+        retro::TimeToPowerStatusUpdate--;
+    }
+
+    if (retro::TimeToPowerStatusUpdate <= 0) {
+        // If it's time to check the power status...
+        optional<struct retro_device_power_status> power_status = retro::get_power_status();
+        if (power_status) {
+            // ...and the check succeeded...
+            switch (Config::ConsoleType) {
+                case ConsoleType::DS: {
+                    // If the threshold is 0, the battery level is always okay
+                    // If the threshold is 100, the battery level is never okay
+                    bool ok = power_status->state == RETRO_POWERSTATE_PLUGGED_IN || power_status->percent > Config::Retro::DsPowerOkThreshold;
+                    SPI_Powerman::SetBatteryLevelOkay(ok);
+                    break;
+                }
+                case ConsoleType::DSi: {
+                    DSi_BPTWL::SetBatteryCharging(power_status->state == RETRO_POWERSTATE_CHARGING);
+                    DSi_BPTWL::SetBatteryLevel(DSi_BPTWL::batteryLevel_Full * (power_status->percent / 100.0f));
+                    break;
+                }
+            }
+        }
+
+        retro::TimeToPowerStatusUpdate = Config::Retro::PowerStatusUpdateInterval; // Reset the timer
+    }
+
+
 }
 
 static void melonds::render_frame(const InputState& input_state) {
