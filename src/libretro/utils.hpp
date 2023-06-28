@@ -25,4 +25,13 @@
 #define PLATFORM_DIR_SEPERATOR  '/'
 #endif
 
+namespace melonds::utils {
+
+    template<class T>
+    constexpr bool in_range(T value, T min, T max) noexcept {
+        return min <= value && value <= max;
+    }
+}
+
+
 #endif //MELONDS_DS_UTILS_HPP
