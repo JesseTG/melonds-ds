@@ -17,11 +17,12 @@
 #ifndef MELONDS_DS_DSI_HPP
 #define MELONDS_DS_DSI_HPP
 
+#include <libretro.h>
 #include <NDS_Header.h>
+#include <NDSCart.h>
 
 namespace melonds::dsi {
-    bool is_dsiware(const NDSHeader& header) noexcept;
-    void install_dsiware(const struct retro_game_info &info);
+    void install_dsiware(const retro_game_info& nds_info, const NDSCart::NDSCartData& cart);
     void uninstall_dsiware();
 }
 #endif //MELONDS_DS_DSI_HPP

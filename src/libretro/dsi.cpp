@@ -17,13 +17,15 @@
 #include "dsi.hpp"
 
 #include <DSi_NAND.h>
+#include <retro_assert.h>
 
-bool melonds::dsi::is_dsiware(const NDSHeader& header) noexcept {
-    // TODO: Check the header to see if the right bits are set (look at GBATek for details)
+namespace melonds::dsi {
+    static bool _was_dsiware_title_installed;
 }
 
-void melonds::dsi::install_dsiware(const struct retro_game_info &info) {
-    // TODO: Ensure NAND is loaded
+void melonds::dsi::install_dsiware(const retro_game_info& nds_info, const NDSCart::NDSCartData& cart) {
+    retro_assert(cart.GetHeader().IsDSiWare());
+    retro_assert(DSi_NAND::GetFile() != nullptr);
     // TODO: If title is already loaded, skip this step (and don't delete it at the end)
     // TODO: Get title metadata from online, or from filesystem
     // TODO: Cache title metadata in the system directory

@@ -649,6 +649,9 @@ static void melonds::load_games(
             retro_assert(false);
     }
 
+//    if (nds_info && _loaded_nds_cart && _loaded_nds_cart->GetHeader().IsDSiWare()) {
+//        //dsi::install_dsiware(*_loaded_nds_cart);
+//    }
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
     init_rendering();
@@ -824,18 +827,25 @@ static void melonds::load_games_deferred(
         // If we want to insert a NDS ROM that was previously loaded...
         retro_assert(_loaded_nds_cart->IsValid());
 
-        bool inserted = NDSCart::InsertROM(std::move(*_loaded_nds_cart));
+        if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
+            // If we're running a physical cartridge...
 
-        _loaded_nds_cart.reset();
-        if (!inserted) {
-            // If we failed to insert the ROM, we can't continue
-            retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
-            throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
+            if (!NDSCart::InsertROM(std::move(*_loaded_nds_cart))) {
+                // If we failed to insert the ROM, we can't continue
+                retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
+                throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
+            }
+            _loaded_nds_cart.reset();
+
+            // Just to be sure
+            retro_assert(NDSCart::CartROM != nullptr);
+            retro_assert(_loaded_nds_cart == nullptr);
         }
+        else {
+            // We're running a DSiWare game, then
 
-        // Just to be sure
-        retro_assert(NDSCart::CartROM != nullptr);
-        retro_assert(_loaded_nds_cart == nullptr);
+            melonds::dsi::install_dsiware(*_loaded_nds_cart);
+        }
     }
 
     retro_assert(GBACart::CartROM == nullptr);
