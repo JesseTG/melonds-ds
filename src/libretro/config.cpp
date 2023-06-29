@@ -299,6 +299,7 @@ bool melonds::update_option_visibility() {
 
 // TODO: Consider splitting the code that updates the emulator state into a separate function
 // TODO: Organize this function better; split it into a few smaller functions by category
+// TODO: Pass in loaded game info so default behavior can vary by game
 void melonds::update_variables(bool init) noexcept {
     using namespace Config::Retro;
     using retro::environment;
