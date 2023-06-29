@@ -54,6 +54,7 @@ namespace retro {
 
     const std::optional<std::string>& get_save_directory();
     const std::optional<std::string>& get_system_directory();
+    const std::optional<std::string>& get_system_subdirectory();
 
     void clear_environment();
 }

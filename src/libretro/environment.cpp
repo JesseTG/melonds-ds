@@ -16,11 +16,12 @@
 
 #include <cstdarg>
 #include <cstdio>
-
-#include <libretro.h>
-#include <streams/file_stream.h>
 #include <cstring>
 
+#include <libretro.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
+#include <compat/strl.h>
 
 #include "environment.hpp"
 #include "microphone.hpp"
@@ -46,6 +47,7 @@ namespace retro {
     // Cached so that the save directory won't change during a session
     static optional<string> _save_directory;
     static optional<string> _system_directory;
+    static optional<string> _system_subdir;
 
     static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
 }
@@ -304,9 +306,14 @@ const optional<string>& retro::get_system_directory() {
     return _system_directory;
 }
 
+const optional<string>& retro::get_system_subdirectory() {
+    return _system_subdir;
+}
+
 void retro::clear_environment() {
     _save_directory = nullopt;
     _system_directory = nullopt;
+    _system_subdir = nullopt;
     microphone::clear_interface();
 }
 
@@ -344,6 +351,20 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
         retro::log(RETRO_LOG_INFO, "System directory: \"%s\"", system_dir);
         retro::_system_directory = system_dir;
+
+        char melon_dir[PATH_MAX];
+        memset(melon_dir, 0, sizeof(melon_dir));
+        strlcpy(melon_dir, system_dir, sizeof(melon_dir));
+
+        fill_pathname_join_special(melon_dir, system_dir, MELONDSDS_NAME, sizeof(melon_dir));
+        retro::_system_subdir = melon_dir;
+
+        if (path_mkdir(melon_dir)) {
+            retro::info("melonDS DS system directory: \"%s\"", melon_dir);
+        }
+        else {
+            retro::error("Failed to create melonDS DS system subdirectory at \"%s\"", melon_dir);
+        }
     }
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) melonds::subsystems);
