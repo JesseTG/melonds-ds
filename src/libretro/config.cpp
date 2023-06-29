@@ -875,6 +875,7 @@ static void melonds::config::check_dsi_sd_options(bool initializing) noexcept {
             char sd_path[1024];
             memset(sd_path, 0, sizeof(sd_path));
             fill_pathname_join_special(sd_path, save_directory->c_str(), name, sizeof(sd_path));
+            // TODO: Append "dsi" to the save directory name for shared cards
 
             Config::DSiSDFolderPath = string(sd_path);
 
