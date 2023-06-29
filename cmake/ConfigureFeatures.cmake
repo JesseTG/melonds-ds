@@ -4,6 +4,7 @@
 option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
 option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
+option(ENABLE_NETWORKING "Build with networking support, if supported by the target." ON)
 
 if (ENABLE_THREADS)
     find_package(Threads)
@@ -45,6 +46,10 @@ if (ENABLE_OGLRENDERER)
 
     check_include_files("GL3/gl3.h;GL3/gl3ext.h" HAVE_OPENGL_MODERN)
 endif()
+
+if (ENABLE_NETWORKING)
+    set(HAVE_NETWORKING ON)
+endif ()
 
 check_symbol_exists(strlcpy "bsd/string.h;string.h" HAVE_STRL)
 check_symbol_exists(mmap "sys/mman.h" HAVE_MMAP)

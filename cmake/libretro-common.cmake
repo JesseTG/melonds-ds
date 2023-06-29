@@ -88,6 +88,17 @@ if (HAVE_OPENGL)
     target_link_libraries(libretro-common PUBLIC OpenGL::GL)
 endif ()
 
+if (HAVE_NETWORKING)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/net/net_compat.c
+        ${libretro-common_SOURCE_DIR}/net/net_http.c
+        ${libretro-common_SOURCE_DIR}/net/net_http_parse.c
+        ${libretro-common_SOURCE_DIR}/net/net_socket.c
+        )
+
+    target_compile_definitions(libretro-common PUBLIC HAVE_NETWORKING)
+endif ()
+
 if (HAVE_OPENGL_MODERN)
     target_compile_definitions(libretro-common PUBLIC HAVE_OPENGL_MODERN)
 endif ()

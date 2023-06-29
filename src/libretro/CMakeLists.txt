@@ -82,6 +82,10 @@ if (HAVE_MMAN)
     target_compile_definitions(libretro PUBLIC HAVE_MMAN)
 endif()
 
+if (HAVE_NETWORKING)
+    target_compile_definitions(libretro-common PUBLIC HAVE_NETWORKING)
+endif ()
+
 if (HAVE_EGL)
     target_compile_definitions(libretro PUBLIC HAVE_EGL)
 endif ()
