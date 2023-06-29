@@ -605,7 +605,7 @@ static void melonds::load_games(
         retro_assert(_loaded_nds_cart != nullptr);
 
         if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
-            // If this ROM represents DSiWare (rather than a cartridge)...
+            // If this ROM represents a cartridge, rather than DSiWare...
             init_nds_save(*_loaded_nds_cart);
         }
     }
