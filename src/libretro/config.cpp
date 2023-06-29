@@ -1122,7 +1122,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::DEDICATED, "Dedicated"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::DEDICATED
+        Config::Retro::Values::SHARED4G
     },
     {
         Config::Retro::Keys::DSI_SD_READ_ONLY,
