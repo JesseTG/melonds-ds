@@ -781,7 +781,7 @@ static void melonds::verify_dsi_bios() {
 
     // Abort if there are any of the required roms are missing
     if (!missing_roms.empty()) {
-        throw melonds::missing_bios_exception(std::move(missing_roms));
+        throw melonds::missing_bios_exception(missing_roms);
     }
 }
 

@@ -20,6 +20,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace melonds
 {
@@ -53,9 +54,7 @@ namespace melonds
 
     class missing_bios_exception : public emulator_exception {
     public:
-        explicit missing_bios_exception(std::vector<std::string>&& bios_files) {
-            // TODO: Construct an error message
-        }
+        explicit missing_bios_exception(const std::vector<std::string>& bios_files);
         missing_bios_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
     };
 }
