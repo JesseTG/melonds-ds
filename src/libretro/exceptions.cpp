@@ -19,7 +19,9 @@
 #include <sstream>
 
 static std::string construct_missing_bios_message(const std::vector<std::string>& bios_files) {
-    std::stringstream error("Failed to find the following BIOS files: ");
+    std::stringstream error;
+
+    error << "Missing these BIOS files: ";
     for (size_t i = 0; i < bios_files.size(); ++i) {
         const std::string& file = bios_files[i];
         error << file;
