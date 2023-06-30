@@ -88,7 +88,7 @@ namespace Config {
     [[maybe_unused]] std::string FirmwareMAC;
 
     int AudioInterp;
-    [[maybe_unused]] int AudioBitrate;
+    [[maybe_unused]] int AudioBitDepth;
     int MicInputType;
 
     namespace Retro {
@@ -631,15 +631,15 @@ static void melonds::config::check_audio_options(bool initializing) noexcept {
     var.key = Keys::AUDIO_BITDEPTH;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
         if (string_is_equal(var.value, Values::_10BIT))
-            Config::AudioBitrate = static_cast<int>(BitDepth::_10Bit);
+            Config::AudioBitDepth = static_cast<int>(BitDepth::_10Bit);
         else if (string_is_equal(var.value, Values::_16BIT))
-            Config::AudioBitrate = static_cast<int>(BitDepth::_16Bit);
+            Config::AudioBitDepth = static_cast<int>(BitDepth::_16Bit);
         else
-            Config::AudioBitrate = static_cast<int>(BitDepth::Auto);
+            Config::AudioBitDepth = static_cast<int>(BitDepth::Auto);
     }
     else {
         retro::warn("Failed to get value for %s; defaulting to %s", var.key, Values::AUTO);
-        Config::AudioBitrate = static_cast<int>(BitDepth::Auto);
+        Config::AudioBitDepth = static_cast<int>(BitDepth::Auto);
     }
 
     var.key = Keys::AUDIO_INTERPOLATION;
