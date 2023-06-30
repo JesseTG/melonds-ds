@@ -821,6 +821,7 @@ static void melonds::load_games_deferred(
 
             // Just to be sure
             retro_assert(_loaded_nds_cart == nullptr);
+            retro_assert(NDSCart::Cart != nullptr);
         }
         else {
             // We're running a DSiWare game, then
