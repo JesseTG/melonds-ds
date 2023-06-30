@@ -57,6 +57,12 @@ namespace melonds
         explicit missing_bios_exception(const std::vector<std::string>& bios_files);
         missing_bios_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
     };
+
+    class missing_metadata_exception : public emulator_exception {
+    public:
+        explicit missing_metadata_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
+        missing_metadata_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
+    };
 }
 
 #endif //MELONDS_DS_EXCEPTIONS_HPP
