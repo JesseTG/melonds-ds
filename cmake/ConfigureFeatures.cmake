@@ -55,6 +55,17 @@ check_symbol_exists(strlcpy "bsd/string.h;string.h" HAVE_STRL)
 check_symbol_exists(mmap "sys/mman.h" HAVE_MMAP)
 check_include_file("sys/mman.h" HAVE_MMAN)
 
+if (WIN32)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES ws2_32)
+    check_symbol_exists(getaddrinfo "winsock2.h;ws2tcpip.h" HAVE_GETADDRINFO)
+else()
+    check_symbol_exists(getaddrinfo "sys/types.h;sys/socket.h;netdb.h" HAVE_GETADDRINFO)
+endif ()
+
+if (NOT HAVE_GETADDRINFO)
+    set(HAVE_SOCKET_LEGACY ON)
+endif()
+
 # TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
 # TODO: Detect if libnx is available and we're building for Switch; if so, define HAVE_LIBNX
 # TODO: Detect if cocoatouch is available; if so, define HAVE_COCOATOUCH

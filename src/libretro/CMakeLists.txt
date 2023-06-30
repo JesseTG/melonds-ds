@@ -84,7 +84,15 @@ if (HAVE_MMAN)
 endif()
 
 if (HAVE_NETWORKING)
-    target_compile_definitions(libretro-common PUBLIC HAVE_NETWORKING)
+    target_compile_definitions(libretro PUBLIC HAVE_NETWORKING)
+
+    if (HAVE_SOCKET_LEGACY)
+        target_compile_definitions(libretro PUBLIC HAVE_SOCKET_LEGACY)
+    endif ()
+
+    if (HAVE_GETADDRINFO)
+        target_compile_definitions(libretro PUBLIC HAVE_GETADDRINFO)
+    endif ()
 endif ()
 
 if (HAVE_EGL)

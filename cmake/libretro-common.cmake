@@ -97,6 +97,14 @@ if (HAVE_NETWORKING)
         )
 
     target_compile_definitions(libretro-common PUBLIC HAVE_NETWORKING)
+
+    if (HAVE_GETADDRINFO)
+        target_compile_definitions(libretro-common PUBLIC HAVE_GETADDRINFO)
+    endif ()
+
+    if (HAVE_SOCKET_LEGACY)
+        target_compile_definitions(libretro-common PUBLIC HAVE_SOCKET_LEGACY)
+    endif ()
 endif ()
 
 if (HAVE_OPENGL_MODERN)
