@@ -25,6 +25,6 @@
 
 namespace melonds::dsi {
     void install_dsiware(const retro_game_info& nds_info, const NdsCart& cart);
-    void uninstall_dsiware();
+    void uninstall_dsiware(const retro_game_info& nds_info, const NdsCart& cart) noexcept;
 }
 #endif //MELONDS_DS_DSI_HPP

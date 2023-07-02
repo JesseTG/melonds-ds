@@ -27,6 +27,7 @@
 #include <streams/rzip_stream.h>
 #include <streams/file_stream.h>
 
+#include <DSi.h>
 #include <NDS.h>
 #include <NDSCart.h>
 #include <frontend/FrontendUtil.h>
@@ -439,6 +440,14 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     }
     NDS::Stop();
     NDS::DeInit();
+
+    const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
+    if (nds_info && melonds::_loaded_nds_cart && melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
+
+        melonds::dsi::uninstall_dsiware(*nds_info, *melonds::_loaded_nds_cart)
+    }
+
+    // TODO: Export DSiWare save data and uninstall the DSiWare
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
 }
@@ -825,7 +834,9 @@ static void melonds::load_games_deferred(
         }
         else {
             // We're running a DSiWare game, then
-
+            if (!DSi::LoadNAND()) {
+                throw std::runtime_error("Failed to load NAND. Please report this issue.");
+            }
             melonds::dsi::install_dsiware(*nds_info, *_loaded_nds_cart);
         }
     }
