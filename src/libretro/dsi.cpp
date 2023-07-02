@@ -390,19 +390,20 @@ void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsC
 
     if (!DSi_NAND::Init(&DSi::ARM7iBIOS[0x8308])) {
         retro::error("Failed to open DSi NAND for uninstallation");
-
-        DSi_NAND::DeInit();
-        _was_dsiware_title_installed = false;
-        _active_title_metadata = nullopt;
     } else {
         // TODO: Report an error if the title doesn't exist
-        // TODO: Load the cached TMD file, or keep it in memory
         export_savedata(nds_info, *_active_title_metadata, DSi_NAND::TitleData_PublicSav);
         export_savedata(nds_info, *_active_title_metadata, DSi_NAND::TitleData_PrivateSav);
         export_savedata(nds_info, *_active_title_metadata, DSi_NAND::TitleData_BannerSav);
 
-        DSi_NAND::DeInit();
-        _was_dsiware_title_installed = false;
-        _active_title_metadata = nullopt;
+        u32 category = _active_title_metadata->GetCategory();
+        u32 id = _active_title_metadata->GetID();
+
+        DSi_NAND::DeleteTitle(category, id);
+        info("Removed temporarily-installed DSiWare title \"%s\" from NAND image", nds_info.path);
     }
+
+    DSi_NAND::DeInit();
+    _was_dsiware_title_installed = false;
+    _active_title_metadata = nullopt;
 }
