@@ -6,16 +6,11 @@ if (CMAKE_MESSAGE_LOG_LEVEL)
     message(STATUS "Message log level is set to ${CMAKE_MESSAGE_LOG_LEVEL}")
 endif ()
 
-set(DESCRIPTION "\
-An enhanced remake of the melonDS core for libretro that prioritizes upstream compatibility. \
-This core supports a variety of modern features, like hardware-accelerated internal res increases, \
-as well as increased accuracy for some popular games. \
-While not as mature as Desmume--and therefore not as compatible with the DS library as a whole--this core is a good first choice to try, \
-with the Desmume core(s) as a fallback.\
-")
-project("melonDS DS"
-    VERSION 0.0.0
-    DESCRIPTION "${DESCRIPTION}"
+include(cmake/ParseLibretroInfo.cmake)
+
+project("${MELONDSDS_INFO_corename}"
+    VERSION "${MELONDSDS_INFO_display_version}"
+    DESCRIPTION "${MELONDSDS_INFO_description}"
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
 
@@ -91,7 +86,6 @@ FetchContent_GetProperties(libretro-common)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${CMAKE_MODULE_PATH}")
 FetchContent_MakeAvailable(melonDS libretro-common)
 
-configure_file("${CMAKE_SOURCE_DIR}/melondsds_libretro.info.in" "${CMAKE_BINARY_DIR}/melondsds_libretro.info")
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/libretro-common.cmake)
 include(cmake/utils.cmake)

@@ -50,7 +50,7 @@ jobs:
         run: |
           mkdir --parents "$ZIP_ROOT"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.so" "$ZIP_ROOT"
-          cp --force "$BUILD_DIR/melondsds_libretro.info" "$ZIP_ROOT"
+          cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
@@ -105,7 +105,7 @@ jobs:
         run: |
           mkdir --parents "$ZIP_ROOT"
           cp --force "$BUILD_DIR/src/libretro/melondsds_libretro.so" "$ZIP_ROOT"
-          cp --force "$BUILD_DIR/melondsds_libretro.info" "$ZIP_ROOT"
+          cp --force "${{github.workspace}}/melondsds_libretro.info" "$ZIP_ROOT"
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         if: matrix.release
