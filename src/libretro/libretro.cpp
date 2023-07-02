@@ -489,7 +489,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
     melonds::first_frame_run = false;
 
     const auto &nds_info = retro::content::get_loaded_nds_info();
-    if (nds_info) {
+    if (nds_info && melonds::_loaded_nds_cart && !melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
         melonds::set_up_direct_boot(nds_info.value());
     }
 }
