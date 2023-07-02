@@ -443,11 +443,9 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
 
     const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
     if (nds_info && melonds::_loaded_nds_cart && melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
-
-        melonds::dsi::uninstall_dsiware(*nds_info, *melonds::_loaded_nds_cart)
+        melonds::dsi::uninstall_dsiware(*nds_info, *melonds::_loaded_nds_cart);
     }
 
-    // TODO: Export DSiWare save data and uninstall the DSiWare
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
 }
