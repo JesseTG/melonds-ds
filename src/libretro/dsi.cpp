@@ -46,7 +46,6 @@ const char *TMD_DIR_NAME = "tmd";
 constexpr u32 RSA256_SIGNATURE_TYPE = 16777472;
 namespace melonds::dsi {
     static bool _was_dsiware_title_installed;
-    static optional <TitleMetadata> _active_title_metadata;
 
     static void get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length);
 
@@ -58,9 +57,9 @@ namespace melonds::dsi {
 
     void cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noexcept;
 
-    void import_savedata(const retro_game_info &nds_info, const TitleMetadata &tmd, int type) noexcept;
+    void import_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
 
-    void export_savedata(const retro_game_info &nds_info, const TitleMetadata &tmd, int type) noexcept;
+    void export_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
 }
 
 void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCart &cart) try {
@@ -104,10 +103,9 @@ void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCar
             throw emulator_exception("Failed to import DSiWare title into NAND image");
         }
 
-        _active_title_metadata = tmd;
-        import_savedata(nds_info, tmd, DSi_NAND::TitleData_PublicSav);
-        import_savedata(nds_info, tmd, DSi_NAND::TitleData_PrivateSav);
-        import_savedata(nds_info, tmd, DSi_NAND::TitleData_BannerSav);
+        import_savedata(nds_info, header, DSi_NAND::TitleData_PublicSav);
+        import_savedata(nds_info, header, DSi_NAND::TitleData_PrivateSav);
+        import_savedata(nds_info, header, DSi_NAND::TitleData_BannerSav);
     }
 
     DSi_NAND::DeInit();
@@ -330,16 +328,21 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
     return true;
 }
 
-void melonds::dsi::import_savedata(const retro_game_info &nds_info, const TitleMetadata &tmd, int type) noexcept {
+void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
     retro_assert(DSi_NAND::GetFile() != nullptr);
 
-    if (type == DSi_NAND::TitleData_PublicSav && tmd.PublicSaveSize == 0) {
+    if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
-        info("No public save data to import");
+        info("Game does not use public save data");
         return;
-    } else if (type == DSi_NAND::TitleData_PrivateSav && tmd.PrivateSaveSize == 0) {
-        // If there's no private save data...
-        info("No private save data to import");
+    } else if (type == DSi_NAND::TitleData_PrivateSav && header.DSiPrivateSavSize == 0) {
+        // If this game doesn't use private save data...
+        info("Game does not use private save data");
+        return;
+    }
+    else if (type == DSi_NAND::TitleData_BannerSav && !(header.AppFlags & 0x4)) {
+        // If there's no banner save data...
+        info("Game does not use banner save data");
         return;
     }
 
@@ -348,24 +351,31 @@ void melonds::dsi::import_savedata(const retro_game_info &nds_info, const TitleM
         return;
     }
 
-    if (DSi_NAND::ImportTitleData(tmd.GetCategory(), tmd.GetID(), type, sav_file)) {
+    if (path_stat(sav_file) != RETRO_VFS_STAT_IS_VALID) {
+        // If this path is not a valid file...
+        info("No DSiWare save data found at \"%s\"", sav_file);
+    } else if (DSi_NAND::ImportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
         info("Imported DSiWare save data from \"%s\"", sav_file);
     } else {
-        warn("Couldn't find DSiWare save data at \"%s\"", sav_file);
+        warn("Couldn't import DSiWare save data from \"%s\"", sav_file);
     }
 }
 
 
-void melonds::dsi::export_savedata(const retro_game_info &nds_info, const TitleMetadata &tmd, int type) noexcept {
+void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
     retro_assert(DSi_NAND::GetFile() != nullptr);
 
-    if (type == DSi_NAND::TitleData_PublicSav && tmd.PublicSaveSize == 0) {
+    if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
-        info("No public save data to export");
+        info("Game does not use public save data");
         return;
-    } else if (type == DSi_NAND::TitleData_PrivateSav && tmd.PrivateSaveSize == 0) {
-        // If there's no private save data...
-        info("No private save data to export");
+    } else if (type == DSi_NAND::TitleData_PrivateSav && header.DSiPrivateSavSize == 0) {
+        // If this game doesn't use private save data...
+        info("Game does not use private save data");
+        return;
+    } else if (type == DSi_NAND::TitleData_BannerSav && !(header.AppFlags & 0x4)) {
+        // If there's no banner save data...
+        info("Game does not use banner save data");
         return;
     }
 
@@ -374,7 +384,7 @@ void melonds::dsi::export_savedata(const retro_game_info &nds_info, const TitleM
         return;
     }
 
-    if (DSi_NAND::ExportTitleData(tmd.GetCategory(), tmd.GetID(), type, sav_file)) {
+    if (DSi_NAND::ExportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
         info("Exported DSiWare save data to \"%s\"", sav_file);
     } else {
         warn("Couldn't export DSiWare save data to \"%s\"", sav_file);
@@ -392,18 +402,14 @@ void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsC
         retro::error("Failed to open DSi NAND for uninstallation");
     } else {
         // TODO: Report an error if the title doesn't exist
-        export_savedata(nds_info, *_active_title_metadata, DSi_NAND::TitleData_PublicSav);
-        export_savedata(nds_info, *_active_title_metadata, DSi_NAND::TitleData_PrivateSav);
-        export_savedata(nds_info, *_active_title_metadata, DSi_NAND::TitleData_BannerSav);
+        export_savedata(nds_info, header, DSi_NAND::TitleData_PublicSav);
+        export_savedata(nds_info, header, DSi_NAND::TitleData_PrivateSav);
+        export_savedata(nds_info, header, DSi_NAND::TitleData_BannerSav);
 
-        u32 category = _active_title_metadata->GetCategory();
-        u32 id = _active_title_metadata->GetID();
-
-        DSi_NAND::DeleteTitle(category, id);
+        DSi_NAND::DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
         info("Removed temporarily-installed DSiWare title \"%s\" from NAND image", nds_info.path);
     }
 
     DSi_NAND::DeInit();
     _was_dsiware_title_installed = false;
-    _active_title_metadata = nullopt;
 }
