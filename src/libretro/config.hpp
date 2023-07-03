@@ -88,8 +88,8 @@ namespace melonds {
 
     namespace config {
         namespace audio {
-            BitDepth AudioBitDepth() noexcept;
-            AudioInterpolation AudioInterpolation() noexcept;
+            BitDepth BitDepth() noexcept;
+            AudioInterpolation Interpolation() noexcept;
 
             melonds::MicButtonMode MicButtonMode() noexcept;
         }
