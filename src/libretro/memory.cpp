@@ -21,7 +21,6 @@
 #include <NDSCart.h>
 #include <ARCodeFile.h>
 #include <AREngine.h>
-#include <frontend/qt_sdl/Config.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
@@ -110,10 +109,11 @@ static const char *memory_type_name(unsigned type)
 /// Savestates in melonDS can vary in size depending on the game,
 /// so we have to try saving the state first before we can know how big it'll be.
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
+    using namespace melonds;
     if (melonds::_savestate_size < 0) {
         // If we haven't yet figured out how big the savestate should be...
 
-        if (Config::ConsoleType == melonds::ConsoleType::DSi) {
+        if (config::system::ConsoleType() == ConsoleType::DSi) {
             // DSi mode doesn't support savestates right now
             melonds::_savestate_size = 0;
             // TODO: When DSi mode supports savestates, remove this conditional block
@@ -164,13 +164,15 @@ PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
 }
 
 PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
+    using namespace melonds;
+    ConsoleType console_type = config::system::ConsoleType();
     switch (type) {
         case RETRO_MEMORY_SYSTEM_RAM:
-            switch (Config::ConsoleType) {
+            switch (console_type) {
                 default:
                     retro::log(RETRO_LOG_WARN,
                                "Unknown console type %d, returning memory size of 4MB (as used by the DS).",
-                               Config::ConsoleType);
+                               console_type);
                     // Intentional fall-through
                 case melonds::ConsoleType::DS:
                     return DS_MEMORY_SIZE; // 4MB, the size of the DS system RAM
