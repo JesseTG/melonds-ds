@@ -105,7 +105,14 @@ if (APPLE)
     # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
 endif()
 
-target_compile_definitions(libretro PUBLIC JIT_ENABLED) # TODO: Disable on certain platforms
+if (ENABLE_JIT)
+    target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)  # TODO: Disable on certain platforms
+
+    if (NOT APPLE)
+        target_compile_definitions(libretro PUBLIC HAVE_JIT_FASTMEM)
+        # melonDS doesn't support FastMem on macOS
+    endif ()
+endif ()
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
 
 if (APPLE)
