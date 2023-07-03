@@ -30,7 +30,7 @@ namespace melonds {
     extern struct retro_core_options_v2 options_us;
     extern struct retro_core_option_v2_definition option_defs_us[];
 #ifndef HAVE_NO_LANGEXTRA
-    extern struct retro_core_options_v2 *options_intl[];
+    extern struct retro_core_options_v2* options_intl[];
 #endif
 
     enum ConsoleType {
@@ -49,8 +49,7 @@ namespace melonds {
         Always,
     };
 
-    enum class Renderer
-    {
+    enum class Renderer {
         None = -1,
         Software = 0, // To match with values that melonDS expects
         OpenGl = 1,
@@ -69,16 +68,14 @@ namespace melonds {
         Cubic = 3,
     };
 
-    enum class MicInputMode
-    {
+    enum class MicInputMode {
         None,
         HostMic,
         WhiteNoise,
         BlowNoise,
     };
 
-    enum class FirmwareLanguage
-    {
+    enum class FirmwareLanguage {
         Japanese = 0,
         English = 1,
         French = 2,
