@@ -84,9 +84,49 @@ namespace melonds {
         Spanish = 5,
     };
 
+    enum class Color {
+        Gray,
+        Brown,
+        Red,
+        LightPink,
+        Orange,
+        Yellow,
+        Lime,
+        LightGreen,
+        DarkGreen,
+        Turquoise,
+        LightBlue,
+        Blue,
+        DarkBlue,
+        DarkPurple,
+        LightPurple,
+        DarkPink,
+    };
+
     enum class ScreenFilter {
         Nearest,
         Linear,
+    };
+
+
+    enum class ScreenLayout {
+        TopBottom = 0,
+        BottomTop = 1,
+        LeftRight = 2,
+        RightLeft = 3,
+        TopOnly = 4,
+        BottomOnly = 5,
+        HybridTop = 6,
+        HybridBottom = 7,
+        TurnLeft = 8,
+        TurnRight = 9,
+        UpsideDown = 10,
+    };
+
+    enum class SdCardMode {
+        None,
+        Shared,
+        Dedicated,
     };
 
     using MacAddress = std::array<std::uint8_t, 6>;
