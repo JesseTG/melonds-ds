@@ -15,29 +15,29 @@
 */
 
 #include <Platform.h>
-#include <frontend/qt_sdl/Config.h>
 
-// TODO: Send a PR to split up the contents of <frontend/qt_sdl/Config.cpp>
-// into pieces that don't use Qt, then compile those pieces instead of copying them here
+#include "../config.hpp"
+
+using namespace melonds::config;
 
 int Platform::GetConfigInt(ConfigEntry entry)
 {
     switch (entry)
     {
 #ifdef JIT_ENABLED
-        case JIT_MaxBlockSize: return Config::JIT_MaxBlockSize;
+        case JIT_MaxBlockSize: return jit::MaxBlockSize();
 #endif
 
-        case DLDI_ImageSize: return Config::DLDISize;
+        case DLDI_ImageSize: return save::DldiImageSize();
 
-        case DSiSD_ImageSize: return Config::DSiSDSize;
+        case DSiSD_ImageSize: return save::DsiSdImageSize();
 
-        case Firm_Language: return Config::FirmwareLanguage;
-        case Firm_BirthdayMonth: return Config::FirmwareBirthdayMonth;
-        case Firm_BirthdayDay: return Config::FirmwareBirthdayDay;
-        case Firm_Color: return Config::FirmwareFavouriteColour;
+        case Firm_Language: return static_cast<int>(firmware::Language());
+        case Firm_BirthdayMonth: firmware::BirthdayMonth();
+        case Firm_BirthdayDay: return firmware::BirthdayDay();
+        case Firm_Color: return firmware::FavoriteColour();
 
-        case AudioBitDepth: return Config::AudioBitDepth;
+        case AudioBitDepth: return static_cast<int>(audio::BitDepth());
         default: return 0;
     }
 }
@@ -47,23 +47,23 @@ bool Platform::GetConfigBool(ConfigEntry entry)
     switch (entry)
     {
 #ifdef JIT_ENABLED
-        case JIT_Enable: return Config::JIT_Enable;
-        case JIT_LiteralOptimizations: return Config::JIT_LiteralOptimisations;
-        case JIT_BranchOptimizations: return Config::JIT_BranchOptimisations;
-        case JIT_FastMemory: return Config::JIT_FastMemory;
+        case JIT_Enable: return jit::Enable();
+        case JIT_LiteralOptimizations: return jit::LiteralOptimizations();
+        case JIT_BranchOptimizations: return jit::BranchOptimizations();
+        case JIT_FastMemory: return jit::FastMemory();
 #endif
 
-        case ExternalBIOSEnable: return Config::ExternalBIOSEnable;
+case ExternalBIOSEnable: return system::ExternalBiosEnable();
 
-        case DLDI_Enable: return Config::DLDIEnable;
-        case DLDI_ReadOnly: return Config::DLDIReadOnly;
-        case DLDI_FolderSync: return Config::DLDIFolderSync;
+        case DLDI_Enable: return save::DldiEnable();
+        case DLDI_ReadOnly: return save::DldiReadOnly();
+        case DLDI_FolderSync: return save::DldiFolderSync();
 
-        case DSiSD_Enable: return Config::DSiSDEnable;
-        case DSiSD_ReadOnly: return Config::DSiSDReadOnly;
-        case DSiSD_FolderSync: return Config::DSiSDFolderSync;
+        case DSiSD_Enable: return save::DsiSdEnable();
+        case DSiSD_ReadOnly: return save::DsiSdReadOnly();
+        case DSiSD_FolderSync: return save::DsiSdFolderSync();
 
-        case Firm_OverrideSettings: return Config::FirmwareOverrideSettings;
+        case Firm_OverrideSettings: return firmware::OverrideFirmwareSettings();
         default: return false;
     }
 }
@@ -72,57 +72,37 @@ std::string Platform::GetConfigString(ConfigEntry entry)
 {
     switch (entry)
     {
-        case BIOS9Path: return Config::BIOS9Path;
-        case BIOS7Path: return Config::BIOS7Path;
-        case FirmwarePath: return Config::FirmwarePath;
+        case BIOS9Path: return system::Bios9Path();
+        case BIOS7Path: return system::Bios7Path();
+        case FirmwarePath: return system::FirmwarePath();
 
-        case DSi_BIOS9Path: return Config::DSiBIOS9Path;
-        case DSi_BIOS7Path: return Config::DSiBIOS7Path;
-        case DSi_FirmwarePath: return Config::DSiFirmwarePath;
-        case DSi_NANDPath: return Config::DSiNANDPath;
+        case DSi_BIOS9Path: return system::DsiBios9Path();
+        case DSi_BIOS7Path: return system::DsiBios7Path();
+        case DSi_FirmwarePath: return system::DsiFirmwarePath();
+        case DSi_NANDPath: return system::DsiNandPath();
 
-        case DLDI_ImagePath: return Config::DLDISDPath;
-        case DLDI_FolderPath: return Config::DLDIFolderPath;
+        case DLDI_ImagePath: return save::DldiImagePath();
+        case DLDI_FolderPath: return save::DldiFolderPath();
 
-        case DSiSD_ImagePath: return Config::DSiSDPath;
-        case DSiSD_FolderPath: return Config::DSiSDFolderPath;
+        case DSiSD_ImagePath: return save::DsiSdImagePath();
+        case DSiSD_FolderPath: return save::DsiSdFolderPath();
 
-        case Firm_Username: return Config::FirmwareUsername;
-        case Firm_Message: return Config::FirmwareMessage;
+        case Firm_Username: return firmware::Username();
+        case Firm_Message: return firmware::Message();
         default: return "";
     }
 }
 
 bool Platform::GetConfigArray(ConfigEntry entry, void* data)
 {
+    using melonds::MacAddress;
     switch (entry)
     {
         case Firm_MAC:
         {
-            std::string& mac_in = Config::FirmwareMAC;
-            u8* mac_out = (u8*)data;
-
-            int o = 0;
-            u8 tmp = 0;
-            for (int i = 0; i < 18; i++)
-            {
-                char c = mac_in[i];
-                if (c == '\0') break;
-
-                int n;
-                if      (c >= '0' && c <= '9') n = c - '0';
-                else if (c >= 'a' && c <= 'f') n = c - 'a' + 10;
-                else if (c >= 'A' && c <= 'F') n = c - 'A' + 10;
-                else continue;
-
-                if (!(o & 1))
-                    tmp = n;
-                else
-                    mac_out[o >> 1] = n | (tmp << 4);
-
-                o++;
-                if (o >= 12) return true;
-            }
+            MacAddress* mac = (MacAddress*)data;
+            MacAddress current_mac = firmware::MacAddress();
+            memcpy(mac, &current_mac, sizeof(MacAddress));
         }
         default:
             return false;
