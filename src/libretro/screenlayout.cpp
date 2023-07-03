@@ -17,7 +17,6 @@
 #include "libretro.hpp"
 #include "screenlayout.hpp"
 #include "config.hpp"
-#include <frontend/qt_sdl/Config.h>
 #include <functional>
 #include <cstring>
 
@@ -140,8 +139,8 @@ void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, b
 
     if (opengl) {
         // To avoid some issues the size should be at least 4x the native res
-        if (Config::GL_ScaleFactor > 4)
-            scale = Config::GL_ScaleFactor;
+        if (config::video::ScaleFactor() > 4)
+            scale = config::video::ScaleFactor();
         else
             scale = 4;
     }
