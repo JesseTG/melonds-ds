@@ -205,37 +205,6 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
     AREngine::RunCheat(curcode);
 }
 
-// TODO: See NDS.cpp for details on the memory maps (see ARM9Read8)
-bool melonds::set_memory_descriptors() {
-    retro_memory_descriptor descriptors[] = {
-        {
-            .flags = RETRO_MEMDESC_SYSTEM_RAM,
-            .ptr = NDS::MainRAM,
-            .start = 0x02000000,
-            .select = 0,
-            .disconnect = Config::ConsoleType == DSi ? ~(size_t) 0xFFFFFF : ~(size_t) 0x3FFFFF,
-            .len = Config::ConsoleType == DSi ? DSI_MEMORY_SIZE : DS_MEMORY_SIZE,
-            .addrspace = "RAM",
-        },
-        {
-            .flags = RETRO_MEMDESC_SAVE_RAM,
-            .ptr = NDSCart::GetSaveMemory(),
-            .start = 0,
-            .select = 0,
-            .disconnect = 0,
-            .len = NDSCart::GetSaveMemoryLength(),
-            .addrspace = "SRAM",
-        },
-    };
-
-    retro_memory_map memory_map{
-        .descriptors = descriptors,
-        .num_descriptors = sizeof(descriptors) / sizeof(descriptors[0]),
-    };
-
-    return retro::environment(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &memory_map);
-}
-
 void melonds::clear_memory_config() {
     _savestate_size = SAVESTATE_SIZE_UNKNOWN;
 }
