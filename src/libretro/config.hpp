@@ -83,6 +83,78 @@ namespace melonds {
         Italian = 4,
         Spanish = 5,
     };
+
+    using MacAddress = std::array<std::uint8_t, 6>;
+
+    namespace config {
+        namespace audio {
+            BitDepth AudioBitDepth() noexcept;
+            AudioInterpolation AudioInterpolation() noexcept;
+
+            melonds::MicButtonMode MicButtonMode() noexcept;
+        }
+
+        namespace firmware {
+            FirmwareLanguage Language() noexcept;
+            unsigned BirthdayMonth() noexcept;
+            unsigned BirthdayDay() noexcept;
+            unsigned FavoriteColour() noexcept;
+            std::string Username() noexcept;
+            std::string Message() noexcept;
+            MacAddress MacAddress() noexcept;
+            bool OverrideFirmwareSettings() noexcept;
+        }
+
+        namespace jit {
+            unsigned MaxBlockSize() noexcept;
+            bool Enable() noexcept;
+            bool LiteralOptimizations() noexcept;
+            bool BranchOptimizations() noexcept;
+            bool FastMemory() noexcept;
+        }
+
+        namespace system {
+            ConsoleType ConsoleType() noexcept;
+            bool ExternalBiosEnable() noexcept;
+            std::string Bios9Path() noexcept;
+            std::string Bios7Path() noexcept;
+            std::string FirmwarePath() noexcept;
+            std::string DsiBios9Path() noexcept;
+            std::string DsiBios7Path() noexcept;
+            std::string DsiFirmwarePath() noexcept;
+            std::string DsiNandPath() noexcept;
+
+            bool RandomizeMac() noexcept;
+        }
+
+        namespace save {
+            bool DldiEnable() noexcept;
+            bool DldiFolderSync() noexcept;
+            std::string DldiFolderPath() noexcept;
+            bool DldiReadOnly() noexcept;
+            std::string DldiImagePath() noexcept;
+            unsigned DldiImageSize() noexcept;
+
+            bool DsiSdEnable() noexcept;
+            bool DsiSdFolderSync() noexcept;
+            std::string DsiSdFolderPath() noexcept;
+            bool DsiSdReadOnly() noexcept;
+            std::string DsiSdImagePath() noexcept;
+            unsigned DsiSdImageSize() noexcept;
+
+            int FlushDelay() noexcept;
+        }
+
+        namespace video {
+            float CursorSize() noexcept;
+            ScreenSwapMode ScreenSwapMode() noexcept;
+            Renderer CurrentRenderer() noexcept;
+            Renderer ConfiguredRenderer() noexcept;
+            GPU::RenderSettings RenderSettings() noexcept;
+        }
+
+
+    }
 }
 
 namespace Config::Retro {
