@@ -84,6 +84,11 @@ namespace melonds {
         Spanish = 5,
     };
 
+    enum class ScreenFilter {
+        Nearest,
+        Linear,
+    };
+
     using MacAddress = std::array<std::uint8_t, 6>;
 
     namespace config {
@@ -151,6 +156,8 @@ namespace melonds {
             Renderer CurrentRenderer() noexcept;
             Renderer ConfiguredRenderer() noexcept;
             GPU::RenderSettings RenderSettings() noexcept;
+            ScreenFilter ScreenFilter() noexcept;
+            int ScaleFactor() noexcept;
         }
 
 
