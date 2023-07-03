@@ -14,19 +14,18 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_UTILS_HPP
-#define MELONDS_DS_UTILS_HPP
+#include "utils.hpp"
 
-#include "screenlayout.hpp"
+#include <compat/strl.h>
+#include <file/file_path.h>
 
-#if defined(_WIN32)
-#define PLATFORM_DIR_SEPERATOR '\\'
-#else
-#define PLATFORM_DIR_SEPERATOR  '/'
-#endif
 
-namespace melonds {
-    void GetGameName(const struct retro_game_info& game_info, char* game_name, size_t game_name_size) noexcept;
+void melonds::GetGameName(const struct retro_game_info& game_info, char* game_name, size_t game_name_size) noexcept {
+    memset(game_name, 0, game_name_size);
+
+    const char* basename = path_basename(game_info.path);
+    strlcpy(game_name, basename ? basename : game_info.path, game_name_size);
+    path_remove_extension(game_name);
+
+    // TODO: Handle errors
 }
-
-#endif //MELONDS_DS_UTILS_HPP
