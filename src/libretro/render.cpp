@@ -21,7 +21,6 @@
 #include <glsm/glsmsym.h>
 
 #include <GPU3D.h>
-#include <frontend/qt_sdl/Config.h>
 
 #include "config.hpp"
 #include "input.hpp"
