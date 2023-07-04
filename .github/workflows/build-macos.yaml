@@ -38,6 +38,8 @@ jobs:
         run: cmake "$GITHUB_WORKSPACE" -DMELONDS_REPOSITORY_URL:STRING="${{ matrix.repo }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ matrix.commit }}" -DCMAKE_OSX_ARCHITECTURES:STRING="arm64;x86_64"
       - name: Install GCC problem matcher
         uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
+        with:
+          build-directory: ${{ env.BUILD_DIR }}
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: make -j$(sysctl -n hw.logicalcpu)
