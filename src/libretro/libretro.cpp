@@ -740,7 +740,7 @@ static void melonds::load_games_deferred(
         retro_assert(_loaded_gba_cart == nullptr);
     }
 
-    if (nds_info && melonds::_loaded_nds_cart && !melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
+    if (nds_info && NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
         set_up_direct_boot(*nds_info);
     }
 
