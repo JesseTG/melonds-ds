@@ -130,6 +130,7 @@ namespace Config {
             static const char* const SHARED1G = "shared1024m";
             static const char* const SHARED2G = "shared2048m";
             static const char* const SHARED4G = "shared4096m";
+            static const char* const SHARED4GDSI = "shared4096m-dsi";
             static const char* const SILENCE = "silence";
             static const char* const SOFTWARE = "software";
             static const char* const SPANISH = "es";
@@ -993,7 +994,7 @@ static void melonds::config::parse_dsi_sd_options(const optional<struct retro_ga
 
         if (string_is_equal(value, Values::SHARED)) {
             _dsiSdCardMode = SdCardMode::Shared;
-            set_config(4096, Values::SHARED4G);
+            set_config(4096, Values::SHARED4GDSI);
         } else if (string_is_equal(value, Values::DEDICATED)) {
             _dsiSdCardMode = SdCardMode::Dedicated;
             char game_name[PATH_MAX];
