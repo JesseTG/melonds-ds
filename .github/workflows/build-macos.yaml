@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           - repo: https://github.com/JesseTG/melonDS.git
-            commit: 3c63598
+            commit: c976c3e9
             release: true
           - repo: https://github.com/melonDS-emu/melonDS.git
             commit: master
