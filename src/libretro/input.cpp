@@ -142,7 +142,7 @@ void melonds::update_input(InputState &state) {
 //                   state.holding_noise_btn ? "enabled" : "disabled");
 //    }
 
-    if (current_screen_layout() != ScreenLayout::TopOnly) {
+    if (screen_layout_data.EffectiveLayout() != ScreenLayout::TopOnly) {
         switch (state.current_touch_mode) {
             case TouchMode::Disabled:
                 state.touching = false;
@@ -163,27 +163,27 @@ void melonds::update_input(InputState &state) {
                     int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
                     int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-                    unsigned int touch_scale = screen_layout_data.displayed_layout == ScreenLayout::HybridBottom
-                                               ? screen_layout_data.hybrid_ratio : 1;
+                    unsigned int touch_scale = screen_layout_data.EffectiveLayout() == ScreenLayout::HybridBottom
+                                               ? screen_layout_data.HybridRatio() : 1;
 
                     unsigned int x =
-                            ((int) pointer_x + 0x8000) * screen_layout_data.buffer_width / 0x10000 / touch_scale;
+                            ((int) pointer_x + 0x8000) * screen_layout_data.BufferWidth() / 0x10000 / touch_scale;
                     unsigned int y =
-                            ((int) pointer_y + 0x8000) * screen_layout_data.buffer_height / 0x10000 / touch_scale;
+                            ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
 
-                    if ((x >= screen_layout_data.touch_offset_x) &&
-                        (x < screen_layout_data.touch_offset_x + screen_layout_data.screen_width) &&
-                        (y >= screen_layout_data.touch_offset_y) &&
-                        (y < screen_layout_data.touch_offset_y + screen_layout_data.screen_height)) {
+                    if ((x >= screen_layout_data.TouchOffsetX()) &&
+                        (x < screen_layout_data.TouchOffsetX() + screen_layout_data.ScreenWidth()) &&
+                        (y >= screen_layout_data.TouchOffsetY()) &&
+                        (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
                         state.touching = true;
 
                         state.touch_x = std::clamp(
-                                static_cast<int>((x - screen_layout_data.touch_offset_x) * VIDEO_WIDTH /
-                                                 screen_layout_data.screen_width),
+                                static_cast<int>((x - screen_layout_data.TouchOffsetX()) * VIDEO_WIDTH /
+                                                 screen_layout_data.ScreenWidth()),
                                 0, VIDEO_WIDTH - 1);
                         state.touch_y = std::clamp(
-                                static_cast<int>((y - screen_layout_data.touch_offset_y) * VIDEO_HEIGHT /
-                                                 screen_layout_data.screen_height),
+                                static_cast<int>((y - screen_layout_data.TouchOffsetY()) * VIDEO_HEIGHT /
+                                                 screen_layout_data.ScreenHeight()),
                                 0,
                                 VIDEO_HEIGHT - 1);
                     }

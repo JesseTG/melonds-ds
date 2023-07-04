@@ -402,6 +402,7 @@ PUBLIC_SYMBOL void retro_set_input_state(retro_input_state_t input_state) {
     retro::_input_state = input_state;
 }
 
+// TODO: Move to config.cpp
 static void retro::set_core_options() {
     unsigned version = 0;
 

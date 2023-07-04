@@ -35,7 +35,7 @@ int Platform::GetConfigInt(ConfigEntry entry)
         case Firm_Language: return static_cast<int>(firmware::Language());
         case Firm_BirthdayMonth: firmware::BirthdayMonth();
         case Firm_BirthdayDay: return firmware::BirthdayDay();
-        case Firm_Color: return firmware::FavoriteColour();
+        case Firm_Color: return static_cast<int>(firmware::FavoriteColor());
 
         case AudioBitDepth: return static_cast<int>(audio::BitDepth());
         default: return 0;
@@ -53,7 +53,7 @@ bool Platform::GetConfigBool(ConfigEntry entry)
         case JIT_FastMemory: return jit::FastMemory();
 #endif
 
-case ExternalBIOSEnable: return system::ExternalBiosEnable();
+        case ExternalBIOSEnable: return system::ExternalBiosEnable();
 
         case DLDI_Enable: return save::DldiEnable();
         case DLDI_ReadOnly: return save::DldiReadOnly();
@@ -63,7 +63,7 @@ case ExternalBIOSEnable: return system::ExternalBiosEnable();
         case DSiSD_ReadOnly: return save::DsiSdReadOnly();
         case DSiSD_FolderSync: return save::DsiSdFolderSync();
 
-        case Firm_OverrideSettings: return firmware::OverrideFirmwareSettings();
+        case Firm_OverrideSettings: return firmware::FirmwareSettingsOverrideEnable();
         default: return false;
     }
 }

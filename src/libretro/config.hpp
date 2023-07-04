@@ -17,23 +17,30 @@
 #ifndef MELONDS_DS_CONFIG_HPP
 #define MELONDS_DS_CONFIG_HPP
 
+#include <optional>
+
 #ifdef HAVE_OPENGL
 #include <glsym/glsym.h>
 #endif
 #include <GPU.h>
 #include <libretro.h>
+#include <NDS_Header.h>
 
+// TODO: Move everything into melonds::config
 namespace melonds {
+    /// Called when loading a game
+    void InitConfig(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header);
+
+    /// Called when settings have been updated mid-game
+    void UpdateConfig(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header) noexcept;
     bool update_option_visibility();
-    void update_variables(bool init) noexcept;
-    void apply_variables(bool init) noexcept;
     extern struct retro_core_options_v2 options_us;
     extern struct retro_core_option_v2_definition option_defs_us[];
 #ifndef HAVE_NO_LANGEXTRA
     extern struct retro_core_options_v2* options_intl[];
 #endif
 
-    enum ConsoleType {
+    enum class ConsoleType {
         DS = 0,
         DSi = 1,
     };
@@ -45,7 +52,7 @@ namespace melonds {
 
     enum class MicButtonMode {
         Hold,
-        //Toggle,
+        Toggle,
         Always,
     };
 
@@ -129,6 +136,25 @@ namespace melonds {
         Dedicated,
     };
 
+    enum class SmallScreenLayout {
+        SmallScreenTop = 0,
+        SmallScreenBottom = 1,
+        SmallScreenDuplicate = 2
+    };
+
+    enum class ScreenId {
+        Primary = 0,
+        Top = 1,
+        Bottom = 2,
+    };
+
+    enum class TouchMode {
+        Disabled,
+        Mouse,
+        Touch,
+        Joystick,
+    };
+
     using MacAddress = std::array<std::uint8_t, 6>;
 
     namespace config {
@@ -136,18 +162,19 @@ namespace melonds {
             BitDepth BitDepth() noexcept;
             AudioInterpolation Interpolation() noexcept;
 
-            melonds::MicButtonMode MicButtonMode() noexcept;
+            MicButtonMode MicButtonMode() noexcept;
+            MicInputMode MicInputMode() noexcept;
         }
 
         namespace firmware {
+            bool FirmwareSettingsOverrideEnable() noexcept;
             FirmwareLanguage Language() noexcept;
             unsigned BirthdayMonth() noexcept;
             unsigned BirthdayDay() noexcept;
-            unsigned FavoriteColour() noexcept;
+            Color FavoriteColor() noexcept;
             std::string Username() noexcept;
             std::string Message() noexcept;
             MacAddress MacAddress() noexcept;
-            bool OverrideFirmwareSettings() noexcept;
         }
 
         namespace jit {
@@ -160,6 +187,7 @@ namespace melonds {
 
         namespace system {
             ConsoleType ConsoleType() noexcept;
+            bool DirectBoot() noexcept;
             bool ExternalBiosEnable() noexcept;
             std::string Bios9Path() noexcept;
             std::string Bios7Path() noexcept;
@@ -173,6 +201,7 @@ namespace melonds {
         }
 
         namespace save {
+            SdCardMode DldiSdCardMode() noexcept;
             bool DldiEnable() noexcept;
             bool DldiFolderSync() noexcept;
             std::string DldiFolderPath() noexcept;
@@ -180,6 +209,7 @@ namespace melonds {
             std::string DldiImagePath() noexcept;
             unsigned DldiImageSize() noexcept;
 
+            SdCardMode DsiSdCardMode() noexcept;
             bool DsiSdEnable() noexcept;
             bool DsiSdFolderSync() noexcept;
             std::string DsiSdFolderPath() noexcept;
@@ -187,35 +217,26 @@ namespace melonds {
             std::string DsiSdImagePath() noexcept;
             unsigned DsiSdImageSize() noexcept;
 
-            int FlushDelay() noexcept;
+            unsigned FlushDelay() noexcept;
+        }
+
+        namespace screen {
+            ScreenLayout ScreenLayout() noexcept;
+            unsigned ScreenGap() noexcept;
+            unsigned HybridRatio() noexcept;
+            ScreenSwapMode ScreenSwapMode() noexcept;
+            SmallScreenLayout SmallScreenLayout() noexcept;
+            TouchMode TouchMode() noexcept;
         }
 
         namespace video {
             float CursorSize() noexcept;
-            ScreenSwapMode ScreenSwapMode() noexcept;
-            Renderer CurrentRenderer() noexcept;
             Renderer ConfiguredRenderer() noexcept;
             GPU::RenderSettings RenderSettings() noexcept;
             ScreenFilter ScreenFilter() noexcept;
             int ScaleFactor() noexcept;
         }
-
-
     }
-}
-
-namespace Config::Retro {
-    extern melonds::MicButtonMode MicButtonMode;
-    extern bool RandomizeMac;
-    extern float CursorSize;
-    extern melonds::ScreenSwapMode ScreenSwapMode;
-    extern melonds::Renderer CurrentRenderer;
-    extern melonds::Renderer ConfiguredRenderer;
-
-    // The number of frames to wait for the save data buffer to not change before saving.
-    extern int FlushDelay;
-
-    GPU::RenderSettings RenderSettings();
 }
 
 #endif //MELONDS_DS_CONFIG_HPP

@@ -116,6 +116,6 @@ void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u3
         // The timer resets every time we write to SRAM,
         // so that a sequence of SRAM writes doesn't result in
         // a sequence of disk writes.
-        melonds::TimeToGbaFlush = Config::Retro::FlushDelay;
+        melonds::TimeToGbaFlush = melonds::config::save::FlushDelay();
     }
 }

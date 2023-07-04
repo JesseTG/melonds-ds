@@ -19,43 +19,67 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "config.hpp"
 
 namespace melonds {
+    /// The native width of the Nintendo DS screens, in pixels
     constexpr int VIDEO_WIDTH = 256;
+
+    /// The native height of the Nintendo DS screens, in pixels
     constexpr int VIDEO_HEIGHT = 192;
 
-    enum class SmallScreenLayout {
-        SmallScreenTop = 0,
-        SmallScreenBottom = 1,
-        SmallScreenDuplicate = 2
-    };
+    ScreenLayout SwapLayout(ScreenLayout layout) noexcept;
 
-    enum class ScreenId {
-        Primary = 0,
-        Top = 1,
-        Bottom = 2,
-    };
-
-    enum class ScreenLayout {
-        TopBottom = 0,
-        BottomTop = 1,
-        LeftRight = 2,
-        RightLeft = 3,
-        TopOnly = 4,
-        BottomOnly = 5,
-        HybridTop = 6,
-        HybridBottom = 7,
-    };
-
-    struct ScreenLayoutData {
+    class ScreenLayoutData {
+    public:
         ScreenLayoutData();
         void copy_screen(uint32_t* src, unsigned offset);
         void copy_hybrid_screen(uint32_t* src, ScreenId screen_id);
-        void draw_cursor(int32_t x, int32_t y);
+        [[deprecate("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
         void clean_screenlayout_buffer();
 
-        bool enable_top_screen;
-        bool enable_bottom_screen;
+        void Update(melonds::Renderer renderer) noexcept;
+
+        void* Buffer() noexcept { return buffer_ptr; }
+        const void* Buffer() const noexcept { return buffer_ptr; }
+
+        unsigned BufferWidth() const noexcept { return buffer_width; }
+        unsigned BufferHeight() const noexcept { return buffer_height; }
+        unsigned BufferStride() const noexcept { return buffer_stride; }
+        float BufferAspectRatio() const noexcept { return float(buffer_width) / float(buffer_height); }
+
+        unsigned ScreenWidth() const noexcept { return screen_width; }
+        unsigned ScreenHeight() const noexcept { return screen_height; }
+
+        void SwapScreens(bool swap) noexcept { swapScreens = swap; }
+        bool SwapScreens() const noexcept { return swapScreens; }
+
+        ScreenLayout Layout() const noexcept { return layout; }
+        void Layout(ScreenLayout _layout) noexcept { this->layout = _layout; }
+        ScreenLayout SwappedLayout() const noexcept { return SwapLayout(layout); }
+        ScreenLayout EffectiveLayout() const noexcept { return swapScreens ? SwappedLayout() : layout; }
+
+        bool IsHybridLayout() const noexcept { return layout == ScreenLayout::HybridTop || layout == ScreenLayout::HybridBottom; }
+        SmallScreenLayout HybridSmallScreenLayout() const noexcept { return hybrid_small_screen; }
+        void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept { hybrid_small_screen = _layout; }
+
+        bool EffectiveTopScreenEnabled() const noexcept { return EffectiveLayout() != ScreenLayout::BottomOnly; }
+        bool EffectiveBottomScreenEnabled() const noexcept { return EffectiveLayout() != ScreenLayout::TopOnly; }
+
+        unsigned ScreenGap() const noexcept { return screen_gap_unscaled; }
+        void ScreenGap(unsigned _screen_gap) noexcept { screen_gap_unscaled = _screen_gap; }
+        unsigned ScaledScreenGap() const noexcept { return screen_gap_unscaled * scale; }
+
+        unsigned HybridRatio() const noexcept { return hybrid_ratio; }
+        void HybridRatio(unsigned _hybrid_ratio) noexcept { hybrid_ratio = _hybrid_ratio; }
+
+        unsigned TopScreenOffset() const noexcept { return top_screen_offset; }
+        unsigned BottomScreenOffset() const noexcept { return bottom_screen_offset; }
+
+        unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
+        unsigned TouchOffsetY() const noexcept { return touch_offset_y; }
+    private:
+        bool swapScreens;
         bool direct_copy;
 
         unsigned pixel_size;
@@ -70,9 +94,7 @@ namespace melonds {
         unsigned touch_offset_y;
 
         unsigned screen_gap_unscaled;
-        unsigned screen_gap;
 
-        bool hybrid;
         SmallScreenLayout hybrid_small_screen;
         unsigned hybrid_ratio;
 
@@ -81,13 +103,10 @@ namespace melonds {
         unsigned buffer_stride;
         size_t buffer_len;
         uint16_t *buffer_ptr;
-        ScreenLayout displayed_layout;
+        ScreenLayout layout;
     };
 
-    ScreenLayout current_screen_layout();
-
-    void update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, bool opengl, bool swap_screens);
-
     extern ScreenLayoutData screen_layout_data;
+    extern bool ScreenSwap;
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP

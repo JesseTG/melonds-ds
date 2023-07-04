@@ -18,17 +18,11 @@
 #define MELONDS_DS_INPUT_HPP
 
 #include <libretro.h>
+#include "config.hpp"
 
 namespace melonds {
 
     extern const struct retro_input_descriptor input_descriptors[];
-
-    enum class TouchMode {
-        Disabled,
-        Mouse,
-        Touch,
-        Joystick,
-    };
 
     struct InputState
     {

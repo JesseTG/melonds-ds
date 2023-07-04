@@ -21,13 +21,10 @@
 #include <cstring>
 
 namespace melonds {
-    static ScreenLayout _current_screen_layout = ScreenLayout::TopBottom;
-
     ScreenLayoutData screen_layout_data;
 
-    ScreenLayout current_screen_layout() {
-        return _current_screen_layout;
-    }
+    // TODO: Move this to a better place
+    bool ScreenSwap;
 }
 
 melonds::ScreenLayoutData::ScreenLayoutData() {
@@ -104,14 +101,14 @@ void melonds::ScreenLayoutData::copy_hybrid_screen(uint32_t *src, ScreenId scree
 void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
     auto *base_offset = (uint32_t *) buffer_ptr;
 
-    uint32_t scale = displayed_layout == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
-
-    uint32_t start_y = std::clamp<float>(y - Config::Retro::CursorSize, 0, screen_height) * scale;
-    uint32_t end_y = std::clamp<float>(y + Config::Retro::CursorSize, 0, screen_height) * scale;
+    uint32_t scale = layout == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
+    float cursorSize = melonds::config::video::CursorSize();
+    uint32_t start_y = std::clamp<float>(y - cursorSize, 0, screen_height) * scale;
+    uint32_t end_y = std::clamp<float>(y + cursorSize, 0, screen_height) * scale;
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp<float>(x - Config::Retro::CursorSize, 0, screen_width) * scale;
-        uint32_t end_x = std::clamp<float>(x + Config::Retro::CursorSize, 0, screen_width) * scale;
+        uint32_t start_x = std::clamp<float>(x - cursorSize, 0, screen_width) * scale;
+        uint32_t end_x = std::clamp<float>(x + cursorSize, 0, screen_width) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
             uint32_t *offset = base_offset + ((y + touch_offset_y) * buffer_width) + ((x + touch_offset_x));
@@ -131,194 +128,166 @@ void melonds::ScreenLayoutData::clean_screenlayout_buffer() {
 using melonds::ScreenLayout;
 using melonds::ScreenLayoutData;
 
-void melonds::update_screenlayout(ScreenLayout layout, ScreenLayoutData *data, bool opengl, bool swap_screens) {
-    unsigned pixel_size = 4; // XRGB8888 is hardcoded for now, so it's fine
-    data->pixel_size = pixel_size;
+void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
+    this->pixel_size = 4; // We hardcode XRGB8888 pixels, so size will always be 4 bytes
 
-    unsigned scale = 1; // ONLY SUPPORTED BY OPENGL RENDERER
-
-    if (opengl) {
+    if (renderer == Renderer::OpenGl) {
         // To avoid some issues the size should be at least 4x the native res
         if (config::video::ScaleFactor() > 4)
             scale = config::video::ScaleFactor();
         else
             scale = 4;
+    } else {
+        this->scale = 1;
     }
 
-    data->scale = scale;
+    unsigned old_size = this->buffer_stride * this->buffer_height;
 
-    unsigned old_size = data->buffer_stride * data->buffer_height;
+    this->direct_copy = false;
 
-    data->direct_copy = false;
-    data->hybrid = false;
+    this->screen_width = melonds::VIDEO_WIDTH * scale;
+    this->screen_height = melonds::VIDEO_HEIGHT * scale;
+    unsigned scaledScreenGap = ScaledScreenGap();
 
-    data->screen_width = melonds::VIDEO_WIDTH * scale;
-    data->screen_height = melonds::VIDEO_HEIGHT * scale;
-    data->screen_gap = data->screen_gap_unscaled * scale;
-
-    melonds::_current_screen_layout = layout;
-
-    if (swap_screens) {
-        switch (melonds::_current_screen_layout) {
-            case ScreenLayout::BottomOnly:
-                layout = ScreenLayout::TopOnly;
-                break;
-            case ScreenLayout::TopOnly:
-                layout = ScreenLayout::BottomOnly;
-                break;
-            case ScreenLayout::BottomTop:
-                layout = ScreenLayout::TopBottom;
-                break;
-            case ScreenLayout::TopBottom:
-                layout = ScreenLayout::BottomTop;
-                break;
-            case ScreenLayout::LeftRight:
-                layout = ScreenLayout::RightLeft;
-                break;
-            case ScreenLayout::RightLeft:
-                layout = ScreenLayout::LeftRight;
-                break;
-            case ScreenLayout::HybridTop:
-                layout = ScreenLayout::HybridBottom;
-                break;
-            case ScreenLayout::HybridBottom:
-                layout = ScreenLayout::HybridTop;
-                break;
-        }
-    }
-
-    switch (layout) {
+    switch (EffectiveLayout()) {
         case ScreenLayout::TopBottom:
-            data->enable_top_screen = true;
-            data->enable_bottom_screen = true;
-            data->direct_copy = true;
+            this->direct_copy = true;
 
-            data->buffer_width = data->screen_width;
-            data->buffer_height = data->screen_height * 2 + data->screen_gap;
-            data->buffer_stride = data->screen_width * pixel_size;
+            this->buffer_width = this->screen_width;
+            this->buffer_height = this->screen_height * 2 + scaledScreenGap;
+            this->buffer_stride = this->screen_width * pixel_size;
 
-            data->touch_offset_x = 0;
-            data->touch_offset_y = data->screen_height + data->screen_gap;
+            this->touch_offset_x = 0;
+            this->touch_offset_y = this->screen_height + scaledScreenGap;
 
-            data->top_screen_offset = 0;
-            data->bottom_screen_offset = data->buffer_width * (data->screen_height + data->screen_gap);
+            this->top_screen_offset = 0;
+            this->bottom_screen_offset = this->buffer_width * (this->screen_height + scaledScreenGap);
 
             break;
         case ScreenLayout::BottomTop:
-            data->enable_top_screen = true;
-            data->enable_bottom_screen = true;
-            data->direct_copy = true;
+            this->direct_copy = true;
 
-            data->buffer_width = data->screen_width;
-            data->buffer_height = data->screen_height * 2 + data->screen_gap;
-            data->buffer_stride = data->screen_width * pixel_size;
+            this->buffer_width = this->screen_width;
+            this->buffer_height = this->screen_height * 2 + scaledScreenGap;
+            this->buffer_stride = this->screen_width * pixel_size;
 
-            data->touch_offset_x = 0;
-            data->touch_offset_y = 0;
+            this->touch_offset_x = 0;
+            this->touch_offset_y = 0;
 
-            data->top_screen_offset = data->buffer_width * (data->screen_height + data->screen_gap);
-            data->bottom_screen_offset = 0;
+            this->top_screen_offset = this->buffer_width * (this->screen_height + scaledScreenGap);
+            this->bottom_screen_offset = 0;
 
             break;
         case ScreenLayout::LeftRight:
-            data->enable_top_screen = true;
-            data->enable_bottom_screen = true;
+            this->buffer_width = this->screen_width * 2;
+            this->buffer_height = this->screen_height;
+            this->buffer_stride = this->screen_width * 2 * pixel_size;
 
-            data->buffer_width = data->screen_width * 2;
-            data->buffer_height = data->screen_height;
-            data->buffer_stride = data->screen_width * 2 * pixel_size;
+            this->touch_offset_x = this->screen_width;
+            this->touch_offset_y = 0;
 
-            data->touch_offset_x = data->screen_width;
-            data->touch_offset_y = 0;
-
-            data->top_screen_offset = 0;
-            data->bottom_screen_offset = (data->screen_width * 2);
+            this->top_screen_offset = 0;
+            this->bottom_screen_offset = (this->screen_width * 2);
 
             break;
         case ScreenLayout::RightLeft:
-            data->enable_top_screen = true;
-            data->enable_bottom_screen = true;
 
-            data->buffer_width = data->screen_width * 2;
-            data->buffer_height = data->screen_height;
-            data->buffer_stride = data->screen_width * 2 * pixel_size;
+            this->buffer_width = this->screen_width * 2;
+            this->buffer_height = this->screen_height;
+            this->buffer_stride = this->screen_width * 2 * pixel_size;
 
-            data->touch_offset_x = 0;
-            data->touch_offset_y = 0;
+            this->touch_offset_x = 0;
+            this->touch_offset_y = 0;
 
-            data->top_screen_offset = (data->screen_width * 2);
-            data->bottom_screen_offset = 0;
+            this->top_screen_offset = (this->screen_width * 2);
+            this->bottom_screen_offset = 0;
 
             break;
         case ScreenLayout::TopOnly:
-            data->enable_top_screen = true;
-            data->enable_bottom_screen = false;
-            data->direct_copy = true;
+            this->direct_copy = true;
 
-            data->buffer_width = data->screen_width;
-            data->buffer_height = data->screen_height;
-            data->buffer_stride = data->screen_width * pixel_size;
+            this->buffer_width = this->screen_width;
+            this->buffer_height = this->screen_height;
+            this->buffer_stride = this->screen_width * pixel_size;
 
             // should be disabled in top only
-            data->touch_offset_x = 0;
-            data->touch_offset_y = 0;
+            this->touch_offset_x = 0;
+            this->touch_offset_y = 0;
 
-            data->top_screen_offset = 0;
+            this->top_screen_offset = 0;
 
             break;
         case ScreenLayout::BottomOnly:
-            data->enable_top_screen = false;
-            data->enable_bottom_screen = true;
-            data->direct_copy = true;
+            this->direct_copy = true;
 
-            data->buffer_width = data->screen_width;
-            data->buffer_height = data->screen_height;
-            data->buffer_stride = data->screen_width * pixel_size;
+            this->buffer_width = this->screen_width;
+            this->buffer_height = this->screen_height;
+            this->buffer_stride = this->screen_width * pixel_size;
 
-            data->touch_offset_x = 0;
-            data->touch_offset_y = 0;
+            this->touch_offset_x = 0;
+            this->touch_offset_y = 0;
 
-            data->bottom_screen_offset = 0;
+            this->bottom_screen_offset = 0;
 
             break;
         case ScreenLayout::HybridTop:
         case ScreenLayout::HybridBottom:
-            data->enable_top_screen = true;
-            data->enable_bottom_screen = true;
 
-            data->hybrid = true;
-
-            data->buffer_width =
-                    (data->screen_width * data->hybrid_ratio) + data->screen_width + (data->hybrid_ratio * 2);
-            data->buffer_height = (data->screen_height * data->hybrid_ratio);
-            data->buffer_stride = data->buffer_width * pixel_size;
+            this->buffer_width =
+                (this->screen_width * this->hybrid_ratio) + this->screen_width + (this->hybrid_ratio * 2);
+            this->buffer_height = (this->screen_height * this->hybrid_ratio);
+            this->buffer_stride = this->buffer_width * pixel_size;
 
             if (layout == ScreenLayout::HybridTop) {
-                data->touch_offset_x = (data->screen_width * data->hybrid_ratio) + (data->hybrid_ratio / 2);
-                data->touch_offset_y = (data->screen_height * (data->hybrid_ratio - 1));
+                this->touch_offset_x = (this->screen_width * this->hybrid_ratio) + (this->hybrid_ratio / 2);
+                this->touch_offset_y = (this->screen_height * (this->hybrid_ratio - 1));
             } else {
-                data->touch_offset_x = 0;
-                data->touch_offset_y = 0;
+                this->touch_offset_x = 0;
+                this->touch_offset_y = 0;
             }
 
             break;
+        // TODO: Implement rotated-left, rotated-right, and upside-down layouts
     }
 
-    data->displayed_layout = layout;
-
-    if (opengl && data->buffer_ptr != nullptr) {
+    if (renderer == Renderer::OpenGl && this->buffer_ptr != nullptr) {
         // not needed anymore :)
-        free(data->buffer_ptr);
-        data->buffer_ptr = nullptr;
+        free(this->buffer_ptr);
+        this->buffer_ptr = nullptr;
     } else {
-        unsigned new_size = data->buffer_stride * data->buffer_height;
+        unsigned new_size = this->buffer_stride * this->buffer_height;
 
-        if (old_size != new_size || data->buffer_ptr == nullptr) {
-            if (data->buffer_ptr != nullptr) free(data->buffer_ptr);
-            data->buffer_ptr = (uint16_t *) malloc(new_size);
+        if (old_size != new_size || this->buffer_ptr == nullptr) {
+            if (this->buffer_ptr != nullptr) free(this->buffer_ptr);
+            this->buffer_ptr = (uint16_t *) malloc(new_size);
 
-            memset(data->buffer_ptr, 0, new_size);
+            memset(this->buffer_ptr, 0, new_size);
         }
+    }
+}
+
+
+ScreenLayout melonds::SwapLayout(ScreenLayout layout) noexcept {
+    switch (layout) {
+        case ScreenLayout::BottomOnly:
+            return ScreenLayout::TopOnly;
+        case ScreenLayout::TopOnly:
+            return ScreenLayout::BottomOnly;
+        case ScreenLayout::BottomTop:
+            return ScreenLayout::TopBottom;
+        case ScreenLayout::TopBottom:
+            return ScreenLayout::BottomTop;
+        case ScreenLayout::LeftRight:
+            return ScreenLayout::RightLeft;
+        case ScreenLayout::RightLeft:
+            return ScreenLayout::LeftRight;
+        case ScreenLayout::HybridTop:
+            return ScreenLayout::HybridBottom;
+        case ScreenLayout::HybridBottom:
+            return ScreenLayout::HybridTop;
+        default:
+            // No swap for other types
+            return layout;
     }
 }
 
@@ -327,9 +296,9 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
 
     info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
     info->timing.sample_rate = 32.0f * 1024.0f;
-    info->geometry.base_width = screen_layout_data.buffer_width;
-    info->geometry.base_height = screen_layout_data.buffer_height;
-    info->geometry.max_width = screen_layout_data.buffer_width;
-    info->geometry.max_height = screen_layout_data.buffer_height;
-    info->geometry.aspect_ratio = (float) screen_layout_data.buffer_width / (float) screen_layout_data.buffer_height;
+    info->geometry.base_width = screen_layout_data.BufferWidth();
+    info->geometry.base_height = screen_layout_data.BufferHeight();
+    info->geometry.max_width = screen_layout_data.BufferWidth();
+    info->geometry.max_height = screen_layout_data.BufferHeight();
+    info->geometry.aspect_ratio = screen_layout_data.BufferAspectRatio();
 }

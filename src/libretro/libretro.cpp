@@ -32,7 +32,6 @@
 #include <NDSCart.h>
 #include <frontend/FrontendUtil.h>
 #include <Platform.h>
-#include <frontend/qt_sdl/Config.h>
 #include <GPU.h>
 #include <SPU.h>
 #include <GBACart.h>
@@ -54,6 +53,7 @@
 #include "microphone.hpp"
 #include "dsi.hpp"
 
+using std::make_optional;
 using std::optional;
 using std::nullopt;
 
@@ -78,13 +78,10 @@ namespace melonds {
         const optional<retro_game_info> &gba_info,
         const optional<retro_game_info> &gba_save_info
     );
-    static void init_firmware_overrides();
     static void parse_nds_rom(const struct retro_game_info &info);
     static void init_nds_save(const NdsCart &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
     static void init_gba_save(GbaCart &gba_cart, const struct retro_game_info& gba_save_info);
-    static void verify_nds_bios(bool ds_game_loaded);
-    static void verify_dsi_bios();
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
@@ -98,7 +95,6 @@ namespace melonds {
 
     // functions for running games
     static void read_microphone(melonds::InputState& input_state) noexcept;
-    static void render_frame(const InputState& input_state);
     static void render_audio();
     static void flush_save_data() noexcept;
     static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
@@ -262,7 +258,6 @@ static void melonds::flush_gba_sram(const retro_game_info& gba_save_info) noexce
 PUBLIC_SYMBOL void retro_run(void) {
     using namespace melonds;
     using retro::log;
-    using Config::Retro::CurrentRenderer;
 
     if (deferred_initialization_pending) {
         try {
@@ -300,30 +295,28 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     melonds::update_input(input_state);
 
-    if (melonds::input_state.swap_screens_btn != Config::ScreenSwap) {
-        switch (Config::Retro::ScreenSwapMode) {
+    if (melonds::input_state.swap_screens_btn != ScreenSwap) {
+        switch (config::screen::ScreenSwapMode()) {
             case melonds::ScreenSwapMode::Toggle: {
-                if (!Config::ScreenSwap) {
+                if (!ScreenSwap) {
                     swap_screen_toggled = !swap_screen_toggled;
-                    update_screenlayout(current_screen_layout(), &screen_layout_data,
-                                        CurrentRenderer == Renderer::OpenGl,
-                                        swap_screen_toggled);
+                    screen_layout_data.SwapScreens(swap_screen_toggled);
+                    screen_layout_data.Update(render::CurrentRenderer());
                     melonds::opengl::RequestOpenGlRefresh();
                 }
 
-                Config::ScreenSwap = input_state.swap_screens_btn;
-                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", Config::ScreenSwap ? "on" : "off");
+                ScreenSwap = input_state.swap_screens_btn;
+                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", ScreenSwap ? "on" : "off");
                 break;
             }
             case ScreenSwapMode::Hold: {
-                if (Config::ScreenSwap != input_state.swap_screens_btn) {
+                if (ScreenSwap != input_state.swap_screens_btn) {
                     log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
                         input_state.swap_screens_btn ? "Started" : "Stopped");
                 }
-                Config::ScreenSwap = input_state.swap_screens_btn;
-                update_screenlayout(current_screen_layout(), &screen_layout_data,
-                                    CurrentRenderer == Renderer::OpenGl,
-                                    Config::ScreenSwap);
+                ScreenSwap = input_state.swap_screens_btn;
+                screen_layout_data.SwapScreens(ScreenSwap);
+                screen_layout_data.Update(render::CurrentRenderer());
                 melonds::opengl::RequestOpenGlRefresh();
             }
         }
@@ -336,15 +329,14 @@ PUBLIC_SYMBOL void retro_run(void) {
         NDS::RunFrame();
 
         // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
-        melonds::render_frame(input_state);
+        render::Render(input_state);
         melonds::render_audio();
         melonds::flush_save_data();
     }
 
-    bool updated = false;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
-        melonds::update_variables(false);
-        melonds::apply_variables(false);
+    if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+        optional<NDSHeader> header = NDSCart::Cart ? std::make_optional(NDSCart::Cart->GetHeader()) : std::nullopt;
+        melonds::UpdateConfig(retro::content::get_loaded_nds_info(), header);
 
         struct retro_system_av_info updated_av_info{};
         retro_get_system_av_info(&updated_av_info);
@@ -354,9 +346,9 @@ PUBLIC_SYMBOL void retro_run(void) {
 }
 
 static void melonds::read_microphone(melonds::InputState& input_state) noexcept {
-    auto mic_input_mode = static_cast<MicInputMode>(Config::MicInputType);
+    MicInputMode mic_input_mode = config::audio::MicInputMode();
 
-    switch (Config::Retro::MicButtonMode) {
+    switch (config::audio::MicButtonMode()) {
         // If the microphone button...
         case MicButtonMode::Hold: {
             // ...must be held...
@@ -373,7 +365,7 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
     }
 
     if (retro::microphone::is_open()) {
-        retro::microphone::set_state(input_state.holding_noise_btn || Config::Retro::MicButtonMode == MicButtonMode::Always);
+        retro::microphone::set_state(input_state.holding_noise_btn || config::audio::MicButtonMode() == MicButtonMode::Always);
     }
 
     switch (mic_input_mode) {
@@ -391,6 +383,7 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
         }
         case MicInputMode::HostMic: // microphone input
         {
+            // TODO: Consider switching to Mic_FeedExternalBuffer
             const auto mic_state = retro::microphone::get_state();
             if (mic_state.has_value() && mic_state.value()) {
                 // If the microphone is open and turned on...
@@ -404,20 +397,6 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
         // Intentional fall-through
         default:
             Frontend::Mic_FeedSilence();
-    }
-}
-
-static void melonds::render_frame(const InputState& input_state) {
-    switch (Config::Retro::CurrentRenderer) {
-#ifdef HAVE_OPENGL
-        case Renderer::OpenGl:
-            melonds::opengl::render_frame(input_state);
-            break;
-#endif
-        case Renderer::Software:
-        default:
-            render::RenderSoftware(input_state);
-            break;
     }
 }
 
@@ -590,8 +569,14 @@ static void melonds::load_games(
     const optional<struct retro_game_info> &gba_save_info
 ) {
     melonds::clear_memory_config();
-    melonds::update_variables(true);
-    melonds::apply_variables(true);
+    NDSHeader header;
+    if (nds_info) {
+        // Need to get the header before parsing the ROM,
+        // as parsing the ROM can depend on the config
+        // but the config can depend on the header.
+        memcpy(&header, nds_info->data, sizeof(header));
+    }
+    melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt);
 
     using retro::environment;
     using retro::log;
@@ -599,8 +584,6 @@ static void melonds::load_games(
 
     retro_assert(_loaded_nds_cart == nullptr);
     retro_assert(_loaded_gba_cart == nullptr);
-
-    init_firmware_overrides();
 
     // First parse the ROMs...
     if (nds_info) {
@@ -618,7 +601,7 @@ static void melonds::load_games(
     }
 
     if (gba_info) {
-        if (Config::ConsoleType == ConsoleType::DSi) {
+        if (config::system::ConsoleType() == ConsoleType::DSi) {
             retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
         } else {
             parse_gba_rom(*gba_info);
@@ -632,15 +615,12 @@ static void melonds::load_games(
         }
     }
 
-    switch (Config::ConsoleType) {
-        case ConsoleType::DS:
-            verify_nds_bios(nds_info != nullopt);
-            break;
-        case ConsoleType::DSi:
-            verify_dsi_bios();
-            break;
-        default:
-            retro_assert(false);
+    if (!config::system::ExternalBiosEnable() && _loaded_gba_cart) {
+        // If we're using FreeBIOS and are trying to load a GBA cart...
+        retro::set_warn_message(
+            "FreeBIOS does not support GBA connectivity. "
+            "Please install a native BIOS and enable it in the options menu."
+        );
     }
 
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
@@ -652,28 +632,16 @@ static void melonds::load_games(
         throw std::runtime_error("Failed to initialize NDS emulator.");
     }
 
-    SPU::SetInterpolation(Config::AudioInterp);
-    NDS::SetConsoleType(Config::ConsoleType);
+    SPU::SetInterpolation(static_cast<int>(config::audio::Interpolation()));
+    NDS::SetConsoleType(static_cast<int>(config::system::ConsoleType()));
 
-    if (Config::Retro::CurrentRenderer == Renderer::OpenGl) {
+    if (render::CurrentRenderer() == Renderer::OpenGl) {
         log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
         deferred_initialization_pending = true;
     } else {
         log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
         load_games_deferred(nds_info, gba_info);
     }
-}
-
-
-static void melonds::init_firmware_overrides() {
-    // TODO: Make firmware overrides configurable
-    // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
-
-    const char *retro_username;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && retro_username && !string_is_empty(retro_username))
-        Config::FirmwareUsername = retro_username;
-    else
-        Config::FirmwareUsername = "melonDS";
 }
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
@@ -686,12 +654,12 @@ static void melonds::init_nds_save(const NdsCart &nds_cart) {
          // Homebrew is a special case, as it uses an SD card rather than SRAM.
          // No need to explicitly load or save homebrew SD card images;
          // the CartHomebrew class does that.
-         if (Config::DLDIFolderSync) {
+         if (config::save::DldiFolderSync()) {
              // If we're syncing the homebrew SD card image to the host filesystem...
-             if (!path_mkdir(Config::DLDIFolderPath.c_str())) {
+             if (!path_mkdir(config::save::DldiFolderPath().c_str())) {
                  // Create the directory. If that fails...
                  // (note that an existing directory is not an error)
-                 throw runtime_error("Failed to create virtual SD card directory at " + Config::DLDISDPath);
+                 throw runtime_error("Failed to create virtual SD card directory at " + config::save::DldiFolderPath());
              }
          }
      }
@@ -710,88 +678,6 @@ static void melonds::init_nds_save(const NdsCart &nds_cart) {
     }
 }
 
-static void melonds::verify_nds_bios(bool ds_game_loaded) {
-    using retro::log;
-    retro_assert(Config::ConsoleType == ConsoleType::DS);
-
-    // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
-    if (Config::ExternalBIOSEnable) {
-        // If the player wants to use their own BIOS dumps...
-
-        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
-        // so we have to do it ourselves
-
-        std::array<const std::string*, 3> required_roms = {&Config::BIOS7Path, &Config::BIOS9Path, &Config::FirmwarePath};
-        std::vector<const std::string*> missing_roms;
-
-        // Check if any of the bioses / firmware files are missing
-        for (const std::string* rom: required_roms) {
-            if (Platform::LocalFileExists(*rom)) {
-                log(RETRO_LOG_INFO, "Found %s", rom->c_str());
-            } else {
-                missing_roms.push_back(rom);
-                log(RETRO_LOG_WARN, "Could not find %s", rom->c_str());
-            }
-        }
-
-        // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
-
-        // Abort if there are any of the required roms are missing
-        if (!missing_roms.empty()) {
-            Config::ExternalBIOSEnable = false;
-            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
-        }
-    } else {
-        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using internal FreeBIOS instead.");
-    }
-
-    if (!Config::ExternalBIOSEnable) {
-        // If we're using FreeBIOS...
-
-        if (!ds_game_loaded) {
-            // If we're not loading a DS game...
-            throw melonds::unsupported_bios_exception("Booting without content requires a native BIOS.");
-        }
-        else if (_loaded_gba_cart) {
-            // If we're using FreeBIOS and are trying to load a GBA cart...
-            retro::set_warn_message(
-                "FreeBIOS does not support GBA connectivity. "
-                "Please install a native BIOS and enable it in the options menu."
-            );
-        }
-    }
-}
-
-static void melonds::verify_dsi_bios() {
-    using retro::info;
-    using retro::warn;
-
-    retro_assert(Config::ConsoleType == ConsoleType::DSi);
-    if (!Config::ExternalBIOSEnable) {
-        throw melonds::unsupported_bios_exception("DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
-    }
-
-    std::array<const std::string*, 4> required_roms = {&Config::DSiBIOS7Path, &Config::DSiBIOS9Path, &Config::DSiFirmwarePath, &Config::DSiNANDPath};
-    std::vector<std::string> missing_roms;
-
-    // Check if any of the bioses / firmware files are missing
-    for (const std::string* rom: required_roms) {
-        if (Platform::LocalFileExists(*rom)) {
-            info("Found %s", rom->c_str());
-        } else {
-            missing_roms.push_back(*rom);
-            warn("Could not find %s", rom->c_str());
-        }
-    }
-
-    // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
-
-    // Abort if there are any of the required roms are missing
-    if (!missing_roms.empty()) {
-        throw melonds::missing_bios_exception(missing_roms);
-    }
-}
-
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
 static void melonds::load_games_deferred(
@@ -803,9 +689,10 @@ static void melonds::load_games_deferred(
     // GPU config must be initialized before NDS::Reset is called.
     // Ensure that there's a renderer, even if we're about to throw it out.
     // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
-    GPU::InitRenderer(Config::Retro::CurrentRenderer == Renderer::OpenGl);
-    GPU::RenderSettings render_settings = Config::Retro::RenderSettings();
-    GPU::SetRenderSettings(Config::Retro::CurrentRenderer == Renderer::OpenGl, render_settings);
+    bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
+    GPU::InitRenderer(isOpenGl);
+    GPU::RenderSettings render_settings = config::video::RenderSettings();
+    GPU::SetRenderSettings(isOpenGl, render_settings);
 
     // Loads the BIOS, too
     NDS::Reset();
@@ -871,37 +758,13 @@ static void melonds::init_rendering() {
         throw std::runtime_error("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
-#ifdef HAVE_OPENGL
-    // Initialize the opengl state if needed
-    switch (Config::Retro::ConfiguredRenderer) {
-        // Depending on which renderer we want to use...
-        case Renderer::OpenGl:
-            if (melonds::opengl::initialize()) {
-                Config::Retro::CurrentRenderer = Renderer::OpenGl;
-                log(RETRO_LOG_DEBUG, "Requested OpenGL context");
-            } else {
-                Config::Retro::CurrentRenderer = Renderer::Software;
-                log(RETRO_LOG_ERROR, "Failed to initialize OpenGL renderer, falling back to software rendering");
-                // TODO: Display a message stating that we're falling back to software rendering
-            }
-            break;
-        default:
-            log(RETRO_LOG_WARN, "Unknown renderer %d, falling back to software rendering",
-                static_cast<int>(Config::Retro::ConfiguredRenderer));
-            // Intentional fall-through
-        case Renderer::Software:
-            Config::Retro::CurrentRenderer = Renderer::Software;
-            log(RETRO_LOG_INFO, "Using software renderer");
-            break;
-    }
-#else
-    log(RETRO_LOG_INFO, "OpenGL is not supported by this build, using software renderer");
-#endif
+    melonds::render::Initialize(config::video::ConfiguredRenderer());
+
 }
 
 // Decrypts the ROM's secure area
 static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
-    if (Config::DirectBoot || NDS::NeedsDirectBoot()) {
+    if (config::system::DirectBoot() || NDS::NeedsDirectBoot()) {
         char game_name[256];
         const char *ptr = path_basename(nds_info.path);
         if (ptr)
