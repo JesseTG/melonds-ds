@@ -36,6 +36,8 @@
 using std::string;
 using std::optional;
 
+constexpr unsigned DS_NAME_LIMIT = 10;
+
 namespace Config {
     namespace Retro {
         // bool RandomizeMac = false;
@@ -53,6 +55,7 @@ namespace Config {
         }
 
         namespace Keys {
+            static const char* const FAVORITE_COLOR = "melonds_firmware_favorite_color";
             static const char* const OPENGL_RESOLUTION = "melonds_opengl_resolution";
             static const char* const THREADED_RENDERER = "melonds_threaded_renderer";
             static const char* const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
@@ -192,10 +195,10 @@ namespace melonds::config {
         static FirmwareLanguage _language;
         FirmwareLanguage Language() noexcept { return _language; }
 
-        static unsigned _birthdayMonth;
+        static unsigned _birthdayMonth = 1;
         unsigned BirthdayMonth() noexcept { return _birthdayMonth; }
 
-        static unsigned _birthdayDay;
+        static unsigned _birthdayDay = 1;
         unsigned BirthdayDay() noexcept { return _birthdayDay; }
 
         static Color _favoriteColor;
@@ -622,15 +625,27 @@ static void melonds::config::parse_firmware_options() noexcept {
         _language = FirmwareLanguage::English;
     }
 
-    // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
+    if (const char* value = get_variable(Keys::FAVORITE_COLOR); !string_is_empty(value)) {
+        _favoriteColor = static_cast<Color>(std::clamp(std::stoi(value), 0, 15));
+        // TODO: Warn if invalid
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to gray", Keys::FAVORITE_COLOR);
+        _favoriteColor = Color::Gray;
+    }
+
     const char* retro_username;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && !string_is_empty(retro_username))
-        _username = retro_username;
-    else
+    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && !string_is_empty(retro_username)) {
+        unsigned length = strlen(retro_username);
+        _username = string(retro_username, 0, std::max(length, DS_NAME_LIMIT));
+
+        retro::info("Overridden username: %s", _username.c_str());
+    }
+    else {
+        retro::warn("Failed to get the user's name; defaulting to \"melonDS\"");
         _username = "melonDS";
+    }
 
     // TODO: Make birthday configurable
-    // TODO: Make favorite color configurable
     // TODO: Make message configurable with a file at runtime
     // TODO: Make MAC address configurable with a file at runtime
 }
@@ -1091,6 +1106,7 @@ static void melonds::config::verify_dsi_bios() {
         }
     }
 
+    _externalBiosFound = missing_roms.empty();
     // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
 
     // Abort if there are any of the required roms are missing
@@ -1276,7 +1292,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Language",
         nullptr,
         "The language mode of the emulated console. "
-        "Ignored if 'Use Firmware Settings' is enabled."
         "Not every game honors this setting. "
         "Automatic uses the frontend's language if supported by the DS, or English if not.",
         nullptr,
@@ -1292,6 +1307,34 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::DEFAULT
+    },
+    {
+        Config::Retro::Keys::FAVORITE_COLOR,
+        "Favorite Color",
+        nullptr,
+        "The theme (\"favorite color\") of the emulated console.",
+        nullptr,
+        "system",
+        {
+            {"0", "Gray"},
+            {"1", "Brown"},
+            {"2", "Red"},
+            {"3", "Light Pink"},
+            {"4", "Orange"},
+            {"5", "Yellow"},
+            {"6", "Lime"},
+            {"7", "Light Green"},
+            {"8", "Dark Green"},
+            {"9", "Turquoise"},
+            {"10", "Light Blue"},
+            {"11", "Blue"},
+            {"12", "Dark Blue"},
+            {"13", "Dark Purple"},
+            {"14", "Light Purple"},
+            {"15", "Dark Pink"},
+            {nullptr, nullptr},
+        },
+        "0"
     },
     {
         Config::Retro::Keys::USE_EXTERNAL_BIOS,
