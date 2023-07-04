@@ -159,82 +159,82 @@ namespace melonds {
 
     namespace config {
         namespace audio {
-            BitDepth BitDepth() noexcept;
-            AudioInterpolation Interpolation() noexcept;
+            [[nodiscard]] BitDepth BitDepth() noexcept;
+            [[nodiscard]] AudioInterpolation Interpolation() noexcept;
 
-            MicButtonMode MicButtonMode() noexcept;
-            MicInputMode MicInputMode() noexcept;
+            [[nodiscard]] MicButtonMode MicButtonMode() noexcept;
+            [[nodiscard]] MicInputMode MicInputMode() noexcept;
         }
 
         namespace firmware {
-            bool FirmwareSettingsOverrideEnable() noexcept;
-            FirmwareLanguage Language() noexcept;
-            unsigned BirthdayMonth() noexcept;
-            unsigned BirthdayDay() noexcept;
-            Color FavoriteColor() noexcept;
-            std::string Username() noexcept;
-            std::string Message() noexcept;
-            MacAddress MacAddress() noexcept;
+            [[nodiscard]] bool FirmwareSettingsOverrideEnable() noexcept;
+            [[nodiscard]] FirmwareLanguage Language() noexcept;
+            [[nodiscard]] unsigned BirthdayMonth() noexcept;
+            [[nodiscard]] unsigned BirthdayDay() noexcept;
+            [[nodiscard]] Color FavoriteColor() noexcept;
+            [[nodiscard]] std::string Username() noexcept;
+            [[nodiscard]] std::string Message() noexcept;
+            [[nodiscard]] MacAddress MacAddress() noexcept;
         }
 
         namespace jit {
-            unsigned MaxBlockSize() noexcept;
-            bool Enable() noexcept;
-            bool LiteralOptimizations() noexcept;
-            bool BranchOptimizations() noexcept;
-            bool FastMemory() noexcept;
+            [[nodiscard]] unsigned MaxBlockSize() noexcept;
+            [[nodiscard]] bool Enable() noexcept;
+            [[nodiscard]] bool LiteralOptimizations() noexcept;
+            [[nodiscard]] bool BranchOptimizations() noexcept;
+            [[nodiscard]] bool FastMemory() noexcept;
         }
 
         namespace system {
-            ConsoleType ConsoleType() noexcept;
-            bool DirectBoot() noexcept;
-            bool ExternalBiosEnable() noexcept;
-            std::string Bios9Path() noexcept;
-            std::string Bios7Path() noexcept;
-            std::string FirmwarePath() noexcept;
-            std::string DsiBios9Path() noexcept;
-            std::string DsiBios7Path() noexcept;
-            std::string DsiFirmwarePath() noexcept;
-            std::string DsiNandPath() noexcept;
+            [[nodiscard]] ConsoleType ConsoleType() noexcept;
+            [[nodiscard]] bool DirectBoot() noexcept;
+            [[nodiscard]] bool ExternalBiosEnable() noexcept;
+            [[nodiscard]] std::string Bios9Path() noexcept;
+            [[nodiscard]] std::string Bios7Path() noexcept;
+            [[nodiscard]] std::string FirmwarePath() noexcept;
+            [[nodiscard]] std::string DsiBios9Path() noexcept;
+            [[nodiscard]] std::string DsiBios7Path() noexcept;
+            [[nodiscard]] std::string DsiFirmwarePath() noexcept;
+            [[nodiscard]] std::string DsiNandPath() noexcept;
 
-            bool RandomizeMac() noexcept;
+            [[nodiscard]] bool RandomizeMac() noexcept;
         }
 
         namespace save {
-            SdCardMode DldiSdCardMode() noexcept;
-            bool DldiEnable() noexcept;
-            bool DldiFolderSync() noexcept;
-            std::string DldiFolderPath() noexcept;
-            bool DldiReadOnly() noexcept;
-            std::string DldiImagePath() noexcept;
-            unsigned DldiImageSize() noexcept;
+            [[nodiscard]] SdCardMode DldiSdCardMode() noexcept;
+            [[nodiscard]] bool DldiEnable() noexcept;
+            [[nodiscard]] bool DldiFolderSync() noexcept;
+            [[nodiscard]] std::string DldiFolderPath() noexcept;
+            [[nodiscard]] bool DldiReadOnly() noexcept;
+            [[nodiscard]] std::string DldiImagePath() noexcept;
+            [[nodiscard]] unsigned DldiImageSize() noexcept;
 
-            SdCardMode DsiSdCardMode() noexcept;
-            bool DsiSdEnable() noexcept;
-            bool DsiSdFolderSync() noexcept;
-            std::string DsiSdFolderPath() noexcept;
-            bool DsiSdReadOnly() noexcept;
-            std::string DsiSdImagePath() noexcept;
-            unsigned DsiSdImageSize() noexcept;
+            [[nodiscard]] SdCardMode DsiSdCardMode() noexcept;
+            [[nodiscard]] bool DsiSdEnable() noexcept;
+            [[nodiscard]] bool DsiSdFolderSync() noexcept;
+            [[nodiscard]] std::string DsiSdFolderPath() noexcept;
+            [[nodiscard]] bool DsiSdReadOnly() noexcept;
+            [[nodiscard]] std::string DsiSdImagePath() noexcept;
+            [[nodiscard]] unsigned DsiSdImageSize() noexcept;
 
-            unsigned FlushDelay() noexcept;
+            [[nodiscard]] unsigned FlushDelay() noexcept;
         }
 
         namespace screen {
-            ScreenLayout ScreenLayout() noexcept;
-            unsigned ScreenGap() noexcept;
-            unsigned HybridRatio() noexcept;
-            ScreenSwapMode ScreenSwapMode() noexcept;
-            SmallScreenLayout SmallScreenLayout() noexcept;
-            TouchMode TouchMode() noexcept;
+            [[nodiscard]] ScreenLayout ScreenLayout() noexcept;
+            [[nodiscard]] unsigned ScreenGap() noexcept;
+            [[nodiscard]] unsigned HybridRatio() noexcept;
+            [[nodiscard]] ScreenSwapMode ScreenSwapMode() noexcept;
+            [[nodiscard]] SmallScreenLayout SmallScreenLayout() noexcept;
+            [[nodiscard]] TouchMode TouchMode() noexcept;
         }
 
         namespace video {
-            float CursorSize() noexcept;
-            Renderer ConfiguredRenderer() noexcept;
-            GPU::RenderSettings RenderSettings() noexcept;
-            ScreenFilter ScreenFilter() noexcept;
-            int ScaleFactor() noexcept;
+            [[nodiscard]] float CursorSize() noexcept;
+            [[nodiscard]] Renderer ConfiguredRenderer() noexcept;
+            [[nodiscard]] GPU::RenderSettings RenderSettings() noexcept;
+            [[nodiscard]] ScreenFilter ScreenFilter() noexcept;
+            [[nodiscard]] int ScaleFactor() noexcept;
         }
     }
 }
