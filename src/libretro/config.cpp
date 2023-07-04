@@ -396,6 +396,7 @@ void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info
 bool melonds::update_option_visibility() {
     using namespace Config::Retro;
     using retro::environment;
+    using retro::get_variable;
     using namespace melonds::config;
     struct retro_core_option_display option_display{};
     struct retro_variable var{};
@@ -430,10 +431,8 @@ bool melonds::update_option_visibility() {
     bool show_hybrid_options_prev = _show_hybrid_options;
 
     _show_hybrid_options = true;
-    var.key = Keys::SCREEN_LAYOUT;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
-        (strcmp(var.value, Config::Retro::Values::HYBRID_TOP) && strcmp(var.value, Config::Retro::Values::HYBRID_BOTTOM)))
-        _show_hybrid_options = false;
+    if (const char* value = get_variable(Keys::SCREEN_LAYOUT); !string_is_empty(value))
+        _show_hybrid_options = string_is_equal(value, Config::Retro::Values::HYBRID_TOP) || string_is_equal(value, Config::Retro::Values::HYBRID_BOTTOM);
 
     if (_show_hybrid_options != show_hybrid_options_prev) {
         option_display.visible = _show_hybrid_options;
