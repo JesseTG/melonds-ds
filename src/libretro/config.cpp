@@ -1016,7 +1016,7 @@ static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
     retro_assert(config::system::ConsoleType() == ConsoleType::DS);
 
     // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
-    if (config::system::ExternalBiosEnable()) {
+    if (_externalBiosEnable) {
         // If the player wants to use their own BIOS dumps...
 
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
@@ -1056,9 +1056,10 @@ static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
 static void melonds::config::verify_dsi_bios() {
     using retro::info;
     using retro::warn;
+    using namespace melonds::config::system;
 
     retro_assert(config::system::ConsoleType() == ConsoleType::DSi);
-    if (!config::system::ExternalBiosEnable()) {
+    if (!_externalBiosEnable) {
         throw melonds::unsupported_bios_exception("DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
     }
 
