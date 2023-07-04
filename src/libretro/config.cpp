@@ -432,7 +432,7 @@ bool melonds::update_option_visibility() {
     _show_hybrid_options = true;
     var.key = Keys::SCREEN_LAYOUT;
     if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value &&
-        (strcmp(var.value, "Hybrid Top") && strcmp(var.value, "Hybrid Bottom")))
+        (strcmp(var.value, Config::Retro::Values::HYBRID_TOP) && strcmp(var.value, Config::Retro::Values::HYBRID_BOTTOM)))
         _show_hybrid_options = false;
 
     if (_show_hybrid_options != show_hybrid_options_prev) {
@@ -1600,12 +1600,12 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         nullptr,
         Config::Retro::Category::SCREEN,
         {
-            {"Bottom", nullptr},
-            {"Top", nullptr},
-            {"Duplicate", nullptr},
+            {Config::Retro::Values::BOTTOM, "Bottom"},
+            {Config::Retro::Values::TOP, "Top"},
+            {Config::Retro::Values::BOTH, "Both"},
             {nullptr, nullptr},
         },
-        "Bottom"
+        Config::Retro::Values::BOTTOM
     },
 
     // Homebrew Save Data
