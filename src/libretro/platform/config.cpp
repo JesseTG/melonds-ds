@@ -33,7 +33,7 @@ int Platform::GetConfigInt(ConfigEntry entry)
         case DSiSD_ImageSize: return save::DsiSdImageSize();
 
         case Firm_Language: return static_cast<int>(firmware::Language());
-        case Firm_BirthdayMonth: firmware::BirthdayMonth();
+        case Firm_BirthdayMonth: return firmware::BirthdayMonth();
         case Firm_BirthdayDay: return firmware::BirthdayDay();
         case Firm_Color: return static_cast<int>(firmware::FavoriteColor());
 
