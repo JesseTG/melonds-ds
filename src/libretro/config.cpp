@@ -1108,7 +1108,6 @@ static void melonds::config::apply_system_options(
     }
 
     // TODO: Set BIOS paths here
-    // TODO: Force DSi mode if loading a DSi game
 }
 
 static void melonds::config::apply_audio_options() noexcept {
