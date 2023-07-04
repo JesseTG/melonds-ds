@@ -28,7 +28,6 @@ namespace melonds {
     {
         bool touching;
         int touch_x, touch_y;
-        TouchMode current_touch_mode;
 
         bool previous_holding_noise_btn = false;
         bool holding_noise_btn = false;

@@ -143,7 +143,7 @@ void melonds::update_input(InputState &state) {
 //    }
 
     if (screen_layout_data.EffectiveLayout() != ScreenLayout::TopOnly) {
-        switch (state.current_touch_mode) {
+        switch (config::screen::TouchMode()) {
             case TouchMode::Disabled:
                 state.touching = false;
                 break;
@@ -220,5 +220,5 @@ void melonds::update_input(InputState &state) {
 
 bool melonds::InputState::cursor_enabled() const {
 
-    return current_touch_mode == TouchMode::Mouse || current_touch_mode == TouchMode::Joystick;
+    return config::screen::TouchMode() == TouchMode::Mouse || config::screen::TouchMode() == TouchMode::Joystick;
 }
