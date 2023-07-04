@@ -38,7 +38,7 @@ using std::optional;
 
 namespace Config {
     namespace Retro {
-       // bool RandomizeMac = false;
+        // bool RandomizeMac = false;
         //melonds::ScreenSwapMode ScreenSwapMode;
         //melonds::Renderer CurrentRenderer;
         //float CursorSize = 2.0;
@@ -158,14 +158,16 @@ namespace melonds::config {
     /// @returns true if the OpenGL state needs to be rebuilt
     static bool init_video_options(bool initializing) noexcept;
     static bool init_screen_options() noexcept;
-    static void parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) noexcept;
-    static void parse_dsi_sd_options(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) noexcept;
+    static void parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info,
+                                            const optional <NDSHeader>& header) noexcept;
+    static void
+    parse_dsi_sd_options(const optional<struct retro_game_info>& nds_info, const optional <NDSHeader>& header) noexcept;
 
     static void verify_nds_bios(bool ds_game_loaded);
     static void verify_dsi_bios();
-    static void apply_system_options(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header);
+    static void apply_system_options(const optional<NDSHeader>& header);
     static void apply_audio_options() noexcept;
-    static void apply_save_options(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) noexcept;
+    static void apply_save_options(const optional<NDSHeader>& header);
     static void apply_screen_options() noexcept;
 
     namespace audio {
@@ -214,7 +216,7 @@ namespace melonds::config {
         bool Enable() noexcept { return _jitEnable; }
 
         unsigned _maxBlockSize;
-        unsigned MaxBlockSize() noexcept { return _maxBlockSize;}
+        unsigned MaxBlockSize() noexcept { return _maxBlockSize; }
 
         static bool _literalOptimizations;
         bool LiteralOptimizations() noexcept { return _literalOptimizations; }
@@ -353,7 +355,7 @@ namespace melonds::config {
     }
 }
 
-void melonds::InitConfig(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header) {
+void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) {
     config::parse_system_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
@@ -363,8 +365,8 @@ void melonds::InitConfig(const std::optional<struct retro_game_info>& nds_info, 
     bool openGlNeedsRefresh = config::init_video_options(true);
     openGlNeedsRefresh |= config::init_screen_options();
 
-    config::apply_system_options(nds_info, header);
-    config::apply_save_options(nds_info, header);
+    config::apply_system_options(header);
+    config::apply_save_options(header);
     config::apply_audio_options();
     config::apply_screen_options();
 
@@ -377,7 +379,8 @@ void melonds::InitConfig(const std::optional<struct retro_game_info>& nds_info, 
     update_option_visibility();
 }
 
-void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header) noexcept {
+void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info,
+                           const std::optional<NDSHeader>& header) noexcept {
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::init_video_options(false);
     openGlNeedsRefresh |= config::init_screen_options();
@@ -432,7 +435,8 @@ bool melonds::update_option_visibility() {
 
     _show_hybrid_options = true;
     if (const char* value = get_variable(Keys::SCREEN_LAYOUT); !string_is_empty(value))
-        _show_hybrid_options = string_is_equal(value, Config::Retro::Values::HYBRID_TOP) || string_is_equal(value, Config::Retro::Values::HYBRID_BOTTOM);
+        _show_hybrid_options = string_is_equal(value, Config::Retro::Values::HYBRID_TOP) ||
+                               string_is_equal(value, Config::Retro::Values::HYBRID_BOTTOM);
 
     if (_show_hybrid_options != show_hybrid_options_prev) {
         option_display.visible = _show_hybrid_options;
@@ -612,14 +616,13 @@ static void melonds::config::parse_firmware_options() noexcept {
             _language = FirmwareLanguage::Italian;
         else if (string_is_equal(value, Values::SPANISH))
             _language = FirmwareLanguage::Spanish;
-    }
-    else {
+    } else {
         retro::warn("Failed to get value for %s; defaulting to English", Keys::LANGUAGE);
         _language = FirmwareLanguage::English;
     }
 
     // TODO: Cap the username to match the DS's limit (10 chars, excluding null terminator)
-    const char *retro_username;
+    const char* retro_username;
     if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && !string_is_empty(retro_username))
         _username = retro_username;
     else
@@ -875,7 +878,8 @@ static bool melonds::config::init_screen_options() noexcept {
 /**
  * Reads the frontend's saved homebrew save data options and applies them to the emulator.
  */
-static void melonds::config::parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) noexcept {
+static void melonds::config::parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info,
+                                                         const optional<NDSHeader>& header) noexcept {
     using namespace Config::Retro;
     using namespace melonds::config::save;
     using retro::get_variable;
@@ -895,7 +899,7 @@ static void melonds::config::parse_homebrew_save_options(const optional<struct r
     }
 
     if (const char* value = get_variable(Keys::HOMEBREW_SYNC_TO_HOST); !string_is_empty(value)) {
-        _dldiFolderSync = string_is_equal(Keys::HOMEBREW_SYNC_TO_HOST, Values::ENABLED);
+        _dldiFolderSync = string_is_equal(value, Values::ENABLED);
     } else {
         _dldiFolderSync = true;
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SYNC_TO_HOST, Values::ENABLED);
@@ -926,7 +930,7 @@ static void melonds::config::parse_homebrew_save_options(const optional<struct r
             char game_name[PATH_MAX];
             GetGameName(*nds_info, game_name, sizeof(game_name));
             set_config(4096, game_name);
-        } else  {
+        } else {
             _dldiSdCardMode = SdCardMode::None;
             _dldiImagePath = "";
             _dldiImageSize = 0;
@@ -944,7 +948,8 @@ static void melonds::config::parse_homebrew_save_options(const optional<struct r
 /**
  * Reads the frontend's saved DSi save data options and applies them to the emulator.
  */
-static void melonds::config::parse_dsi_sd_options(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) noexcept {
+static void melonds::config::parse_dsi_sd_options(const optional<struct retro_game_info>& nds_info,
+                                                  const optional<NDSHeader>& header) noexcept {
     using namespace Config::Retro;
     using namespace melonds::config::save;
     using retro::get_variable;
@@ -963,7 +968,7 @@ static void melonds::config::parse_dsi_sd_options(const optional<struct retro_ga
     }
 
     if (const char* value = get_variable(Keys::DSI_SD_SYNC_TO_HOST); !string_is_empty(value)) {
-        _dsiSdFolderSync = string_is_equal(Keys::DSI_SD_SYNC_TO_HOST, Values::ENABLED);
+        _dsiSdFolderSync = string_is_equal(value, Values::ENABLED);
     } else {
         _dsiSdFolderSync = true;
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::DSI_SD_SYNC_TO_HOST, Values::ENABLED);
@@ -994,7 +999,7 @@ static void melonds::config::parse_dsi_sd_options(const optional<struct retro_ga
             char game_name[PATH_MAX];
             GetGameName(*nds_info, game_name, sizeof(game_name));
             set_config(4096, game_name);
-        } else  {
+        } else {
             _dsiSdCardMode = SdCardMode::None;
             _dsiSdImagePath = "";
             _dsiSdImageSize = 0;
@@ -1021,7 +1026,11 @@ static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
         // so we have to do it ourselves
 
-        std::array<std::string, 3> required_roms = {config::system::Bios7Path(), config::system::Bios9Path(), config::system::FirmwarePath()};
+        std::array<std::string, 3> required_roms = {
+            config::system::Bios7Path(),
+            config::system::Bios9Path(),
+            config::system::FirmwarePath(),
+        };
         std::vector<std::string> missing_roms;
 
         // Check if any of the bioses / firmware files are missing
@@ -1059,7 +1068,8 @@ static void melonds::config::verify_dsi_bios() {
 
     retro_assert(config::system::ConsoleType() == ConsoleType::DSi);
     if (!_externalBiosEnable) {
-        throw melonds::unsupported_bios_exception("DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
+        throw melonds::unsupported_bios_exception(
+            "DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
     }
 
     std::array<std::string, 4> required_roms = {
@@ -1088,10 +1098,7 @@ static void melonds::config::verify_dsi_bios() {
     }
 }
 
-static void melonds::config::apply_system_options(
-    const optional<struct retro_game_info>& nds_info,
-    const optional<NDSHeader>& header
-) {
+static void melonds::config::apply_system_options(const optional<NDSHeader>& header) {
     using namespace melonds::config::system;
     if (header && header->IsDSiWare()) {
         // If we're loading a DSiWare game...
@@ -1101,7 +1108,7 @@ static void melonds::config::apply_system_options(
 
     switch (_consoleType) {
         case ConsoleType::DS:
-            verify_nds_bios(nds_info.has_value());
+            verify_nds_bios(header.has_value());
             break;
         case ConsoleType::DSi:
             verify_dsi_bios();
@@ -1130,9 +1137,32 @@ static void melonds::config::apply_audio_options() noexcept {
     SPU::SetInterpolation(static_cast<int>(config::audio::Interpolation()));
 }
 
-static void melonds::config::apply_save_options(const optional<struct retro_game_info>& nds_info,
-                                                const optional<NDSHeader>& header) noexcept {
-    // TODO: Create save directories here if necessary
+static void melonds::config::apply_save_options(const optional<NDSHeader>& header) {
+    using namespace config::save;
+
+    if (header && header->IsHomebrew() && DldiEnable() && DldiFolderSync()) {
+        // If we're loading a homebrew game and we want to sync its SD card image to the host...
+        string path = DldiFolderPath();
+        if (path_mkdir(path.c_str())) {
+            // If we successfully created the save directory...
+
+            retro::info("Created (or using existing) homebrew save directory \"%s\"", path.c_str());
+        } else {
+            throw emulator_exception("Failed to create homebrew save directory at " + path);
+        }
+    }
+
+    if (system::ConsoleType() == ConsoleType::DSi && DsiSdEnable() && DsiSdFolderSync()) {
+        // If we're running in DSi mode and we want to sync its SD card image to the host...
+        string path = DsiSdFolderPath();
+        if (path_mkdir(path.c_str())) {
+            // If we successfully created the save directory...
+
+            retro::info("Created (or using existing) DSi save directory \"%s\"", path.c_str());
+        } else {
+            throw emulator_exception("Failed to create DSi save directory at " + path);
+        }
+    }
 }
 
 static void melonds::config::apply_screen_options() noexcept {
