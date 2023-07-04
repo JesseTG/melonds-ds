@@ -883,6 +883,7 @@ static void melonds::config::parse_homebrew_save_options(const optional<struct r
     if (!nds_info || !header || !header->IsHomebrew()) {
         // If no game is loaded, or if a non-homebrew game is loaded...
         _dldiSdCardMode = SdCardMode::None;
+        retro::debug("Not parsing homebrew save options, as no homebrew game is loaded");
         return;
     }
 
