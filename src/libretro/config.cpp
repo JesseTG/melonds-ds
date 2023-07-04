@@ -566,7 +566,6 @@ static void melonds::config::parse_system_options() noexcept {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::CONSOLE_MODE, Values::DS);
         _consoleType = ConsoleType::DS;
     }
-    // TODO: Force DSi mode if loading a DSi game
 
     if (const char* value = get_variable(Keys::BOOT_DIRECTLY); !string_is_empty(value)) {
         _directBoot = string_is_equal(value, Values::ENABLED);
@@ -1193,7 +1192,8 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Console Type",
         nullptr,
         "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
-        "Some features may not be available in DSi mode.",
+        "Some features may not be available in DSi mode. "
+        "DSi mode will be used if loading a DSiWare application.",
         nullptr,
         Config::Retro::Category::SYSTEM,
         {
