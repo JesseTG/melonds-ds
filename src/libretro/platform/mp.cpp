@@ -15,57 +15,58 @@
 */
 
 #include <Platform.h>
-#include <net/net_socket.h>
+#include <NDS.h>
+#include "../environment.hpp"
+
+//! Local multiplayer is not implemented in melonDS DS.
+
+static bool _hasUnsupportedMessageBeenShown = false;
 
 bool Platform::MP_Init() {
-    // TODO: Implement
+    _hasUnsupportedMessageBeenShown = false;
     return false;
 }
 
 void Platform::MP_DeInit() {
-    // TODO: Implement
 }
 
 void Platform::MP_Begin() {
-    // TODO: Implement
+    if (NDS::NumFrames > 120 && !_hasUnsupportedMessageBeenShown) {
+        // The DS may turn on the radio immediately after booting,
+        // but we only want to alert the user of this incompatibility
+        // when they actually try to play a local multiplayer game.
+        retro::set_warn_message("melonDS DS does not support local multiplayer.");
+        _hasUnsupportedMessageBeenShown = true;
+    }
 }
 
 void Platform::MP_End() {
-    // TODO: Implement
 }
 
-int Platform::MP_SendPacket(u8 *data, int len, u64 timestamp) {
-    // TODO: Implement
+int Platform::MP_SendPacket(u8*, int, u64) {
     return 0;
 }
 
-int Platform::MP_RecvPacket(u8 *data, u64 *timestamp) {
-    // TODO: Implement
+int Platform::MP_RecvPacket(u8*, u64 *) {
     return 0;
 }
 
-int Platform::MP_SendCmd(u8 *data, int len, u64 timestamp) {
-    // TODO: Implement
+int Platform::MP_SendCmd(u8*, int, u64) {
     return 0;
 }
 
-int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid) {
-    // TODO: Implement
+int Platform::MP_SendReply(u8*, int, u64, u16) {
     return 0;
 }
 
-int Platform::MP_SendAck(u8 *data, int len, u64 timestamp) {
-    // TODO: Implement
+int Platform::MP_SendAck(u8*, int, u64) {
     return 0;
 }
 
-int Platform::MP_RecvHostPacket(u8 *data, u64 *timestamp) {
-    // TODO: Implement
+int Platform::MP_RecvHostPacket(u8 *, u64 *) {
     return 0;
-
 }
 
-u16 Platform::MP_RecvReplies(u8 *data, u64 timestamp, u16 aidmask) {
-    // TODO: Implement
+u16 Platform::MP_RecvReplies(u8 *, u64, u16) {
     return 0;
 }
