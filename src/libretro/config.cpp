@@ -147,11 +147,17 @@ namespace Config {
 
 namespace melonds::config {
     namespace visibility {
-        static bool _show_opengl_options = true;
-        static bool _show_hybrid_options = true;
+        static bool ShowDsiOptions = true;
+        static bool ShowDsiSdCardOptions = true;
+#ifdef HAVE_OPENGL
+        static bool ShowOpenGlOptions = true;
+#endif
+        static bool ShowSoftwareRenderOptions = true;
+        static bool ShowHybridOptions = true;
+        static bool ShowVerticalLayoutOptions = true;
 
 #ifdef JIT_ENABLED
-        static bool _show_jit_options = true;
+        static bool ShowJitOptions = true;
 #endif
     }
 
@@ -448,82 +454,84 @@ bool melonds::update_option_visibility() {
     using namespace melonds::config::visibility;
     using retro::environment;
     using retro::get_variable;
-    struct retro_core_option_display option_display{};
-    struct retro_variable var{};
+    using retro::set_option_visible;
     bool updated = false;
 
+    // Convention: if an option is not found, show any dependent options
 #ifdef HAVE_OPENGL
     // Show/hide OpenGL core options
-    bool show_opengl_options_prev = _show_opengl_options;
+    bool oldShowOpenGlOptions = ShowOpenGlOptions;
+    bool oldShowSoftwareRenderOptions = ShowSoftwareRenderOptions;
 
-    var.key = Keys::RENDER_MODE;
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
-        _show_opengl_options = string_is_equal(var.value, Values::OPENGL);
-    }
+    optional<Renderer> renderer = ParseRenderer(get_variable(Keys::RENDER_MODE));
+    ShowOpenGlOptions = !renderer || *renderer == Renderer::OpenGl;
+    ShowSoftwareRenderOptions = !ShowOpenGlOptions;
 
-    if (_show_opengl_options != show_opengl_options_prev) {
-        option_display.visible = _show_opengl_options;
-
-        option_display.key = Keys::OPENGL_RESOLUTION;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
-        option_display.key = Keys::OPENGL_BETTER_POLYGONS;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
-        option_display.key = Keys::OPENGL_FILTERING;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+    if (ShowOpenGlOptions != oldShowOpenGlOptions) {
+        set_option_visible(Keys::OPENGL_RESOLUTION, ShowOpenGlOptions);
+        set_option_visible(Keys::OPENGL_FILTERING, ShowOpenGlOptions);
+        set_option_visible(Keys::OPENGL_BETTER_POLYGONS, ShowOpenGlOptions);
 
         updated = true;
     }
+
+    if (ShowSoftwareRenderOptions != oldShowSoftwareRenderOptions) {
+        set_option_visible(Keys::THREADED_RENDERER, ShowSoftwareRenderOptions);
+
+        updated = true;
+    }
+#else
+    set_option_visible(Keys::RENDER_MODE, false);
 #endif
+
+    bool oldShowDsiOptions = ShowDsiOptions;
+    bool oldShowDsiSdCardOptions = ShowDsiSdCardOptions;
+    optional<ConsoleType> consoleType = ParseConsoleType(get_variable(Keys::CONSOLE_MODE));
+
+    ShowDsiOptions = !consoleType || *consoleType == ConsoleType::DSi;
+    if (ShowDsiOptions != oldShowDsiOptions) {
+        set_option_visible(Keys::DSI_SD_SAVE_MODE, ShowDsiOptions);
+        set_option_visible(Keys::DSI_SD_READ_ONLY, ShowDsiOptions);
+        set_option_visible(Keys::DSI_SD_SYNC_TO_HOST, ShowDsiOptions);
+
+        updated = true;
+    }
 
     // Show/hide Hybrid screen options
-    bool show_hybrid_options_prev = _show_hybrid_options;
-
-    _show_hybrid_options = true;
-    if (const char* value = get_variable(Keys::SCREEN_LAYOUT); !string_is_empty(value))
-        _show_hybrid_options = string_is_equal(value, Config::Retro::Values::HYBRID_TOP) ||
-                               string_is_equal(value, Config::Retro::Values::HYBRID_BOTTOM);
-
-    if (_show_hybrid_options != show_hybrid_options_prev) {
-        option_display.visible = _show_hybrid_options;
-
-        option_display.key = Keys::HYBRID_SMALL_SCREEN;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
+    bool oldShowHybridOptions = ShowHybridOptions;
+    bool oldShowVerticalLayoutOptions = ShowVerticalLayoutOptions;
+    optional<ScreenLayout> layout = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUT));
+    ShowHybridOptions = !layout || *layout == ScreenLayout::HybridTop || *layout == ScreenLayout::HybridBottom;
+    ShowVerticalLayoutOptions = !layout || *layout == ScreenLayout::TopBottom || *layout == ScreenLayout::BottomTop;
+    if (ShowHybridOptions != oldShowHybridOptions) {
+        set_option_visible(Keys::HYBRID_SMALL_SCREEN, ShowHybridOptions);
 #ifdef HAVE_OPENGL
-        option_display.key = Keys::HYBRID_RATIO;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+        set_option_visible(Keys::HYBRID_RATIO, ShowHybridOptions);
 #endif
+
+        updated = true;
+    }
+
+    if (ShowVerticalLayoutOptions != oldShowVerticalLayoutOptions) {
+        set_option_visible(Keys::SCREEN_GAP, ShowVerticalLayoutOptions);
 
         updated = true;
     }
 
 #ifdef JIT_ENABLED
     // Show/hide JIT core options
-    bool jit_options_prev = _show_jit_options;
+    bool oldShowJitOptions = ShowJitOptions;
+    optional<bool> jitEnabled = ParseBoolean(get_variable(Keys::JIT_ENABLE));
 
-    _show_jit_options = true;
-    var.key = Keys::JIT_ENABLE;
-    // TODO: Use RETRO_ENVIRONMENT_GET_JIT_CAPABLE
-    if (environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && string_is_equal(var.value, Values::DISABLED))
-        _show_jit_options = false;
+    ShowJitOptions = !jitEnabled || *jitEnabled;
 
-    if (_show_jit_options != jit_options_prev) {
-        option_display.visible = _show_jit_options;
-
-        option_display.key = Keys::JIT_BLOCK_SIZE;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
-        option_display.key = Keys::JIT_BRANCH_OPTIMISATIONS;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
-        option_display.key = Keys::JIT_LITERAL_OPTIMISATIONS;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
-        option_display.key = Keys::JIT_FAST_MEMORY;
-        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
+    if (ShowJitOptions != oldShowJitOptions) {
+        set_option_visible(Keys::JIT_BLOCK_SIZE, ShowJitOptions);
+        set_option_visible(Keys::JIT_BRANCH_OPTIMISATIONS, ShowJitOptions);
+        set_option_visible(Keys::JIT_LITERAL_OPTIMISATIONS, ShowJitOptions);
+#ifdef HAVE_JIT_FASTMEM
+        set_option_visible(Keys::JIT_FAST_MEMORY, ShowJitOptions);
+#endif
         updated = true;
     }
 #endif
