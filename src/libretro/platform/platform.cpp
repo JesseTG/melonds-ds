@@ -23,10 +23,6 @@
 #include "../environment.hpp"
 #include "../config.hpp"
 
-namespace Platform {
-    static int _instance_id;
-}
-
 void Platform::Init(int, char **) {
     // these args are not used in libretro
     retro::log(RETRO_LOG_DEBUG, "Platform::Init\n");
@@ -36,7 +32,6 @@ void Platform::Init(int, char **) {
 
 void Platform::DeInit() {
     retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
-    _instance_id = 0;
     melonds::NdsSaveManager.reset();
     melonds::GbaSaveManager.reset();
 }
@@ -46,17 +41,11 @@ void Platform::StopEmu() {
 }
 
 int Platform::InstanceID() {
-    return _instance_id;
+    return 0;
 }
 
-// TODO: Split upstream implementation into a non-Qt file
 std::string Platform::InstanceFileSuffix() {
-    int instance = Platform::_instance_id;
-    if (instance == 0) return "";
-
-    char suffix[16] = {0};
-    snprintf(suffix, 15, ".%d", instance + 1);
-    return suffix;
+    return "";
 }
 
 static retro_log_level to_retro_log_level(Platform::LogLevel level)
