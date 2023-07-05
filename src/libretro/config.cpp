@@ -367,9 +367,7 @@ namespace melonds::config {
 
 static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
     if (string_is_equal(value, Config::Retro::Values::SOFTWARE)) return melonds::Renderer::Software;
-#ifdef HAVE_OPENGL
     if (string_is_equal(value, Config::Retro::Values::OPENGL)) return melonds::Renderer::OpenGl;
-#endif
     return nullopt;
 }
 
