@@ -49,7 +49,7 @@ namespace Config {
             static const char* const VIDEO = "video";
             static const char* const AUDIO = "audio";
             static const char* const SYSTEM = "system";
-            static const char* const SAVE = "save";
+            [[deprecated("Move these to the SYSTEM category instead")]] static const char* const SAVE = "save";
             [[deprecated("Move these to the SAVE category instead")]] static const char* const DSI = "dsi";
             static const char* const SCREEN = "screen";
         }
