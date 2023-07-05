@@ -50,8 +50,6 @@ namespace Config {
             static const char* const VIDEO = "video";
             static const char* const AUDIO = "audio";
             static const char* const SYSTEM = "system";
-            [[deprecated("Move these to the SYSTEM category instead")]] static const char* const SAVE = "save";
-            [[deprecated("Move these to the SAVE category instead")]] static const char* const DSI = "dsi";
             static const char* const SCREEN = "screen";
         }
 
@@ -1210,11 +1208,6 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "Change system settings."
     },
     {
-        Config::Retro::Category::DSI,
-        "DSi",
-        "Change system settings specific to the Nintendo DSi."
-    },
-    {
         "video",
         "Video",
         "Change video settings."
@@ -1223,11 +1216,6 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "audio",
         "Audio",
         "Change audio settings."
-    },
-    {
-        Config::Retro::Category::SAVE,
-        "Save Data",
-        "Change save data settings."
     },
     {
         Config::Retro::Category::SCREEN,
@@ -1385,7 +1373,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Changing this setting does not transfer existing data. "
         "Changes take effect with next restart.",
         nullptr,
-        Config::Retro::Category::DSI,
+        Config::Retro::Category::SYSTEM,
         {
             {Config::Retro::Values::DISABLED, "Disabled"},
             {Config::Retro::Values::SHARED, "Shared"},
@@ -1401,7 +1389,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "If enabled, the emulated DSi sees the virtual SD card as read-only. "
         "Changes take effect with next restart.",
         nullptr,
-        Config::Retro::Category::DSI,
+        Config::Retro::Category::SYSTEM,
         {
             {Config::Retro::Values::DISABLED, nullptr},
             {Config::Retro::Values::ENABLED, nullptr},
@@ -1420,7 +1408,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Takes effect at the next boot. "
         "Adjusting this setting may overwrite existing save data.",
         nullptr,
-        Config::Retro::Category::DSI,
+        Config::Retro::Category::SYSTEM,
         {
             {Config::Retro::Values::DISABLED, nullptr},
             {Config::Retro::Values::ENABLED, nullptr},
@@ -1711,7 +1699,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Changing this setting does not transfer existing data. "
         "Changes take effect with next restart.",
         nullptr,
-        Config::Retro::Category::SAVE,
+        Config::Retro::Category::SYSTEM,
         {
             {Config::Retro::Values::DISABLED, "Disabled"},
             {Config::Retro::Values::SHARED, "Shared"},
@@ -1727,7 +1715,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "If enabled, homebrew applications will see the virtual SD card as read-only. "
         "Changes take effect with next restart.",
         nullptr,
-        Config::Retro::Category::SAVE,
+        Config::Retro::Category::SYSTEM,
         {
             {Config::Retro::Values::DISABLED, nullptr},
             {Config::Retro::Values::ENABLED, nullptr},
@@ -1746,7 +1734,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Takes effect at the next boot. "
         "Adjusting this setting may overwrite existing save data.",
         nullptr,
-        Config::Retro::Category::SAVE,
+        Config::Retro::Category::SYSTEM,
         {
             {Config::Retro::Values::DISABLED, nullptr},
             {Config::Retro::Values::ENABLED, nullptr},
