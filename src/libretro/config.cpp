@@ -1429,25 +1429,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     },
 
     // Video
-#ifdef HAVE_THREADS
-    {
-        Config::Retro::Keys::THREADED_RENDERER,
-        "Threaded Software Renderer",
-        nullptr,
-        "If enabled, the software renderer will run on a separate thread if possible. "
-        "Otherwise, it will run on the main thread. "
-        "Ignored if using the OpenGL renderer ."
-        "Takes effect next time the core restarts. ",
-        nullptr,
-        Config::Retro::Category::VIDEO,
-        {
-            {Config::Retro::Values::DISABLED, nullptr},
-            {Config::Retro::Values::ENABLED, nullptr},
-            {nullptr, nullptr},
-        },
-        Config::Retro::Values::DISABLED
-    },
-#endif
 #ifdef HAVE_OPENGL
     {
         Config::Retro::Keys::RENDER_MODE,
@@ -1515,7 +1496,25 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "nearest"
     },
 #endif
-
+#ifdef HAVE_THREADS
+    {
+        Config::Retro::Keys::THREADED_RENDERER,
+        "Threaded Software Renderer",
+        nullptr,
+        "If enabled, the software renderer will run on a separate thread if possible. "
+        "Otherwise, it will run on the main thread. "
+        "Ignored if using the OpenGL renderer ."
+        "Takes effect next time the core restarts. ",
+        nullptr,
+        Config::Retro::Category::VIDEO,
+        {
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::DISABLED
+    },
+#endif
     // Audio Settings
     {
         Config::Retro::Keys::MIC_INPUT,
