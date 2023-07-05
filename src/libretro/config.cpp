@@ -160,8 +160,8 @@ namespace melonds::config {
     static void parse_audio_options() noexcept;
 
     /// @returns true if the OpenGL state needs to be rebuilt
-    static bool init_video_options(bool initializing) noexcept;
-    static bool init_screen_options() noexcept;
+    static bool parse_video_options(bool initializing) noexcept;
+    static bool parse_screen_options() noexcept;
     static void parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info,
                                             const optional <NDSHeader>& header) noexcept;
     static void
@@ -386,8 +386,8 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
 void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info,
                            const std::optional<NDSHeader>& header) noexcept {
     config::parse_audio_options();
-    bool openGlNeedsRefresh = config::init_video_options(false);
-    openGlNeedsRefresh |= config::init_screen_options();
+    bool openGlNeedsRefresh = config::parse_video_options(false);
+    openGlNeedsRefresh |= config::parse_screen_options();
 
     config::apply_audio_options();
     config::apply_screen_options();
@@ -712,7 +712,7 @@ static void melonds::config::parse_audio_options() noexcept {
     }
 }
 
-static bool melonds::config::init_video_options(bool initializing) noexcept {
+static bool melonds::config::parse_video_options(bool initializing) noexcept {
     using namespace Config::Retro;
     using namespace melonds::config::video;
     using retro::get_variable;
@@ -783,7 +783,7 @@ static bool melonds::config::init_video_options(bool initializing) noexcept {
     return needsOpenGlRefresh;
 }
 
-static bool melonds::config::init_screen_options() noexcept {
+static bool melonds::config::parse_screen_options() noexcept {
     using namespace Config::Retro;
     using namespace melonds::config::screen;
     using retro::get_variable;
