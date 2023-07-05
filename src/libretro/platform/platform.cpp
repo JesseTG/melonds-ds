@@ -37,7 +37,7 @@ void Platform::DeInit() {
 }
 
 void Platform::StopEmu() {
-    retro::log(RETRO_LOG_DEBUG, "Platform::StopEmu\n");
+    retro::shutdown();
 }
 
 int Platform::InstanceID() {
