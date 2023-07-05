@@ -366,8 +366,8 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::parse_dsi_sd_options(nds_info, header);
     config::parse_firmware_options();
     config::parse_audio_options();
-    bool openGlNeedsRefresh = config::init_video_options(true);
-    openGlNeedsRefresh |= config::init_screen_options();
+    bool openGlNeedsRefresh = config::parse_video_options(true);
+    openGlNeedsRefresh |= config::parse_screen_options();
 
     config::apply_system_options(header);
     config::apply_save_options(header);
