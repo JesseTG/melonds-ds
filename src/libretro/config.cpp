@@ -369,8 +369,6 @@ namespace melonds::config {
     }
 }
 
-
-
 static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
     if (string_is_equal(value, Config::Retro::Values::SOFTWARE)) return melonds::Renderer::Software;
     if (string_is_equal(value, Config::Retro::Values::OPENGL)) return melonds::Renderer::OpenGl;
@@ -778,7 +776,6 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
 #endif
 
 #ifdef HAVE_OPENGL
-    // TODO: Fix the OpenGL software only render impl so you can switch at runtime
     if (initializing) {
         // Can't change the renderer mid-game
         if (optional<Renderer> renderer = ParseRenderer(get_variable(Keys::RENDER_MODE))) {
