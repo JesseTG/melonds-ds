@@ -147,11 +147,12 @@ namespace Config {
 }
 
 namespace melonds::config {
-    static bool _show_opengl_options = true;
-    static bool _show_hybrid_options = true;
+    namespace visibility {
+        static bool _show_opengl_options = true;
+        static bool _show_hybrid_options = true;
 
 #ifdef JIT_ENABLED
-    static bool _show_jit_options = true;
+        static bool _show_jit_options = true;
 #endif
 
     static void parse_jit_options() noexcept;
@@ -402,9 +403,10 @@ void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info
 
 bool melonds::update_option_visibility() {
     using namespace Config::Retro;
+    using namespace melonds::config;
+    using namespace melonds::config::visibility;
     using retro::environment;
     using retro::get_variable;
-    using namespace melonds::config;
     struct retro_core_option_display option_display{};
     struct retro_variable var{};
     bool updated = false;
