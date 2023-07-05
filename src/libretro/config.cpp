@@ -371,6 +371,36 @@ static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* va
     return nullopt;
 }
 
+static optional<melonds::ConsoleType> ParseConsoleType(const char* value) noexcept {
+    if (string_is_equal(value, Config::Retro::Values::DS)) return melonds::ConsoleType::DS;
+    if (string_is_equal(value, Config::Retro::Values::DSI)) return melonds::ConsoleType::DSi;
+    return nullopt;
+}
+
+static optional<bool> ParseBoolean(const char* value) noexcept {
+    if (string_is_equal(value, Config::Retro::Values::ENABLED)) return true;
+    if (string_is_equal(value, Config::Retro::Values::DISABLED)) return false;
+    return nullopt;
+}
+
+static optional<melonds::ScreenLayout> ParseScreenLayout(const char* value) noexcept {
+    using melonds::ScreenLayout;
+    using namespace Config::Retro;
+    if (string_is_equal(value, Values::TOP_BOTTOM)) return ScreenLayout::TopBottom;
+    if (string_is_equal(value, Values::BOTTOM_TOP)) return ScreenLayout::BottomTop;
+    if (string_is_equal(value, Values::LEFT_RIGHT)) return ScreenLayout::LeftRight;
+    if (string_is_equal(value, Values::RIGHT_LEFT)) return ScreenLayout::RightLeft;
+    if (string_is_equal(value, Values::TOP)) return ScreenLayout::TopOnly;
+    if (string_is_equal(value, Values::BOTTOM)) return ScreenLayout::BottomOnly;
+    if (string_is_equal(value, Values::HYBRID_TOP)) return ScreenLayout::HybridTop;
+    if (string_is_equal(value, Values::HYBRID_BOTTOM)) return ScreenLayout::HybridBottom;
+    if (string_is_equal(value, Values::ROTATE_LEFT)) return ScreenLayout::TurnLeft;
+    if (string_is_equal(value, Values::ROTATE_RIGHT)) return ScreenLayout::TurnRight;
+    if (string_is_equal(value, Values::UPSIDE_DOWN)) return ScreenLayout::UpsideDown;
+
+    return nullopt;
+}
+
 void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) {
     config::parse_system_options();
     config::parse_jit_options();
