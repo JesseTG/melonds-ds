@@ -270,9 +270,22 @@ PUBLIC_SYMBOL void retro_run(void) {
 
             log(RETRO_LOG_DEBUG, "Completed deferred initialization");
         }
+        catch (const melonds::emulator_exception& e) {
+            log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
+            retro::error(e.what());
+            retro::set_error_message(e.user_message());
+            retro::shutdown();
+            return;
+        }
         catch (const std::exception& e) {
             log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
             retro::set_error_message(e.what());
+            retro::shutdown();
+            return;
+        }
+        catch (...) {
+            log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
+            retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
             retro::shutdown();
             return;
         }
