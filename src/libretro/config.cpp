@@ -616,18 +616,15 @@ static void melonds::config::parse_system_options() noexcept {
 
     // All of these options take effect when a game starts, so there's no need to update them mid-game
 
-    if (const char* value = get_variable(Keys::CONSOLE_MODE); !string_is_empty(value)) {
-        if (string_is_equal(value, Values::DSI))
-            _consoleType = ConsoleType::DSi;
-        else
-            _consoleType = ConsoleType::DS;
+    if (const optional<melonds::ConsoleType> type = ParseConsoleType(get_variable(Keys::CONSOLE_MODE))) {
+        _consoleType = *type;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::CONSOLE_MODE, Values::DS);
         _consoleType = ConsoleType::DS;
     }
 
-    if (const char* value = get_variable(Keys::BOOT_DIRECTLY); !string_is_empty(value)) {
-        _directBoot = string_is_equal(value, Values::ENABLED);
+    if (const optional<bool> value = ParseBoolean(get_variable(Keys::BOOT_DIRECTLY))) {
+        _directBoot = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::BOOT_DIRECTLY, Values::ENABLED);
         _directBoot = true;
@@ -838,29 +835,8 @@ static bool melonds::config::parse_screen_options() noexcept {
     bool needsOpenGlRefresh = false;
 
     enum ScreenLayout oldScreenLayout = _screenLayout;
-    if (const char* value = get_variable(Keys::SCREEN_LAYOUT); !string_is_empty(value)) {
-        if (string_is_equal(value, Values::TOP_BOTTOM))
-            _screenLayout = ScreenLayout::TopBottom;
-        else if (string_is_equal(value, Values::BOTTOM_TOP))
-            _screenLayout = ScreenLayout::BottomTop;
-        else if (string_is_equal(value, Values::LEFT_RIGHT))
-            _screenLayout = ScreenLayout::LeftRight;
-        else if (string_is_equal(value, Values::RIGHT_LEFT))
-            _screenLayout = ScreenLayout::RightLeft;
-        else if (string_is_equal(value, Values::TOP))
-            _screenLayout = ScreenLayout::TopOnly;
-        else if (string_is_equal(value, Values::BOTTOM))
-            _screenLayout = ScreenLayout::BottomOnly;
-        else if (string_is_equal(value, Values::HYBRID_TOP))
-            _screenLayout = ScreenLayout::HybridTop;
-        else if (string_is_equal(value, Values::HYBRID_BOTTOM))
-            _screenLayout = ScreenLayout::HybridBottom;
-        else if (string_is_equal(value, Values::ROTATE_LEFT))
-            _screenLayout = ScreenLayout::TurnLeft;
-        else if (string_is_equal(value, Values::ROTATE_RIGHT))
-            _screenLayout = ScreenLayout::TurnRight;
-        else
-            _screenLayout = ScreenLayout::TopBottom;
+    if (optional<melonds::ScreenLayout> value = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUT))) {
+        _screenLayout = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::SCREEN_LAYOUT, Values::TOP_BOTTOM);
         _screenLayout = ScreenLayout::TopBottom;
