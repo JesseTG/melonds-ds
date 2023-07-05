@@ -43,6 +43,7 @@ namespace retro {
     const char* get_variable(const char *key);
     bool set_variable(const char* key, const char* value);
     std::optional<retro_language> get_language() noexcept;
+    void set_option_visible(const char* key, bool visible) noexcept;
 
     bool supports_bitmasks();
     void input_poll();

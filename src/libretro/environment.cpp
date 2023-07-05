@@ -298,6 +298,15 @@ optional<retro_language> retro::get_language() noexcept {
     return language;
 }
 
+
+void retro::set_option_visible(const char* key, bool visible) noexcept
+{
+    struct retro_core_option_display optionDisplay { key, visible };
+    if (key) {
+        environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &optionDisplay);
+    }
+}
+
 const optional<string>& retro::get_save_directory() {
     return _save_directory;
 }
