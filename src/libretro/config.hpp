@@ -130,12 +130,6 @@ namespace melonds {
         UpsideDown = 10,
     };
 
-    enum class SdCardMode {
-        None,
-        Shared,
-        Dedicated,
-    };
-
     enum class SmallScreenLayout {
         SmallScreenTop = 0,
         SmallScreenBottom = 1,
@@ -201,7 +195,6 @@ namespace melonds {
         }
 
         namespace save {
-            [[nodiscard]] SdCardMode DldiSdCardMode() noexcept;
             [[nodiscard]] bool DldiEnable() noexcept;
             [[nodiscard]] bool DldiFolderSync() noexcept;
             [[nodiscard]] std::string DldiFolderPath() noexcept;
@@ -209,7 +202,6 @@ namespace melonds {
             [[nodiscard]] std::string DldiImagePath() noexcept;
             [[nodiscard]] unsigned DldiImageSize() noexcept;
 
-            [[nodiscard]] SdCardMode DsiSdCardMode() noexcept;
             [[nodiscard]] bool DsiSdEnable() noexcept;
             [[nodiscard]] bool DsiSdFolderSync() noexcept;
             [[nodiscard]] std::string DsiSdFolderPath() noexcept;

@@ -38,6 +38,12 @@ using std::nullopt;
 using std::optional;
 
 constexpr unsigned DS_NAME_LIMIT = 10;
+constexpr unsigned AUTO_SDCARD_SIZE = 0;
+constexpr unsigned DEFAULT_SDCARD_SIZE = 4096;
+const char* const DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME = "dldi_sd_card.bin";
+const char* const DEFAULT_HOMEBREW_SDCARD_DIR_NAME = "dldi_sd_card";
+const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
+const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 namespace Config {
     namespace Retro {
@@ -172,10 +178,11 @@ namespace melonds::config {
     /// @returns true if the OpenGL state needs to be rebuilt
     static bool parse_video_options(bool initializing) noexcept;
     static bool parse_screen_options() noexcept;
-    static void parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info,
-                                            const optional <NDSHeader>& header) noexcept;
-    static void
-    parse_dsi_sd_options(const optional<struct retro_game_info>& nds_info, const optional <NDSHeader>& header) noexcept;
+    static void parse_homebrew_save_options(
+        const optional<struct retro_game_info>& nds_info,
+        const optional<NDSHeader>& header
+    );
+    static void parse_dsi_sd_options() noexcept;
 
     static void verify_nds_bios(bool ds_game_loaded);
     static void verify_dsi_bios();
@@ -253,10 +260,8 @@ namespace melonds::config {
     }
 
     namespace save {
-        SdCardMode _dldiSdCardMode;
-        SdCardMode DldiSdCardMode() noexcept { return _dldiSdCardMode; }
-
-        bool DldiEnable() noexcept { return _dldiSdCardMode != SdCardMode::None; }
+        bool _dldiEnable;
+        bool DldiEnable() noexcept { return _dldiEnable; }
 
         bool _dldiFolderSync;
         bool DldiFolderSync() noexcept { return _dldiFolderSync; }
@@ -273,10 +278,8 @@ namespace melonds::config {
         unsigned _dldiImageSize;
         unsigned DldiImageSize() noexcept { return _dldiImageSize; }
 
-        SdCardMode _dsiSdCardMode;
-        SdCardMode DsiSdCardMode() noexcept { return _dsiSdCardMode; }
-
-        bool DsiSdEnable() noexcept { return _dsiSdCardMode != SdCardMode::None; }
+        bool _dsiSdEnable;
+        bool DsiSdEnable() noexcept { return _dsiSdEnable; }
 
         bool _dsiSdFolderSync;
         bool DsiSdFolderSync() noexcept { return _dsiSdFolderSync; }
@@ -409,7 +412,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::parse_system_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
-    config::parse_dsi_sd_options(nds_info, header);
+    config::parse_dsi_sd_options();
     config::parse_firmware_options();
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(true);
@@ -916,16 +919,25 @@ static bool melonds::config::parse_screen_options() noexcept {
 /**
  * Reads the frontend's saved homebrew save data options and applies them to the emulator.
  */
-static void melonds::config::parse_homebrew_save_options(const optional<struct retro_game_info>& nds_info,
-                                                         const optional<NDSHeader>& header) noexcept {
+static void melonds::config::parse_homebrew_save_options(
+    const optional<struct retro_game_info>& nds_info,
+    const optional<NDSHeader>& header
+) {
     using namespace Config::Retro;
     using namespace melonds::config::save;
     using retro::get_variable;
 
     if (!nds_info || !header || !header->IsHomebrew()) {
         // If no game is loaded, or if a non-homebrew game is loaded...
-        _dldiSdCardMode = SdCardMode::None;
+        _dldiEnable = false;
         retro::debug("Not parsing homebrew save options, as no homebrew game is loaded");
+        return;
+    }
+
+    optional<string> save_directory = retro::get_save_directory();
+    if (!save_directory) {
+        _dldiEnable = false;
+        retro::error("Failed to get save directory; disabling homebrew SD card");
         return;
     }
 
@@ -943,60 +955,21 @@ static void melonds::config::parse_homebrew_save_options(const optional<struct r
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SYNC_TO_HOST, Values::ENABLED);
     }
 
-    const optional<string>& save_directory = retro::get_save_directory();
-    if (const char* value = get_variable(Keys::HOMEBREW_SAVE_MODE); save_directory && !string_is_empty(value)) {
-
-        auto set_config = [&save_directory](int size, const char* name) {
-            char dldi_path[PATH_MAX];
-            memset(dldi_path, 0, sizeof(dldi_path));
-            fill_pathname_join_special(dldi_path, save_directory->c_str(), name, sizeof(dldi_path));
-
-            _dldiFolderPath = dldi_path;
-
-            strlcat(dldi_path, ".dldi", sizeof(dldi_path));
-
-            _dldiImagePath = dldi_path;
-            // If the SD card image exists, set the DLDISize to auto; else set it to the given card size
-            _dldiImageSize = path_is_valid(_dldiImagePath.c_str()) ? 0 : size;
-        };
-
-        if (string_is_equal(value, Values::SHARED)) {
-            _dldiSdCardMode = SdCardMode::Shared;
-            set_config(4096, Values::SHARED4G);
-        } else if (string_is_equal(value, Values::DEDICATED)) {
-            _dldiSdCardMode = SdCardMode::Dedicated;
-            char game_name[PATH_MAX];
-            GetGameName(*nds_info, game_name, sizeof(game_name));
-            set_config(4096, game_name);
-        } else {
-            _dldiSdCardMode = SdCardMode::None;
-            _dldiImagePath = "";
-            _dldiImageSize = 0;
-            _dldiFolderPath = "";
-        }
+    if (optional<bool> value = ParseBoolean(get_variable(Keys::HOMEBREW_SAVE_MODE))) {
+        _dldiEnable = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SAVE_MODE, Values::DISABLED);
-        _dldiSdCardMode = SdCardMode::None;
-        _dldiImagePath = "";
-        _dldiImageSize = 0;
-        _dldiFolderPath = "";
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::HOMEBREW_SAVE_MODE, Values::ENABLED);
+        _dldiEnable = true;
     }
 }
 
 /**
  * Reads the frontend's saved DSi save data options and applies them to the emulator.
  */
-static void melonds::config::parse_dsi_sd_options(const optional<struct retro_game_info>& nds_info,
-                                                  const optional<NDSHeader>& header) noexcept {
+static void melonds::config::parse_dsi_sd_options() noexcept {
     using namespace Config::Retro;
     using namespace melonds::config::save;
     using retro::get_variable;
-
-    if (!nds_info || !header || !header->IsDSiWare()) {
-        // If no game is loaded, or if a non-DSiWare game is loaded...
-        _dsiSdCardMode = SdCardMode::None;
-        return;
-    }
 
     if (const char* value = get_variable(Keys::DSI_SD_READ_ONLY); !string_is_empty(value)) {
         _dsiSdReadOnly = string_is_equal(value, Values::ENABLED);
@@ -1012,43 +985,11 @@ static void melonds::config::parse_dsi_sd_options(const optional<struct retro_ga
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::DSI_SD_SYNC_TO_HOST, Values::ENABLED);
     }
 
-    const optional<string>& save_directory = retro::get_save_directory();
-    if (const char* value = get_variable(Keys::DSI_SD_SAVE_MODE); save_directory && !string_is_empty(value)) {
-
-        auto set_config = [&save_directory](int size, const char* name) {
-            char dsisd_path[PATH_MAX];
-            memset(dsisd_path, 0, sizeof(dsisd_path));
-            fill_pathname_join_special(dsisd_path, save_directory->c_str(), name, sizeof(dsisd_path));
-
-            _dsiSdFolderPath = dsisd_path;
-
-            strlcat(dsisd_path, ".dsisd", sizeof(dsisd_path));
-
-            _dsiSdImagePath = dsisd_path;
-            // If the SD card image exists, set the image size to auto; else set it to the given card size
-            _dsiSdImageSize = path_is_valid(_dsiSdImagePath.c_str()) ? 0 : size;
-        };
-
-        if (string_is_equal(value, Values::SHARED)) {
-            _dsiSdCardMode = SdCardMode::Shared;
-            set_config(4096, Values::SHARED4GDSI);
-        } else if (string_is_equal(value, Values::DEDICATED)) {
-            _dsiSdCardMode = SdCardMode::Dedicated;
-            char game_name[PATH_MAX];
-            GetGameName(*nds_info, game_name, sizeof(game_name));
-            set_config(4096, game_name);
-        } else {
-            _dsiSdCardMode = SdCardMode::None;
-            _dsiSdImagePath = "";
-            _dsiSdImageSize = 0;
-            _dsiSdFolderPath = "";
-        }
+    if (optional<bool> value = ParseBoolean(get_variable(Keys::DSI_SD_SAVE_MODE))) {
+        _dsiSdEnable = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", Keys::DSI_SD_SAVE_MODE, Values::DISABLED);
-        _dsiSdCardMode = SdCardMode::None;
-        _dsiSdImagePath = "";
-        _dsiSdImageSize = 0;
-        _dsiSdFolderPath = "";
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::DSI_SD_SAVE_MODE, Values::ENABLED);
+        _dsiSdEnable = true;
     }
 }
 
@@ -1179,28 +1120,77 @@ static void melonds::config::apply_audio_options() noexcept {
 static void melonds::config::apply_save_options(const optional<NDSHeader>& header) {
     using namespace config::save;
 
-    if (header && header->IsHomebrew() && DldiEnable() && DldiFolderSync()) {
-        // If we're loading a homebrew game and we want to sync its SD card image to the host...
-        string path = DldiFolderPath();
-        if (path_mkdir(path.c_str())) {
-            // If we successfully created the save directory...
-
-            retro::info("Created (or using existing) homebrew save directory \"%s\"", path.c_str());
-        } else {
-            throw emulator_exception("Failed to create homebrew save directory at " + path);
-        }
+    const optional<string> save_directory = retro::get_save_directory();
+    if (!save_directory && (DldiEnable() || DsiSdEnable())) {
+        // If we want to use SD cards, but we can't get the save directory...
+        _dsiSdEnable = false;
+        _dldiEnable = false;
+        retro::set_error_message("Failed to get save directory; SD cards will not be available.");
+        return;
     }
 
-    if (system::ConsoleType() == ConsoleType::DSi && DsiSdEnable() && DsiSdFolderSync()) {
-        // If we're running in DSi mode and we want to sync its SD card image to the host...
-        string path = DsiSdFolderPath();
-        if (path_mkdir(path.c_str())) {
-            // If we successfully created the save directory...
+    if (header && header->IsHomebrew() && DldiEnable()) {
+        // If we're loading a homebrew game with an SD card...
+        char path[PATH_MAX];
 
-            retro::info("Created (or using existing) DSi save directory \"%s\"", path.c_str());
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_DIR_NAME, sizeof(path));
+        _dldiFolderPath = string(path);
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME, sizeof(path));
+        _dldiImagePath = string(path);
+
+        if (path_is_valid(_dldiImagePath.c_str())) {
+            // If the SD card image exists...
+            retro::info("Using existing homebrew SD card image \"%s\"", _dldiImagePath.c_str());
+            _dldiImageSize = AUTO_SDCARD_SIZE;
         } else {
-            throw emulator_exception("Failed to create DSi save directory at " + path);
+            retro::info("No homebrew SD card image found at \"%s\"; will create an image.", _dldiImagePath.c_str());
+            _dldiImageSize = DEFAULT_SDCARD_SIZE;
         }
+
+        if (DldiFolderSync()) {
+            // If we want to sync the homebrew SD card to the host...
+            if (!path_mkdir(_dldiFolderPath.c_str())) {
+                // Create the save directory. If that failed...
+                throw emulator_exception("Failed to create homebrew save directory at " + _dldiFolderPath);
+            }
+
+            retro::info("Created (or using existing) homebrew save directory \"%s\"", _dldiFolderPath.c_str());
+        }
+    } else {
+        retro::info("Not using homebrew SD card");
+    }
+
+    if (system::ConsoleType() == ConsoleType::DSi && DsiSdEnable()) {
+        // If we're running in DSi mode and we want to sync its SD card image to the host...
+        char path[PATH_MAX];
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_DIR_NAME, sizeof(path));
+        _dsiSdFolderPath = string(path);
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_IMAGE_NAME, sizeof(path));
+        _dsiSdImagePath = string(path);
+
+        if (path_is_valid(_dsiSdImagePath.c_str())) {
+            // If the SD card image exists...
+            retro::info("Using existing DSi SD card image \"%s\"", _dsiSdImagePath.c_str());
+            _dsiSdImageSize = AUTO_SDCARD_SIZE;
+        } else {
+            retro::info("No DSi SD card image found at \"%s\"; will create an image.", _dsiSdImagePath.c_str());
+            _dsiSdImageSize = DEFAULT_SDCARD_SIZE;
+        }
+
+        if (DsiSdFolderSync()) {
+            // If we want to sync the homebrew SD card to the host...
+            if (!path_mkdir(_dsiSdFolderPath.c_str())) {
+                // Create the save directory. If that failed...
+                throw emulator_exception("Failed to create DSi SD card save directory at " + _dsiSdFolderPath);
+            }
+
+            retro::info("Created (or using existing) DSi SD card save directory \"%s\"", _dsiSdFolderPath.c_str());
+        }
+    } else {
+        retro::info("Not using DSi SD card");
     }
 }
 
@@ -1372,26 +1362,19 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::DSI_SD_SAVE_MODE,
         "Virtual SD Card (DSi)",
         nullptr,
-        "Select a virtual SD card that will be used by the emulated DSi.\n"
-        "\n"
-        "Disabled: The DSi won't see an SD card. Data won't be saved.\n"
-        "Dedicated: The DSi will use an SD card specific to this game.\n"
-        "Shared: The game shares an SD card with other games.\n"
-        "\n"
-        "The virtual SD card is 4GB, but the image file is dynamically sized "
-        "(i.e. it will only use the disk space it needs). "
-        "Ignored when not in DSi mode. "
-        "Changing this setting does not transfer existing data. "
-        "Changes take effect with next restart.",
+        "If enabled, a virtual SD card will be made available to the emulated DSi. "
+        "The card image must be within the frontend's system directory and be named dsi_sd_card.bin. "
+        "If no image exists, a 4GB virtual SD card will be created. "
+        "Ignored when in DS mode. "
+        "Changes take effect at next boot.",
         nullptr,
         Config::Retro::Category::SYSTEM,
         {
-            {Config::Retro::Values::DISABLED, "Disabled"},
-            {Config::Retro::Values::SHARED, "Shared"},
-            {Config::Retro::Values::DEDICATED, "Dedicated"},
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::SHARED
+        Config::Retro::Values::ENABLED
     },
     {
         Config::Retro::Keys::DSI_SD_READ_ONLY,
@@ -1697,26 +1680,19 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::HOMEBREW_SAVE_MODE,
         "Virtual SD Card",
         nullptr,
-        "Select a virtual SD card that will be used by homebrew games.\n"
-        "\n"
-        "Disabled: The game won't see an SD card. Data won't be saved.\n"
-        "Dedicated: The game uses its own SD card.\n"
-        "Shared: The game shares an SD card with other games.\n"
-        "\n"
-        "The virtual SD card is 4GB, but the image file is dynamically sized "
-        "(i.e. it will only use the disk space it needs). "
+        "If enabled, a virtual SD card will be made available to homebrew DS games. "
+        "The card image must be within the frontend's system directory and be named dldi_sd_card.bin. "
+        "If no image exists, a 4GB virtual SD card will be created. "
         "Ignored for retail games. "
-        "Changing this setting does not transfer existing data. "
-        "Changes take effect with next restart.",
+        "Changes take effect at next boot.",
         nullptr,
         Config::Retro::Category::SYSTEM,
         {
-            {Config::Retro::Values::DISABLED, "Disabled"},
-            {Config::Retro::Values::SHARED, "Shared"},
-            {Config::Retro::Values::DEDICATED, "Dedicated"},
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::ENABLED, nullptr},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::SHARED
+        Config::Retro::Values::ENABLED
     },
     {
         Config::Retro::Keys::HOMEBREW_READ_ONLY,
