@@ -34,6 +34,7 @@
 #include "exceptions.hpp"
 
 using std::string;
+using std::nullopt;
 using std::optional;
 
 constexpr unsigned DS_NAME_LIMIT = 10;
@@ -154,6 +155,10 @@ namespace melonds::config {
 #ifdef JIT_ENABLED
         static bool _show_jit_options = true;
 #endif
+    }
+
+    static optional<Renderer> ParseRenderer(const char* value) noexcept;
+
 
     static void parse_jit_options() noexcept;
     static void parse_system_options() noexcept;
@@ -358,6 +363,16 @@ namespace melonds::config {
 
         int ScaleFactor() noexcept { return RenderSettings().GL_ScaleFactor; }
     }
+}
+
+
+
+static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
+    if (string_is_equal(value, Config::Retro::Values::SOFTWARE)) return melonds::Renderer::Software;
+#ifdef HAVE_OPENGL
+    if (string_is_equal(value, Config::Retro::Values::OPENGL)) return melonds::Renderer::OpenGl;
+#endif
+    return nullopt;
 }
 
 void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) {
@@ -735,12 +750,8 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
     // TODO: Fix the OpenGL software only render impl so you can switch at runtime
     if (initializing) {
         // Can't change the renderer mid-game
-        if (const char* value = get_variable(Keys::RENDER_MODE); !string_is_empty(value)) {
-            if (string_is_equal(value, Values::OPENGL)) {
-                _configuredRenderer = Renderer::OpenGl;
-            } else {
-                _configuredRenderer = Renderer::Software;
-            }
+        if (optional<Renderer> renderer = ParseRenderer(get_variable(Keys::RENDER_MODE))) {
+            _configuredRenderer = *renderer;
         } else {
             retro::warn("Failed to get value for %s; defaulting to %s", Keys::RENDER_MODE, Values::SOFTWARE);
             _configuredRenderer = Renderer::Software;
