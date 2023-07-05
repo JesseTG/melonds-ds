@@ -341,7 +341,6 @@ PUBLIC_SYMBOL void retro_run(void) {
         // NDS::RunFrame invokes rendering-related code
         NDS::RunFrame();
 
-        // TODO: Use RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE
         render::Render(input_state);
         melonds::render_audio();
         melonds::flush_save_data();
