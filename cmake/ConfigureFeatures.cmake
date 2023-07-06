@@ -5,6 +5,7 @@ option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
 option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_NETWORKING "Build with networking support, if supported by the target." ON)
+option(ENABLE_DYNAMIC "Build with dynamic library support, if supported by the target." ON)
 
 if (ENABLE_THREADS)
     find_package(Threads)
@@ -66,9 +67,11 @@ if (NOT HAVE_GETADDRINFO)
     set(HAVE_SOCKET_LEGACY ON)
 endif()
 
+if (ENABLE_DYNAMIC)
+    set(HAVE_DYNAMIC ON)
+endif ()
 # TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
 # TODO: Detect if libnx is available and we're building for Switch; if so, define HAVE_LIBNX
 # TODO: Detect if cocoatouch is available; if so, define HAVE_COCOATOUCH
 # TODO: Detect if OpenGL ES is available; if so, define HAVE_OPENGLES(_?[123](_[12])?)?
 # TODO: Detect if SSL is available; if so, define HAVE_SSL
-# TODO: Detect if dynamic libraries are available; if so, define HAVE_DYNAMIC

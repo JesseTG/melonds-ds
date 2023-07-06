@@ -113,6 +113,11 @@ if (ENABLE_JIT)
         # melonDS doesn't support FastMem on macOS
     endif ()
 endif ()
+
+if (HAVE_DYNAMIC)
+    target_compile_definitions(libretro PUBLIC HAVE_DYNAMIC HAVE_DYLIB)
+endif ()
+
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
 
 if (APPLE)
