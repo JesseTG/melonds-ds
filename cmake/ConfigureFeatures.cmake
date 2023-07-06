@@ -1,12 +1,18 @@
 # Detects the presence of various libraries or functions and sets the appropriate HAVE_* variables.
 # Other files are used to actually configure the build.
 
+if (ANDROID)
+    set(DEFAULT_OPENGL_PROFILE OpenGLES)
+else ()
+    set(DEFAULT_OPENGL_PROFILE OpenGL)
+endif ()
+
 option(ENABLE_DYNAMIC "Build with dynamic library support, if supported by the target." ON)
 option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
 option(ENABLE_NETWORKING "Build with networking support, if supported by the target." ON)
 option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
-set(OPENGL_PROFILE OpenGL CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL' and 'OpenGLES'.")
+set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL' and 'OpenGLES'.")
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES)
 
 if (ENABLE_THREADS)
