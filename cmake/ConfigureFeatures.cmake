@@ -71,5 +71,4 @@ endif()
 # TODO: Detect if cocoatouch is available; if so, define HAVE_COCOATOUCH
 # TODO: Detect if OpenGL ES is available; if so, define HAVE_OPENGLES(_?[123](_[12])?)?
 # TODO: Detect if SSL is available; if so, define HAVE_SSL
-# TODO: Detect HAVE_GETADDRINFO
-# TODO: Detect HAVE_SOCKET_LEGACY
+# TODO: Detect if dynamic libraries are available; if so, define HAVE_DYNAMIC
