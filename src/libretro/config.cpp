@@ -719,7 +719,6 @@ static void melonds::config::parse_audio_options() noexcept {
         _micButtonMode = MicButtonMode::Hold;
     }
 
-    // TODO: Support loading WAV files from the system directory (list them and add modify the config object)
     if (const char* value = get_variable(Keys::MIC_INPUT); !string_is_empty(value)) {
         if (string_is_equal(value, Values::MICROPHONE))
             _micInputMode = MicInputMode::HostMic;
