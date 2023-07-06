@@ -26,8 +26,6 @@
 void Platform::Init(int, char **) {
     // these args are not used in libretro
     retro::log(RETRO_LOG_DEBUG, "Platform::Init\n");
-
-    // TODO: Initialize Platform resources
 }
 
 void Platform::DeInit() {
