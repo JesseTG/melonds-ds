@@ -821,8 +821,6 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::OPENGL_FILTERING, Values::NEAREST);
         _screenFilter = ScreenFilter::Nearest;
     }
-#else
-    _configuredRenderer = Renderer::Software;
 #endif
 
     return needsOpenGlRefresh;
