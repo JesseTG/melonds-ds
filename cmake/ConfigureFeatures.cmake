@@ -12,6 +12,7 @@ option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
 option(ENABLE_NETWORKING "Build with networking support, if supported by the target." ON)
 option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
+option(ENABLE_GLSM_DEBUG "Enable debug output for GLSM." OFF)
 set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL' and 'OpenGLES'.")
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES)
 
@@ -29,6 +30,10 @@ if (ENABLE_ZLIB)
     if (ZLIB_FOUND)
         set(HAVE_ZLIB ON)
     endif ()
+endif ()
+
+if (ENABLE_GLSM_DEBUG)
+    set(HAVE_GLSM_DEBUG ON)
 endif ()
 
 if (ENABLE_OGLRENDERER)
@@ -124,6 +129,10 @@ function(add_common_definitions TARGET)
 
     if (HAVE_EGL)
         target_compile_definitions(${TARGET} PUBLIC HAVE_EGL)
+    endif ()
+
+    if (HAVE_GLSM_DEBUG)
+        target_compile_definitions(${TARGET} PUBLIC GLSM_DEBUG)
     endif ()
 
     if (HAVE_MMAN)
