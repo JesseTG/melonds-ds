@@ -135,10 +135,6 @@ function(add_common_definitions TARGET)
         target_compile_definitions(${TARGET} PUBLIC GLSM_DEBUG)
     endif ()
 
-    if (HAVE_MMAN)
-        target_compile_definitions(${TARGET} PUBLIC HAVE_MMAN)
-    endif ()
-
     if (HAVE_MMAP)
         target_compile_definitions(${TARGET} PUBLIC HAVE_MMAP)
     endif ()
