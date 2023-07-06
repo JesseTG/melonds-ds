@@ -159,6 +159,10 @@ if (HAVE_DYNAMIC)
     target_compile_definitions(libretro-common PUBLIC HAVE_DYNAMIC HAVE_DYLIB)
 endif ()
 
+if (HAVE_COCOATOUCH)
+    target_compile_definitions(libretro-common PUBLIC HAVE_COCOATOUCH)
+endif ()
+
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(libretro-common PRIVATE -fPIC)

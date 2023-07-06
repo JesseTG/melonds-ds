@@ -118,6 +118,10 @@ if (HAVE_DYNAMIC)
     target_compile_definitions(libretro PUBLIC HAVE_DYNAMIC HAVE_DYLIB)
 endif ()
 
+if (HAVE_COCOATOUCH)
+    target_compile_definitions(libretro PUBLIC HAVE_COCOATOUCH)
+endif ()
+
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
 
 if (APPLE)
