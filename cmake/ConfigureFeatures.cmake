@@ -6,6 +6,8 @@ option(ENABLE_THREADS "Build with thread support, if supported by the target." O
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_NETWORKING "Build with networking support, if supported by the target." ON)
 option(ENABLE_DYNAMIC "Build with dynamic library support, if supported by the target." ON)
+set(OPENGL_PROFILE OpenGL CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL' and 'OpenGLES'.")
+set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES)
 
 if (ENABLE_THREADS)
     find_package(Threads)
@@ -25,7 +27,15 @@ endif ()
 
 if (ENABLE_OGLRENDERER)
     # ENABLE_OGLRENDERER is defined by melonDS's CMakeLists.txt
-    find_package(OpenGL)
+    if (OPENGL_PROFILE STREQUAL "OpenGL")
+        find_package(OpenGL OPTIONAL_COMPONENTS EGL)
+    elseif (OPENGL_PROFILE STREQUAL "OpenGLES")
+        # Built-in support for finding OpenGL ES isn't available until CMake 3.27,
+        # so we use an external module.
+        find_package(OpenGLES OPTIONAL_COMPONENTS V1 V2 V3 V31 V32)
+    else()
+        message(FATAL_ERROR "Expected an OpenGL profile of 'OpenGL' or 'OpenGLES', got ${OPENGL_PROFILE}")
+    endif()
 
     if (ENABLE_EGL AND OpenGL_EGL_FOUND)
         set(HAVE_EGL ON)
@@ -35,14 +45,31 @@ if (ENABLE_OGLRENDERER)
         set(HAVE_OPENGL ON)
     endif()
 
-    if (OpenGL::GLES2)
+    if (OpenGL::GLES2 OR OpenGLES_V1_FOUND)
+        set(HAVE_OPENGLES ON)
+        set(HAVE_OPENGLES1 ON)
+    endif ()
+
+    if (OpenGL::GLES2 OR OpenGLES_V2_FOUND)
         set(HAVE_OPENGLES ON)
         set(HAVE_OPENGLES2 ON)
     endif ()
 
-    if (OpenGL::GLES3)
+    if (OpenGL::GLES3 OR OpenGLES_V3_FOUND)
         set(HAVE_OPENGLES ON)
         set(HAVE_OPENGLES3 ON)
+    endif ()
+
+    if (OpenGLES_V31_FOUND)
+        set(HAVE_OPENGLES ON)
+        set(HAVE_OPENGLES3 ON)
+        set(HAVE_OPENGLES31 ON)
+    endif ()
+
+    if (OpenGLES_V32_FOUND)
+        set(HAVE_OPENGLES ON)
+        set(HAVE_OPENGLES3 ON)
+        set(HAVE_OPENGLES32 ON)
     endif ()
 
     check_include_files("GL3/gl3.h;GL3/gl3ext.h" HAVE_OPENGL_MODERN)
@@ -75,7 +102,89 @@ if (IOS)
     set(HAVE_COCOATOUCH ON)
 endif ()
 
+function(add_common_definitions TARGET)
+    if (APPLE)
+        target_compile_definitions(${TARGET} PUBLIC GL_SILENCE_DEPRECATION)
+        # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
+    endif()
+
+    if (HAVE_COCOATOUCH)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_COCOATOUCH)
+    endif ()
+
+    if (HAVE_DYNAMIC)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_DYNAMIC HAVE_DYLIB)
+    endif ()
+
+    if (HAVE_EGL)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_EGL)
+    endif ()
+
+    if (HAVE_MMAN)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_MMAN)
+    endif ()
+
+    if (HAVE_MMAP)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_MMAP)
+    endif ()
+
+    if (HAVE_NETWORKING)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_NETWORKING)
+
+        if (HAVE_GETADDRINFO)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_GETADDRINFO)
+        endif ()
+
+        if (HAVE_SOCKET_LEGACY)
+            target_compile_definitions(${TARGET} PUBLIC HAVE_SOCKET_LEGACY)
+        endif ()
+    endif ()
+
+    if (HAVE_OPENGL)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED CORE ENABLE_OGLRENDERER PLATFORMOGL_H)
+    endif ()
+
+    if (HAVE_OPENGL_MODERN)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGL_MODERN)
+    endif ()
+
+    if (HAVE_OPENGLES)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES)
+    endif ()
+
+    if (HAVE_OPENGLES1)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES1 HAVE_OPENGLES_1)
+    endif ()
+
+    if (HAVE_OPENGLES2)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES2 HAVE_OPENGLES_2)
+    endif ()
+
+    if (HAVE_OPENGLES3)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES3 HAVE_OPENGLES_3)
+    endif ()
+
+    if (HAVE_OPENGLE31)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES31 HAVE_OPENGLES_31 HAVE_OPENGLES_3_1)
+    endif ()
+
+    if (HAVE_OPENGLE32)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES32 HAVE_OPENGLES_32 HAVE_OPENGLES_3_2)
+    endif ()
+
+    if (HAVE_STRL)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_STRL)
+    endif ()
+
+    if (HAVE_THREADS)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_THREADS)
+    endif ()
+
+    if (HAVE_ZLIB)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_ZLIB)
+    endif ()
+endfunction()
+
 # TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
 # TODO: Detect if libnx is available and we're building for Switch; if so, define HAVE_LIBNX
-# TODO: Detect if OpenGL ES is available; if so, define HAVE_OPENGLES(_?[123](_[12])?)?
 # TODO: Detect if SSL is available; if so, define HAVE_SSL

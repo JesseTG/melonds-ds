@@ -61,31 +61,10 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/vfs/vfs_implementation.c
     )
 
-if (HAVE_THREADS)
-    target_sources(libretro-common PRIVATE
-        ${libretro-common_SOURCE_DIR}/rthreads/rthreads.c
-        )
+add_common_definitions(libretro-common)
 
-    target_compile_definitions(libretro-common PUBLIC HAVE_THREADS)
-endif ()
-
-if (NOT HAVE_STRL)
-    target_sources(libretro-common PRIVATE
-        ${libretro-common_SOURCE_DIR}/compat/compat_strl.c
-        )
-else ()
-    target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
-endif ()
-
-if (HAVE_OPENGL)
-    target_sources(libretro-common PRIVATE
-        ${libretro-common_SOURCE_DIR}/glsm/glsm.c
-        ${libretro-common_SOURCE_DIR}/glsym/rglgen.c
-        ${libretro-common_SOURCE_DIR}/glsym/glsym_gl.c
-        )
-
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED CORE)
-    target_link_libraries(libretro-common PUBLIC OpenGL::GL)
+if (HAVE_EGL)
+    target_link_libraries(libretro-common PUBLIC OpenGL::EGL)
 endif ()
 
 if (HAVE_NETWORKING)
@@ -95,59 +74,45 @@ if (HAVE_NETWORKING)
         ${libretro-common_SOURCE_DIR}/net/net_http_parse.c
         ${libretro-common_SOURCE_DIR}/net/net_socket.c
         )
-
-    target_compile_definitions(libretro-common PUBLIC HAVE_NETWORKING)
-
-    if (HAVE_GETADDRINFO)
-        target_compile_definitions(libretro-common PUBLIC HAVE_GETADDRINFO)
-    endif ()
-
-    if (HAVE_SOCKET_LEGACY)
-        target_compile_definitions(libretro-common PUBLIC HAVE_SOCKET_LEGACY)
-    endif ()
 endif ()
 
-if (HAVE_OPENGL_MODERN)
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGL_MODERN)
-endif ()
+if (HAVE_OPENGL)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/glsm/glsm.c
+        ${libretro-common_SOURCE_DIR}/glsym/rglgen.c
+        ${libretro-common_SOURCE_DIR}/glsym/glsym_gl.c
+        )
 
-if (HAVE_OPENGLES)
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES)
-endif ()
-
-if (HAVE_OPENGLES3)
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES3)
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES_3)
+    target_link_libraries(libretro-common PUBLIC OpenGL::GL)
+    target_include_directories(libretro-common PUBLIC ${OPENGL_INCLUDE_DIR})
 endif ()
 
 if (HAVE_OPENGLES2)
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES2)
-    target_compile_definitions(libretro-common PUBLIC HAVE_OPENGLES_2)
-endif ()
-
-if (HAVE_EGL)
-    target_compile_definitions(libretro-common PUBLIC HAVE_EGL)
-    target_link_libraries(libretro-common PUBLIC OpenGL::EGL)
-endif ()
-
-if (HAVE_STRL)
-    target_compile_definitions(libretro-common PUBLIC HAVE_STRL)
-else ()
     target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/glsym/glsym_es2.c
+        )
+endif ()
+
+if (HAVE_OPENGLES3)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/glsym/glsym_es3.c
+        )
+endif ()
+
+if (NOT HAVE_STRL)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/compat/compat_strl.c
         ${libretro-common_SOURCE_DIR}/compat/compat_strldup.c
-    )
+        )
 endif ()
 
-if (HAVE_MMAP)
-    target_compile_definitions(libretro-common PUBLIC HAVE_MMAP)
-endif ()
-
-if (HAVE_MMAN)
-    target_compile_definitions(libretro-common PUBLIC HAVE_MMAN)
+if (HAVE_THREADS)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/rthreads/rthreads.c
+        )
 endif ()
 
 if (HAVE_ZLIB)
-    target_compile_definitions(libretro-common PUBLIC HAVE_ZLIB)
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/file/archive_file_zlib.c
         ${libretro-common_SOURCE_DIR}/streams/trans_stream_zlib.c
@@ -155,20 +120,8 @@ if (HAVE_ZLIB)
     target_link_libraries(libretro-common PUBLIC ZLIB::ZLIB)
 endif ()
 
-if (HAVE_DYNAMIC)
-    target_compile_definitions(libretro-common PUBLIC HAVE_DYNAMIC HAVE_DYLIB)
-endif ()
-
-if (HAVE_COCOATOUCH)
-    target_compile_definitions(libretro-common PUBLIC HAVE_COCOATOUCH)
-endif ()
-
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(libretro-common PRIVATE -fPIC)
     target_link_options(libretro-common PRIVATE -fPIC)
 endif ()
-
-if (APPLE)
-    target_compile_definitions(libretro-common PUBLIC GL_SILENCE_DEPRECATION)
-endif()

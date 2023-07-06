@@ -45,65 +45,15 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${melonDS_SOURCE_DIR}/src"
     )
 
-if (HAVE_STRL)
-    target_compile_definitions(libretro PUBLIC HAVE_STRL)
-endif ()
-
-if (HAVE_THREADS)
-    target_compile_definitions(libretro PUBLIC HAVE_THREADS)
-endif ()
+add_common_definitions(libretro)
 
 if (HAVE_OPENGL)
     if (APPLE)
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-framework,OpenGL")
     endif ()
     target_sources(libretro PRIVATE opengl.cpp)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGL OGLRENDERER_ENABLED ENABLE_OGLRENDERER PLATFORMOGL_H)
     target_link_libraries(libretro PUBLIC OpenGL::GL)
 endif ()
-
-if (HAVE_OPENGL_MODERN)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGL_MODERN)
-endif ()
-
-if (HAVE_OPENGLES3)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES3)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES_3)
-endif ()
-
-if (HAVE_OPENGLES2)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES2)
-    target_compile_definitions(libretro PUBLIC HAVE_OPENGLES_2)
-endif ()
-
-if (HAVE_MMAP)
-    target_compile_definitions(libretro PUBLIC HAVE_MMAP)
-endif()
-
-if (HAVE_MMAN)
-    target_compile_definitions(libretro PUBLIC HAVE_MMAN)
-endif()
-
-if (HAVE_NETWORKING)
-    target_compile_definitions(libretro PUBLIC HAVE_NETWORKING)
-
-    if (HAVE_SOCKET_LEGACY)
-        target_compile_definitions(libretro PUBLIC HAVE_SOCKET_LEGACY)
-    endif ()
-
-    if (HAVE_GETADDRINFO)
-        target_compile_definitions(libretro PUBLIC HAVE_GETADDRINFO)
-    endif ()
-endif ()
-
-if (HAVE_EGL)
-    target_compile_definitions(libretro PUBLIC HAVE_EGL)
-endif ()
-
-if (APPLE)
-    target_compile_definitions(libretro PUBLIC GL_SILENCE_DEPRECATION)
-    # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
-endif()
 
 if (ENABLE_JIT)
     target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)  # TODO: Disable on certain platforms
@@ -112,14 +62,6 @@ if (ENABLE_JIT)
         target_compile_definitions(libretro PUBLIC HAVE_JIT_FASTMEM)
         # melonDS doesn't support FastMem on macOS
     endif ()
-endif ()
-
-if (HAVE_DYNAMIC)
-    target_compile_definitions(libretro PUBLIC HAVE_DYNAMIC HAVE_DYLIB)
-endif ()
-
-if (HAVE_COCOATOUCH)
-    target_compile_definitions(libretro PUBLIC HAVE_COCOATOUCH)
 endif ()
 
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
