@@ -2,8 +2,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
-    ../glsm/glsm-extra.c
-    ../glsm/glsm-extra.h
     config.cpp
     config.hpp
     content.cpp
