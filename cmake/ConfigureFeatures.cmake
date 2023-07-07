@@ -2,7 +2,7 @@
 # Other files are used to actually configure the build.
 
 if (ANDROID)
-    set(DEFAULT_OPENGL_PROFILE OpenGLES)
+    set(DEFAULT_OPENGL_PROFILE OpenGLES2)
 else ()
     set(DEFAULT_OPENGL_PROFILE OpenGL)
 endif ()
@@ -13,8 +13,8 @@ option(ENABLE_NETWORKING "Build with networking support, if supported by the tar
 option(ENABLE_THREADS "Build with thread support, if supported by the target." ON)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_GLSM_DEBUG "Enable debug output for GLSM." OFF)
-set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL' and 'OpenGLES'.")
-set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES)
+set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL', 'OpenGLES2', 'OpenGLES3', 'OpenGLES31', and 'OpenGLES32'.")
+set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
 if (ENABLE_THREADS)
     find_package(Threads)
@@ -39,13 +39,24 @@ endif ()
 if (ENABLE_OGLRENDERER)
     # ENABLE_OGLRENDERER is defined by melonDS's CMakeLists.txt
     if (OPENGL_PROFILE STREQUAL "OpenGL")
-        find_package(OpenGL OPTIONAL_COMPONENTS EGL)
-    elseif (OPENGL_PROFILE STREQUAL "OpenGLES")
+        if (ENABLE_EGL)
+            find_package(OpenGL OPTIONAL_COMPONENTS EGL)
+        else ()
+            find_package(OpenGL)
+        endif ()
+    elseif (OPENGL_PROFILE STREQUAL "OpenGLES2")
         # Built-in support for finding OpenGL ES isn't available until CMake 3.27,
         # so we use an external module.
-        find_package(OpenGLES OPTIONAL_COMPONENTS V1 V2 V3 V31 V32)
+        find_package(OpenGLES OPTIONAL_COMPONENTS V2)
+    elseif (OPENGL_PROFILE STREQUAL "OpenGLES3")
+        find_package(OpenGLES OPTIONAL_COMPONENTS V3)
+    elseif (OPENGL_PROFILE STREQUAL "OpenGLES31")
+        find_package(OpenGLES OPTIONAL_COMPONENTS V31)
+    elseif (OPENGL_PROFILE STREQUAL "OpenGLES32")
+        find_package(OpenGLES OPTIONAL_COMPONENTS V32)
     else()
-        message(FATAL_ERROR "Expected an OpenGL profile of 'OpenGL' or 'OpenGLES', got ${OPENGL_PROFILE}")
+        get_property(OpenGLProfiles CACHE OPENGL_PROFILE PROPERTY STRINGS)
+        message(FATAL_ERROR "Expected an OpenGL profile in '${OpenGLProfiles}', got '${OPENGL_PROFILE}'")
     endif()
 
     if (ENABLE_EGL AND OpenGL_EGL_FOUND)
@@ -73,13 +84,11 @@ if (ENABLE_OGLRENDERER)
 
     if (OpenGLES_V31_FOUND)
         set(HAVE_OPENGLES ON)
-        set(HAVE_OPENGLES3 ON)
         set(HAVE_OPENGLES31 ON)
     endif ()
 
     if (OpenGLES_V32_FOUND)
         set(HAVE_OPENGLES ON)
-        set(HAVE_OPENGLES3 ON)
         set(HAVE_OPENGLES32 ON)
     endif ()
 
@@ -175,11 +184,11 @@ function(add_common_definitions TARGET)
         target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES3 HAVE_OPENGLES_3)
     endif ()
 
-    if (HAVE_OPENGLE31)
+    if (HAVE_OPENGLES31)
         target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES31 HAVE_OPENGLES_31 HAVE_OPENGLES_3_1)
     endif ()
 
-    if (HAVE_OPENGLE32)
+    if (HAVE_OPENGLES32)
         target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGLES32 HAVE_OPENGLES_32 HAVE_OPENGLES_3_2)
     endif ()
 
