@@ -32,12 +32,10 @@
 #include <NDSCart.h>
 #include <frontend/FrontendUtil.h>
 #include <Platform.h>
-#include <GPU.h>
 #include <SPU.h>
 #include <GBACart.h>
 #include <retro_assert.h>
 #include <retro_miscellaneous.h>
-#include <string/stdstring.h>
 
 #include "opengl.hpp"
 #include "content.hpp"

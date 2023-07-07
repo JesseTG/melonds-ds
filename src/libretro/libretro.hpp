@@ -18,9 +18,6 @@
 #define MELONDS_DS_LIBRETRO_HPP
 
 #include <libretro.h>
-#ifdef HAVE_OPENGL
-#include <glsym/glsym.h>
-#endif
 
 #include <NDSCart.h>
 #include <GBACart.h>

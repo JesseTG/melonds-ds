@@ -18,11 +18,11 @@
 
 #include <libretro.h>
 #include <glsm/glsm.h>
-#include <glsm/glsmsym.h>
 
 #include <GPU.h>
 #include <OpenGLSupport.h>
 
+#include "PlatformOGLPrivate.h"
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "environment.hpp"

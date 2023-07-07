@@ -16,10 +16,6 @@
 
 #include "render.hpp"
 
-#include <libretro.h>
-#include <glsm/glsm.h>
-#include <glsm/glsmsym.h>
-
 #include <GPU3D.h>
 
 #include "config.hpp"
