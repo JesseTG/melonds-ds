@@ -14,7 +14,10 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include <array>
 #include <cstdarg>
+
+#include <gfx/scaler/scaler.h>
 #include <libretro.h>
 #include <retro_timers.h>
 #include <Platform.h>
@@ -23,15 +26,65 @@
 #include "../environment.hpp"
 #include "../config.hpp"
 
+constexpr unsigned DSI_CAMERA_WIDTH = 640;
+constexpr unsigned DSI_CAMERA_HEIGHT = 480;
+static struct retro_camera_callback _camera {};
+static struct scaler_ctx _scaler {};
+static std::array<uint32_t, DSI_CAMERA_WIDTH * DSI_CAMERA_HEIGHT> _camera_buffer {};
+
+
+static void CaptureImage(const uint32_t *buffer, unsigned width, unsigned height, size_t pitch) {
+    // TODO: If the size and pitch are different, reinitialize the scaler
+
+    scaler_ctx_scale(&_scaler, _camera_buffer.data(), buffer);
+    if (width == DSI_CAMERA_WIDTH && height == DSI_CAMERA_HEIGHT) {
+        memcpy(_camera_buffer.data(), buffer, sizeof(_camera_buffer));
+    } else {
+        // TODO: Scale the image to 640x480
+    }
+}
+
 void Platform::Init(int, char **) {
     // these args are not used in libretro
     retro::log(RETRO_LOG_DEBUG, "Platform::Init\n");
+
+    if (melonds::config::system::ConsoleType() != melonds::ConsoleType::DSi) {
+        retro::info("Camera is only supported in DSi mode.\n");
+        return;
+    }
+
+    _camera.caps = (1 << RETRO_CAMERA_BUFFER_RAW_FRAMEBUFFER);
+    _camera.frame_raw_framebuffer = CaptureImage;
+
+    // TODO: Configure the scaler
+    _scaler.out_width = DSI_CAMERA_WIDTH;
+    _scaler.out_height = DSI_CAMERA_HEIGHT;
+    _scaler.in_fmt = SCALER_FMT_ARGB8888;
+    _scaler.out_fmt = SCALER_FMT_YUYV;
+    _scaler.scaler_type = SCALER_TYPE_BILINEAR; // TODO: Make configurable
+
+    if (!retro::environment(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &_camera)) {
+        retro::warn("Camera interface not available.");
+    }
+
+    if (!scaler_ctx_gen_filter(&_scaler)) {
+        retro::warn("Failed to initialize camera scaler.");
+    }
 }
 
+// TODO: Call this in retro_unload_game and retro_reset
 void Platform::DeInit() {
     retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
     melonds::NdsSaveManager.reset();
     melonds::GbaSaveManager.reset();
+
+    if (_camera.stop) {
+        _camera.stop();
+    }
+
+    _camera.start = nullptr;
+    _camera.stop = nullptr;
+    scaler_ctx_gen_reset(&_scaler);
 }
 
 void Platform::StopEmu() {
@@ -107,4 +160,21 @@ void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u3
         // a sequence of disk writes.
         melonds::TimeToGbaFlush = melonds::config::save::FlushDelay();
     }
+}
+
+void Platform::Camera_Start(int num) {
+    if (_camera.start) {
+        _camera.start();
+    }
+}
+
+void Platform::Camera_Stop(int num) {
+    if (_camera.stop) {
+        _camera.stop();
+    }
+}
+
+void Platform::Camera_CaptureFrame(int num, u32 *frame, int width, int height, bool yuv) {
+    // TODO: Copy the image from _camera_buffer to frame
+    // TODO: Convert the image to YUV if necessary
 }
