@@ -88,22 +88,22 @@ endif()
 
 if (ENABLE_NETWORKING)
     set(HAVE_NETWORKING ON)
+
+    if (WIN32)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES ws2_32)
+        check_symbol_exists(getaddrinfo "winsock2.h;ws2tcpip.h" HAVE_GETADDRINFO)
+    else()
+        check_symbol_exists(getaddrinfo "sys/types.h;sys/socket.h;netdb.h" HAVE_GETADDRINFO)
+    endif ()
+
+    if (NOT HAVE_GETADDRINFO)
+        set(HAVE_SOCKET_LEGACY ON)
+    endif()
 endif ()
 
 check_symbol_exists(strlcpy "bsd/string.h;string.h" HAVE_STRL)
 check_symbol_exists(mmap "sys/mman.h" HAVE_MMAP)
 check_include_file("sys/mman.h" HAVE_MMAN)
-
-if (WIN32)
-    list(APPEND CMAKE_REQUIRED_LIBRARIES ws2_32)
-    check_symbol_exists(getaddrinfo "winsock2.h;ws2tcpip.h" HAVE_GETADDRINFO)
-else()
-    check_symbol_exists(getaddrinfo "sys/types.h;sys/socket.h;netdb.h" HAVE_GETADDRINFO)
-endif ()
-
-if (NOT HAVE_GETADDRINFO)
-    set(HAVE_SOCKET_LEGACY ON)
-endif()
 
 if (ENABLE_DYNAMIC)
     set(HAVE_DYNAMIC ON)
