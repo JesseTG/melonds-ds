@@ -33,6 +33,7 @@ add_library(libretro MODULE
     platform/platform.cpp
     platform/semaphore.cpp
     platform/thread.cpp
+    PlatformOGLPrivate.h
     render.cpp
     render.hpp
     screenlayout.cpp
