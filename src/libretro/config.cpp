@@ -1094,8 +1094,6 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
             verify_dsi_bios();
             break;
     }
-
-    // TODO: Set BIOS paths here
 }
 
 static void melonds::config::apply_audio_options() noexcept {

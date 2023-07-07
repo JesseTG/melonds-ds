@@ -71,9 +71,9 @@ void retro::content::set_loaded_content_info(
         _loaded_nds_path = nds_info->path ? make_optional(nds_info->path) : nullopt;
         _loaded_nds_info = retro_game_info {
             .path = _loaded_nds_path ? _loaded_nds_path->c_str() : nullptr,
-            .data = nds_info->data, // QUESTION: Should we copy this?
+            .data = nds_info->data,
             .size = nds_info->size,
-            .meta = nds_info->meta, // QUESTION: Should we copy this?
+            .meta = nds_info->meta,
         };
     } else {
         _loaded_nds_info = nullopt;
@@ -84,9 +84,9 @@ void retro::content::set_loaded_content_info(
         _loaded_gba_path = gba_info->path ? make_optional(gba_info->path) : nullopt;
         _loaded_gba_info = retro_game_info {
             .path = _loaded_gba_path ? _loaded_gba_path->c_str() : nullptr,
-            .data = gba_info->data, // QUESTION: Should we copy this?
+            .data = gba_info->data,
             .size = gba_info->size,
-            .meta = gba_info->meta, // QUESTION: Should we copy this?
+            .meta = gba_info->meta,
         };
     } else {
         _loaded_gba_info = nullopt;
@@ -97,9 +97,9 @@ void retro::content::set_loaded_content_info(
         _loaded_gba_save_path = gba_save_info->path ? make_optional(gba_save_info->path) : nullopt;
         _loaded_gba_save_info = retro_game_info {
             .path = _loaded_gba_save_path ? _loaded_gba_save_path->c_str() : nullptr,
-            .data = gba_save_info->data, // QUESTION: Should we copy this?
+            .data = gba_save_info->data,
             .size = gba_save_info->size,
-            .meta = gba_save_info->meta, // QUESTION: Should we copy this?
+            .meta = gba_save_info->meta,
         };
     } else {
         _loaded_gba_save_info = nullopt;
