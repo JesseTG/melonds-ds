@@ -1202,9 +1202,9 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
     screenLayout.ScreenGap(screen::ScreenGap());
     screenLayout.HybridRatio(screen::HybridRatio());
     if (melonds::render::CurrentRenderer() == Renderer::None) {
-        screenLayout.Update(melonds::render::CurrentRenderer());
-    } else {
         screenLayout.Update(video::ConfiguredRenderer());
+    } else {
+        screenLayout.Update(melonds::render::CurrentRenderer());
     }
 }
 
