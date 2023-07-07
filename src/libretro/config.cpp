@@ -1607,7 +1607,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::HOLD, "Hold"},
             {nullptr, nullptr},
         },
-        "Toggle"
+        Config::Retro::Values::TOGGLE
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT,
