@@ -62,7 +62,8 @@ target_sources(libretro-common PRIVATE
     )
 
 add_common_definitions(libretro-common)
-
+target_include_directories(libretro-common PRIVATE ${CMAKE_SOURCE_DIR}/src/libretro)
+target_compile_definitions(libretro-common PRIVATE HAVE_GLSYM_PRIVATE)
 if (HAVE_EGL)
     target_link_libraries(libretro-common PUBLIC OpenGL::EGL)
 endif ()
@@ -76,28 +77,35 @@ if (HAVE_NETWORKING)
         )
 endif ()
 
-if (HAVE_OPENGL)
+if (HAVE_OPENGL OR HAVE_OPENGLES)
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/glsm/glsm.c
         ${libretro-common_SOURCE_DIR}/glsym/rglgen.c
-        ${libretro-common_SOURCE_DIR}/glsym/glsym_gl.c
         )
+endif()
 
+if (HAVE_OPENGL)
+    target_sources(libretro-common PRIVATE ${libretro-common_SOURCE_DIR}/glsym/glsym_gl.c)
     target_link_libraries(libretro-common PUBLIC OpenGL::GL)
-    target_include_directories(libretro-common PUBLIC ${OPENGL_INCLUDE_DIR})
+    target_include_directories(libretro-common PUBLIC SYSTEM ${OPENGL_INCLUDE_DIR})
 endif ()
 
 if (HAVE_OPENGLES2)
-    target_sources(libretro-common PRIVATE
-        ${libretro-common_SOURCE_DIR}/glsym/glsym_es2.c
-        )
+    target_sources(libretro-common PRIVATE ${libretro-common_SOURCE_DIR}/glsym/glsym_es2.c)
+    target_include_directories(libretro-common PUBLIC SYSTEM ${OpenGLES_V2_INCLUDE_DIR})
 endif ()
 
-if (HAVE_OPENGLES3)
-    target_sources(libretro-common PRIVATE
-        ${libretro-common_SOURCE_DIR}/glsym/glsym_es3.c
-        )
-endif ()
+if (HAVE_OPENGLES3 OR HAVE_OPENGLES31 OR HAVE_OPENGLES32)
+    target_sources(libretro-common PRIVATE ${libretro-common_SOURCE_DIR}/glsym/glsym_es3.c)
+endif()
+
+if (HAVE_OPENGLES31)
+    target_include_directories(libretro-common PUBLIC SYSTEM ${OpenGLES_V31_INCLUDE_DIR})
+elseif (HAVE_OPENGLES32)
+    target_include_directories(libretro-common PUBLIC SYSTEM ${OpenGLES_V32_INCLUDE_DIR})
+else()
+    target_include_directories(libretro-common PUBLIC SYSTEM ${OpenGLES_V3_INCLUDE_DIR})
+endif()
 
 if (NOT HAVE_STRL)
     target_sources(libretro-common PRIVATE

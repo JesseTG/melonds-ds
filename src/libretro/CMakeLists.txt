@@ -12,6 +12,7 @@ add_library(libretro MODULE
     environment.hpp
     exceptions.cpp
     exceptions.hpp
+    glsym_private.h
     info.cpp
     info.hpp
     input.cpp
