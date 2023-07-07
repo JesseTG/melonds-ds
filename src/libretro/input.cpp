@@ -212,6 +212,5 @@ void melonds::InputState::Update() noexcept {
 }
 
 bool melonds::InputState::CursorEnabled() const noexcept {
-
     return config::screen::TouchMode() == TouchMode::Mouse || config::screen::TouchMode() == TouchMode::Joystick;
 }
