@@ -355,7 +355,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         retro_get_system_av_info(&updated_av_info);
         retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
         screen_layout_data.clean_screenlayout_buffer();
-        // TODO: Replace with RETRO_ENVIRONMENT_SET_GEOMETRY
+        // TODO: Replace with RETRO_ENVIRONMENT_SET_GEOMETRY (requires fixing hybrid mode)
     }
 }
 
