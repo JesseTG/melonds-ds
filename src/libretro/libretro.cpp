@@ -110,7 +110,6 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
     srand(time(nullptr));
 
-    Platform::Init(0, nullptr);
     melonds::first_frame_run = false;
     // ScreenLayoutData is initialized in its constructor
 }
@@ -591,6 +590,8 @@ static void melonds::load_games(
         memcpy(&header, nds_info->data, sizeof(header));
     }
     melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt);
+
+    Platform::Init(0, nullptr);
 
     using retro::environment;
     using retro::log;
