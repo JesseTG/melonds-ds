@@ -58,6 +58,7 @@ using std::optional;
 using std::nullopt;
 
 namespace melonds {
+    static InputState input_state;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
