@@ -19,11 +19,14 @@
 #include <optional>
 #include <string>
 
+#ifdef HAVE_NETWORKING
+#include <net/net_http.h>
+#endif
+
 #include <DSi_NAND.h>
 #include <DSi_TMD.h>
 #include <retro_assert.h>
 #include <file/file_path.h>
-#include <net/net_http.h>
 #include <compat/strl.h>
 #include <streams/file_stream.h>
 #include <retro_timers.h>
@@ -53,7 +56,9 @@ namespace melonds::dsi {
 
     bool validate_tmd(const TitleMetadata &tmd) noexcept;
 
+#ifdef HAVE_NETWORKING
     bool download_tmd(const NDSHeader &header, TitleMetadata &tmd) noexcept;
+#endif
 
     void cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noexcept;
 
@@ -91,12 +96,16 @@ void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCar
         if (!get_cached_tmd(tmd_path, tmd)) {
             // If the TMD isn't available locally...
 
+#ifdef HAVE_NETWORKING
             if (download_tmd(header, tmd)) {
                 // ...then download it. If that worked...
                 cache_tmd(tmd_path, tmd);
             } else {
                 throw missing_metadata_exception("Cannot get title metadata for installation");
             }
+#else
+            throw missing_metadata_exception("Cannot get title metadata for installation, and this build does not support downloading it");
+#endif
         }
 
         if (!DSi_NAND::ImportTitle(static_cast<const u8 *>(nds_info.data), nds_info.size, tmd, false)) {
@@ -182,6 +191,7 @@ bool melonds::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
     return true;
 }
 
+#ifdef HAVE_NETWORKING
 bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noexcept {
     char url[256];
     snprintf(url, sizeof(url), "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd",
@@ -273,6 +283,7 @@ done:
 
     return ok;
 }
+#endif
 
 // TODO: Cache the whole file, not just the TitleMetadata object
 void melonds::dsi::cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noexcept {

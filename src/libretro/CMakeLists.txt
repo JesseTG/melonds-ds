@@ -2,8 +2,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
-    ../rthreads/rsemaphore.c
-    ../rthreads/rsemaphore.h
     ../glsm/glsm-extra.c
     ../glsm/glsm-extra.h
     config.cpp
@@ -64,6 +62,13 @@ if (ENABLE_JIT)
         target_compile_definitions(libretro PUBLIC HAVE_JIT_FASTMEM)
         # melonDS doesn't support FastMem on macOS
     endif ()
+endif ()
+
+if (HAVE_THREADS)
+    target_sources(libretro PRIVATE
+        ../rthreads/rsemaphore.c
+        ../rthreads/rsemaphore.h
+        )
 endif ()
 
 set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
