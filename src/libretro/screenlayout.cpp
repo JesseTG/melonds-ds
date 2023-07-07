@@ -29,6 +29,10 @@ melonds::ScreenLayoutData::ScreenLayoutData() {
     this->hybrid_ratio = 2;
 }
 
+melonds::ScreenLayoutData::~ScreenLayoutData() {
+    free(buffer_ptr);
+}
+
 void melonds::ScreenLayoutData::copy_screen(uint32_t *src, unsigned offset) {
     if (direct_copy) {
         memcpy((uint32_t *) buffer_ptr + offset, src, screen_width * screen_height * pixel_size);

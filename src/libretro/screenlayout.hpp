@@ -33,6 +33,7 @@ namespace melonds {
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
+        ~ScreenLayoutData();
         void copy_screen(uint32_t* src, unsigned offset);
         void copy_hybrid_screen(uint32_t* src, ScreenId screen_id);
         [[deprecate("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
