@@ -28,11 +28,21 @@
 
 // TODO: Move everything into melonds::config
 namespace melonds {
+    class ScreenLayoutData;
+
     /// Called when loading a game
-    void InitConfig(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header);
+    void InitConfig(
+        const std::optional<retro_game_info>& nds_info,
+        const std::optional<NDSHeader>& header,
+        ScreenLayoutData& screenLayout
+    );
 
     /// Called when settings have been updated mid-game
-    void UpdateConfig(const std::optional<struct retro_game_info>& nds_info, const std::optional<NDSHeader>& header) noexcept;
+    void UpdateConfig(
+        const std::optional<struct retro_game_info>& nds_info,
+        const std::optional<NDSHeader>& header,
+        ScreenLayoutData& screenLayout
+    ) noexcept;
     bool update_option_visibility();
     extern struct retro_core_options_v2 options_us;
     extern struct retro_core_option_v2_definition option_defs_us[];

@@ -34,12 +34,12 @@ namespace melonds {
     public:
         ScreenLayoutData();
         ~ScreenLayoutData();
-        void copy_screen(uint32_t* src, unsigned offset);
-        void copy_hybrid_screen(uint32_t* src, ScreenId screen_id);
+        void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
+        void CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept;
         [[deprecate("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
-        void clean_screenlayout_buffer();
+        void Clear();
 
-        void Update(melonds::Renderer renderer) noexcept;
+        void Update(Renderer renderer) noexcept;
 
         void* Buffer() noexcept { return buffer_ptr; }
         const void* Buffer() const noexcept { return buffer_ptr; }
@@ -56,7 +56,7 @@ namespace melonds {
         bool SwapScreens() const noexcept { return swapScreens; }
 
         ScreenLayout Layout() const noexcept { return layout; }
-        void Layout(ScreenLayout _layout) noexcept { this->layout = _layout; }
+        void SetLayout(ScreenLayout _layout) noexcept { this->layout = _layout; }
         ScreenLayout SwappedLayout() const noexcept { return SwapLayout(layout); }
         ScreenLayout EffectiveLayout() const noexcept { return swapScreens ? SwappedLayout() : layout; }
 
@@ -99,6 +99,7 @@ namespace melonds {
         SmallScreenLayout hybrid_small_screen;
         unsigned hybrid_ratio;
 
+        // TODO: Move the buffer to a separate class
         unsigned buffer_width;
         unsigned buffer_height;
         unsigned buffer_stride;
@@ -106,7 +107,5 @@ namespace melonds {
         uint16_t *buffer_ptr;
         ScreenLayout layout;
     };
-
-    extern ScreenLayoutData screen_layout_data;
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP

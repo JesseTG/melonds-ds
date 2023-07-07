@@ -17,7 +17,8 @@
 #ifndef MELONDS_DS_UTILS_HPP
 #define MELONDS_DS_UTILS_HPP
 
-#include "screenlayout.hpp"
+#include <cstdint>
+#include <libretro.h>
 
 #if defined(_WIN32)
 #define PLATFORM_DIR_SEPERATOR '\\'

@@ -59,7 +59,7 @@ namespace melonds::opengl {
 
     static bool setup_opengl();
 
-    static void setup_opengl_frame_state();
+    static void InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept;
 }
 
 bool melonds::opengl::ContextInitialized() {
@@ -95,8 +95,7 @@ bool melonds::opengl::initialize() {
     return glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
 }
 
-void melonds::opengl::render_frame(const InputState& state) {
-    using melonds::screen_layout_data;
+void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
     int frontbuf = GPU::FrontBuffer;
@@ -107,7 +106,7 @@ void melonds::opengl::render_frame(const InputState& state) {
     if (refresh_opengl) {
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        setup_opengl_frame_state();
+        InitializeFrameState(screenLayout);
     }
 
     if (virtual_cursor) {
@@ -129,7 +128,7 @@ void melonds::opengl::render_frame(const InputState& state) {
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_BLEND);
 
-    glViewport(0, 0, screen_layout_data.BufferWidth(), screen_layout_data.BufferHeight());
+    glViewport(0, 0, screenLayout.BufferWidth(), screenLayout.BufferHeight());
 
     glActiveTexture(GL_TEXTURE0);
 
@@ -142,7 +141,7 @@ void melonds::opengl::render_frame(const InputState& state) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0,
-                 screen_layout_data.HybridSmallScreenLayout() == SmallScreenLayout::SmallScreenDuplicate ? 18 : 12);
+                 screenLayout.HybridSmallScreenLayout() == SmallScreenLayout::SmallScreenDuplicate ? 18 : 12);
 
     glFlush();
 
@@ -150,8 +149,8 @@ void melonds::opengl::render_frame(const InputState& state) {
 
     retro::video_refresh(
         RETRO_HW_FRAME_BUFFER_VALID,
-        screen_layout_data.BufferWidth(),
-        screen_layout_data.BufferHeight(),
+        screenLayout.BufferWidth(),
+        screenLayout.BufferHeight(),
         0
     );
 
@@ -260,14 +259,14 @@ static bool melonds::opengl::setup_opengl() {
     return true;
 }
 
-void melonds::opengl::setup_opengl_frame_state(void) {
+void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept {
 
     refresh_opengl = false;
     GPU::RenderSettings render_settings = melonds::config::video::RenderSettings();
     GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
 
-    GL_ShaderConfig.uScreenSize[0] = (float) screen_layout_data.BufferWidth();
-    GL_ShaderConfig.uScreenSize[1] = (float) screen_layout_data.BufferHeight();
+    GL_ShaderConfig.uScreenSize[0] = (float) screenLayout.BufferWidth();
+    GL_ShaderConfig.uScreenSize[1] = (float) screenLayout.BufferHeight();
     GL_ShaderConfig.u3DScale = config::video::ScaleFactor();
     GL_ShaderConfig.cursorPos[0] = -1.0f;
     GL_ShaderConfig.cursorPos[1] = -1.0f;
@@ -279,9 +278,9 @@ void melonds::opengl::setup_opengl_frame_state(void) {
     if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    float screen_width = (float) screen_layout_data.ScreenWidth();
-    float screen_height = (float) screen_layout_data.ScreenHeight();
-    float screen_gap = (float) screen_layout_data.ScaledScreenGap();
+    float screen_width = (float) screenLayout.ScreenWidth();
+    float screen_height = (float) screenLayout.ScreenHeight();
+    float screen_gap = (float) screenLayout.ScaledScreenGap();
 
     float top_screen_x = 0.0f;
     float top_screen_y = 0.0f;
@@ -309,7 +308,7 @@ void melonds::opengl::setup_opengl_frame_state(void) {
     const float pixel_pad = 1.0f / (192 * 2 + 2);
 
     // TODO: Implement rotated and upside-down layouts
-    switch (screen_layout_data.EffectiveLayout()) {
+    switch (screenLayout.EffectiveLayout()) {
         case ScreenLayout::TopBottom:
             bottom_screen_y = screen_height + screen_gap;
             break;
@@ -329,8 +328,8 @@ void melonds::opengl::setup_opengl_frame_state(void) {
             top_screen_y = screen_height; // ditto
             break;
         case ScreenLayout::HybridTop:
-            primary_x = screen_width * screen_layout_data.HybridRatio();
-            primary_y = screen_height * screen_layout_data.HybridRatio();
+            primary_x = screen_width * screenLayout.HybridRatio();
+            primary_y = screen_height * screenLayout.HybridRatio();
 
             primary_tex_v0_x = 0.0f;
             primary_tex_v0_y = 0.0f;
@@ -347,8 +346,8 @@ void melonds::opengl::setup_opengl_frame_state(void) {
 
             break;
         case ScreenLayout::HybridBottom:
-            primary_x = screen_width * screen_layout_data.HybridRatio();
-            primary_y = screen_height * screen_layout_data.HybridRatio();
+            primary_x = screen_width * screenLayout.HybridRatio();
+            primary_y = screen_height * screenLayout.HybridRatio();
 
             primary_tex_v0_x = 0.0f;
             primary_tex_v0_y = 0.5f + pixel_pad;
@@ -374,9 +373,9 @@ void melonds::opengl::setup_opengl_frame_state(void) {
         screen_vertices[(4 * i) + 3] = t_y; \
     } while (false)
 
-    ScreenLayout layout = screen_layout_data.EffectiveLayout();
-    SmallScreenLayout smallScreenLayout = screen_layout_data.HybridSmallScreenLayout();
-    if (screen_layout_data.IsHybridLayout()) {
+    ScreenLayout layout = screenLayout.EffectiveLayout();
+    SmallScreenLayout smallScreenLayout = screenLayout.HybridSmallScreenLayout();
+    if (screenLayout.IsHybridLayout()) {
         //Primary Screen
         SETVERTEX(0, 0.0f, 0.0f, primary_tex_v0_x, primary_tex_v0_y); // top left
         SETVERTEX(1, 0.0f, primary_y, primary_tex_v1_x, primary_tex_v1_y); // bottom left

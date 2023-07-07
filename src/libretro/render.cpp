@@ -30,6 +30,7 @@
 
 namespace melonds::render {
     static Renderer _CurrentRenderer = Renderer::None;
+    static void RenderSoftware(const InputState& input_state, ScreenLayoutData& screenLayout) noexcept;
 }
 
 void melonds::render::Initialize(Renderer renderer) {
@@ -63,7 +64,7 @@ void melonds::render::Initialize(Renderer renderer) {
 #endif
 }
 
-bool melonds::render::ReadyToRender() {
+bool melonds::render::ReadyToRender() noexcept {
     using melonds::Renderer;
     if (GPU3D::CurrentRenderer == nullptr) {
         // If the emulator doesn't yet have an assigned renderer...
@@ -83,24 +84,24 @@ bool melonds::render::ReadyToRender() {
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
 // TODO: Pass input state and screen layout as an argument
-void melonds::render::RenderSoftware(const InputState& input_state) {
+void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
     int frontbuf = GPU::FrontBuffer;
 
     if (screen_layout_data.IsHybridLayout()) {
         unsigned primary = screen_layout_data.EffectiveLayout() == ScreenLayout::HybridTop ? 0 : 1;
 
-        screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
+        screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
 
         switch (screen_layout_data.HybridSmallScreenLayout()) {
             case SmallScreenLayout::SmallScreenTop:
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][0], ScreenId::Bottom);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], ScreenId::Bottom);
                 break;
             case SmallScreenLayout::SmallScreenBottom:
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
                 break;
             case SmallScreenLayout::SmallScreenDuplicate:
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][0], ScreenId::Top);
-                screen_layout_data.copy_hybrid_screen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], ScreenId::Top);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
                 break;
         }
 
@@ -108,10 +109,10 @@ void melonds::render::RenderSoftware(const InputState& input_state) {
             screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
     } else {
         if (screen_layout_data.EffectiveTopScreenEnabled())
-            screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenOffset());
+            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenOffset());
         if (screen_layout_data.EffectiveBottomScreenEnabled())
-            screen_layout_data.copy_screen(GPU::Framebuffer[frontbuf][1],
-                                           screen_layout_data.BottomScreenOffset());
+            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1],
+                                          screen_layout_data.BottomScreenOffset());
 
         if (input_state.CursorEnabled() && screen_layout_data.EffectiveLayout() != ScreenLayout::TopOnly)
             screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
@@ -129,16 +130,16 @@ melonds::Renderer melonds::render::CurrentRenderer() noexcept {
     return _CurrentRenderer;
 }
 
-void melonds::render::Render(const InputState& input_state) {
+void melonds::render::Render(const InputState& input_state, ScreenLayoutData& screenLayout) noexcept {
     switch (_CurrentRenderer) {
 #ifdef HAVE_OPENGL
         case Renderer::OpenGl:
-            melonds::opengl::render_frame(input_state);
+            melonds::opengl::Render(input_state, screenLayout);
             break;
 #endif
         case Renderer::Software:
         default:
-            render::RenderSoftware(input_state);
+            render::RenderSoftware(input_state, screenLayout);
             break;
     }
 }

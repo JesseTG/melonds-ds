@@ -59,6 +59,7 @@ using std::nullopt;
 
 namespace melonds {
     static InputState input_state;
+    static ScreenLayoutData screenLayout;
     static bool swap_screen_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
@@ -256,6 +257,18 @@ static void melonds::flush_gba_sram(const retro_game_info& gba_save_info) noexce
     }
 }
 
+PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
+    using melonds::screenLayout;
+
+    info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
+    info->timing.sample_rate = 32.0f * 1024.0f;
+    info->geometry.base_width = screenLayout.BufferWidth();
+    info->geometry.base_height = screenLayout.BufferHeight();
+    info->geometry.max_width = screenLayout.BufferWidth();
+    info->geometry.max_height = screenLayout.BufferHeight();
+    info->geometry.aspect_ratio = screenLayout.BufferAspectRatio();
+}
+
 PUBLIC_SYMBOL void retro_run(void) {
     using namespace melonds;
     using retro::log;
@@ -307,30 +320,30 @@ PUBLIC_SYMBOL void retro_run(void) {
         first_frame_run = true;
     }
 
-    input_state.Update();
+    input_state.Update(screenLayout);
 
-    if (melonds::input_state.SwapScreenPressed() != screen_layout_data.SwapScreens()) {
+    if (melonds::input_state.SwapScreenPressed() != screenLayout.SwapScreens()) {
         switch (config::screen::ScreenSwapMode()) {
             case melonds::ScreenSwapMode::Toggle: {
-                if (!screen_layout_data.SwapScreens()) {
+                if (!screenLayout.SwapScreens()) {
                     swap_screen_toggled = !swap_screen_toggled;
-                    screen_layout_data.SwapScreens(swap_screen_toggled);
-                    screen_layout_data.Update(render::CurrentRenderer());
+                    screenLayout.SwapScreens(swap_screen_toggled);
+                    screenLayout.Update(render::CurrentRenderer());
                     melonds::opengl::RequestOpenGlRefresh();
                 }
 
-                screen_layout_data.SwapScreens(input_state.SwapScreenPressed());
-                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", screen_layout_data.SwapScreens() ? "on" : "off");
+                screenLayout.SwapScreens(input_state.SwapScreenPressed());
+                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", screenLayout.SwapScreens() ? "on" : "off");
                 break;
             }
             case ScreenSwapMode::Hold: {
-                if (screen_layout_data.SwapScreens() != input_state.SwapScreenPressed()) {
+                if (screenLayout.SwapScreens() != input_state.SwapScreenPressed()) {
                     log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
                         input_state.SwapScreenPressed() ? "Started" : "Stopped");
                 }
 
-                screen_layout_data.SwapScreens(input_state.SwapScreenPressed());
-                screen_layout_data.Update(render::CurrentRenderer());
+                screenLayout.SwapScreens(input_state.SwapScreenPressed());
+                screenLayout.Update(render::CurrentRenderer());
                 melonds::opengl::RequestOpenGlRefresh();
             }
         }
@@ -342,19 +355,19 @@ PUBLIC_SYMBOL void retro_run(void) {
         // NDS::RunFrame invokes rendering-related code
         NDS::RunFrame();
 
-        render::Render(input_state);
+        render::Render(input_state, screenLayout);
         melonds::render_audio();
         melonds::flush_save_data();
     }
 
     if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
         optional<NDSHeader> header = NDSCart::Cart ? std::make_optional(NDSCart::Cart->GetHeader()) : std::nullopt;
-        melonds::UpdateConfig(retro::content::get_loaded_nds_info(), header);
+        melonds::UpdateConfig(retro::content::get_loaded_nds_info(), header, screenLayout);
 
         struct retro_system_av_info updated_av_info{};
         retro_get_system_av_info(&updated_av_info);
         retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
-        screen_layout_data.clean_screenlayout_buffer();
+        screenLayout.Clear();
         // TODO: Replace with RETRO_ENVIRONMENT_SET_GEOMETRY (requires fixing hybrid mode)
     }
 }
@@ -590,7 +603,7 @@ static void melonds::load_games(
         // but the config can depend on the header.
         memcpy(&header, nds_info->data, sizeof(header));
     }
-    melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt);
+    melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt, screenLayout);
 
     Platform::Init(0, nullptr);
 

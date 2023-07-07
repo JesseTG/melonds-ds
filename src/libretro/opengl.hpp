@@ -17,7 +17,10 @@
 #ifndef MELONDS_DS_OPENGL_HPP
 #define MELONDS_DS_OPENGL_HPP
 
-#include "input.hpp"
+namespace melonds {
+    class InputState;
+    class ScreenLayoutData;
+}
 
 namespace melonds::opengl {
     // Requests that the OpenGL context be refreshed.
@@ -31,7 +34,7 @@ namespace melonds::opengl {
 
     void deinitialize();
 
-    void render_frame(const InputState& state);
+    void Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept;
 
     bool ContextInitialized();
 #ifdef HAVE_OPENGL

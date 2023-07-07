@@ -20,10 +20,6 @@
 #include <functional>
 #include <cstring>
 
-namespace melonds {
-    ScreenLayoutData screen_layout_data;
-}
-
 melonds::ScreenLayoutData::ScreenLayoutData() {
     this->buffer_ptr = nullptr;
     this->hybrid_ratio = 2;
@@ -33,7 +29,7 @@ melonds::ScreenLayoutData::~ScreenLayoutData() {
     free(buffer_ptr);
 }
 
-void melonds::ScreenLayoutData::copy_screen(uint32_t *src, unsigned offset) {
+void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
     if (direct_copy) {
         memcpy((uint32_t *) buffer_ptr + offset, src, screen_width * screen_height * pixel_size);
     } else {
@@ -46,7 +42,7 @@ void melonds::ScreenLayoutData::copy_screen(uint32_t *src, unsigned offset) {
 
 }
 
-void melonds::ScreenLayoutData::copy_hybrid_screen(uint32_t *src, ScreenId screen_id) {
+void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept {
     switch (screen_id) {
         case ScreenId::Primary: {
             unsigned buffer_y, buffer_x;
@@ -120,13 +116,12 @@ void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
 }
 
 
-void melonds::ScreenLayoutData::clean_screenlayout_buffer() {
+void melonds::ScreenLayoutData::Clear() {
     if (buffer_ptr != nullptr) {
         memset(buffer_ptr, 0, buffer_stride * buffer_height);
     }
 }
 
-using melonds::ScreenLayout;
 using melonds::ScreenLayoutData;
 
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
@@ -268,7 +263,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 }
 
 
-ScreenLayout melonds::SwapLayout(ScreenLayout layout) noexcept {
+melonds::ScreenLayout melonds::SwapLayout(ScreenLayout layout) noexcept {
     switch (layout) {
         case ScreenLayout::BottomOnly:
             return ScreenLayout::TopOnly;
@@ -290,16 +285,4 @@ ScreenLayout melonds::SwapLayout(ScreenLayout layout) noexcept {
             // No swap for other types
             return layout;
     }
-}
-
-PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
-    using melonds::screen_layout_data;
-
-    info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
-    info->timing.sample_rate = 32.0f * 1024.0f;
-    info->geometry.base_width = screen_layout_data.BufferWidth();
-    info->geometry.base_height = screen_layout_data.BufferHeight();
-    info->geometry.max_width = screen_layout_data.BufferWidth();
-    info->geometry.max_height = screen_layout_data.BufferHeight();
-    info->geometry.aspect_ratio = screen_layout_data.BufferAspectRatio();
 }

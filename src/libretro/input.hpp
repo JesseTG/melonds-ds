@@ -18,10 +18,9 @@
 #define MELONDS_DS_INPUT_HPP
 
 #include <libretro.h>
-#include "config.hpp"
 
 namespace melonds {
-
+    class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
 
     class InputState
@@ -34,7 +33,7 @@ namespace melonds {
         [[nodiscard]] bool SwapScreenPressed() const noexcept { return swap_screens_btn; }
         [[nodiscard]] bool MicButtonPressed() const noexcept { return holding_noise_btn; }
         [[nodiscard]] bool LidClosed() const noexcept { return lid_closed; }
-        void Update() noexcept;
+        void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
         bool touching;

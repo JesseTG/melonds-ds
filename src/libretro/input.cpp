@@ -18,9 +18,12 @@
 
 #include <algorithm>
 #include <NDS.h>
+
+#include "config.hpp"
 #include "environment.hpp"
-#include "utils.hpp"
 #include "libretro.hpp"
+#include "screenlayout.hpp"
+#include "utils.hpp"
 
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -80,7 +83,7 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
         }                                      \
     } while (false)
 
-void melonds::InputState::Update() noexcept {
+void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
     uint32_t joypad_bits;
     int i;
     uint32_t input_mask = 0xFFF;

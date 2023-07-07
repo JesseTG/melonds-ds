@@ -189,7 +189,7 @@ namespace melonds::config {
     static void apply_system_options(const optional<NDSHeader>& header);
     static void apply_audio_options() noexcept;
     static void apply_save_options(const optional<NDSHeader>& header);
-    static void apply_screen_options() noexcept;
+    static void apply_screen_options(ScreenLayoutData& screenLayout) noexcept;
 
     namespace audio {
         melonds::MicButtonMode _micButtonMode = melonds::MicButtonMode::Hold;
@@ -302,7 +302,7 @@ namespace melonds::config {
 
     namespace screen {
         static melonds::ScreenLayout _screenLayout;
-        melonds::ScreenLayout ScreenLayout() noexcept { return _screenLayout; }
+        enum melonds::ScreenLayout ScreenLayout() noexcept { return _screenLayout; }
 
         static unsigned _screenGap;
         unsigned ScreenGap() noexcept { return _screenGap; }
@@ -408,7 +408,8 @@ static optional<melonds::ScreenLayout> ParseScreenLayout(const char* value) noex
     return nullopt;
 }
 
-void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header) {
+void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header,
+                         ScreenLayoutData& screenLayout) {
     config::parse_system_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
@@ -421,7 +422,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::apply_system_options(header);
     config::apply_save_options(header);
     config::apply_audio_options();
-    config::apply_screen_options();
+    config::apply_screen_options(screenLayout);
 
 #ifdef HAVE_OPENGL
     if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
@@ -433,14 +434,17 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     update_option_visibility();
 }
 
-void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info,
-                           const std::optional<NDSHeader>& header) noexcept {
+void melonds::UpdateConfig(
+    const std::optional<struct retro_game_info>& nds_info,
+    const std::optional<NDSHeader>& header,
+    ScreenLayoutData& screenLayout
+) noexcept {
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     openGlNeedsRefresh |= config::parse_screen_options();
 
     config::apply_audio_options();
-    config::apply_screen_options();
+    config::apply_screen_options(screenLayout);
 
 #ifdef HAVE_OPENGL
     if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
@@ -510,7 +514,7 @@ bool melonds::update_option_visibility() {
     if (ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(Keys::HYBRID_SMALL_SCREEN, ShowHybridOptions);
 #ifdef HAVE_OPENGL
-        set_option_visible(Keys::HYBRID_RATIO, ShowHybridOptions);
+        set_option_visible(Keys::HYBRID_RATIO, ShowHybridOptions && ShowOpenGlOptions);
 #endif
 
         updated = true;
@@ -1192,12 +1196,16 @@ static void melonds::config::apply_save_options(const optional<NDSHeader>& heade
     }
 }
 
-static void melonds::config::apply_screen_options() noexcept {
-    screen_layout_data.Layout(screen::ScreenLayout());
-    screen_layout_data.HybridSmallScreenLayout(screen::SmallScreenLayout());
-    screen_layout_data.ScreenGap(screen::ScreenGap());
-    screen_layout_data.HybridRatio(screen::HybridRatio());
-    screen_layout_data.Update(video::ConfiguredRenderer());
+static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout) noexcept {
+    screenLayout.SetLayout(screen::ScreenLayout());
+    screenLayout.HybridSmallScreenLayout(screen::SmallScreenLayout());
+    screenLayout.ScreenGap(screen::ScreenGap());
+    screenLayout.HybridRatio(screen::HybridRatio());
+    if (melonds::render::CurrentRenderer() == Renderer::None) {
+        screenLayout.Update(melonds::render::CurrentRenderer());
+    } else {
+        screenLayout.Update(video::ConfiguredRenderer());
+    }
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
@@ -1735,8 +1743,8 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         nullptr,
         Config::Retro::Category::SCREEN,
         {
-            {"2", "2x"},
-            {"3", "3x"},
+            {"2", "2:1"},
+            {"3", "3:1"},
             {nullptr, nullptr},
         },
         "2"
