@@ -423,11 +423,12 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::apply_audio_options();
     config::apply_screen_options();
 
-
+#ifdef HAVE_OPENGL
     if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
         melonds::opengl::RequestOpenGlRefresh();
     }
+#endif
 
     update_option_visibility();
 }
@@ -441,10 +442,12 @@ void melonds::UpdateConfig(const std::optional<struct retro_game_info>& nds_info
     config::apply_audio_options();
     config::apply_screen_options();
 
+#ifdef HAVE_OPENGL
     if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
         melonds::opengl::RequestOpenGlRefresh();
     }
+#endif
 
     update_option_visibility();
 }

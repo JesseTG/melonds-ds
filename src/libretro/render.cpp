@@ -70,10 +70,12 @@ bool melonds::render::ReadyToRender() {
         return false;
     }
 
+#ifdef HAVE_OPENGL
     if (_CurrentRenderer == Renderer::OpenGl && !melonds::opengl::ContextInitialized()) {
         // If we're using OpenGL, but it isn't ready...
         return false;
     }
+#endif
 
     // Software rendering doesn't need us to set up any context, the frontend does that
     return true;

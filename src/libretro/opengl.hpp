@@ -21,7 +21,11 @@
 
 namespace melonds::opengl {
     // Requests that the OpenGL context be refreshed.
+#ifdef HAVE_OPENGL
     void RequestOpenGlRefresh();
+#else
+    inline void RequestOpenGlRefresh() {}
+#endif
 
     bool initialize();
 
@@ -30,6 +34,10 @@ namespace melonds::opengl {
     void render_frame(const InputState& input_state);
 
     bool ContextInitialized();
+#ifdef HAVE_OPENGL
     bool UsingOpenGl();
+#else
+    inline bool UsingOpenGl() { return false; }
+#endif
 }
 #endif //MELONDS_DS_OPENGL_HPP
