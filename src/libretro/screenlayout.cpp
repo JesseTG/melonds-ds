@@ -22,9 +22,6 @@
 
 namespace melonds {
     ScreenLayoutData screen_layout_data;
-
-    // TODO: Move this to a better place
-    bool ScreenSwap;
 }
 
 melonds::ScreenLayoutData::ScreenLayoutData() {

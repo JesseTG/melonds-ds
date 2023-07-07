@@ -308,27 +308,27 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     melonds::update_input(input_state);
 
-    if (melonds::input_state.swap_screens_btn != ScreenSwap) {
+    if (melonds::input_state.swap_screens_btn != screen_layout_data.SwapScreens()) {
         switch (config::screen::ScreenSwapMode()) {
             case melonds::ScreenSwapMode::Toggle: {
-                if (!ScreenSwap) {
+                if (!screen_layout_data.SwapScreens()) {
                     swap_screen_toggled = !swap_screen_toggled;
                     screen_layout_data.SwapScreens(swap_screen_toggled);
                     screen_layout_data.Update(render::CurrentRenderer());
                     melonds::opengl::RequestOpenGlRefresh();
                 }
 
-                ScreenSwap = input_state.swap_screens_btn;
-                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", ScreenSwap ? "on" : "off");
+                screen_layout_data.SwapScreens(input_state.swap_screens_btn);
+                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", screen_layout_data.SwapScreens() ? "on" : "off");
                 break;
             }
             case ScreenSwapMode::Hold: {
-                if (ScreenSwap != input_state.swap_screens_btn) {
+                if (screen_layout_data.SwapScreens() != input_state.swap_screens_btn) {
                     log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
                         input_state.swap_screens_btn ? "Started" : "Stopped");
                 }
-                ScreenSwap = input_state.swap_screens_btn;
-                screen_layout_data.SwapScreens(ScreenSwap);
+
+                screen_layout_data.SwapScreens(input_state.swap_screens_btn);
                 screen_layout_data.Update(render::CurrentRenderer());
                 melonds::opengl::RequestOpenGlRefresh();
             }

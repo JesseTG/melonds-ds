@@ -107,6 +107,5 @@ namespace melonds {
     };
 
     extern ScreenLayoutData screen_layout_data;
-    extern bool ScreenSwap;
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP
