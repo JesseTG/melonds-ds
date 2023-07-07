@@ -86,8 +86,7 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
         }                                      \
     } while (false)
 
-
-void melonds::update_input(InputState &state) {
+void melonds::InputState::Update() noexcept {
     uint32_t joypad_bits;
     int i;
     uint32_t input_mask = 0xFFF;
@@ -118,15 +117,15 @@ void melonds::update_input(InputState &state) {
     NDS::SetKeyMask(input_mask);
 
     bool lid_closed_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3);
-    if (lid_closed_btn != state.lid_closed) {
+    if (lid_closed_btn != lid_closed) {
         NDS::SetLidClosed(lid_closed_btn);
-        state.lid_closed = lid_closed_btn;
-        retro::log(RETRO_LOG_DEBUG, "%s the lid", state.lid_closed ? "Closed" : "Opened");
+        lid_closed = lid_closed_btn;
+        retro::log(RETRO_LOG_DEBUG, "%s the lid", lid_closed ? "Closed" : "Opened");
     }
 
-    state.previous_holding_noise_btn = state.holding_noise_btn;
-    state.holding_noise_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2);
-    state.swap_screens_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2);
+    previous_holding_noise_btn = holding_noise_btn;
+    holding_noise_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2);
+    swap_screens_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2);
 
 //    if (micNoiseType == MicInput && // If the player wants to use their real mic...
 //        noise_button_required && // ...and they don't always want it hot...
@@ -145,16 +144,16 @@ void melonds::update_input(InputState &state) {
     if (screen_layout_data.EffectiveLayout() != ScreenLayout::TopOnly) {
         switch (config::screen::TouchMode()) {
             case TouchMode::Disabled:
-                state.touching = false;
+                touching = false;
                 break;
             case TouchMode::Mouse: {
                 int16_t mouse_x = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
                 int16_t mouse_y = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
 
-                state.touching = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+                touching = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
 
-                state.touch_x = std::clamp(state.touch_x + mouse_x, 0, VIDEO_WIDTH - 1);
-                state.touch_y = std::clamp(state.touch_y + mouse_y, 0, VIDEO_HEIGHT - 1);
+                touch_x = std::clamp(touch_x + mouse_x, 0, VIDEO_WIDTH - 1);
+                touch_y = std::clamp(touch_y + mouse_y, 0, VIDEO_HEIGHT - 1);
             }
 
                 break;
@@ -175,20 +174,20 @@ void melonds::update_input(InputState &state) {
                         (x < screen_layout_data.TouchOffsetX() + screen_layout_data.ScreenWidth()) &&
                         (y >= screen_layout_data.TouchOffsetY()) &&
                         (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
-                        state.touching = true;
+                        touching = true;
 
-                        state.touch_x = std::clamp(
+                        touch_x = std::clamp(
                                 static_cast<int>((x - screen_layout_data.TouchOffsetX()) * VIDEO_WIDTH /
                                                  screen_layout_data.ScreenWidth()),
                                 0, VIDEO_WIDTH - 1);
-                        state.touch_y = std::clamp(
+                        touch_y = std::clamp(
                                 static_cast<int>((y - screen_layout_data.TouchOffsetY()) * VIDEO_HEIGHT /
                                                  screen_layout_data.ScreenHeight()),
                                 0,
                                 VIDEO_HEIGHT - 1);
                     }
-                } else if (state.touching) {
-                    state.touching = false;
+                } else if (touching) {
+                    touching = false;
                 }
 
                 break;
@@ -198,19 +197,19 @@ void melonds::update_input(InputState &state) {
                 int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
                                                         RETRO_DEVICE_ID_ANALOG_Y) / 2048;
 
-                state.touch_x = std::clamp(state.touch_x + joystick_x, 0, melonds::VIDEO_WIDTH - 1);
-                state.touch_y = std::clamp(state.touch_y + joystick_y, 0, melonds::VIDEO_HEIGHT - 1);
+                touch_x = std::clamp(touch_x + joystick_x, 0, melonds::VIDEO_WIDTH - 1);
+                touch_y = std::clamp(touch_y + joystick_y, 0, melonds::VIDEO_HEIGHT - 1);
 
-                state.touching = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3);
+                touching = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3);
 
                 break;
         }
     } else {
-        state.touching = false;
+        touching = false;
     }
 
-    if (state.touching) {
-        NDS::TouchScreen(state.touch_x, state.touch_y);
+    if (touching) {
+        NDS::TouchScreen(touch_x, touch_y);
         _has_touched = true;
     } else if (_has_touched) {
         NDS::ReleaseScreen();
@@ -218,7 +217,7 @@ void melonds::update_input(InputState &state) {
     }
 }
 
-bool melonds::InputState::cursor_enabled() const {
+bool melonds::InputState::CursorEnabled() const noexcept {
 
     return config::screen::TouchMode() == TouchMode::Mouse || config::screen::TouchMode() == TouchMode::Joystick;
 }

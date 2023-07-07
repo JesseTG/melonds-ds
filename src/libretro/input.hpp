@@ -24,8 +24,19 @@ namespace melonds {
 
     extern const struct retro_input_descriptor input_descriptors[];
 
-    struct InputState
+    class InputState
     {
+    public:
+        [[nodiscard]] bool CursorEnabled() const noexcept;
+        [[nodiscard]] bool IsTouchingScreen() const noexcept { return touching; }
+        [[nodiscard]] int TouchX() const noexcept { return touch_x; }
+        [[nodiscard]] int TouchY() const noexcept { return touch_y; }
+        [[nodiscard]] bool SwapScreenPressed() const noexcept { return swap_screens_btn; }
+        [[nodiscard]] bool MicButtonPressed() const noexcept { return holding_noise_btn; }
+        [[nodiscard]] bool LidClosed() const noexcept { return lid_closed; }
+        void Update() noexcept;
+
+    private:
         bool touching;
         int touch_x, touch_y;
 
@@ -34,12 +45,9 @@ namespace melonds {
         bool swap_screens_btn = false;
         bool lid_closed = false;
 
-        [[nodiscard]] bool cursor_enabled() const;
     };
 
     extern InputState input_state;
-
-    void update_input(InputState &state);
 
 }
 #endif //MELONDS_DS_INPUT_HPP

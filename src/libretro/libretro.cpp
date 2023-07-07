@@ -306,9 +306,9 @@ PUBLIC_SYMBOL void retro_run(void) {
         first_frame_run = true;
     }
 
-    melonds::update_input(input_state);
+    input_state.Update();
 
-    if (melonds::input_state.swap_screens_btn != screen_layout_data.SwapScreens()) {
+    if (melonds::input_state.SwapScreenPressed() != screen_layout_data.SwapScreens()) {
         switch (config::screen::ScreenSwapMode()) {
             case melonds::ScreenSwapMode::Toggle: {
                 if (!screen_layout_data.SwapScreens()) {
@@ -318,17 +318,17 @@ PUBLIC_SYMBOL void retro_run(void) {
                     melonds::opengl::RequestOpenGlRefresh();
                 }
 
-                screen_layout_data.SwapScreens(input_state.swap_screens_btn);
+                screen_layout_data.SwapScreens(input_state.SwapScreenPressed());
                 log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", screen_layout_data.SwapScreens() ? "on" : "off");
                 break;
             }
             case ScreenSwapMode::Hold: {
-                if (screen_layout_data.SwapScreens() != input_state.swap_screens_btn) {
+                if (screen_layout_data.SwapScreens() != input_state.SwapScreenPressed()) {
                     log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
-                        input_state.swap_screens_btn ? "Started" : "Stopped");
+                        input_state.SwapScreenPressed() ? "Started" : "Stopped");
                 }
 
-                screen_layout_data.SwapScreens(input_state.swap_screens_btn);
+                screen_layout_data.SwapScreens(input_state.SwapScreenPressed());
                 screen_layout_data.Update(render::CurrentRenderer());
                 melonds::opengl::RequestOpenGlRefresh();
             }
@@ -365,7 +365,7 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
         // If the microphone button...
         case MicButtonMode::Hold: {
             // ...must be held...
-            if (!input_state.holding_noise_btn) {
+            if (!input_state.MicButtonPressed()) {
                 // ...but it isn't...
                 mic_input_mode = MicInputMode::None;
             }
@@ -378,7 +378,7 @@ static void melonds::read_microphone(melonds::InputState& input_state) noexcept 
     }
 
     if (retro::microphone::is_open()) {
-        retro::microphone::set_state(input_state.holding_noise_btn || config::audio::MicButtonMode() == MicButtonMode::Always);
+        retro::microphone::set_state(input_state.MicButtonPressed() || config::audio::MicButtonMode() == MicButtonMode::Always);
     }
 
     switch (mic_input_mode) {

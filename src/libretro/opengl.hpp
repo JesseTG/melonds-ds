@@ -31,7 +31,7 @@ namespace melonds::opengl {
 
     void deinitialize();
 
-    void render_frame(const InputState& input_state);
+    void render_frame(const InputState& state);
 
     bool ContextInitialized();
 #ifdef HAVE_OPENGL
