@@ -17,4 +17,28 @@
 #ifndef MELONDS_DS_PLATFORMOGLPRIVATE_H
 #define MELONDS_DS_PLATFORMOGLPRIVATE_H
 
+#if defined(__APPLE__) && !defined(GL_SILENCE_DEPRECATION)
+#define GL_SILENCE_DEPRECATION
+#endif
+
+#include <glsym/glsym.h>
+
+#ifdef HAVE_OPENGLES
+#define GL_UNSIGNED_SHORT_1_5_5_5_REV GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT
+#define GL_WRITE_ONLY GL_WRITE_ONLY_OES
+#define GL_BGRA GL_BGRA_EXT
+#define glBindFragDataLocation glBindFragDataLocationEXT
+#define glClearDepth glClearDepthf
+#define glColorMaski glColorMaskiEXT
+#define glDepthRange glDepthRangef
+#define glFramebufferTexture glFramebufferTextureEXT
+#define glMapBuffer glMapBufferOES
+
+void glDrawBuffer(GLenum buf);
+
+#ifndef GL_READ_ONLY
+#define GL_READ_ONLY 0x88B8
+#endif
+#endif
+
 #endif //MELONDS_DS_PLATFORMOGLPRIVATE_H
