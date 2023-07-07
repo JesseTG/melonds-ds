@@ -36,7 +36,7 @@ namespace melonds::render {
 void melonds::render::Initialize(Renderer renderer) {
     using retro::log;
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Initialize the opengl state if needed
     switch (renderer) {
         // Depending on which renderer we want to use...
@@ -71,7 +71,7 @@ bool melonds::render::ReadyToRender() noexcept {
         return false;
     }
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (_CurrentRenderer == Renderer::OpenGl && !melonds::opengl::ContextInitialized()) {
         // If we're using OpenGL, but it isn't ready...
         return false;
@@ -132,7 +132,7 @@ melonds::Renderer melonds::render::CurrentRenderer() noexcept {
 
 void melonds::render::Render(const InputState& input_state, ScreenLayoutData& screenLayout) noexcept {
     switch (_CurrentRenderer) {
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         case Renderer::OpenGl:
             melonds::opengl::Render(input_state, screenLayout);
             break;

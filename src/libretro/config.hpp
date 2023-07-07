@@ -19,7 +19,7 @@
 
 #include <optional>
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
 #include <glsym/glsym.h>
 #endif
 #include <GPU.h>

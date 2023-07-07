@@ -24,7 +24,7 @@ namespace melonds {
 
 namespace melonds::opengl {
     // Requests that the OpenGL context be refreshed.
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     void RequestOpenGlRefresh();
 #else
     inline void RequestOpenGlRefresh() {}
@@ -37,7 +37,7 @@ namespace melonds::opengl {
     void Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept;
 
     bool ContextInitialized();
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     bool UsingOpenGl();
 #else
     inline bool UsingOpenGl() { return false; }

@@ -155,7 +155,7 @@ namespace melonds::config {
     namespace visibility {
         static bool ShowDsiOptions = true;
         static bool ShowDsiSdCardOptions = true;
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static bool ShowOpenGlOptions = true;
 #endif
         static bool ShowSoftwareRenderOptions = true;
@@ -307,7 +307,7 @@ namespace melonds::config {
         static unsigned _screenGap;
         unsigned ScreenGap() noexcept { return _screenGap; }
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static unsigned _hybridRatio;
         unsigned HybridRatio() noexcept { return _hybridRatio; }
 #else
@@ -346,7 +346,7 @@ namespace melonds::config {
     }
 
     namespace video {
-#if defined(HAVE_OPENGL) || defined(HAVE_THREADS)
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(HAVE_THREADS)
         static GPU::RenderSettings _renderSettings = {false, 1, false};
         GPU::RenderSettings RenderSettings() noexcept { return _renderSettings; }
 #else
@@ -356,14 +356,14 @@ namespace melonds::config {
         // TODO: Make configurable
         float CursorSize() noexcept { return 2.0; }
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static melonds::Renderer _configuredRenderer;
         melonds::Renderer ConfiguredRenderer() noexcept { return _configuredRenderer; }
 #else
         melonds::Renderer ConfiguredRenderer() noexcept { return melonds::Renderer::Software; }
 #endif
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static melonds::ScreenFilter _screenFilter;
         melonds::ScreenFilter ScreenFilter() noexcept { return _screenFilter; }
 #endif
@@ -424,7 +424,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::apply_audio_options();
     config::apply_screen_options(screenLayout);
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
         melonds::opengl::RequestOpenGlRefresh();
@@ -446,7 +446,7 @@ void melonds::UpdateConfig(
     config::apply_audio_options();
     config::apply_screen_options(screenLayout);
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
         melonds::opengl::RequestOpenGlRefresh();
@@ -466,7 +466,7 @@ bool melonds::update_option_visibility() {
     bool updated = false;
 
     // Convention: if an option is not found, show any dependent options
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Show/hide OpenGL core options
     bool oldShowOpenGlOptions = ShowOpenGlOptions;
     bool oldShowSoftwareRenderOptions = ShowSoftwareRenderOptions;
@@ -513,7 +513,7 @@ bool melonds::update_option_visibility() {
     ShowVerticalLayoutOptions = !layout || *layout == ScreenLayout::TopBottom || *layout == ScreenLayout::BottomTop;
     if (ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(Keys::HYBRID_SMALL_SCREEN, ShowHybridOptions);
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         set_option_visible(Keys::HYBRID_RATIO, ShowHybridOptions && ShowOpenGlOptions);
 #endif
 
@@ -784,7 +784,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
     }
 #endif
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (initializing) {
         // Can't change the renderer mid-game
         if (optional<Renderer> renderer = ParseRenderer(get_variable(Keys::RENDER_MODE))) {
@@ -858,7 +858,7 @@ static bool melonds::config::parse_screen_options() noexcept {
         _screenGap = 0;
     }
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (const char* value = get_variable(Keys::HYBRID_RATIO); !string_is_empty(value)) {
         _hybridRatio = std::stoi(value); // TODO: Handle errors
     } else {
@@ -880,7 +880,7 @@ static bool melonds::config::parse_screen_options() noexcept {
         _smallScreenLayout = SmallScreenLayout::SmallScreenDuplicate;
     }
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (_smallScreenLayout != oldHybridSmallScreen) {
         needsOpenGlRefresh = true;
     }
@@ -901,7 +901,7 @@ static bool melonds::config::parse_screen_options() noexcept {
         _touchMode = TouchMode::Mouse;
     }
 
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (_touchMode != oldTouchMode) {
         needsOpenGlRefresh = true;
     }
@@ -1418,7 +1418,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     },
 
     // Video
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     {
         Config::Retro::Keys::RENDER_MODE,
         "Render Mode",
@@ -1734,7 +1734,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         Config::Retro::Values::DISABLED
     },
-#ifdef HAVE_OPENGL
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     {
         Config::Retro::Keys::HYBRID_RATIO,
         "Hybrid Ratio (OpenGL Only)",
