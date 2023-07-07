@@ -67,7 +67,7 @@ if (ENABLE_OGLRENDERER)
         set(HAVE_OPENGL ON)
     endif()
 
-    if (OpenGL::GLES2 OR OpenGLES_V1_FOUND)
+    if (OpenGLES_V1_FOUND)
         set(HAVE_OPENGLES ON)
         set(HAVE_OPENGLES1 ON)
     endif ()
