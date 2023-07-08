@@ -89,8 +89,21 @@ if (HAVE_THREADS)
         )
 endif ()
 
-set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
+# libretro cores do not start with "lib"
+set_target_properties(libretro PROPERTIES PREFIX "")
 
+# Most platforms use the name "<core name>_libretro", but a few have their own conventions
+if (ANDROID)
+    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_android")
+elseif(IOS)
+    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_ios")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_tvos")
+else()
+    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro")
+endif()
+
+# Some platforms or compilers don't use the expected suffixes for shared libraries
 if (APPLE)
     set_target_properties(libretro PROPERTIES SUFFIX ".dylib")
 elseif (UNIX)
@@ -98,7 +111,6 @@ elseif (UNIX)
 elseif (WIN32)
     set_target_properties(libretro PROPERTIES SUFFIX ".dll")
 endif ()
-# Name the output library "melondsds_libretro.XXX" instead of "libmelondsds_libretro.XXX", as is the convention for libretro
 
 if (WIN32 AND MINGW)
     target_link_options(libretro PUBLIC -static-libgcc -static-libstdc++ -static)
