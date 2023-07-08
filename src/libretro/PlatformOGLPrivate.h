@@ -21,7 +21,9 @@
 #define GL_SILENCE_DEPRECATION
 #endif
 
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
 #include <glsym/glsym.h>
+#endif
 
 #ifdef HAVE_OPENGLES
 #define GL_UNSIGNED_SHORT_1_5_5_5_REV GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT
@@ -34,10 +36,13 @@
 #define glFramebufferTexture glFramebufferTextureEXT
 #define glMapBuffer glMapBufferOES
 
-void glDrawBuffer(GLenum buf);
-
 #ifndef GL_READ_ONLY
 #define GL_READ_ONLY 0x88B8
+
+RETRO_BEGIN_DECLS
+void glDrawBuffer(GLenum buf);
+RETRO_END_DECLS
+
 #endif
 #endif
 

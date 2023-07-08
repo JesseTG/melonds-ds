@@ -14,16 +14,12 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_GLSYM_PRIVATE_H
-#define MELONDS_DS_GLSYM_PRIVATE_H
+#ifdef HAVE_OPENGLES
+#include "glsym_private.h"
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-#include "PlatformOGLPrivate.h"
+
+void glDrawBuffer(GLenum buf)
+{
+    glDrawBuffers(1, &buf);
+}
 #endif
-
-#ifdef HAVE_OPENGLES3
-typedef double GLdouble;
-typedef double GLclampd;
-#endif
-
-#endif //MELONDS_DS_GLSYM_PRIVATE_H
