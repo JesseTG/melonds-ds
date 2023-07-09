@@ -64,10 +64,3 @@ runs:
       uses: hendrikmuhs/ccache-action@v1.2.9
       with:
         key: ${{ inputs.ccache-cache-name }}
-
-    - name: Configure CCache
-      if: ${{ contains(inputs.runs-on, 'windows') }}
-      run: |
-        ccache -vv --set-config=cache_dir="${{ inputs.ccache-dir }}"
-        mkdir -p -v "${{ inputs.ccache-dir }}"
-      shell: msys2 {0}
