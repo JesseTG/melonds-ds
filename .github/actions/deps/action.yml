@@ -1,0 +1,55 @@
+name: Install Dependencies
+description: Install Dependencies
+inputs:
+  ccache-cache-name:
+    description: CCache cache name
+    required: true
+  runs-on:
+    description: The platform on which the workflow will be run.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install GCC Problem Matcher
+      uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
+      with:
+        build-directory: build # ${{ env.BUILD_DIR }} has backslashes, which make the problem matcher choke
+
+    - name: Install Dependencies (Windows)
+      uses: msys2/setup-msys2@v2
+      if: ${{ contains(inputs.runs-on, 'windows') }}
+      with:
+        msystem: MINGW64
+        update: true
+        install: git pkgconf mingw-w64-x86_64-cmake mingw-w64-x86_64-ccache mingw-w64-x86_64-ninja mingw-w64-x86_64-toolchain
+
+    - name: Install Dependencies (macOS)
+      if: ${{ contains(inputs.runs-on, 'macos') }}
+      shell: bash
+      run: brew install pkg-config cmake ninja ccache
+
+    - name: Install Dependencies (Linux x86_64)
+      if: ${{ contains(inputs.runs-on, 'ubuntu-latest') }}
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: cmake ninja-build libepoxy-dev ccache
+        version: 1.0
+
+    - name: Set Up Repositories (Linux aarch64)
+      uses: ryankurte/action-apt@v0.3.0
+      if: ${{ contains(inputs.ccache-cache-name, 'linux-aarch64') }}
+      with:
+        arch: arm64
+        packages: git
+
+    - name: Install Dependencies (Linux aarch64)
+      if: ${{ contains(inputs.ccache-cache-name, 'linux-aarch64') }}
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: {gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache
+        version: 1.0-arm
+
+    - name: Set Up CCache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ inputs.ccache-cache-name }}

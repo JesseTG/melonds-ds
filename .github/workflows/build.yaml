@@ -75,15 +75,11 @@ jobs:
       - name: Check Out Source
         uses: actions/checkout@v3
 
-      - name: Set Up CCache
-        uses: hendrikmuhs/ccache-action@v1.2
+      - name: Install Dependencies
+        uses: ./.github/actions/deps
         with:
-          key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
-
-      - name: Install GCC Problem Matcher
-        uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
-        with:
-          build-directory: build # ${{ env.BUILD_DIR }} has backslashes, which make the problem matcher choke
+          ccache-cache-name: ${{ inputs.archive-name }}-{{ matrix.build-type }}
+          runs-on: ${{ inputs.runs-on }}
 
       - name: Create build environment
         run: mkdir -vp "${{ env.BUILD_DIR }}"

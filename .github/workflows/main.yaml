@@ -8,53 +8,8 @@ on:
     branches:
       - main
 jobs:
-  deps-windows:
-    name: Install Dependencies (Windows)
-    runs-on: windows-latest
-    steps:
-      - name: Install Dependencies
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: git pkgconf mingw-w64-x86_64-cmake mingw-w64-x86_64-ccache mingw-w64-x86_64-ninja mingw-w64-x86_64-toolchain
-
-  deps-macos:
-    name: Install Dependencies (macOS)
-    runs-on: macos-latest
-    steps:
-      - name: Install Dependencies
-        run: brew install pkg-config cmake ninja ccache
-
-  deps-linux-x86_64:
-    name: Install Dependencies (Linux x86_64)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Dependencies
-        run: |
-          sudo rm -f /etc/apt/sources.list.d/dotnetdev.list /etc/apt/sources.list.d/microsoft-prod.list /etc/apt/sources.list.d/kubernetes.list
-          # Don't check for dependencies that we won't use
-          
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libepoxy-dev ccache
-
-  deps-linux-aaarch64:
-    name: Install Dependencies (Linux aarch64)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo dpkg --add-architecture arm64
-          sudo sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
-          sudo rm -f /etc/apt/sources.list
-          sudo mv /etc/apt/sources.list{.new,}
-          sudo apt-get update
-          sudo apt-get install -y {gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache
-
   windows:
     name: Windows (x86_64)
-    needs: [deps-windows]
     uses: ./.github/workflows/build.yaml
     with:
       archive-name: melondsds_libretro-win32-x86_64
@@ -65,7 +20,6 @@ jobs:
 
   macos:
     name: macOS (Universal)
-    needs: [deps-macos]
     uses: ./.github/workflows/build.yaml
     with:
       archive-name: melondsds_libretro-macos-universal
@@ -74,7 +28,6 @@ jobs:
 
   linux-x86_64:
     name: Linux (x86_64)
-    needs: [deps-linux-x86_64]
     uses: ./.github/workflows/build.yaml
     with:
       archive-name: melondsds_libretro-linux-x86_64
@@ -83,7 +36,6 @@ jobs:
 
   linux-aarch64:
     name: Linux (aarch64)
-    needs: [deps-linux-aaarch64]
     uses: ./.github/workflows/build.yaml
     with:
       archive-name: melondsds_libretro-linux-aarch64
@@ -92,7 +44,6 @@ jobs:
 
   android:
     name: Android
-    needs: [deps-linux-x86_64]
     uses: ./.github/workflows/build.yaml
     with:
       lib-ext: so
@@ -103,7 +54,6 @@ jobs:
 
   ios:
     name: iOS
-    needs: [deps-macos]
     uses: ./.github/workflows/build.yaml
     with:
       runs-on: macos-latest
