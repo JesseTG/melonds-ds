@@ -18,7 +18,7 @@ jobs:
       lib-ext: dll
       shell: msys2 {0}
       deps: |
-        pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,ninja,toolchain}
+        pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,ccache,ninja,toolchain}
 
   macos:
     name: macOS (Universal)
@@ -28,7 +28,7 @@ jobs:
       runs-on: macos-latest
       lib-ext: dylib
       deps: |
-        brew install pkg-config cmake ninja
+        brew install pkg-config cmake ninja ccache
 
   linux-x86_64:
     name: Linux (x86_64)
@@ -42,7 +42,7 @@ jobs:
         # Don't check for dependencies that we won't use
         
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build libepoxy-dev
+        sudo apt-get install -y cmake ninja-build libepoxy-dev ccache
 
   linux-aarch64:
     name: Linux (aarch64)
@@ -58,7 +58,7 @@ jobs:
         sudo rm -f /etc/apt/sources.list
         sudo mv /etc/apt/sources.list{.new,}
         sudo apt-get update
-        sudo apt-get install -y {gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev
+        sudo apt-get install -y {gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache
 
   android:
     name: Android
@@ -74,7 +74,7 @@ jobs:
         # Don't check for dependencies that we won't use
         
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build
+        sudo apt-get install -y cmake ninja-build ccache
 
   ios:
     name: iOS
@@ -86,4 +86,4 @@ jobs:
       lib-name: melondsds_libretro_ios
       cmake-args: -DENABLE_OGLRENDERER=OFF -DENABLE_JIT=OFF --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=13.0 -DDEPLOYMENT_TARGET=13 -DENABLE_STRICT_TRY_COMPILE_INT:BOOL=ON
       deps: |
-        brew install pkg-config cmake ninja
+        brew install pkg-config cmake ninja ccache
