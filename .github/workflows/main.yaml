@@ -17,7 +17,7 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
-      deps-action: ./.github/actions/deps-windows.yaml
+      deps-action: ./.github/actions/deps-windows
 
   macos:
     name: macOS (Universal)
