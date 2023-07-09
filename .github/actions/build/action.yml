@@ -62,14 +62,17 @@ runs:
 
     - name: Create build environment
       run: mkdir -vp "${{ inputs.build-dir }}"
+      shell: ${{ inputs.shell }}
 
     - name: Configure
       working-directory: "${{ inputs.build-dir }}"
       run: cmake "${{ github.workspace }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" ${{ inputs.cmake-args }}
+      shell: ${{ inputs.shell }}
 
     - name: Build
       working-directory: "${{ inputs.build-dir }}"
       run: cmake --build "${{ inputs.build-dir }}" --parallel
+      shell: ${{ inputs.shell }}
 
     - name: Prepare Artifact Directory
       env:
@@ -79,6 +82,7 @@ runs:
         mkdir -vp "$CORES_PATH" "$INFO_PATH"
         cp -f "${{ inputs.build-dir }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
         cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH"
+      shell: ${{ inputs.shell }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
