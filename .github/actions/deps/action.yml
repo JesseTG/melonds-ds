@@ -28,12 +28,7 @@ runs:
       with:
         msystem: MINGW64
         update: true
-        install: git pkgconf cmake gcc
-
-    - name: Install Chocolatey Dependencies (Windows)
-      if: ${{ contains(inputs.runs-on, 'windows') }}
-      shell: powershell
-      run: choco install -y ccache ninja
+        install: git pkgconf cmake gcc ccache ninja
 
     - name: Install Dependencies (macOS)
       if: ${{ contains(inputs.runs-on, 'macos') }}
