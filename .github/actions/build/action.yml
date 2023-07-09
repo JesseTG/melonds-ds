@@ -1,0 +1,88 @@
+name: Build
+description: Build the project.
+inputs:
+  cmake-args:
+    description: Additional arguments to pass to CMake.
+    type: string
+    required: false
+  cores-dir:
+    description: The directory in which to place the built cores.
+    type: string
+    required: false
+    default: cores
+  info-dir:
+    description: The directory in which to place the built info files.
+    type: string
+    required: false
+    default: cores
+  generator:
+    type: string
+    required: false
+    default: "Ninja"
+  deps:
+    description: The script that installs dependencies.
+    required: false
+  runs-on:
+    description: The platform on which the workflow will be run. Passed directly to jobs.<job_id>.runs-on.
+    required: true
+  shell:
+    description: The shell to use for running commands. Passed directly to jobs.<job_id>.defaults.run.shell.
+    required: false
+    default: bash
+  build-dir:
+    description: The directory in which to build the project.
+    required: false
+    default: "build"
+  dist-dir:
+    description: The directory in which to place the built artifacts.
+    required: false
+    default: "build/dist"
+  lib-name:
+    description: The name of the library to build.
+    required: false
+    default: melondsds_libretro
+  lib-ext:
+    description: The extension of the library to build.
+    required: true
+  archive-name:
+    description: The name of the archive to upload.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Set Up CCache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
+
+    - name: Install GCC Problem Matcher
+      uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
+      with:
+        build-directory: build # ${{ env.BUILD_DIR }} has backslashes, which make the problem matcher choke
+
+    - name: Create build environment
+      run: mkdir -vp "${{ inputs.build-dir }}"
+
+    - name: Configure
+      working-directory: "${{ inputs.build-dir }}"
+      run: cmake "${{ github.workspace }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" ${{ inputs.cmake-args }}
+
+    - name: Build
+      working-directory: "${{ inputs.build-dir }}"
+      run: cmake --build "${{ inputs.build-dir }}" --parallel
+
+    - name: Prepare Artifact Directory
+      env:
+        CORES_PATH: "${{ inputs.dist-dir }}/${{ inputs.cores-dir }}"
+        INFO_PATH: "${{ inputs.dist-dir }}/${{ inputs.info-dir }}"
+      run: |
+        mkdir -vp "$CORES_PATH" "$INFO_PATH"
+        cp -f "${{ inputs.build-dir }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
+        cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: "${{ inputs.archive-name }}-${{ matrix.build-type }}"
+        if-no-files-found: error
+        path: "${{ inputs.dist-dir }}"
