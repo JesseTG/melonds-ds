@@ -71,6 +71,6 @@ runs:
         key: ${{ inputs.ccache-cache-name }}
 
     - name: Configure CCache
-      if: ${{ inputs.ccache-dir }}
-      run: ccache --set-config=cache_dir="${{ inputs.ccache-dir }}"
-      shell: bash
+      if: ${{ contains(inputs.runs-on, 'windows') }}
+      run: ccache -vv --set-config=cache_dir="${{ inputs.ccache-dir }}"
+      shell: msys2 {0}
