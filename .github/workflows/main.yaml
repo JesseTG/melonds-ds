@@ -15,7 +15,7 @@ jobs:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
       info-dir: info
-      lib-ext: .dll
+      lib-ext: dll
       shell: msys2 {0}
       deps: |
         pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,ninja,toolchain}
@@ -26,7 +26,7 @@ jobs:
     with:
       archive-name: melondsds_libretro-macos-universal
       runs-on: macos-latest
-      lib-ext: .dylib
+      lib-ext: dylib
       deps: |
         brew install pkg-config cmake ninja
 
@@ -36,7 +36,7 @@ jobs:
     with:
       archive-name: melondsds_libretro-linux-x86_64
       runs-on: ubuntu-latest
-      lib-ext: .so
+      lib-ext: so
       deps: |
         sudo rm -f /etc/apt/sources.list.d/dotnetdev.list /etc/apt/sources.list.d/microsoft-prod.list /etc/apt/sources.list.d/kubernetes.list
         # Don't check for dependencies that we won't use
@@ -50,7 +50,7 @@ jobs:
     with:
       archive-name: melondsds_libretro-linux-aarch64
       runs-on: ubuntu-latest
-      lib-ext: .so
+      lib-ext: so
       deps: |
         sudo apt-get update
         sudo dpkg --add-architecture arm64
@@ -64,7 +64,7 @@ jobs:
     name: Android
     uses: ./.github/workflows/build.yaml
     with:
-      lib-ext: .so
+      lib-ext: so
       archive-name: melondsds_libretro-android
       lib-name: melondsds_libretro_android
       cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=22 -DCMAKE_TOOLCHAIN_FILE={{ env.ANDROID_NDK }}/build/cmake/android.toolchain.cmake
@@ -82,7 +82,7 @@ jobs:
     with:
       runs-on: macos-latest
       archive-name: melondsds_libretro-ios
-      lib-ext: .dylib
+      lib-ext: dylib
       lib-name: melondsds_libretro_ios
       cmake-args: -DENABLE_OGLRENDERER=OFF -DENABLE_JIT=OFF --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=13.0 -DDEPLOYMENT_TARGET=13 -DENABLE_STRICT_TRY_COMPILE_INT:BOOL=ON
       deps: |
