@@ -73,12 +73,14 @@ jobs:
     steps:
       - name: Check Out Source
         uses: actions/checkout@v3
+
       - name: Install MSYS2
         uses: msys2/setup-msys2@v2
         if: contains(inputs.shell, 'msys2')
         with:
           msystem: MINGW64
           update: true
+
       - name: Install Dependencies
         run: ${{ inputs.deps }}
 
