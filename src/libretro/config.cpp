@@ -1657,6 +1657,22 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         Config::Retro::Values::TOP_BOTTOM
     },
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    {
+        Config::Retro::Keys::HYBRID_RATIO,
+        "Hybrid Ratio (OpenGL Only)",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {"2", "2:1"},
+            {"3", "3:1"},
+            {nullptr, nullptr},
+        },
+        "2"
+    },
+#endif
     {
         Config::Retro::Keys::SCREEN_GAP,
         "Screen Gap",
@@ -1751,22 +1767,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         Config::Retro::Values::DISABLED
     },
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    {
-        Config::Retro::Keys::HYBRID_RATIO,
-        "Hybrid Ratio (OpenGL Only)",
-        nullptr,
-        nullptr,
-        nullptr,
-        Config::Retro::Category::SCREEN,
-        {
-            {"2", "2:1"},
-            {"3", "3:1"},
-            {nullptr, nullptr},
-        },
-        "2"
-    },
-#endif
 #ifdef JIT_ENABLED
     {
         Config::Retro::Keys::JIT_ENABLE,
