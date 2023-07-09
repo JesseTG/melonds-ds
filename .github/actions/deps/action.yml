@@ -59,6 +59,5 @@ runs:
 
     - name: Set Up CCache
       uses: hendrikmuhs/ccache-action@v1.2
-      shell: bash
       with:
         key: ${{ inputs.ccache-cache-name }}
