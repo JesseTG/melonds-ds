@@ -28,7 +28,7 @@ runs:
       with:
         msystem: MINGW64
         update: true
-        install: git pkgconf cmake gcc ccache ninja make
+        install: git pkgconf cmake gcc ccache ninja make toolchain
 
     - name: Install Dependencies (macOS)
       if: ${{ contains(inputs.runs-on, 'macos') }}
