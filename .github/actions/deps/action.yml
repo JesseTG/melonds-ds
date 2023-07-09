@@ -1,6 +1,9 @@
 name: Install Dependencies
 description: Install Dependencies
 inputs:
+  build-dir:
+    description: The directory in which to build the project.
+    required: true
   ccache-cache-name:
     description: CCache cache name
     required: true
@@ -13,7 +16,7 @@ runs:
     - name: Install GCC Problem Matcher
       uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
       with:
-        build-directory: build # ${{ env.BUILD_DIR }} has backslashes, which make the problem matcher choke
+        build-directory: ${{ inputs.build-dir }}
 
     - name: Install Dependencies (Windows)
       uses: msys2/setup-msys2@v2

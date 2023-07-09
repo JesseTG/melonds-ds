@@ -78,6 +78,7 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/deps
         with:
+          build-dir: ${{ env.BUILD_DIR }}
           ccache-cache-name: ${{ inputs.archive-name }}-${{ matrix.build-type }}
           runs-on: ${{ inputs.runs-on }}
 
