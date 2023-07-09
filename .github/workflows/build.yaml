@@ -2,6 +2,10 @@ name: Build (Internal)
 on:
   workflow_call:
     inputs:
+      ccache-basedir:
+        description: The directory in which to place the ccache cache.
+        type: string
+        required: false
       cmake-args:
         description: Additional arguments to pass to CMake.
         type: string
@@ -60,6 +64,7 @@ on:
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
+  CCACHE_BASEDIR: "${{ inputs.ccache-basedir }}"
 jobs:
   build:
     strategy:

@@ -17,6 +17,7 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
+      ccache-basedir: "${{ env.LOCALAPPDATA }}/ccache"
 
   macos:
     name: macOS (Universal)
