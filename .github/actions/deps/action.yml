@@ -46,7 +46,7 @@ runs:
       if: ${{ contains(inputs.ccache-cache-name, 'linux-aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: {gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache
+        packages: "{gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache"
         version: 1.0-arm
 
     - name: Set Up CCache
