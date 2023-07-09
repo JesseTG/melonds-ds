@@ -223,7 +223,10 @@ namespace melonds {
         }
 
         namespace screen {
-            [[nodiscard]] ScreenLayout ScreenLayout() noexcept;
+            constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
+            [[nodiscard]] unsigned NumberOfScreenLayouts() noexcept;
+            [[nodiscard]] std::array<ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept;
+            [[nodiscard]] [[deprecated("Use ScreenLayouts instead")]] ScreenLayout ScreenLayout() noexcept;
             [[nodiscard]] unsigned ScreenGap() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
             [[nodiscard]] ScreenSwapMode ScreenSwapMode() noexcept;

@@ -70,7 +70,27 @@ namespace Config {
             static const char* const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
             static const char* const OPENGL_FILTERING = "melonds_opengl_filtering";
             static const char* const RENDER_MODE = "melonds_render_mode";
+            static const char* const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
             static const char* const SCREEN_LAYOUT = "melonds_screen_layout";
+            static const char* const SCREEN_LAYOUT1 = "melonds_screen_layout1";
+            static const char* const SCREEN_LAYOUT2 = "melonds_screen_layout2";
+            static const char* const SCREEN_LAYOUT3 = "melonds_screen_layout3";
+            static const char* const SCREEN_LAYOUT4 = "melonds_screen_layout4";
+            static const char* const SCREEN_LAYOUT5 = "melonds_screen_layout5";
+            static const char* const SCREEN_LAYOUT6 = "melonds_screen_layout6";
+            static const char* const SCREEN_LAYOUT7 = "melonds_screen_layout7";
+            static const char* const SCREEN_LAYOUT8 = "melonds_screen_layout8";
+            static const std::array<const char* const, melonds::config::screen::MAX_SCREEN_LAYOUTS> SCREEN_LAYOUTS = {
+                SCREEN_LAYOUT1,
+                SCREEN_LAYOUT2,
+                SCREEN_LAYOUT3,
+                SCREEN_LAYOUT4,
+                SCREEN_LAYOUT5,
+                SCREEN_LAYOUT6,
+                SCREEN_LAYOUT7,
+                SCREEN_LAYOUT8
+            };
+
             static const char* const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
             static const char* const HYBRID_RATIO = "melonds_hybrid_ratio";
             static const char* const JIT_ENABLE = "melonds_jit_enable";
@@ -165,6 +185,7 @@ namespace melonds::config {
         static bool ShowSoftwareRenderOptions = true;
         static bool ShowHybridOptions = true;
         static bool ShowVerticalLayoutOptions = true;
+        static unsigned NumberOfShownScreenLayouts = screen::MAX_SCREEN_LAYOUTS;
 
 #ifdef JIT_ENABLED
         static bool ShowJitOptions = true;
@@ -305,6 +326,12 @@ namespace melonds::config {
     }
 
     namespace screen {
+        static unsigned _numberOfScreenLayouts = 1;
+        unsigned NumberOfScreenLayouts() noexcept { return _numberOfScreenLayouts; }
+
+        static std::array<melonds::ScreenLayout, MAX_SCREEN_LAYOUTS> _screenLayouts;
+        std::array<melonds::ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept { return _screenLayouts; }
+
         static melonds::ScreenLayout _screenLayout;
         enum melonds::ScreenLayout ScreenLayout() noexcept { return _screenLayout; }
 
@@ -560,6 +587,18 @@ bool melonds::update_option_visibility() {
         updated = true;
     }
 #endif
+
+    unsigned oldNumberOfShownScreenLayouts = NumberOfShownScreenLayouts;
+    optional<int> numberOfScreenLayouts = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, screen::MAX_SCREEN_LAYOUTS);
+
+    NumberOfShownScreenLayouts = numberOfScreenLayouts ? *numberOfScreenLayouts : screen::MAX_SCREEN_LAYOUTS;
+    if (NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
+        for (unsigned i = 0; i < screen::MAX_SCREEN_LAYOUTS; ++i) {
+            set_option_visible(Keys::SCREEN_LAYOUTS[i], i < NumberOfShownScreenLayouts);
+        }
+
+        updated = true;
+    }
 
     return updated;
 }
@@ -932,6 +971,22 @@ static bool melonds::config::parse_screen_options() noexcept {
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::SWAPSCREEN_MODE, Values::TOGGLE);
         _screenSwapMode = ScreenSwapMode::Toggle;
+    }
+
+    if (optional<int> value = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, MAX_SCREEN_LAYOUTS)) {
+        _numberOfScreenLayouts = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %d", Keys::NUMBER_OF_SCREEN_LAYOUTS, 2);
+        _numberOfScreenLayouts = 2;
+    }
+
+    for (unsigned i = 0; i < MAX_SCREEN_LAYOUTS; i++) {
+        if (optional<melonds::ScreenLayout> value = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUTS[i]))) {
+            _screenLayouts[i] = *value;
+        } else {
+            retro::warn("Failed to get value for %s; defaulting to %s", Keys::SCREEN_LAYOUTS[i], Values::TOP_BOTTOM);
+            _screenLayouts[i] = ScreenLayout::TopBottom;
+        }
     }
 
     return needsOpenGlRefresh;
@@ -1712,6 +1767,210 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::BOTTOM
+    },
+    {
+        Config::Retro::Keys::NUMBER_OF_SCREEN_LAYOUTS,
+        "# of Screen Layouts",
+        nullptr,
+        "The number of screen layouts to cycle through with the Next Layout button.",
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {"1", nullptr},
+            {"2", nullptr},
+            {"3", nullptr},
+            {"4", nullptr},
+            {"5", nullptr},
+            {"6", nullptr},
+            {"7", nullptr},
+            {"8", nullptr},
+            {nullptr, nullptr},
+        },
+        "2"
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT1,
+        "Screen Layout #1",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT2,
+        "Screen Layout #2",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT3,
+        "Screen Layout #3",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT4,
+        "Screen Layout #4",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT5,
+        "Screen Layout #5",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT6,
+        "Screen Layout #6",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT7,
+        "Screen Layout #7",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
+    },
+    {
+        Config::Retro::Keys::SCREEN_LAYOUT8,
+        "Screen Layout #8",
+        nullptr,
+        nullptr,
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
+            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
+            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
+            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
+            {Config::Retro::Values::TOP, "Top Only"},
+            {Config::Retro::Values::BOTTOM, "Bottom Only"},
+            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
+            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
+            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
+            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::TOP_BOTTOM
     },
 
     // Homebrew Save Data
