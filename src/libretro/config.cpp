@@ -71,7 +71,7 @@ namespace Config {
             static const char* const OPENGL_FILTERING = "melonds_opengl_filtering";
             static const char* const RENDER_MODE = "melonds_render_mode";
             static const char* const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
-            static const char* const SCREEN_LAYOUT = "melonds_screen_layout";
+            [[deprecated("Use SCREEN_LAYOUTS instead")]] static const char* const SCREEN_LAYOUT = "melonds_screen_layout";
             static const char* const SCREEN_LAYOUT1 = "melonds_screen_layout1";
             static const char* const SCREEN_LAYOUT2 = "melonds_screen_layout2";
             static const char* const SCREEN_LAYOUT3 = "melonds_screen_layout3";
@@ -102,7 +102,7 @@ namespace Config {
             static const char* const CONSOLE_MODE = "melonds_console_mode";
             static const char* const BOOT_DIRECTLY = "melonds_boot_directly";
             static const char* const SCREEN_GAP = "melonds_screen_gap";
-            static const char* const SWAPSCREEN_MODE = "melonds_swapscreen_mode";
+            [[deprecated("Use SCREEN_LAYOUTS instead")]] static const char* const SWAPSCREEN_MODE = "melonds_swapscreen_mode";
             static const char* const RANDOMIZE_MAC_ADDRESS = "melonds_randomize_mac_address";
             static const char* const TOUCH_MODE = "melonds_touch_mode";
             static const char* const MIC_INPUT_BUTTON = "melonds_mic_input_active";
@@ -332,7 +332,7 @@ namespace melonds::config {
         static std::array<melonds::ScreenLayout, MAX_SCREEN_LAYOUTS> _screenLayouts;
         std::array<melonds::ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept { return _screenLayouts; }
 
-        static melonds::ScreenLayout _screenLayout;
+        [[deprecated("Use ScreenLayouts instead")]] static melonds::ScreenLayout _screenLayout;
         enum melonds::ScreenLayout ScreenLayout() noexcept { return _screenLayout; }
 
         static unsigned _screenGap;
@@ -345,7 +345,7 @@ namespace melonds::config {
         unsigned HybridRatio() noexcept { return 2; }
 #endif
 
-        static melonds::ScreenSwapMode _screenSwapMode;
+        [[deprecated("Use ScreenLayouts instead")]] static melonds::ScreenSwapMode _screenSwapMode;
         melonds::ScreenSwapMode ScreenSwapMode() noexcept { return _screenSwapMode; }
 
         static melonds::SmallScreenLayout _smallScreenLayout;

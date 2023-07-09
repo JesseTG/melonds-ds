@@ -229,7 +229,7 @@ namespace melonds {
             [[nodiscard]] [[deprecated("Use ScreenLayouts instead")]] ScreenLayout ScreenLayout() noexcept;
             [[nodiscard]] unsigned ScreenGap() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
-            [[nodiscard]] ScreenSwapMode ScreenSwapMode() noexcept;
+            [[nodiscard]] [[deprecated("Use ScreenLayouts instead")]] ScreenSwapMode ScreenSwapMode() noexcept;
             [[nodiscard]] SmallScreenLayout SmallScreenLayout() noexcept;
             [[nodiscard]] TouchMode TouchMode() noexcept;
         }
