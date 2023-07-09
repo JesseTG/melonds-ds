@@ -17,10 +17,7 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
-      deps: |
-        # See https://github.com/hendrikmuhs/ccache-action/issues/112
-        choco upgrade --yes ccache ninja
-        pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,toolchain}
+      deps-action: ./.github/actions/deps-windows.yaml
 
   macos:
     name: macOS (Universal)
