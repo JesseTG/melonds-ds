@@ -103,9 +103,9 @@ jobs:
           CORES_PATH: "${{ env.DIST_DIR }}/${{ inputs.cores-dir }}"
           INFO_PATH: "${{ env.DIST_DIR }}/${{ inputs.info-dir }}"
         run: |
-          mkdir --parents "$CORES_PATH" "$INFO_PATH"
-          cp --force "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
-          cp --force "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH"
+          mkdir -vp "$CORES_PATH" "$INFO_PATH"
+          cp -f "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
+          cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
