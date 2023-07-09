@@ -59,6 +59,7 @@ namespace melonds {
     static InputState input_state;
     static ScreenLayoutData screenLayout;
     static bool swap_screen_toggled = false;
+    static bool mic_state_toggled = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
     static std::unique_ptr<NdsCart> _loaded_nds_cart;
@@ -95,7 +96,7 @@ namespace melonds {
     static void ValidateFirmware();
 
     // functions for running games
-    static void read_microphone(melonds::InputState& input_state) noexcept;
+    static void read_microphone(melonds::InputState& inputState) noexcept;
     static void render_audio();
     static void flush_save_data() noexcept;
     static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
@@ -370,27 +371,46 @@ PUBLIC_SYMBOL void retro_run(void) {
     }
 }
 
-static void melonds::read_microphone(melonds::InputState& input_state) noexcept {
+static void melonds::read_microphone(melonds::InputState& inputState) noexcept {
     MicInputMode mic_input_mode = config::audio::MicInputMode();
+    MicButtonMode mic_button_mode = config::audio::MicButtonMode();
+    bool should_mic_be_on = false;
 
-    switch (config::audio::MicButtonMode()) {
+    switch (mic_button_mode) {
         // If the microphone button...
         case MicButtonMode::Hold: {
             // ...must be held...
-            if (!input_state.MicButtonPressed()) {
+            mic_state_toggled = false;
+            if (!inputState.MicButtonPressed()) {
                 // ...but it isn't...
                 mic_input_mode = MicInputMode::None;
             }
+            should_mic_be_on = inputState.MicButtonPressed();
+            break;
+        }
+        case MicButtonMode::Toggle: {
+            // ...must be toggled...
+            if (inputState.MicButtonJustPressed()) {
+                // ...but it isn't...
+                mic_state_toggled = !mic_state_toggled;
+                if (!mic_state_toggled) {
+                    mic_input_mode = MicInputMode::None;
+                }
+            }
+            should_mic_be_on = mic_state_toggled;
             break;
         }
         case MicButtonMode::Always: {
             // ...is unnecessary...
             // Do nothing, the mic input mode is already set
+            should_mic_be_on = true;
+            break;
         }
     }
 
     if (retro::microphone::is_open()) {
-        retro::microphone::set_state(input_state.MicButtonPressed() || config::audio::MicButtonMode() == MicButtonMode::Always);
+        // TODO: Don't set constantly, only when the mic button state changes (or when the input mode is set to Always)
+        retro::microphone::set_state(should_mic_be_on);
     }
 
     switch (mic_input_mode) {

@@ -32,6 +32,8 @@ namespace melonds {
         [[nodiscard]] int TouchY() const noexcept { return touch_y; }
         [[nodiscard]] bool SwapScreenPressed() const noexcept { return swap_screens_btn; }
         [[nodiscard]] bool MicButtonPressed() const noexcept { return holding_noise_btn; }
+        [[nodiscard]] bool MicButtonJustPressed() const noexcept { return holding_noise_btn && !previous_holding_noise_btn; }
+        [[nodiscard]] bool MicButtonJustReleased() const noexcept { return !holding_noise_btn && previous_holding_noise_btn; }
         [[nodiscard]] bool LidClosed() const noexcept { return lid_closed; }
         void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
