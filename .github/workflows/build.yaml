@@ -87,7 +87,8 @@ jobs:
       - name: Set Up CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ inputs.archive-name }}-${{ matrix.build-type }}  # Eg. "some_build-ubuntu-latest"
+          key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
+          append-timestamp: false
 
       - name: Install GCC Problem Matcher
         uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
