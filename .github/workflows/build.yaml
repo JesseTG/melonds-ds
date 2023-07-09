@@ -37,12 +37,12 @@ on:
         description: The directory in which to build the project.
         type: string
         required: false
-        default: "${{github.workspace}}/build"
+        default: "build"
       dist-dir:
         description: The directory in which to place the built artifacts.
         type: string
         required: false
-        default: "${{github.workspace}}/build/dist"
+        default: "build/dist"
       lib-name:
         description: The name of the library to build.
         type: string
@@ -56,7 +56,9 @@ on:
         description: The name of the archive to upload.
         type: string
         required: true
-
+env:
+  BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
+  DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
 jobs:
   build:
     strategy:
@@ -81,23 +83,23 @@ jobs:
           build-directory: build # ${{ env.BUILD_DIR }} has backslashes, which make the problem matcher choke
 
       - name: Create build environment
-        run: mkdir -vp "${{ inputs.build-dir }}"
+        run: mkdir -vp "${{ env.BUILD_DIR }}"
 
       - name: Configure
-        working-directory: "${{ inputs.build-dir }}"
+        working-directory: "${{ env.BUILD_DIR }}"
         run: cmake "${{ github.workspace }}" -G"${{ inputs.generator }}" ${{ inputs.cmake-args }}
 
       - name: Build
-        working-directory: "${{ inputs.build-dir }}"
-        run: cmake --build "${{ inputs.build-dir }}" --parallel
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: cmake --build "${{ env.BUILD_DIR }}" --parallel
 
       - name: Prepare Artifact Directory
         env:
-          CORES_PATH: "${{ inputs.dist-dir }}/${{ inputs.cores-dir }}"
-          INFO_PATH: "${{ inputs.dist-dir }}/${{ inputs.info-dir }}"
+          CORES_PATH: "${{ env.DIST_DIR }}/${{ inputs.cores-dir }}"
+          INFO_PATH: "${{ env.DIST_DIR }}/${{ inputs.info-dir }}"
         run: |
           mkdir --parents "$CORES_PATH" "$INFO_PATH"
-          cp --force "${{ inputs.build-dir }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
+          cp --force "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
           cp --force "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH"
 
       - name: Upload Artifact
@@ -106,4 +108,4 @@ jobs:
         with:
           name: "${{ inputs.archive-name }}-${{ matrix.config }}"
           if-no-files-found: error
-          path: "${{ inputs.dist-dir }}"
+          path: "${{ env.DIST_DIR }}"
