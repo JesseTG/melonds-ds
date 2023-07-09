@@ -88,7 +88,6 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
-          verbose: 2
 
       - name: Install GCC Problem Matcher
         uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d

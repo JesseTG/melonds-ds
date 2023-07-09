@@ -18,7 +18,9 @@ jobs:
       lib-ext: dll
       shell: msys2 {0}
       deps: |
-        pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,ccache,ninja,toolchain}
+        # See https://github.com/hendrikmuhs/ccache-action/issues/112
+        choco upgrade --yes ccache ninja
+        pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,toolchain}
 
   macos:
     name: macOS (Universal)
