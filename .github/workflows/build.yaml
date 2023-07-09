@@ -106,7 +106,7 @@ jobs:
         run: |
           mkdir -vp "$CORES_PATH" "$INFO_PATH"
           cp -f "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
-          cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH"
+          cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH/${{ inputs.lib-name }}.info"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
