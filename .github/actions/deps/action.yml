@@ -28,7 +28,7 @@ runs:
       with:
         msystem: MINGW64
         update: true
-        install: git pkgconf mingw-w64-x86_64-cmake mingw-w64-x86_64-toolchain
+        install: git pkgconf cmake gcc
 
     - name: Install Chocolatey Dependencies (Windows)
       if: ${{ contains(inputs.runs-on, 'windows') }}
