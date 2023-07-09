@@ -29,24 +29,28 @@ runs:
       run: brew install pkg-config cmake ninja ccache
 
     - name: Install Dependencies (Linux x86_64)
-      if: ${{ contains(inputs.runs-on, 'ubuntu-latest') }}
+      if: ${{ contains(inputs.runs-on, 'ubuntu') && !contains(inputs.ccache-cache-name, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: cmake ninja-build libepoxy-dev ccache
         version: 1.0
 
     - name: Set Up Repositories (Linux aarch64)
-      uses: ryankurte/action-apt@v0.3.0
-      if: ${{ contains(inputs.ccache-cache-name, 'linux-aarch64') }}
-      with:
-        arch: arm64
-        packages: git
+      shell: bash
+      if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
+      run: |
+        sudo apt-get update
+        sudo dpkg --add-architecture arm64
+        sudo sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
+        sudo rm -f /etc/apt/sources.list
+        sudo mv /etc/apt/sources.list{.new,}
+        sudo apt-get update
 
     - name: Install Dependencies (Linux aarch64)
       if: ${{ contains(inputs.ccache-cache-name, 'linux-aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: "{gcc-10,g++-10}-aarch64-linux-gnu {pkg-config,libepoxy-dev}:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache"
+        packages: gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu pkg-config:arm64 libepoxy-dev:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache
         version: 1.0-arm
 
     - name: Set Up CCache
