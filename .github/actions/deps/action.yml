@@ -19,13 +19,18 @@ runs:
       with:
         build-directory: ${{ inputs.build-dir }}
 
-    - name: Install Dependencies (Windows)
+    - name: Install MSYS2 Dependencies (Windows)
       uses: msys2/setup-msys2@v2
       if: ${{ contains(inputs.runs-on, 'windows') }}
       with:
         msystem: MINGW64
         update: true
-        install: git pkgconf mingw-w64-x86_64-cmake mingw-w64-x86_64-ccache mingw-w64-x86_64-ninja mingw-w64-x86_64-toolchain
+        install: git pkgconf mingw-w64-x86_64-cmake mingw-w64-x86_64-toolchain
+
+    - name: Install Chocolatey Dependencies (Windows)
+      if: ${{ contains(inputs.runs-on, 'windows') }}
+      shell: powershell
+      run: choco install -y ccache ninja
 
     - name: Install Dependencies (macOS)
       if: ${{ contains(inputs.runs-on, 'macos') }}
