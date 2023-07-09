@@ -15,7 +15,9 @@
 */
 
 #include "config.hpp"
+#include <charconv>
 #include <cstring>
+#include <system_error>
 #include <GPU.h>
 #include <string/stdstring.h>
 #include <file/file_path.h>
@@ -33,6 +35,8 @@
 #include "render.hpp"
 #include "exceptions.hpp"
 
+using std::from_chars;
+using std::from_chars_result;
 using std::string;
 using std::nullopt;
 using std::optional;
@@ -388,6 +392,19 @@ static optional<bool> ParseBoolean(const char* value) noexcept {
     if (string_is_equal(value, Config::Retro::Values::ENABLED)) return true;
     if (string_is_equal(value, Config::Retro::Values::DISABLED)) return false;
     return nullopt;
+}
+
+static optional<int> ParseIntegerInRange(const char* value, int min, int max) noexcept {
+    if (min > max) return nullopt;
+    if (!value) return nullopt;
+
+    int parsed_number = 0;
+    from_chars_result result = from_chars(value, value + strlen(value), parsed_number);
+
+    if (result.ec != std::errc()) return nullopt;
+    if (parsed_number < min || parsed_number > max) return nullopt;
+
+    return parsed_number;
 }
 
 static optional<melonds::ScreenLayout> ParseScreenLayout(const char* value) noexcept {
