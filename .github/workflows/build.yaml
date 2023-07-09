@@ -56,9 +56,6 @@ on:
         description: The name of the archive to upload.
         type: string
         required: true
-      deps-action:
-        type: string
-        required: true
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
@@ -77,8 +74,15 @@ jobs:
       - name: Check Out Source
         uses: actions/checkout@v3
 
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        if: contains(inputs.shell, 'msys2')
+        with:
+          msystem: MINGW64
+          update: true
+
       - name: Install Dependencies
-        uses: ${{ inputs.deps-action }}
+        run: ${{ inputs.deps }}
 
       - name: Set Up CCache
         uses: hendrikmuhs/ccache-action@v1.2

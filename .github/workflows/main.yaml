@@ -17,7 +17,8 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
-      deps-action: ./.github/actions/deps-windows
+      deps: |
+        pacman -Sq --noconfirm git pkgconf mingw-w64-x86_64-{cmake,ccache,ninja,toolchain}
 
   macos:
     name: macOS (Universal)
