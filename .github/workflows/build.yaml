@@ -85,6 +85,7 @@ jobs:
         with:
           build-dir: ${{ env.BUILD_DIR }}
           ccache-cache-name: ${{ inputs.archive-name }}-${{ matrix.build-type }}
+          ccache-basedir: ${{ env.CCACHE_BASEDIR }}
           runs-on: ${{ inputs.runs-on }}
 
       - name: Create build environment

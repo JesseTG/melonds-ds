@@ -4,6 +4,9 @@ inputs:
   build-dir:
     description: The directory in which to build the project.
     required: true
+  ccache-basedir:
+    description: CCache base directory
+    required: false
   ccache-cache-name:
     description: CCache cache name
     required: true
@@ -66,4 +69,8 @@ runs:
       uses: hendrikmuhs/ccache-action@v1.2.9
       with:
         key: ${{ inputs.ccache-cache-name }}
-        verbose: 2
+
+    - name: Configure CCache
+      if: ${{ inputs.ccache-basedir }}
+      run: ccache --set-config=cache_dir="${{ inputs.ccache-basedir }}"
+      shell: bash
