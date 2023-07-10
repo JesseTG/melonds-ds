@@ -347,6 +347,8 @@ PUBLIC_SYMBOL void retro_run(void) {
             if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry)) {
                 retro::warn("Failed to update geometry after screen layout change");
             }
+
+            melonds::opengl::RequestOpenGlRefresh();
         }
 
         read_microphone(input_state);
