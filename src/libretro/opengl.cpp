@@ -79,7 +79,7 @@ void melonds::opengl::RequestOpenGlRefresh() {
     refresh_opengl = true;
 }
 
-bool melonds::opengl::Initialize() {
+bool melonds::opengl::Initialize() noexcept {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::Initialize()");
     glsm_ctx_params_t params = {};
 
