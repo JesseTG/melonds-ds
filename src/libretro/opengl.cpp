@@ -52,7 +52,7 @@ namespace melonds::opengl {
     } GL_ShaderConfig;
     static GLuint ubo;
 
-    static void context_reset();
+    static void ContextReset() noexcept;
 
     static void context_destroy();
 
@@ -85,7 +85,7 @@ bool melonds::opengl::Initialize() noexcept {
     params.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
     params.major = 3;
     params.minor = 1;
-    params.context_reset = context_reset;
+    params.context_reset = ContextReset;
     params.context_destroy = context_destroy;
     params.environ_cb = retro::environment;
     params.stencil = false;
@@ -163,10 +163,10 @@ void melonds::opengl::deinitialize() {
     GPU::InitRenderer(false);
 }
 
-static void melonds::opengl::context_reset() {
-    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_reset()");
+static void melonds::opengl::ContextReset() noexcept {
+    retro::debug("melonds::opengl::ContextReset()");
     if (UsingOpenGl() && GPU3D::CurrentRenderer) { // If we're using OpenGL, but there's already a renderer in place...
-        retro::log(RETRO_LOG_DEBUG, "GPU3D renderer is assigned; deinitializing it before resetting the context.");
+        retro::debug("GPU3D renderer is assigned; deinitializing it before resetting the context.");
         GPU::DeInitRenderer();
     }
 
@@ -184,13 +184,10 @@ static void melonds::opengl::context_reset() {
     context_initialized = success;
 
     if (success) {
-        retro::log(RETRO_LOG_DEBUG, "OpenGL context reset successfully.");
+        retro::debug("OpenGL context reset successfully.");
     } else {
-        retro::log(RETRO_LOG_ERROR, "OpenGL context reset failed.");
+        retro::error("OpenGL context reset failed.");
     }
-
-    // TODO: Signal that deferred initialization can now take place
-    // (in case different frontends have different behavior)
 }
 
 static void melonds::opengl::context_destroy() {
