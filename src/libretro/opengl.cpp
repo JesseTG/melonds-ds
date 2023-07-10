@@ -37,6 +37,8 @@
 extern struct retro_hw_render_callback hw_render;
 extern GLuint default_framebuffer;
 
+static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
+
 namespace melonds::opengl {
     bool refresh_opengl = true;
     static bool context_initialized = false;
@@ -218,8 +220,20 @@ static void melonds::opengl::context_destroy() {
 static bool melonds::opengl::setup_opengl() {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::setup_opengl()");
 
-    if (!OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader, "LibretroShader"))
+    openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
+    if (openGlDebugAvailable) {
+        retro::debug("OpenGL debugging extensions are available");
+    }
+
+    if (!OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader, SHADER_PROGRAM_NAME))
         return false;
+
+    if (openGlDebugAvailable) {
+        glObjectLabel(GL_FRAMEBUFFER, default_framebuffer, -1, "libretro Default Frame Buffer");
+        glObjectLabel(GL_SHADER, shader[0], -1, "melonDS DS Vertex Shader");
+        glObjectLabel(GL_SHADER, shader[1], -1, "melonDS DS Fragment Shader");
+        glObjectLabel(GL_PROGRAM, shader[2], -1, SHADER_PROGRAM_NAME);
+    }
 
     glBindAttribLocation(shader[2], 0, "vPosition");
     glBindAttribLocation(shader[2], 1, "vTexcoord");
