@@ -128,11 +128,8 @@ using melonds::ScreenLayoutData;
 
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     if (renderer == Renderer::OpenGl) {
-        // To avoid some issues the size should be at least 4x the native res
-        if (config::video::ScaleFactor() > 4)
-            scale = config::video::ScaleFactor();
-        else
-            scale = 4;
+        // TODO: Move this to a setter instead of global access
+        scale = config::video::ScaleFactor();
     } else {
         this->scale = 1;
     }
