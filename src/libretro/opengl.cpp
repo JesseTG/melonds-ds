@@ -35,7 +35,6 @@
 
 // HACK: Defined in glsm.c, but we need to peek into it occasionally
 extern struct retro_hw_render_callback hw_render;
-extern GLuint default_framebuffer;
 
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 
@@ -239,7 +238,6 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
         return false;
 
     if (openGlDebugAvailable) {
-        glObjectLabel(GL_FRAMEBUFFER, default_framebuffer, -1, "libretro Default Frame Buffer");
         glObjectLabel(GL_SHADER, shader[0], -1, "melonDS DS Vertex Shader");
         glObjectLabel(GL_SHADER, shader[1], -1, "melonDS DS Fragment Shader");
         glObjectLabel(GL_PROGRAM, shader[2], -1, SHADER_PROGRAM_NAME);
