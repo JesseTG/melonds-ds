@@ -1,4 +1,5 @@
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
