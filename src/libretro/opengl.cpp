@@ -261,15 +261,24 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
 
     glGenBuffers(1, &ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    if (openGlDebugAvailable) {
+        glObjectLabel(GL_BUFFER, ubo, -1, "melonDS DS Shader Config UBO");
+    }
     glBufferData(GL_UNIFORM_BUFFER, sizeof(GL_ShaderConfig), &GL_ShaderConfig, GL_STATIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 16, ubo);
 
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    if (openGlDebugAvailable) {
+        glObjectLabel(GL_BUFFER, vbo, -1, "melonDS DS Screen VBO");
+    }
     glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertices), nullptr, GL_STATIC_DRAW);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
+    if (openGlDebugAvailable) {
+        glObjectLabel(GL_VERTEX_ARRAY, vao, -1, "melonDS DS Screen VAO");
+    }
     glEnableVertexAttribArray(0); // position
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * 4, (void *) nullptr);
     glEnableVertexAttribArray(1); // texcoord
@@ -278,6 +287,9 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
     glGenTextures(1, &screen_framebuffer_texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, screen_framebuffer_texture);
+    if (openGlDebugAvailable) {
+        glObjectLabel(GL_TEXTURE, screen_framebuffer_texture, -1, "melonDS DS Screen Texture");
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
