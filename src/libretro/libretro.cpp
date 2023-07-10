@@ -342,9 +342,8 @@ PUBLIC_SYMBOL void retro_run(void) {
             screenLayout.Update(melonds::render::CurrentRenderer());
 
             // And update the geometry
-            struct retro_system_av_info updated_av_info{};
-            retro_get_system_av_info(&updated_av_info);
-            if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &updated_av_info.geometry)) {
+            retro_game_geometry geometry = screenLayout.Geometry(melonds::render::CurrentRenderer());
+            if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry)) {
                 retro::warn("Failed to update geometry after screen layout change");
             }
         }
