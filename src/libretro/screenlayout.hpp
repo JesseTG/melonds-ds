@@ -52,20 +52,12 @@ namespace melonds {
         unsigned ScreenWidth() const noexcept { return screen_width; }
         unsigned ScreenHeight() const noexcept { return screen_height; }
 
-        [[deprecated("Use SetLayout instead")]] void SwapScreens(bool swap) noexcept { swapScreens = swap; }
-        [[deprecated("Use Layout instead")]] bool SwapScreens() const noexcept { return swapScreens; }
-
         ScreenLayout Layout() const noexcept { return layout; }
         void SetLayout(ScreenLayout _layout) noexcept { this->layout = _layout; }
-        [[deprecated("Use Layout instead")]] ScreenLayout SwappedLayout() const noexcept { return SwapLayout(layout); }
-        [[deprecated("Use Layout instead")]] ScreenLayout EffectiveLayout() const noexcept { return swapScreens ? SwappedLayout() : layout; }
 
         bool IsHybridLayout() const noexcept { return layout == ScreenLayout::HybridTop || layout == ScreenLayout::HybridBottom; }
         SmallScreenLayout HybridSmallScreenLayout() const noexcept { return hybrid_small_screen; }
         void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept { hybrid_small_screen = _layout; }
-
-        [[deprecated("Use TopScreenEnabled instead")]] bool EffectiveTopScreenEnabled() const noexcept { return EffectiveLayout() != ScreenLayout::BottomOnly; }
-        [[deprecated("Use BottomScreenEnabled instead")]] bool EffectiveBottomScreenEnabled() const noexcept { return EffectiveLayout() != ScreenLayout::TopOnly; }
 
         bool TopScreenEnabled() const noexcept { return layout != ScreenLayout::BottomOnly; }
         bool BottomScreenEnabled() const noexcept { return layout != ScreenLayout::TopOnly; }
@@ -83,7 +75,6 @@ namespace melonds {
         unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
         unsigned TouchOffsetY() const noexcept { return touch_offset_y; }
     private:
-        bool swapScreens;
         bool direct_copy;
 
         unsigned pixel_size;

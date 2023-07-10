@@ -84,7 +84,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     int frontbuf = GPU::FrontBuffer;
 
     if (screen_layout_data.IsHybridLayout()) {
-        unsigned primary = screen_layout_data.EffectiveLayout() == ScreenLayout::HybridTop ? 0 : 1;
+        unsigned primary = screen_layout_data.Layout() == ScreenLayout::HybridTop ? 0 : 1;
 
         screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
 
@@ -104,13 +104,13 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
         if (input_state.CursorEnabled())
             screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
     } else {
-        if (screen_layout_data.EffectiveTopScreenEnabled())
+        if (screen_layout_data.TopScreenEnabled())
             screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenOffset());
-        if (screen_layout_data.EffectiveBottomScreenEnabled())
+        if (screen_layout_data.BottomScreenEnabled())
             screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1],
                                           screen_layout_data.BottomScreenOffset());
 
-        if (input_state.CursorEnabled() && screen_layout_data.EffectiveLayout() != ScreenLayout::TopOnly)
+        if (input_state.CursorEnabled() && screen_layout_data.Layout() != ScreenLayout::TopOnly)
             screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
     }
 

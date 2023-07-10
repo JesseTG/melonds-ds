@@ -58,6 +58,7 @@ using std::nullopt;
 namespace melonds {
     static InputState input_state;
     static ScreenLayoutData screenLayout;
+    static unsigned currentLayoutIndex = 0;
     static bool swap_screen_toggled = false;
     static bool mic_state_toggled = false;
     static bool deferred_initialization_pending = false;
@@ -321,34 +322,17 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     input_state.Update(screenLayout);
 
-    if (melonds::input_state.SwapScreenPressed() != screenLayout.SwapScreens()) {
-        switch (config::screen::ScreenSwapMode()) {
-            case melonds::ScreenSwapMode::Toggle: {
-                if (!screenLayout.SwapScreens()) {
-                    swap_screen_toggled = !swap_screen_toggled;
-                    screenLayout.SwapScreens(swap_screen_toggled);
-                    screenLayout.Update(render::CurrentRenderer());
-                    melonds::opengl::RequestOpenGlRefresh();
-                }
-
-                screenLayout.SwapScreens(input_state.SwapScreenPressed());
-                log(RETRO_LOG_DEBUG, "Toggled screen-swap mode (now %s)", screenLayout.SwapScreens() ? "on" : "off");
-                break;
-            }
-            case ScreenSwapMode::Hold: {
-                if (screenLayout.SwapScreens() != input_state.SwapScreenPressed()) {
-                    log(RETRO_LOG_DEBUG, "%s holding the screen-swap button",
-                        input_state.SwapScreenPressed() ? "Started" : "Stopped");
-                }
-
-                screenLayout.SwapScreens(input_state.SwapScreenPressed());
-                screenLayout.Update(render::CurrentRenderer());
-                melonds::opengl::RequestOpenGlRefresh();
-            }
-        }
-    }
-
     if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
+        if (melonds::input_state.CycleLayoutPressed()) {
+            unsigned numberOfScreenLayouts = config::screen::NumberOfScreenLayouts();
+            auto screenLayouts = config::screen::ScreenLayouts();
+            currentLayoutIndex = (currentLayoutIndex + 1) % numberOfScreenLayouts;
+
+            screenLayout.SetLayout(screenLayouts[currentLayoutIndex]);
+            screenLayout.Update(render::CurrentRenderer());
+            melonds::opengl::RequestOpenGlRefresh();
+        }
+
         read_microphone(input_state);
 
         // NDS::RunFrame invokes rendering-related code

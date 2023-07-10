@@ -308,7 +308,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     const float pixel_pad = 1.0f / (192 * 2 + 2);
 
     // TODO: Implement rotated and upside-down layouts
-    switch (screenLayout.EffectiveLayout()) {
+    switch (screenLayout.Layout()) {
         case ScreenLayout::TopBottom:
             bottom_screen_y = screen_height + screen_gap;
             break;
@@ -373,7 +373,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
         screen_vertices[(4 * i) + 3] = t_y; \
     } while (false)
 
-    ScreenLayout layout = screenLayout.EffectiveLayout();
+    ScreenLayout layout = screenLayout.Layout();
     SmallScreenLayout smallScreenLayout = screenLayout.HybridSmallScreenLayout();
     if (screenLayout.IsHybridLayout()) {
         //Primary Screen

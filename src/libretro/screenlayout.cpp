@@ -145,7 +145,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     this->screen_height = melonds::VIDEO_HEIGHT * scale;
     unsigned scaledScreenGap = ScaledScreenGap();
 
-    switch (EffectiveLayout()) {
+    switch (Layout()) {
         case ScreenLayout::TopBottom:
             this->direct_copy = true;
 

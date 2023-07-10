@@ -30,7 +30,9 @@ namespace melonds {
         [[nodiscard]] bool IsTouchingScreen() const noexcept { return touching; }
         [[nodiscard]] int TouchX() const noexcept { return touch_x; }
         [[nodiscard]] int TouchY() const noexcept { return touch_y; }
-        [[nodiscard]] bool SwapScreenPressed() const noexcept { return swap_screens_btn; }
+        [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutPressed; }
+        [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutPressed && !previousCycleLayoutPressed; }
+        [[nodiscard]] bool CycleLayoutReleased() const noexcept { return !cycleLayoutPressed && previousCycleLayoutPressed; }
         [[nodiscard]] bool MicButtonPressed() const noexcept { return holding_noise_btn; }
         [[nodiscard]] bool MicButtonJustPressed() const noexcept { return holding_noise_btn && !previous_holding_noise_btn; }
         [[nodiscard]] bool MicButtonJustReleased() const noexcept { return !holding_noise_btn && previous_holding_noise_btn; }
@@ -43,7 +45,8 @@ namespace melonds {
 
         bool previous_holding_noise_btn = false;
         bool holding_noise_btn = false;
-        bool swap_screens_btn = false;
+        bool cycleLayoutPressed = false;
+        bool previousCycleLayoutPressed = false;
         bool lid_closed = false;
         bool _has_touched = false;
 

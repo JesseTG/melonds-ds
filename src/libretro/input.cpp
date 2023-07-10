@@ -122,7 +122,9 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
     previous_holding_noise_btn = holding_noise_btn;
     holding_noise_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2);
-    swap_screens_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2);
+
+    previousCycleLayoutPressed = cycleLayoutPressed;
+    cycleLayoutPressed = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2);
 
 //    if (micNoiseType == MicInput && // If the player wants to use their real mic...
 //        noise_button_required && // ...and they don't always want it hot...
@@ -138,7 +140,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 //                   state.holding_noise_btn ? "enabled" : "disabled");
 //    }
 
-    if (screen_layout_data.EffectiveLayout() != ScreenLayout::TopOnly) {
+    if (screen_layout_data.Layout() != ScreenLayout::TopOnly) {
         switch (config::screen::TouchMode()) {
             case TouchMode::Disabled:
                 touching = false;
@@ -159,7 +161,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
                     int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
                     int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-                    unsigned int touch_scale = screen_layout_data.EffectiveLayout() == ScreenLayout::HybridBottom
+                    unsigned int touch_scale = screen_layout_data.Layout() == ScreenLayout::HybridBottom
                                                ? screen_layout_data.HybridRatio() : 1;
 
                     unsigned int x =
