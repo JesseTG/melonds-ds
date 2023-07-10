@@ -263,8 +263,8 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     info->timing.sample_rate = 32.0f * 1024.0f;
     info->geometry.base_width = screenLayout.BufferWidth();
     info->geometry.base_height = screenLayout.BufferHeight();
-    info->geometry.max_width = screenLayout.BufferWidth();
-    info->geometry.max_height = screenLayout.BufferHeight();
+    info->geometry.max_width = melonds::MaxSoftwareRenderedWidth(); // TODO: Compute for OpenGL
+    info->geometry.max_height = melonds::MaxSoftwareRenderedHeight(); // TODO: Compute for OpenGL
     info->geometry.aspect_ratio = screenLayout.BufferAspectRatio();
 }
 

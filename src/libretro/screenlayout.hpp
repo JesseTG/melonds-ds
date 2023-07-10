@@ -133,5 +133,13 @@ namespace melonds {
         size_t buffer_len;
         uint16_t *buffer_ptr;
     };
+
+    constexpr unsigned MaxSoftwareRenderedWidth() noexcept {
+        return (NDS_SCREEN_WIDTH * config::screen::MAX_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (config::screen::MAX_HYBRID_RATIO * 2);
+    }
+
+    constexpr unsigned MaxSoftwareRenderedHeight() noexcept {
+        return NDS_SCREEN_HEIGHT * config::screen::MAX_HYBRID_RATIO;
+    }
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP

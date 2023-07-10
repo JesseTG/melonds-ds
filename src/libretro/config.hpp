@@ -219,6 +219,7 @@ namespace melonds {
         }
 
         namespace screen {
+            constexpr unsigned MAX_HYBRID_RATIO = 3;
             constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
             [[nodiscard]] unsigned NumberOfScreenLayouts() noexcept;
             [[nodiscard]] std::array<ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept;
