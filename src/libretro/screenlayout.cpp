@@ -265,11 +265,20 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 }
 
 retro_game_geometry melonds::ScreenLayoutData::Geometry(melonds::Renderer renderer) const noexcept {
-    return {
+    retro_game_geometry geometry {
         .base_width = BufferWidth(),
         .base_height = BufferHeight(),
-        .max_width = MaxSoftwareRenderedWidth(), // TODO: Compute for OpenGL
-        .max_height = MaxSoftwareRenderedHeight(), // TODO: Compute for OpenGL
+        .max_width = MaxSoftwareRenderedWidth(),
+        .max_height = MaxSoftwareRenderedHeight(),
         .aspect_ratio = BufferAspectRatio(),
     };
+
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    if (renderer == Renderer::OpenGl) {
+        geometry.max_width = MaxOpenGlRenderedWidth();
+        geometry.max_height = MaxOpenGlRenderedHeight();
+    }
+#endif
+
+    return geometry;
 }

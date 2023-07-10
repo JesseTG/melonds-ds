@@ -220,7 +220,9 @@ namespace melonds {
 
         namespace screen {
             constexpr unsigned MAX_HYBRID_RATIO = 3;
+            constexpr unsigned MAX_SOFTWARE_HYBRID_RATIO = 2;
             constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
+            constexpr unsigned MAX_SCREEN_GAP = 128;
             [[nodiscard]] unsigned NumberOfScreenLayouts() noexcept;
             [[nodiscard]] std::array<ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept;
             [[nodiscard]] unsigned ScreenGap() noexcept;
@@ -230,6 +232,8 @@ namespace melonds {
         }
 
         namespace video {
+            constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
+            constexpr unsigned MAX_OPENGL_SCALE = 8;
             [[nodiscard]] float CursorSize() noexcept;
             [[nodiscard]] Renderer ConfiguredRenderer() noexcept;
             [[nodiscard]] GPU::RenderSettings RenderSettings() noexcept;

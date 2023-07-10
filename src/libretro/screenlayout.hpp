@@ -141,11 +141,43 @@ namespace melonds {
     };
 
     constexpr unsigned MaxSoftwareRenderedWidth() noexcept {
-        return (NDS_SCREEN_WIDTH * config::screen::MAX_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (config::screen::MAX_HYBRID_RATIO * 2);
+        using config::screen::MAX_SOFTWARE_HYBRID_RATIO;
+        return std::max(
+            // Left/Right or Right/Left layout
+            NDS_SCREEN_WIDTH * 2u,
+
+            // Hybrid layout
+            (NDS_SCREEN_WIDTH * MAX_SOFTWARE_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (MAX_SOFTWARE_HYBRID_RATIO * 2)
+        );
     }
 
     constexpr unsigned MaxSoftwareRenderedHeight() noexcept {
-        return NDS_SCREEN_HEIGHT * config::screen::MAX_HYBRID_RATIO;
+        using namespace config::screen;
+        return NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP;
+    }
+
+    constexpr unsigned MaxOpenGlRenderedWidth() noexcept {
+        using config::screen::MAX_HYBRID_RATIO;
+        unsigned scale = config::video::MAX_OPENGL_SCALE;
+        // TODO: What if this is too big?
+
+        return std::max(
+            // Left/Right or Right/Left layout
+            NDS_SCREEN_WIDTH * scale * 2,
+
+            // Hybrid layout
+            (NDS_SCREEN_WIDTH * scale * MAX_HYBRID_RATIO) + (NDS_SCREEN_WIDTH * scale) + MAX_HYBRID_RATIO * 2
+        );
+    }
+
+    constexpr unsigned MaxOpenGlRenderedHeight() noexcept {
+        using namespace config::screen;
+        unsigned scale = config::video::MAX_OPENGL_SCALE;
+
+        return std::max(
+            scale * (NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP),
+            scale * NDS_SCREEN_HEIGHT * MAX_HYBRID_RATIO
+        );
     }
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP
