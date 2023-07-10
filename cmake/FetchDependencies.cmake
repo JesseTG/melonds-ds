@@ -57,7 +57,36 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(libretro-common)
 
-set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${CMAKE_MODULE_PATH}")
+if (NOT EMBED_BINARIES_REPOSITORY_URL)
+    set(
+        EMBED_BINARIES_REPOSITORY_URL
+        "https://github.com/andoalon/embed-binaries.git"
+        CACHE STRING
+        "embed-binaries repository URL. Set this to use an embed-binaries fork or mirror."
+        FORCE
+    )
+endif ()
+
+if (NOT EMBED_BINARIES_REPOSITORY_TAG)
+    set(
+        EMBED_BINARIES_REPOSITORY_TAG
+        "21f28ca"
+        CACHE STRING
+        "embed-binaries repository commit hash or tag. Set this when using a new version of embed-binaries, or when using a custom branch."
+        FORCE
+    )
+endif ()
+
+message(STATUS "Using embed-binaries: ${EMBED_BINARIES_REPOSITORY_URL} (ref ${EMBED_BINARIES_REPOSITORY_TAG})")
+
+FetchContent_Declare(
+    embed-binaries
+    GIT_REPOSITORY "${EMBED_BINARIES_REPOSITORY_URL}"
+    GIT_TAG "${EMBED_BINARIES_REPOSITORY_TAG}"
+)
+FetchContent_GetProperties(embed-binaries)
+
+set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTENT_BASE_DIR}/embed-binaries-src/cmake" "${CMAKE_MODULE_PATH}")
 set(BUILD_STATIC ON)
 set(BUILD_QT_SDL OFF)
-FetchContent_MakeAvailable(melonDS libretro-common)
+FetchContent_MakeAvailable(melonDS libretro-common embed-binaries)

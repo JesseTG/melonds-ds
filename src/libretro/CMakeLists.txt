@@ -1,6 +1,8 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+include(embed-binaries)
+
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     config.cpp
@@ -44,6 +46,19 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
     )
+
+embed_binaries(libretro-assets
+    ASSET
+        NAME "melondsds_vertex_shader"
+        PATH "glsl/melondsds.vert"
+        BYTE_TYPE char
+        NULL_TERMINATE
+    ASSET
+        NAME "melondsds_fragment_shader"
+        PATH "glsl/melondsds.frag"
+        BYTE_TYPE char
+        NULL_TERMINATE
+)
 
 add_common_definitions(libretro)
 
@@ -120,4 +135,4 @@ endif()
 target_compile_definitions(libretro PUBLIC MELONDSDS_VERSION="${CMAKE_PROJECT_VERSION}")
 target_compile_definitions(libretro PUBLIC MELONDSDS_NAME="${CMAKE_PROJECT_NAME}")
 
-target_link_libraries(libretro PUBLIC libretro-common core)
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets)

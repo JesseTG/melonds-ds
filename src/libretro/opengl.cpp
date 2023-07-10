@@ -23,6 +23,8 @@
 #include <GPU.h>
 #include <OpenGLSupport.h>
 
+#include "embedded/melondsds_fragment_shader.h"
+#include "embedded/melondsds_vertex_shader.h"
 #include "PlatformOGLPrivate.h"
 #include "screenlayout.hpp"
 #include "input.hpp"
@@ -37,11 +39,6 @@ namespace melonds::opengl {
     static GLuint screen_framebuffer_texture;
     static float screen_vertices[72];
     static GLuint vao, vbo;
-    struct shaders {
-        // Declared within an anonymous struct so we can initialize them later in the file
-        static const char *_vertex_shader;
-        static const char *_fragment_shader;
-    };
 
     static struct {
         GLfloat uScreenSize[2];
@@ -204,7 +201,7 @@ static void melonds::opengl::context_destroy() {
 static bool melonds::opengl::setup_opengl() {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::setup_opengl()");
 
-    if (!OpenGL::BuildShaderProgram(shaders::_vertex_shader, shaders::_fragment_shader, shader, "LibretroShader"))
+    if (!OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader, "LibretroShader"))
         return false;
 
     glBindAttribLocation(shader[2], 0, "vPosition");
@@ -453,52 +450,3 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(screen_vertices), screen_vertices);
 }
-
-// TODO: Store in a .glsl file, but use CMake to embed it
-const char *melonds::opengl::shaders::_vertex_shader = R"(#version 140
-layout(std140) uniform uConfig
-{
-    vec2 uScreenSize;
-    uint u3DScale;
-    uint uFilterMode;
-    vec4 cursorPos;
-};
-in vec2 pos;
-in vec2 texcoord;
-smooth out vec2 fTexcoord;
-void main()
-{
-    vec4 fpos;
-    fpos.xy = ((pos * 2.0) / uScreenSize) - 1.0;
-    fpos.y *= -1;
-    fpos.z = 0.0;
-    fpos.w = 1.0;
-    gl_Position = fpos;
-    fTexcoord = texcoord;
-}
-)";
-
-// TODO: Store in a .glsl file, but use CMake to embed it
-const char *melonds::opengl::shaders::_fragment_shader = R"(#version 140
-layout(std140) uniform uConfig
-{
-    vec2 uScreenSize;
-    uint u3DScale;
-    uint uFilterMode;
-    vec4 cursorPos;
-};
-uniform sampler2D ScreenTex;
-smooth in vec2 fTexcoord;
-out vec4 oColor;
-void main()
-{
-    vec4 pixel = texture(ScreenTex, fTexcoord);
-    // virtual cursor so you can see where you touch
-    if(fTexcoord.y >= 0.5 && fTexcoord.y <= 1.0) {
-        if(cursorPos.x <= fTexcoord.x && cursorPos.y <= fTexcoord.y && cursorPos.z >= fTexcoord.x && cursorPos.w >= fTexcoord.y) {
-            pixel = vec4(1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, pixel.a);
-        }
-    }
-    oColor = vec4(pixel.bgr, 1.0);
-}
-)";
