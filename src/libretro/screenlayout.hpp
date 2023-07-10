@@ -22,11 +22,11 @@
 #include "config.hpp"
 
 namespace melonds {
-    /// The native width of the Nintendo DS screens, in pixels
-    constexpr int VIDEO_WIDTH = 256;
+    /// The native width of a single Nintendo DS screen, in pixels
+    constexpr int NDS_SCREEN_WIDTH = 256;
 
-    /// The native height of the Nintendo DS screens, in pixels
-    constexpr int VIDEO_HEIGHT = 192;
+    /// The native height of a single Nintendo DS screen, in pixels
+    constexpr int NDS_SCREEN_HEIGHT = 192;
 
     class ScreenLayoutData {
     public:

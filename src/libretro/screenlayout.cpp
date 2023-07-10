@@ -143,8 +143,8 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
     this->direct_copy = false;
 
-    this->screen_width = melonds::VIDEO_WIDTH * scale;
-    this->screen_height = melonds::VIDEO_HEIGHT * scale;
+    this->screen_width = melonds::NDS_SCREEN_WIDTH * scale;
+    this->screen_height = melonds::NDS_SCREEN_HEIGHT * scale;
     unsigned scaledScreenGap = ScaledScreenGap();
 
     switch (Layout()) {

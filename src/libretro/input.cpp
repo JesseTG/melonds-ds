@@ -151,8 +151,8 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
                 touching = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
 
-                touch_x = std::clamp(touch_x + mouse_x, 0, VIDEO_WIDTH - 1);
-                touch_y = std::clamp(touch_y + mouse_y, 0, VIDEO_HEIGHT - 1);
+                touch_x = std::clamp(touch_x + mouse_x, 0, NDS_SCREEN_WIDTH - 1);
+                touch_y = std::clamp(touch_y + mouse_y, 0, NDS_SCREEN_HEIGHT - 1);
             }
 
                 break;
@@ -176,14 +176,14 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
                         touching = true;
 
                         touch_x = std::clamp(
-                                static_cast<int>((x - screen_layout_data.TouchOffsetX()) * VIDEO_WIDTH /
-                                                 screen_layout_data.ScreenWidth()),
-                                0, VIDEO_WIDTH - 1);
+                            static_cast<int>((x - screen_layout_data.TouchOffsetX()) * NDS_SCREEN_WIDTH /
+                                             screen_layout_data.ScreenWidth()),
+                            0, NDS_SCREEN_WIDTH - 1);
                         touch_y = std::clamp(
-                                static_cast<int>((y - screen_layout_data.TouchOffsetY()) * VIDEO_HEIGHT /
-                                                 screen_layout_data.ScreenHeight()),
-                                0,
-                                VIDEO_HEIGHT - 1);
+                            static_cast<int>((y - screen_layout_data.TouchOffsetY()) * NDS_SCREEN_HEIGHT /
+                                             screen_layout_data.ScreenHeight()),
+                            0,
+                            NDS_SCREEN_HEIGHT - 1);
                     }
                 } else if (touching) {
                     touching = false;
@@ -196,8 +196,8 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
                 int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
                                                         RETRO_DEVICE_ID_ANALOG_Y) / 2048;
 
-                touch_x = std::clamp(touch_x + joystick_x, 0, melonds::VIDEO_WIDTH - 1);
-                touch_y = std::clamp(touch_y + joystick_y, 0, melonds::VIDEO_HEIGHT - 1);
+                touch_x = std::clamp(touch_x + joystick_x, 0, melonds::NDS_SCREEN_WIDTH - 1);
+                touch_y = std::clamp(touch_y + joystick_y, 0, melonds::NDS_SCREEN_HEIGHT - 1);
 
                 touching = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3);
 

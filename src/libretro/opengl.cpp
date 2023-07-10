@@ -111,10 +111,10 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     if (virtual_cursor) {
         float cursorSize = melonds::config::video::CursorSize();
-        GL_ShaderConfig.cursorPos[0] = ((float) (state.TouchX()) - cursorSize) / (VIDEO_HEIGHT * 1.35f);
-        GL_ShaderConfig.cursorPos[1] = (((float) (state.TouchY()) - cursorSize) / (VIDEO_WIDTH * 1.5f)) + 0.5f;
-        GL_ShaderConfig.cursorPos[2] = ((float) (state.TouchX()) + cursorSize) / (VIDEO_HEIGHT * 1.35f);
-        GL_ShaderConfig.cursorPos[3] = (((float) (state.TouchY()) + cursorSize) / ((float) VIDEO_WIDTH * 1.5f)) + 0.5f;
+        GL_ShaderConfig.cursorPos[0] = ((float) (state.TouchX()) - cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
+        GL_ShaderConfig.cursorPos[1] = (((float) (state.TouchY()) - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
+        GL_ShaderConfig.cursorPos[2] = ((float) (state.TouchX()) + cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
+        GL_ShaderConfig.cursorPos[3] = (((float) (state.TouchY()) + cursorSize) / ((float) NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
 
         glBindBuffer(GL_UNIFORM_BUFFER, ubo);
         void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
