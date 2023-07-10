@@ -16,6 +16,7 @@
 
 #include "opengl.hpp"
 
+#include <gfx/gl_capabilities.h>
 #include <libretro.h>
 #include <glsm/glsm.h>
 #include <retro_assert.h>
@@ -92,7 +93,19 @@ bool melonds::opengl::Initialize() noexcept {
     params.stencil = false;
     params.framebuffer_lock = nullptr;
 
-    return glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
+#ifndef NDEBUG
+    hw_render.debug_context = true;
+#endif
+
+    bool ok = glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
+
+#ifndef NDEBUG
+    retro_assert(hw_render.debug_context);
+#endif
+
+    gl_query_core_context_set(hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE || hw_render.context_type == RETRO_HW_CONTEXT_OPENGL);
+
+    return ok;
 }
 
 void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
