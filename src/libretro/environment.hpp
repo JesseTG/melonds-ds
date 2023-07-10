@@ -28,6 +28,8 @@ namespace retro {
     /// For use by other parts of the core
     bool environment(unsigned cmd, void *data) noexcept;
 
+    [[nodiscard]] bool is_variable_updated() noexcept;
+
     void log(enum retro_log_level level, const char *fmt, ...) noexcept;
     void debug(const char *fmt, ...) noexcept;
     void info(const char *fmt, ...) noexcept;

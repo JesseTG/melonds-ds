@@ -92,6 +92,12 @@ bool retro::shutdown() noexcept {
     return environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
 }
 
+bool retro::is_variable_updated() noexcept {
+    bool updated = false;
+    environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated);
+    return updated;
+}
+
 void retro::log(enum retro_log_level level, const char* fmt, ...) noexcept {
     if (fmt == nullptr)
         return;

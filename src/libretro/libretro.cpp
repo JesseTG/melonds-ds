@@ -317,7 +317,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         first_frame_run = true;
     }
 
-    if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+    if (retro::is_variable_updated()) {
         // If any settings have changed...
         melonds::UpdateConfig(screenLayout);
     }
