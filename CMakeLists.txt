@@ -89,7 +89,7 @@ FetchContent_MakeAvailable(melonDS libretro-common)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/libretro-common.cmake)
 include(cmake/utils.cmake)
-include(cmake/ConfigureMelonDS.cmake)
+include(cmake/ConfigureDependencies.cmake)
 
 add_subdirectory(src/libretro)
 
