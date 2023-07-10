@@ -1466,7 +1466,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::RENDER_MODE,
         "Render Mode",
         nullptr,
-        "OpenGL mode uses OpenGL (or OpenGL ES) for rendering graphics. "
+        "OpenGL mode uses OpenGL for rendering graphics. "
         "If that doesn't work, software rendering is used as a fallback. "
         "Changes take effect next time the core restarts. ",
         nullptr,
