@@ -18,6 +18,7 @@
 
 #include <libretro.h>
 #include <glsm/glsm.h>
+#include <retro_assert.h>
 
 #include <GPU.h>
 #include <OpenGLSupport.h>
@@ -96,6 +97,7 @@ bool melonds::opengl::initialize() {
 }
 
 void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
+    retro_assert(melonds::render::CurrentRenderer() == melonds::Renderer::OpenGl);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
     int frontbuf = GPU::FrontBuffer;
