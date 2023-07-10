@@ -79,6 +79,7 @@ endif ()
 
 if (HAVE_OPENGL OR HAVE_OPENGLES)
     target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/gfx/gl_capabilities.c
         ${libretro-common_SOURCE_DIR}/glsm/glsm.c
         ${libretro-common_SOURCE_DIR}/glsym/rglgen.c
         )
