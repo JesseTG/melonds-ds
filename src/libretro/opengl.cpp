@@ -56,8 +56,6 @@ namespace melonds::opengl {
 
     static void context_destroy();
 
-    static bool context_framebuffer_lock(void *data);
-
     static bool setup_opengl();
 
     static void InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept;
