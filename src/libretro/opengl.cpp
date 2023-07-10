@@ -62,7 +62,7 @@ namespace melonds::opengl {
 
     static void context_destroy();
 
-    static bool setup_opengl();
+    static bool SetupOpenGl() noexcept;
 
     static void InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept;
 }
@@ -195,12 +195,11 @@ static void melonds::opengl::ContextReset() noexcept {
 
     GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
 
-    bool success = setup_opengl();
+    context_initialized = SetupOpenGl();
 
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
-    context_initialized = success;
 
-    if (success) {
+    if (context_initialized) {
         retro::debug("OpenGL context reset successfully.");
     } else {
         retro::error("OpenGL context reset failed.");
@@ -219,8 +218,9 @@ static void melonds::opengl::context_destroy() {
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 }
 
-static bool melonds::opengl::setup_opengl() {
-    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::setup_opengl()");
+// Sets up OpenGL resources specific to melonDS
+static bool melonds::opengl::SetupOpenGl() noexcept {
+    retro::debug("melonds::opengl::SetupOpenGl()");
 
     openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
     if (openGlDebugAvailable) {
