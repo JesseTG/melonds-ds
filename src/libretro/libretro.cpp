@@ -259,13 +259,11 @@ static void melonds::flush_gba_sram(const retro_game_info& gba_save_info) noexce
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     using melonds::screenLayout;
 
+    retro_assert(melonds::render::CurrentRenderer() != melonds::Renderer::None);
+
     info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
     info->timing.sample_rate = 32.0f * 1024.0f;
-    info->geometry.base_width = screenLayout.BufferWidth();
-    info->geometry.base_height = screenLayout.BufferHeight();
-    info->geometry.max_width = melonds::MaxSoftwareRenderedWidth(); // TODO: Compute for OpenGL
-    info->geometry.max_height = melonds::MaxSoftwareRenderedHeight(); // TODO: Compute for OpenGL
-    info->geometry.aspect_ratio = screenLayout.BufferAspectRatio();
+    info->geometry = screenLayout.Geometry(melonds::render::CurrentRenderer());
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
@@ -320,23 +318,35 @@ PUBLIC_SYMBOL void retro_run(void) {
     }
 
     if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+        // If any settings have changed...
         melonds::UpdateConfig(screenLayout);
-
-        struct retro_system_av_info updated_av_info{};
-        retro_get_system_av_info(&updated_av_info);
-        retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &updated_av_info.geometry);
-        screenLayout.Clear();
     }
 
+    // Read the input from the frontend
     input_state.Update(screenLayout);
 
-    if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
-        if (melonds::input_state.CycleLayoutPressed()) {
-            screenLayout.NextLayout();
-            retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
+    if (melonds::render::ReadyToRender()) {
+        // If the global state needed for rendering is ready...
 
-            screenLayout.Update(render::CurrentRenderer());
-            melonds::opengl::RequestOpenGlRefresh();
+        if (melonds::input_state.CycleLayoutPressed()) {
+            // If the user wants to change the active screen layout...
+            screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
+            retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
+        }
+
+        if (screenLayout.Dirty()) {
+            // If the active screen layout has changed (either by settings or by hotkey)...
+            retro_assert(melonds::render::CurrentRenderer() != Renderer::None);
+
+            // Apply the new screen layout
+            screenLayout.Update(melonds::render::CurrentRenderer());
+
+            // And update the geometry
+            struct retro_system_av_info updated_av_info{};
+            retro_get_system_av_info(&updated_av_info);
+            if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &updated_av_info.geometry)) {
+                retro::warn("Failed to update geometry after screen layout change");
+            }
         }
 
         read_microphone(input_state);

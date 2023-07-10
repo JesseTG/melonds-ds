@@ -19,6 +19,9 @@
 
 #include <cstddef>
 #include <cstdint>
+
+#include <libretro.h>
+
 #include "config.hpp"
 
 namespace melonds {
@@ -105,6 +108,8 @@ namespace melonds {
 
         unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
         unsigned TouchOffsetY() const noexcept { return touch_offset_y; }
+
+        retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
         bool _dirty;
         bool direct_copy;

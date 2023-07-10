@@ -491,12 +491,6 @@ void melonds::UpdateConfig(ScreenLayoutData& screenLayout) noexcept {
     }
 #endif
 
-    if (melonds::render::CurrentRenderer() == Renderer::None) {
-        screenLayout.Update(config::video::ConfiguredRenderer());
-    } else {
-        screenLayout.Update(melonds::render::CurrentRenderer());
-    }
-
     update_option_visibility();
 }
 
