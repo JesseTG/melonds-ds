@@ -1480,11 +1480,12 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     },
     {
         Config::Retro::Keys::OPENGL_RESOLUTION,
-        "OpenGL Internal Resolution",
+        "Internal Resolution",
         nullptr,
+        "The degree to which the emulated 3D engine's graphics are scaled up. "
+        "Dimensions are given per screen. "
+        "OpenGL renderer only.",
         nullptr,
-        nullptr,
-
         Config::Retro::Category::VIDEO,
         {
             {"1", "1x native (256 x 192)"},
@@ -1501,11 +1502,12 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     },
     {
         Config::Retro::Keys::OPENGL_BETTER_POLYGONS,
-        "OpenGL Improved Polygon Splitting",
+        "Improved Polygon Splitting",
         nullptr,
+        "Enable this if your game's 3D models are not rendering correctly. "
+        "OpenGL renderer only.",
         nullptr,
-        nullptr,
-        "video",
+        Config::Retro::Category::VIDEO,
         {
             {Config::Retro::Values::DISABLED, nullptr},
             {Config::Retro::Values::ENABLED, nullptr},
@@ -1515,17 +1517,22 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     },
     {
         Config::Retro::Keys::OPENGL_FILTERING,
-        "OpenGL Filtering",
+        "Screen Filtering",
         nullptr,
-        nullptr,
+        "Affects how the emulated screens are scaled to fit the real screen. "
+        "Performance impact is minimal. "
+        "OpenGL renderer only.\n"
+        "\n"
+        "Nearest: No filtering. Graphics look blocky.\n"
+        "Linear: Smooth scaling.\n",
         nullptr,
         Config::Retro::Category::VIDEO,
         {
-            {"nearest", "Nearest"},
-            {"linear", "Linear"},
+            {Config::Retro::Values::NEAREST, "Nearest"},
+            {Config::Retro::Values::LINEAR, "Linear"},
             {nullptr, nullptr},
         },
-        "nearest"
+        Config::Retro::Values::NEAREST
     },
 #endif
 #ifdef HAVE_THREADS
