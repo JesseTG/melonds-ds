@@ -30,7 +30,7 @@ namespace melonds::opengl {
     inline void RequestOpenGlRefresh() {}
 #endif
 
-    bool initialize();
+    bool Initialize();
 
     void deinitialize();
 

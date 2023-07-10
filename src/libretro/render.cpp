@@ -37,7 +37,7 @@ void melonds::render::Initialize(Renderer renderer) {
     switch (renderer) {
         // Depending on which renderer we want to use...
         case Renderer::OpenGl:
-            if (melonds::opengl::initialize()) {
+            if (melonds::opengl::Initialize()) {
                 _CurrentRenderer = Renderer::OpenGl;
                 log(RETRO_LOG_DEBUG, "Requested OpenGL context");
             } else {

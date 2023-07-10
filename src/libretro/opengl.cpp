@@ -79,8 +79,8 @@ void melonds::opengl::RequestOpenGlRefresh() {
     refresh_opengl = true;
 }
 
-bool melonds::opengl::initialize() {
-    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::initialize()");
+bool melonds::opengl::Initialize() {
+    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::Initialize()");
     glsm_ctx_params_t params = {nullptr};
 
     // melonds wants an opengl 3.1 context, so glcore is required for mesa compatibility
