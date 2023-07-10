@@ -58,7 +58,6 @@ using std::nullopt;
 namespace melonds {
     static InputState input_state;
     static ScreenLayoutData screenLayout;
-    static unsigned currentLayoutIndex = 0;
     static bool swap_screen_toggled = false;
     static bool mic_state_toggled = false;
     static bool deferred_initialization_pending = false;
@@ -324,11 +323,9 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
         if (melonds::input_state.CycleLayoutPressed()) {
-            unsigned numberOfScreenLayouts = config::screen::NumberOfScreenLayouts();
-            auto screenLayouts = config::screen::ScreenLayouts();
-            currentLayoutIndex = (currentLayoutIndex + 1) % numberOfScreenLayouts;
+            screenLayout.NextLayout();
+            retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
 
-            screenLayout.SetLayout(screenLayouts[currentLayoutIndex]);
             screenLayout.Update(render::CurrentRenderer());
             melonds::opengl::RequestOpenGlRefresh();
         }
@@ -344,8 +341,7 @@ PUBLIC_SYMBOL void retro_run(void) {
     }
 
     if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
-        optional<NDSHeader> header = NDSCart::Cart ? std::make_optional(NDSCart::Cart->GetHeader()) : std::nullopt;
-        melonds::UpdateConfig(retro::content::get_loaded_nds_info(), header, screenLayout);
+        melonds::UpdateConfig(screenLayout);
 
         struct retro_system_av_info updated_av_info{};
         retro_get_system_av_info(&updated_av_info);

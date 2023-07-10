@@ -71,7 +71,6 @@ namespace Config {
             static const char* const OPENGL_FILTERING = "melonds_opengl_filtering";
             static const char* const RENDER_MODE = "melonds_render_mode";
             static const char* const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
-            [[deprecated("Use SCREEN_LAYOUTS instead")]] static const char* const SCREEN_LAYOUT = "melonds_screen_layout";
             static const char* const SCREEN_LAYOUT1 = "melonds_screen_layout1";
             static const char* const SCREEN_LAYOUT2 = "melonds_screen_layout2";
             static const char* const SCREEN_LAYOUT3 = "melonds_screen_layout3";
@@ -102,7 +101,6 @@ namespace Config {
             static const char* const CONSOLE_MODE = "melonds_console_mode";
             static const char* const BOOT_DIRECTLY = "melonds_boot_directly";
             static const char* const SCREEN_GAP = "melonds_screen_gap";
-            [[deprecated("Use SCREEN_LAYOUTS instead")]] static const char* const SWAPSCREEN_MODE = "melonds_swapscreen_mode";
             static const char* const RANDOMIZE_MAC_ADDRESS = "melonds_randomize_mac_address";
             static const char* const TOUCH_MODE = "melonds_touch_mode";
             static const char* const MIC_INPUT_BUTTON = "melonds_mic_input_active";
@@ -332,9 +330,6 @@ namespace melonds::config {
         static std::array<melonds::ScreenLayout, MAX_SCREEN_LAYOUTS> _screenLayouts;
         std::array<melonds::ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept { return _screenLayouts; }
 
-        [[deprecated("Use ScreenLayouts instead")]] static melonds::ScreenLayout _screenLayout;
-        enum melonds::ScreenLayout ScreenLayout() noexcept { return _screenLayout; }
-
         static unsigned _screenGap;
         unsigned ScreenGap() noexcept { return _screenGap; }
 
@@ -344,9 +339,6 @@ namespace melonds::config {
 #else
         unsigned HybridRatio() noexcept { return 2; }
 #endif
-
-        [[deprecated("Use ScreenLayouts instead")]] static melonds::ScreenSwapMode _screenSwapMode;
-        melonds::ScreenSwapMode ScreenSwapMode() noexcept { return _screenSwapMode; }
 
         static melonds::SmallScreenLayout _smallScreenLayout;
         melonds::SmallScreenLayout SmallScreenLayout() noexcept { return _smallScreenLayout; }
@@ -469,20 +461,22 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::apply_screen_options(screenLayout);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
+    if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
         melonds::opengl::RequestOpenGlRefresh();
     }
 #endif
 
+    if (melonds::render::CurrentRenderer() == Renderer::None) {
+        screenLayout.Update(config::video::ConfiguredRenderer());
+    } else {
+        screenLayout.Update(melonds::render::CurrentRenderer());
+    }
+
     update_option_visibility();
 }
 
-void melonds::UpdateConfig(
-    const std::optional<struct retro_game_info>& nds_info,
-    const std::optional<NDSHeader>& header,
-    ScreenLayoutData& screenLayout
-) noexcept {
+void melonds::UpdateConfig(ScreenLayoutData& screenLayout) noexcept {
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     openGlNeedsRefresh |= config::parse_screen_options();
@@ -491,11 +485,17 @@ void melonds::UpdateConfig(
     config::apply_screen_options(screenLayout);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (melonds::opengl::UsingOpenGl() && openGlNeedsRefresh) {
+    if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
         melonds::opengl::RequestOpenGlRefresh();
     }
 #endif
+
+    if (melonds::render::CurrentRenderer() == Renderer::None) {
+        screenLayout.Update(config::video::ConfiguredRenderer());
+    } else {
+        screenLayout.Update(melonds::render::CurrentRenderer());
+    }
 
     update_option_visibility();
 }
@@ -552,9 +552,17 @@ bool melonds::update_option_visibility() {
     // Show/hide Hybrid screen options
     bool oldShowHybridOptions = ShowHybridOptions;
     bool oldShowVerticalLayoutOptions = ShowVerticalLayoutOptions;
-    optional<ScreenLayout> layout = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUT));
-    ShowHybridOptions = !layout || *layout == ScreenLayout::HybridTop || *layout == ScreenLayout::HybridBottom;
-    ShowVerticalLayoutOptions = !layout || *layout == ScreenLayout::TopBottom || *layout == ScreenLayout::BottomTop;
+    bool anyHybridLayouts = false;
+    bool anyVerticalLayouts = false;
+    for (unsigned i = 0; i < config::screen::MAX_SCREEN_LAYOUTS; i++) {
+        optional<melonds::ScreenLayout> parsedLayout = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUTS[i]));
+
+        anyHybridLayouts |= !parsedLayout || *parsedLayout == ScreenLayout::HybridTop || *parsedLayout == ScreenLayout::HybridBottom;
+        anyVerticalLayouts |= !parsedLayout || *parsedLayout == ScreenLayout::TopBottom || *parsedLayout == ScreenLayout::BottomTop;
+    }
+    ShowHybridOptions = anyHybridLayouts;
+    ShowVerticalLayoutOptions = anyVerticalLayouts;
+
     if (ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(Keys::HYBRID_SMALL_SCREEN, ShowHybridOptions);
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -896,17 +904,6 @@ static bool melonds::config::parse_screen_options() noexcept {
 
     bool needsOpenGlRefresh = false;
 
-    enum ScreenLayout oldScreenLayout = _screenLayout;
-    if (optional<melonds::ScreenLayout> value = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUT))) {
-        _screenLayout = *value;
-    } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", Keys::SCREEN_LAYOUT, Values::TOP_BOTTOM);
-        _screenLayout = ScreenLayout::TopBottom;
-    }
-
-    if (oldScreenLayout != _screenLayout)
-        needsOpenGlRefresh = true;
-
     if (const char* value = get_variable(Keys::SCREEN_GAP); !string_is_empty(value)) {
         _screenGap = std::stoi(value); // TODO: Handle errors
     } else {
@@ -923,7 +920,6 @@ static bool melonds::config::parse_screen_options() noexcept {
     }
 #endif
 
-    enum SmallScreenLayout oldHybridSmallScreen = _smallScreenLayout;
     if (const char* value = get_variable(Keys::HYBRID_SMALL_SCREEN); !string_is_empty(value)) {
         if (string_is_equal(value, Values::TOP))
             _smallScreenLayout = SmallScreenLayout::SmallScreenTop;
@@ -935,12 +931,6 @@ static bool melonds::config::parse_screen_options() noexcept {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::HYBRID_SMALL_SCREEN, Values::BOTH);
         _smallScreenLayout = SmallScreenLayout::SmallScreenDuplicate;
     }
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (_smallScreenLayout != oldHybridSmallScreen) {
-        needsOpenGlRefresh = true;
-    }
-#endif
 
     enum TouchMode oldTouchMode = _touchMode;
     if (const char* value = get_variable(Keys::TOUCH_MODE); !string_is_empty(value)) {
@@ -959,19 +949,11 @@ static bool melonds::config::parse_screen_options() noexcept {
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (_touchMode != oldTouchMode) {
+        // May need to refresh the screen if the touch mode changed,
+        // as we may need to start (or stop) drawing a cursor.
         needsOpenGlRefresh = true;
     }
 #endif
-
-    if (const char* value = get_variable(Keys::SWAPSCREEN_MODE); !string_is_empty(value)) {
-        if (string_is_equal(value, Values::TOGGLE))
-            _screenSwapMode = ScreenSwapMode::Toggle;
-        else
-            _screenSwapMode = ScreenSwapMode::Hold;
-    } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", Keys::SWAPSCREEN_MODE, Values::TOGGLE);
-        _screenSwapMode = ScreenSwapMode::Toggle;
-    }
 
     if (optional<int> value = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, MAX_SCREEN_LAYOUTS)) {
         _numberOfScreenLayouts = *value;
@@ -1269,15 +1251,10 @@ static void melonds::config::apply_save_options(const optional<NDSHeader>& heade
 }
 
 static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout) noexcept {
-    screenLayout.SetLayout(screen::ScreenLayout());
+    screenLayout.SetLayouts(screen::ScreenLayouts(), screen::NumberOfScreenLayouts());
     screenLayout.HybridSmallScreenLayout(screen::SmallScreenLayout());
     screenLayout.ScreenGap(screen::ScreenGap());
     screenLayout.HybridRatio(screen::HybridRatio());
-    if (melonds::render::CurrentRenderer() == Renderer::None) {
-        screenLayout.Update(video::ConfiguredRenderer());
-    } else {
-        screenLayout.Update(melonds::render::CurrentRenderer());
-    }
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
@@ -1674,43 +1651,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::MOUSE
-    },
-    {
-        Config::Retro::Keys::SWAPSCREEN_MODE,
-        "Swap Screen Mode",
-        nullptr,
-        "Choose if the 'Swap screens' button should work on press or on hold.",
-        nullptr,
-        Config::Retro::Category::SCREEN,
-        {
-            {Config::Retro::Values::TOGGLE, "Toggle"},
-            {Config::Retro::Values::HOLD, "Hold"},
-            {nullptr, nullptr},
-        },
-        Config::Retro::Values::TOGGLE
-    },
-    {
-        Config::Retro::Keys::SCREEN_LAYOUT,
-        "Screen Layout",
-        nullptr,
-        "Choose how many screens should be displayed and how they should be displayed.",
-        nullptr,
-        Config::Retro::Category::SCREEN,
-        {
-            {Config::Retro::Values::TOP_BOTTOM, "Top/Bottom"},
-            {Config::Retro::Values::BOTTOM_TOP, "Bottom/Top"},
-            {Config::Retro::Values::LEFT_RIGHT, "Left/Right"},
-            {Config::Retro::Values::RIGHT_LEFT, "Right/Left"},
-            {Config::Retro::Values::TOP, "Top Only"},
-            {Config::Retro::Values::BOTTOM, "Bottom Only"},
-            {Config::Retro::Values::HYBRID_TOP, "Hybrid (Focus Top)"},
-            {Config::Retro::Values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-            {Config::Retro::Values::ROTATE_LEFT, "Rotated Left"},
-            {Config::Retro::Values::ROTATE_RIGHT, "Rotated Right"},
-            {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
-            {nullptr, nullptr},
-        },
-        Config::Retro::Values::TOP_BOTTOM
     },
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     {

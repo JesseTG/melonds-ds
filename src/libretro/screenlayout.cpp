@@ -23,6 +23,8 @@
 melonds::ScreenLayoutData::ScreenLayoutData() {
     this->buffer_ptr = nullptr;
     this->hybrid_ratio = 2;
+    this->_dirty = true; // Uninitialized
+    this->_numberOfLayouts = 1;
 }
 
 melonds::ScreenLayoutData::~ScreenLayoutData() {
@@ -98,7 +100,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId s
 void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
     auto *base_offset = (uint32_t *) buffer_ptr;
 
-    uint32_t scale = layout == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
+    uint32_t scale = Layout() == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
     float cursorSize = melonds::config::video::CursorSize();
     uint32_t start_y = std::clamp<float>(y - cursorSize, 0, screen_height) * scale;
     uint32_t end_y = std::clamp<float>(y + cursorSize, 0, screen_height) * scale;
@@ -234,7 +236,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->buffer_height = (this->screen_height * this->hybrid_ratio);
             this->buffer_stride = this->buffer_width * pixel_size;
 
-            if (layout == ScreenLayout::HybridTop) {
+            if (Layout() == ScreenLayout::HybridTop) {
                 this->touch_offset_x = (this->screen_width * this->hybrid_ratio) + (this->hybrid_ratio / 2);
                 this->touch_offset_y = (this->screen_height * (this->hybrid_ratio - 1));
             } else {
@@ -260,29 +262,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             memset(this->buffer_ptr, 0, new_size);
         }
     }
-}
 
-
-melonds::ScreenLayout melonds::SwapLayout(ScreenLayout layout) noexcept {
-    switch (layout) {
-        case ScreenLayout::BottomOnly:
-            return ScreenLayout::TopOnly;
-        case ScreenLayout::TopOnly:
-            return ScreenLayout::BottomOnly;
-        case ScreenLayout::BottomTop:
-            return ScreenLayout::TopBottom;
-        case ScreenLayout::TopBottom:
-            return ScreenLayout::BottomTop;
-        case ScreenLayout::LeftRight:
-            return ScreenLayout::RightLeft;
-        case ScreenLayout::RightLeft:
-            return ScreenLayout::LeftRight;
-        case ScreenLayout::HybridTop:
-            return ScreenLayout::HybridBottom;
-        case ScreenLayout::HybridBottom:
-            return ScreenLayout::HybridTop;
-        default:
-            // No swap for other types
-            return layout;
-    }
+    _dirty = false;
 }

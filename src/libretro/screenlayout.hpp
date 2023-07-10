@@ -28,8 +28,6 @@ namespace melonds {
     /// The native height of the Nintendo DS screens, in pixels
     constexpr int VIDEO_HEIGHT = 192;
 
-    ScreenLayout SwapLayout(ScreenLayout layout) noexcept;
-
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
@@ -40,6 +38,8 @@ namespace melonds {
         void Clear();
 
         void Update(Renderer renderer) noexcept;
+
+        bool Dirty() const noexcept { return _dirty; }
 
         void* Buffer() noexcept { return buffer_ptr; }
         const void* Buffer() const noexcept { return buffer_ptr; }
@@ -52,22 +52,50 @@ namespace melonds {
         unsigned ScreenWidth() const noexcept { return screen_width; }
         unsigned ScreenHeight() const noexcept { return screen_height; }
 
-        ScreenLayout Layout() const noexcept { return layout; }
-        void SetLayout(ScreenLayout _layout) noexcept { this->layout = _layout; }
+        unsigned LayoutIndex() const noexcept { return _layoutIndex; }
+        unsigned NumberOfLayouts() const noexcept { return _numberOfLayouts; }
+        ScreenLayout Layout() const noexcept { return _layouts[_layoutIndex]; }
+        void SetLayouts(const std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS>& layouts, unsigned numberOfLayouts) noexcept {
+            ScreenLayout oldLayout = Layout();
 
-        bool IsHybridLayout() const noexcept { return layout == ScreenLayout::HybridTop || layout == ScreenLayout::HybridBottom; }
+            if (_layoutIndex >= numberOfLayouts) {
+                _layoutIndex = numberOfLayouts - 1;
+            }
+            _layouts = layouts;
+            _numberOfLayouts = numberOfLayouts;
+
+            if (oldLayout != Layout()) _dirty = true;
+        }
+
+        void NextLayout() noexcept {
+            ScreenLayout oldLayout = Layout();
+            _layoutIndex = (_layoutIndex + 1) % _numberOfLayouts;
+
+            if (oldLayout != Layout()) _dirty = true;
+        }
+
+        bool IsHybridLayout() const noexcept { return Layout() == ScreenLayout::HybridTop || Layout() == ScreenLayout::HybridBottom; }
         SmallScreenLayout HybridSmallScreenLayout() const noexcept { return hybrid_small_screen; }
-        void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept { hybrid_small_screen = _layout; }
+        void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept {
+            if (IsHybridLayout() && _layout != hybrid_small_screen) _dirty = true;
+            hybrid_small_screen = _layout;
+        }
 
-        bool TopScreenEnabled() const noexcept { return layout != ScreenLayout::BottomOnly; }
-        bool BottomScreenEnabled() const noexcept { return layout != ScreenLayout::TopOnly; }
+        bool TopScreenEnabled() const noexcept { return Layout() != ScreenLayout::BottomOnly; }
+        bool BottomScreenEnabled() const noexcept { return Layout() != ScreenLayout::TopOnly; }
 
         unsigned ScreenGap() const noexcept { return screen_gap_unscaled; }
-        void ScreenGap(unsigned _screen_gap) noexcept { screen_gap_unscaled = _screen_gap; }
+        void ScreenGap(unsigned _screen_gap) noexcept {
+            if (_screen_gap != screen_gap_unscaled) _dirty = true;
+            screen_gap_unscaled = _screen_gap;
+        }
         unsigned ScaledScreenGap() const noexcept { return screen_gap_unscaled * scale; }
 
         unsigned HybridRatio() const noexcept { return hybrid_ratio; }
-        void HybridRatio(unsigned _hybrid_ratio) noexcept { hybrid_ratio = _hybrid_ratio; }
+        void HybridRatio(unsigned _hybrid_ratio) noexcept {
+            if (IsHybridLayout() && _hybrid_ratio != hybrid_ratio) _dirty = true;
+            hybrid_ratio = _hybrid_ratio;
+        }
 
         unsigned TopScreenOffset() const noexcept { return top_screen_offset; }
         unsigned BottomScreenOffset() const noexcept { return bottom_screen_offset; }
@@ -75,6 +103,7 @@ namespace melonds {
         unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
         unsigned TouchOffsetY() const noexcept { return touch_offset_y; }
     private:
+        bool _dirty;
         bool direct_copy;
 
         unsigned pixel_size;
@@ -93,13 +122,16 @@ namespace melonds {
         SmallScreenLayout hybrid_small_screen;
         unsigned hybrid_ratio;
 
+        unsigned _layoutIndex;
+        unsigned _numberOfLayouts;
+        std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _layouts;
+
         // TODO: Move the buffer to a separate class
         unsigned buffer_width;
         unsigned buffer_height;
         unsigned buffer_stride;
         size_t buffer_len;
         uint16_t *buffer_ptr;
-        ScreenLayout layout;
     };
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP

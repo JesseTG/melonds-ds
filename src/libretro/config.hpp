@@ -38,11 +38,7 @@ namespace melonds {
     );
 
     /// Called when settings have been updated mid-game
-    void UpdateConfig(
-        const std::optional<struct retro_game_info>& nds_info,
-        const std::optional<NDSHeader>& header,
-        ScreenLayoutData& screenLayout
-    ) noexcept;
+    void UpdateConfig(ScreenLayoutData& screenLayout) noexcept;
     bool update_option_visibility();
     extern struct retro_core_options_v2 options_us;
     extern struct retro_core_option_v2_definition option_defs_us[];
@@ -226,10 +222,8 @@ namespace melonds {
             constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
             [[nodiscard]] unsigned NumberOfScreenLayouts() noexcept;
             [[nodiscard]] std::array<ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept;
-            [[nodiscard]] [[deprecated("Use ScreenLayouts instead")]] ScreenLayout ScreenLayout() noexcept;
             [[nodiscard]] unsigned ScreenGap() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
-            [[nodiscard]] [[deprecated("Use ScreenLayouts instead")]] ScreenSwapMode ScreenSwapMode() noexcept;
             [[nodiscard]] SmallScreenLayout SmallScreenLayout() noexcept;
             [[nodiscard]] TouchMode TouchMode() noexcept;
         }
