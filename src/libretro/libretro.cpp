@@ -345,9 +345,8 @@ PUBLIC_SYMBOL void retro_run(void) {
 
         struct retro_system_av_info updated_av_info{};
         retro_get_system_av_info(&updated_av_info);
-        retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &updated_av_info);
+        retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &updated_av_info.geometry);
         screenLayout.Clear();
-        // TODO: Replace with RETRO_ENVIRONMENT_SET_GEOMETRY (requires fixing hybrid mode)
     }
 }
 
