@@ -91,7 +91,7 @@ bool melonds::opengl::Initialize() {
     params.context_destroy = context_destroy;
     params.environ_cb = retro::environment;
     params.stencil = false;
-    params.framebuffer_lock = context_framebuffer_lock;
+    params.framebuffer_lock = nullptr;
 
     return glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params);
 }
@@ -458,10 +458,6 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(screen_vertices), screen_vertices);
-}
-
-static bool melonds::opengl::context_framebuffer_lock(void *data) {
-    return false;
 }
 
 // TODO: Store in a .glsl file, but use CMake to embed it
