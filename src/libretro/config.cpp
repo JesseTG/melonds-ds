@@ -1663,6 +1663,21 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
     },
 #endif
     {
+        Config::Retro::Keys::HYBRID_SMALL_SCREEN,
+        "Hybrid Small Screen Mode",
+        nullptr,
+        "Choose the position of the small screen when using a 'hybrid' mode, or if it should show both screens.",
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::BOTTOM, "Bottom"},
+            {Config::Retro::Values::TOP, "Top"},
+            {Config::Retro::Values::BOTH, "Both"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::BOTTOM
+    },
+    {
         Config::Retro::Keys::SCREEN_GAP,
         "Screen Gap",
         nullptr,
@@ -1686,21 +1701,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         "0"
-    },
-    {
-        Config::Retro::Keys::HYBRID_SMALL_SCREEN,
-        "Hybrid Small Screen Mode",
-        nullptr,
-        "Choose the position of the small screen when using a 'hybrid' mode, or if it should show both screens.",
-        nullptr,
-        Config::Retro::Category::SCREEN,
-        {
-            {Config::Retro::Values::BOTTOM, "Bottom"},
-            {Config::Retro::Values::TOP, "Top"},
-            {Config::Retro::Values::BOTH, "Both"},
-            {nullptr, nullptr},
-        },
-        Config::Retro::Values::BOTTOM
     },
     {
         Config::Retro::Keys::NUMBER_OF_SCREEN_LAYOUTS,
