@@ -40,6 +40,8 @@ extern GLuint default_framebuffer;
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 
 namespace melonds::opengl {
+    // TODO: Introduce a OpenGlState struct to hold all of these variables
+    static bool openGlDebugAvailable = false;
     bool refresh_opengl = true;
     static bool context_initialized = false;
     static GLuint shader[3];
