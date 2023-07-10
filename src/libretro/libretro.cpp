@@ -319,6 +319,15 @@ PUBLIC_SYMBOL void retro_run(void) {
         first_frame_run = true;
     }
 
+    if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+        melonds::UpdateConfig(screenLayout);
+
+        struct retro_system_av_info updated_av_info{};
+        retro_get_system_av_info(&updated_av_info);
+        retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &updated_av_info.geometry);
+        screenLayout.Clear();
+    }
+
     input_state.Update(screenLayout);
 
     if (melonds::render::ReadyToRender()) { // If the global state needed for rendering is ready...
@@ -338,15 +347,6 @@ PUBLIC_SYMBOL void retro_run(void) {
         render::Render(input_state, screenLayout);
         melonds::render_audio();
         melonds::flush_save_data();
-    }
-
-    if (bool updated = false; retro::environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
-        melonds::UpdateConfig(screenLayout);
-
-        struct retro_system_av_info updated_av_info{};
-        retro_get_system_av_info(&updated_av_info);
-        retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &updated_av_info.geometry);
-        screenLayout.Clear();
     }
 }
 
