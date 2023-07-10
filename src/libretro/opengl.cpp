@@ -175,7 +175,6 @@ static void melonds::opengl::ContextReset() noexcept {
     glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
-    // Renderer might be software, but we might also still be blitting with OpenGL
     GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
 
     bool success = setup_opengl();
