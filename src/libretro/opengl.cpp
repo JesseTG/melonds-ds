@@ -119,6 +119,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
     int frontbuf = GPU::FrontBuffer;
     bool virtual_cursor = state.CursorEnabled();
 
+    // Tell OpenGL that we want to draw to (and read from) the screen framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, glsm_get_current_framebuffer());
 
     if (refresh_opengl) {
@@ -152,6 +153,8 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     GPU::CurGLCompositor->BindOutputTexture(frontbuf);
 
+    // Set the filtering mode for the active texture
+    // For simplicity, we'll just use the same filter for both minification and magnification
     GLint filter = config::video::ScreenFilter() == ScreenFilter::Linear ? GL_LINEAR : GL_NEAREST;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
@@ -188,15 +191,20 @@ static void melonds::opengl::ContextReset() noexcept {
         GPU::DeInitRenderer();
     }
 
-    // These glsm_ctl calls always succeed
+    // Initialize all OpenGL function pointers
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
+
+    // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
     glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
+
+    // Start using global OpenGL structures
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
     GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
 
     context_initialized = SetupOpenGl();
 
+    // Stop using OpenGL structures
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
 
     if (context_initialized) {
@@ -244,13 +252,11 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
     if (!OpenGL::LinkShaderProgram(shader))
         return false;
 
-    GLuint uni_id;
-
-    uni_id = glGetUniformBlockIndex(shader[2], "uConfig");
-    glUniformBlockBinding(shader[2], uni_id, 16);
+    GLuint uConfigBlockIndex = glGetUniformBlockIndex(shader[2], "uConfig");
+    glUniformBlockBinding(shader[2], uConfigBlockIndex, 16); // TODO: Where does 16 come from? It's not a size.
 
     glUseProgram(shader[2]);
-    uni_id = glGetUniformLocation(shader[2], "ScreenTex");
+    GLuint uni_id = glGetUniformLocation(shader[2], "ScreenTex");
     glUniform1i(uni_id, 0);
 
     memset(&GL_ShaderConfig, 0, sizeof(GL_ShaderConfig));
