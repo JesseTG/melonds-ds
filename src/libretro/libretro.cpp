@@ -336,13 +336,14 @@ PUBLIC_SYMBOL void retro_run(void) {
 
         if (screenLayout.Dirty()) {
             // If the active screen layout has changed (either by settings or by hotkey)...
-            retro_assert(melonds::render::CurrentRenderer() != Renderer::None);
+            Renderer renderer = melonds::render::CurrentRenderer();
+            retro_assert(renderer != Renderer::None);
 
             // Apply the new screen layout
-            screenLayout.Update(melonds::render::CurrentRenderer());
+            screenLayout.Update(renderer);
 
             // And update the geometry
-            retro_game_geometry geometry = screenLayout.Geometry(melonds::render::CurrentRenderer());
+            retro_game_geometry geometry = screenLayout.Geometry(renderer);
             if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry)) {
                 retro::warn("Failed to update geometry after screen layout change");
             }
