@@ -36,7 +36,7 @@ namespace melonds {
         ~ScreenLayoutData();
         void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
         void CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept;
-        [[deprecate("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
+        [[deprecated("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
         void Clear();
 
         void Update(Renderer renderer) noexcept;
