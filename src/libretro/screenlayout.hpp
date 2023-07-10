@@ -28,6 +28,9 @@ namespace melonds {
     /// The native height of a single Nintendo DS screen, in pixels
     constexpr int NDS_SCREEN_HEIGHT = 192;
 
+    // We require a pixel format of RETRO_PIXEL_FORMAT_XRGB8888, so we can assume 4 bytes here
+    constexpr int PIXEL_SIZE = 4;
+
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
@@ -105,8 +108,6 @@ namespace melonds {
     private:
         bool _dirty;
         bool direct_copy;
-
-        unsigned pixel_size;
         unsigned scale;
 
         unsigned screen_width;

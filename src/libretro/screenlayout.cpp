@@ -33,12 +33,12 @@ melonds::ScreenLayoutData::~ScreenLayoutData() {
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
     if (direct_copy) {
-        memcpy((uint32_t *) buffer_ptr + offset, src, screen_width * screen_height * pixel_size);
+        memcpy((uint32_t *) buffer_ptr + offset, src, screen_width * screen_height * PIXEL_SIZE);
     } else {
         unsigned y;
         for (y = 0; y < screen_height; y++) {
-            memcpy((uint16_t *) buffer_ptr + offset + (y * screen_width * pixel_size),
-                   src + (y * screen_width), screen_width * pixel_size);
+            memcpy((uint16_t *) buffer_ptr + offset + (y * screen_width * PIXEL_SIZE),
+                   src + (y * screen_width), screen_width * PIXEL_SIZE);
         }
     }
 
@@ -77,7 +77,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId s
                           (hybrid_ratio % 2 == 0 ? hybrid_ratio : ((hybrid_ratio / 2) * 4)))
                        // Y
                        + (y * buffer_stride / 2),
-                       src + (y * screen_width), (screen_width) * pixel_size);
+                       src + (y * screen_width), (screen_width) * PIXEL_SIZE);
             }
         }
             break;
@@ -90,7 +90,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId s
                           (hybrid_ratio % 2 == 0 ? hybrid_ratio : ((hybrid_ratio / 2) * 4)))
                        // Y
                        + ((y + (screen_height * (hybrid_ratio - 1))) * buffer_stride / 2),
-                       src + (y * screen_width), (screen_width) * pixel_size);
+                       src + (y * screen_width), (screen_width) * PIXEL_SIZE);
             }
         }
             break;
@@ -127,8 +127,6 @@ void melonds::ScreenLayoutData::Clear() {
 using melonds::ScreenLayoutData;
 
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
-    this->pixel_size = 4; // We hardcode XRGB8888 pixels, so size will always be 4 bytes
-
     if (renderer == Renderer::OpenGl) {
         // To avoid some issues the size should be at least 4x the native res
         if (config::video::ScaleFactor() > 4)
@@ -153,7 +151,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             this->buffer_width = this->screen_width;
             this->buffer_height = this->screen_height * 2 + scaledScreenGap;
-            this->buffer_stride = this->screen_width * pixel_size;
+            this->buffer_stride = this->screen_width * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = this->screen_height + scaledScreenGap;
@@ -167,7 +165,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             this->buffer_width = this->screen_width;
             this->buffer_height = this->screen_height * 2 + scaledScreenGap;
-            this->buffer_stride = this->screen_width * pixel_size;
+            this->buffer_stride = this->screen_width * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
@@ -179,7 +177,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         case ScreenLayout::LeftRight:
             this->buffer_width = this->screen_width * 2;
             this->buffer_height = this->screen_height;
-            this->buffer_stride = this->screen_width * 2 * pixel_size;
+            this->buffer_stride = this->screen_width * 2 * PIXEL_SIZE;
 
             this->touch_offset_x = this->screen_width;
             this->touch_offset_y = 0;
@@ -192,7 +190,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             this->buffer_width = this->screen_width * 2;
             this->buffer_height = this->screen_height;
-            this->buffer_stride = this->screen_width * 2 * pixel_size;
+            this->buffer_stride = this->screen_width * 2 * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
@@ -206,7 +204,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             this->buffer_width = this->screen_width;
             this->buffer_height = this->screen_height;
-            this->buffer_stride = this->screen_width * pixel_size;
+            this->buffer_stride = this->screen_width * PIXEL_SIZE;
 
             // should be disabled in top only
             this->touch_offset_x = 0;
@@ -220,7 +218,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             this->buffer_width = this->screen_width;
             this->buffer_height = this->screen_height;
-            this->buffer_stride = this->screen_width * pixel_size;
+            this->buffer_stride = this->screen_width * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
@@ -234,7 +232,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->buffer_width =
                 (this->screen_width * this->hybrid_ratio) + this->screen_width + (this->hybrid_ratio * 2);
             this->buffer_height = (this->screen_height * this->hybrid_ratio);
-            this->buffer_stride = this->buffer_width * pixel_size;
+            this->buffer_stride = this->buffer_width * PIXEL_SIZE;
 
             if (Layout() == ScreenLayout::HybridTop) {
                 this->touch_offset_x = (this->screen_width * this->hybrid_ratio) + (this->hybrid_ratio / 2);
