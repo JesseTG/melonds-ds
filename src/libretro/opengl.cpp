@@ -32,6 +32,10 @@
 #include "config.hpp"
 #include "render.hpp"
 
+// HACK: Defined in glsm.c, but we need to peek into it occasionally
+extern struct retro_hw_render_callback hw_render;
+extern GLuint default_framebuffer;
+
 namespace melonds::opengl {
     bool refresh_opengl = true;
     static bool context_initialized = false;
