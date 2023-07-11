@@ -49,6 +49,18 @@ runs:
         packages: gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu pkg-config cmake ninja-build extra-cmake-modules dpkg-dev ccache
         version: 1.0-arm
 
+    - name: Install Dependencies (Linux aarch64)
+      if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
+      shell: bash
+      run: |
+        dpkg --add-architecture arm64
+        sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
+        rm /etc/apt/sources.list
+        mv /etc/apt/sources.list{.new,}
+        apt update
+        apt search pkg-config
+        DEBIAN_FRONTEND=noninteractive apt install -y pkg-config-aarch64-linux-gnu libepoxy-dev:arm64
+
     - name: Set Up CCache
       uses: hendrikmuhs/ccache-action@v1.2.9
       with:
