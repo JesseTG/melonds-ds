@@ -48,7 +48,7 @@ runs:
         sudo rm /etc/apt/sources.list
         sudo mv /etc/apt/sources.list{.new,}
         sudo apt update
-        DEBIAN_FRONTEND=noninteractive sudo apt install -y {gcc-10,g++-10,pkg-config}-aarch64-linux-gnu libepoxy-dev:arm64 zlib1g-dev:arm64 zstd:arm64 cmake extra-cmake-modules dpkg-dev
+        DEBIAN_FRONTEND=noninteractive sudo apt install -y {gcc-10,g++-10,pkg-config}-aarch64-linux-gnu libepoxy-dev:arm64 zlib1g-dev:arm64 cmake extra-cmake-modules dpkg-dev
 
     - name: Set Up CCache
       uses: hendrikmuhs/ccache-action@v1.2.9
