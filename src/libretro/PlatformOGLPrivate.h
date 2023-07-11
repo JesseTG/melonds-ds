@@ -54,12 +54,12 @@
 
 #ifndef GL_READ_ONLY
 #define GL_READ_ONLY 0x88B8
+#endif
 
 RETRO_BEGIN_DECLS
 void glDrawBuffer(GLenum buf);
 RETRO_END_DECLS
 
-#endif
 #endif
 
 #endif //MELONDS_DS_PLATFORMOGLPRIVATE_H
