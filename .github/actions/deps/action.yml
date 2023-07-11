@@ -53,13 +53,13 @@ runs:
       if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
       shell: bash
       run: |
-        dpkg --add-architecture arm64
-        sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
-        rm /etc/apt/sources.list
-        mv /etc/apt/sources.list{.new,}
-        apt update
-        apt search pkg-config
-        DEBIAN_FRONTEND=noninteractive apt install -y pkg-config-aarch64-linux-gnu libepoxy-dev:arm64
+        sudo dpkg --add-architecture arm64
+        sudo sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
+        sudo rm /etc/apt/sources.list
+        sudo mv /etc/apt/sources.list{.new,}
+        sudo apt update
+        sudo apt search pkg-config
+        DEBIAN_FRONTEND=noninteractive sudo apt install -y pkg-config-aarch64-linux-gnu libepoxy-dev:arm64
 
     - name: Set Up CCache
       uses: hendrikmuhs/ccache-action@v1.2.9
