@@ -22,16 +22,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 
 find_package(Git)
 
-option(ENABLE_SCCACHE "Build with sccache instead of ccache, if available." OFF)
-if (ENABLE_SCCACHE)
-    find_program(SCCACHE "sccache")
-    if (SCCACHE)
-        message(STATUS "Using sccache (instead of ccache) to speed up compilation")
-        set(CMAKE_C_COMPILER_LAUNCHER ${SCCACHE})
-        set(CMAKE_CXX_COMPILER_LAUNCHER ${SCCACHE})
-    endif()
-endif ()
-
 include(cmake/utils.cmake)
 include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
