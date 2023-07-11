@@ -2,11 +2,6 @@ name: Build (Internal)
 on:
   workflow_call:
     inputs:
-      ccache-dir:
-        description: The directory in which to place the ccache cache.
-        type: string
-        required: false
-        default: "$HOME/.ccache"
       cmake-args:
         description: Additional arguments to pass to CMake.
         type: string
@@ -65,7 +60,6 @@ on:
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
-  CCACHE_DIR: "${{ inputs.ccache-dir }}"
 jobs:
   build:
     strategy:
@@ -86,7 +80,6 @@ jobs:
         with:
           build-dir: ${{ env.BUILD_DIR }}
           ccache-cache-name: ${{ inputs.archive-name }}-${{ matrix.build-type }}
-          ccache-dir: ${{ env.CCACHE_DIR }}
           runs-on: ${{ inputs.runs-on }}
 
       - name: Create build environment

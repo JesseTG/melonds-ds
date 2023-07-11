@@ -4,9 +4,6 @@ inputs:
   build-dir:
     description: The directory in which to build the project.
     required: true
-  ccache-dir:
-    description: CCache base directory
-    required: false
   ccache-cache-name:
     description: CCache cache name
     required: true
