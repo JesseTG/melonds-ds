@@ -6,7 +6,7 @@ inputs:
     required: true
   ccache:
     description: CCache variant
-    required: true
+    required: false
     default: ccache
   ccache-cache-name:
     description: CCache cache name

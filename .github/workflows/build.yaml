@@ -5,7 +5,7 @@ on:
       ccache:
         description: CCache variant
         type: string
-        required: true
+        required: false
         default: ccache
       cmake-args:
         description: Additional arguments to pass to CMake.
