@@ -42,7 +42,7 @@ jobs:
       archive-name: melondsds_libretro-linux-aarch64
       runs-on: ubuntu-latest
       lib-ext: so
-      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc-10 -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++-10
+      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc-10 -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++-10 -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config
 
   android:
     name: Android
