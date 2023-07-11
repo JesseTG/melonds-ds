@@ -1773,7 +1773,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::LEFT_RIGHT
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT3,
@@ -1796,7 +1796,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::TOP
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT4,
@@ -1819,7 +1819,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::BOTTOM
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT5,
@@ -1842,7 +1842,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::HYBRID_TOP
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT6,
@@ -1865,7 +1865,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::HYBRID_BOTTOM
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT7,
@@ -1888,7 +1888,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::BOTTOM_TOP
     },
     {
         Config::Retro::Keys::SCREEN_LAYOUT8,
@@ -1911,7 +1911,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {Config::Retro::Values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        Config::Retro::Values::TOP_BOTTOM
+        Config::Retro::Values::RIGHT_LEFT
     },
 
     // Homebrew Save Data
