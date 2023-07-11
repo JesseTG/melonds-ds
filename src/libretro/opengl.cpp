@@ -27,6 +27,7 @@
 #include "embedded/melondsds_fragment_shader.h"
 #include "embedded/melondsds_vertex_shader.h"
 #include "PlatformOGLPrivate.h"
+#include "exceptions.hpp"
 #include "screenlayout.hpp"
 #include "input.hpp"
 #include "environment.hpp"
@@ -61,7 +62,7 @@ namespace melonds::opengl {
 
     static void context_destroy();
 
-    static bool SetupOpenGl() noexcept;
+    static void SetupOpenGl();
 
     static void InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept;
 }
@@ -183,7 +184,7 @@ void melonds::opengl::deinitialize() {
     GPU::InitRenderer(false);
 }
 
-static void melonds::opengl::ContextReset() noexcept {
+static void melonds::opengl::ContextReset() noexcept try {
     retro::debug("melonds::opengl::ContextReset()");
     if (UsingOpenGl() && GPU3D::CurrentRenderer) { // If we're using OpenGL, but there's already a renderer in place...
         retro::debug("GPU3D renderer is assigned; deinitializing it before resetting the context.");
@@ -201,16 +202,32 @@ static void melonds::opengl::ContextReset() noexcept {
 
     GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
 
-    context_initialized = SetupOpenGl();
+    SetupOpenGl();
+    context_initialized = true;
 
     // Stop using OpenGL structures
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
 
-    if (context_initialized) {
-        retro::debug("OpenGL context reset successfully.");
-    } else {
-        retro::error("OpenGL context reset failed.");
-    }
+    retro::debug("OpenGL context reset successfully.");
+}
+catch (const melonds::emulator_exception& e) {
+    context_initialized = false;
+    retro::error(e.what());
+    retro::set_error_message(e.user_message());
+    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+    retro::shutdown();
+}
+catch (const std::exception& e) {
+    context_initialized = false;
+    retro::set_error_message(e.what());
+    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+    retro::shutdown();
+}
+catch (...) {
+    context_initialized = false;
+    retro::set_error_message("OpenGL context initialization failed with an unknown error. Please report this issue.");
+    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+    retro::shutdown();
 }
 
 static void melonds::opengl::context_destroy() {
@@ -226,7 +243,7 @@ static void melonds::opengl::context_destroy() {
 }
 
 // Sets up OpenGL resources specific to melonDS
-static bool melonds::opengl::SetupOpenGl() noexcept {
+static void melonds::opengl::SetupOpenGl() {
     retro::debug("melonds::opengl::SetupOpenGl()");
 
     openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
@@ -235,7 +252,7 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
     }
 
     if (!OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader, SHADER_PROGRAM_NAME))
-        return false;
+        throw melonds::shader_compilation_failed_exception("Failed to compile melonDS DS shaders.");
 
     if (openGlDebugAvailable) {
         glObjectLabel(GL_SHADER, shader[0], -1, "melonDS DS Vertex Shader");
@@ -248,7 +265,7 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
     glBindFragDataLocation(shader[2], 0, "oColor");
 
     if (!OpenGL::LinkShaderProgram(shader))
-        return false;
+        throw melonds::shader_compilation_failed_exception("Failed to link compiled shaders.");
 
     GLuint uConfigBlockIndex = glGetUniformBlockIndex(shader[2], "uConfig");
     glUniformBlockBinding(shader[2], uConfigBlockIndex, 16); // TODO: Where does 16 come from? It's not a size.
@@ -297,8 +314,6 @@ static bool melonds::opengl::SetupOpenGl() noexcept {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, NDS_SCREEN_WIDTH * 3 + 1, NDS_SCREEN_HEIGHT * 2, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr);
 
     refresh_opengl = true;
-
-    return true;
 }
 
 void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept {

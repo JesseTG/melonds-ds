@@ -63,6 +63,12 @@ namespace melonds
         explicit missing_metadata_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
         missing_metadata_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
     };
+
+    class shader_compilation_failed_exception : public emulator_exception {
+    public:
+        explicit shader_compilation_failed_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
+        shader_compilation_failed_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
+    };
 }
 
 #endif //MELONDS_DS_EXCEPTIONS_HPP
