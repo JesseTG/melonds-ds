@@ -15,6 +15,7 @@ add_library(libretro MODULE
     environment.hpp
     exceptions.cpp
     exceptions.hpp
+    glsym_private.cpp
     glsym_private.h
     info.cpp
     info.hpp
@@ -40,7 +41,7 @@ add_library(libretro MODULE
     screenlayout.cpp
     screenlayout.hpp
     utils.cpp
-    utils.hpp glsym_private.cpp)
+    utils.hpp)
 
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
