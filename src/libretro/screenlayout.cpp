@@ -143,6 +143,9 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     unsigned scaledScreenGap = ScaledScreenGap();
 
     switch (Layout()) {
+        case ScreenLayout::TurnLeft:
+        case ScreenLayout::TurnRight:
+        case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
             this->direct_copy = true;
 
@@ -240,7 +243,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             }
 
             break;
-        // TODO: Implement rotated-left, rotated-right, and upside-down layouts
     }
 
     if (renderer == Renderer::OpenGl && this->buffer_ptr != nullptr) {

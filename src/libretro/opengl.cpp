@@ -364,8 +364,10 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
 
     const float pixel_pad = 1.0f / (192 * 2 + 2);
 
-    // TODO: Implement rotated and upside-down layouts
     switch (screenLayout.Layout()) {
+        case ScreenLayout::TurnRight:
+        case ScreenLayout::TurnLeft:
+        case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
             bottom_screen_y = screen_height + screen_gap;
             break;
