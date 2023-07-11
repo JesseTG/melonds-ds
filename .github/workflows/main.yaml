@@ -66,6 +66,7 @@ jobs:
     with:
       runs-on: macos-latest
       archive-name: melondsds_libretro-ios
+      info-dir: info
       lib-ext: dylib
       lib-name: melondsds_libretro_ios
       cmake-args: -DENABLE_OGLRENDERER=OFF -DENABLE_JIT=OFF --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=13.0 -DDEPLOYMENT_TARGET=13 -DENABLE_STRICT_TRY_COMPILE_INT:BOOL=ON
