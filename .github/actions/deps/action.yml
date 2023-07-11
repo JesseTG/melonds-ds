@@ -4,6 +4,10 @@ inputs:
   build-dir:
     description: The directory in which to build the project.
     required: true
+  ccache:
+    description: CCache variant
+    required: true
+    default: ccache
   ccache-cache-name:
     description: CCache cache name
     required: true
@@ -25,7 +29,7 @@ runs:
       with:
         msystem: MINGW64
         update: true
-        install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ccache
+        install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ccache mingw-w64-x86_64-sccache
 
     - name: Install Dependencies (macOS)
       if: ${{ contains(inputs.runs-on, 'macos') }}
@@ -54,3 +58,4 @@ runs:
       uses: hendrikmuhs/ccache-action@v1.2.9
       with:
         key: ${{ inputs.ccache-cache-name }}
+        variant: ${{ inputs.ccache }}
