@@ -54,7 +54,7 @@ runs:
         sudo apt-get update
 
     - name: Install Dependencies (Linux aarch64)
-      if: ${{ contains(inputs.ccache-cache-name, 'linux-aarch64') }}
+      if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu pkg-config-aarch64-linux-gnu libepoxy-dev:arm64 cmake ninja-build extra-cmake-modules dpkg-dev ccache
