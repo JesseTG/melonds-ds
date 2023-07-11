@@ -25,8 +25,17 @@ namespace retro {
     constexpr unsigned DEFAULT_ERROR_DURATION = 5000; // in ms
     constexpr unsigned DEFAULT_ERROR_PRIORITY = 3;
 
+    enum class ScreenOrientation {
+        Normal = 0,
+        RotatedLeft = 1,
+        UpsideDown = 2,
+        RotatedRight = 3,
+    };
+
     /// For use by other parts of the core
     bool environment(unsigned cmd, void *data) noexcept;
+
+    bool set_screen_rotation(ScreenOrientation orientation) noexcept;
 
     [[nodiscard]] bool is_variable_updated() noexcept;
 

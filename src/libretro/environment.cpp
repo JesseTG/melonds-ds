@@ -88,6 +88,12 @@ void retro::video_refresh(const void* data, unsigned width, unsigned height, siz
     }
 }
 
+bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
+    bool rotated = false;
+    rotated = environment(RETRO_ENVIRONMENT_SET_ROTATION, &orientation);
+    return rotated;
+}
+
 bool retro::shutdown() noexcept {
     return environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
 }
