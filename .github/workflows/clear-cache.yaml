@@ -1,7 +1,8 @@
 name: Clear Cache
 on:
   workflow_dispatch:
-
+permissions:
+  actions: write
 jobs:
   clear-cache:
     name: Clear Cache
