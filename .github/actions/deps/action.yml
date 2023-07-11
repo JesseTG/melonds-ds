@@ -36,7 +36,7 @@ runs:
       shell: bash
       run: brew install pkg-config cmake ninja ccache
 
-    - name: Install Dependencies (Linux x86_64)
+    - name: Install Dependencies (Linux x86_64/Android)
       if: ${{ contains(inputs.runs-on, 'ubuntu') && !contains(inputs.ccache-cache-name, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
