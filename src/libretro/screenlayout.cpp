@@ -245,6 +245,12 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             break;
     }
 
+    if (retro::set_screen_rotation(LayoutOrientation())) {
+        // TODO: Set input transformation matrix
+    } else {
+        retro::set_error_message("Failed to rotate screen; effective layout will be Top/Bottom instead.");
+    }
+
     if (renderer == Renderer::OpenGl && this->buffer_ptr != nullptr) {
         // not needed anymore :)
         free(this->buffer_ptr);

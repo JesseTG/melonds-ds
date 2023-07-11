@@ -21,6 +21,8 @@
 #include <glsm/glsm.h>
 #include <retro_assert.h>
 
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <GPU.h>
 #include <OpenGLSupport.h>
 
@@ -33,6 +35,9 @@
 #include "environment.hpp"
 #include "config.hpp"
 #include "render.hpp"
+
+using glm::vec2;
+using glm::vec4;
 
 // HACK: Defined in glsm.c, but we need to peek into it occasionally
 extern struct retro_hw_render_callback hw_render;
@@ -50,11 +55,10 @@ namespace melonds::opengl {
     static GLuint vao, vbo;
 
     static struct {
-        GLfloat uScreenSize[2];
+        vec2 uScreenSize;
         u32 u3DScale;
         u32 uFilterMode;
-        GLfloat cursorPos[4];
-
+        vec4 cursorPos;
     } GL_ShaderConfig;
     static GLuint ubo;
 
@@ -322,13 +326,9 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     GPU::RenderSettings render_settings = melonds::config::video::RenderSettings();
     GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
 
-    GL_ShaderConfig.uScreenSize[0] = (float) screenLayout.BufferWidth();
-    GL_ShaderConfig.uScreenSize[1] = (float) screenLayout.BufferHeight();
+    GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();
     GL_ShaderConfig.u3DScale = config::video::ScaleFactor();
-    GL_ShaderConfig.cursorPos[0] = -1.0f;
-    GL_ShaderConfig.cursorPos[1] = -1.0f;
-    GL_ShaderConfig.cursorPos[2] = -1.0f;
-    GL_ShaderConfig.cursorPos[3] = -1.0f;
+    GL_ShaderConfig.cursorPos = vec4(-1);
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
     void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);

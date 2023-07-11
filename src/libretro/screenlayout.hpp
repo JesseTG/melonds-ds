@@ -25,6 +25,7 @@
 #include <glm/vec2.hpp>
 
 #include "config.hpp"
+#include "environment.hpp"
 
 namespace melonds {
     /// The native width of a single Nintendo DS screen, in pixels
@@ -54,11 +55,29 @@ namespace melonds {
 
         unsigned BufferWidth() const noexcept { return buffer_width; }
         unsigned BufferHeight() const noexcept { return buffer_height; }
+        glm::uvec2 BufferSize() const noexcept { return glm::uvec2(buffer_width, buffer_height); }
         unsigned BufferStride() const noexcept { return buffer_stride; }
-        float BufferAspectRatio() const noexcept { return float(buffer_width) / float(buffer_height); }
+        float BufferAspectRatio() const noexcept {
+            switch (Layout()) {
+                case ScreenLayout::TurnLeft:
+                case ScreenLayout::TurnRight:
+                    return float(buffer_height) / float(buffer_width);
+                default:
+                    return float(buffer_width) / float(buffer_height);
+            }
+        }
 
         unsigned ScreenWidth() const noexcept { return screen_size.x; }
         unsigned ScreenHeight() const noexcept { return screen_size.y; }
+        float ScreenAspectRatio() const noexcept {
+            switch (Layout()) {
+                case ScreenLayout::TurnLeft:
+                case ScreenLayout::TurnRight:
+                    return float(screen_size.y) / float(screen_size.x);
+                default:
+                    return float(screen_size.x) / float(screen_size.y);
+            }
+        }
         glm::uvec2 ScreenSize() const noexcept { return screen_size; }
 
         unsigned LayoutIndex() const noexcept { return _layoutIndex; }
@@ -88,6 +107,30 @@ namespace melonds {
         void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept {
             if (IsHybridLayout() && _layout != hybrid_small_screen) _dirty = true;
             hybrid_small_screen = _layout;
+        }
+
+        bool IsLayoutRotated() const noexcept {
+            switch (Layout()) {
+                case ScreenLayout::TurnLeft:
+                case ScreenLayout::TurnRight:
+                case ScreenLayout::UpsideDown:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        retro::ScreenOrientation LayoutOrientation() const noexcept {
+            switch (Layout()) {
+                case ScreenLayout::TurnLeft:
+                    return retro::ScreenOrientation::RotatedLeft;
+                case ScreenLayout::TurnRight:
+                    return retro::ScreenOrientation::RotatedRight;
+                case ScreenLayout::UpsideDown:
+                    return retro::ScreenOrientation::UpsideDown;
+                default:
+                    return retro::ScreenOrientation::Normal;
+            }
         }
 
         bool TopScreenEnabled() const noexcept { return Layout() != ScreenLayout::BottomOnly; }
@@ -143,14 +186,17 @@ namespace melonds {
     };
 
     constexpr unsigned MaxSoftwareRenderedWidth() noexcept {
-        using config::screen::MAX_SOFTWARE_HYBRID_RATIO;
-        return std::max(
+        using namespace config::screen;
+        return std::max({
             // Left/Right or Right/Left layout
             NDS_SCREEN_WIDTH * 2u,
 
             // Hybrid layout
-            (NDS_SCREEN_WIDTH * MAX_SOFTWARE_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (MAX_SOFTWARE_HYBRID_RATIO * 2)
-        );
+            (NDS_SCREEN_WIDTH * MAX_SOFTWARE_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (MAX_SOFTWARE_HYBRID_RATIO * 2),
+
+            // Sideways layout
+            NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP,
+        });
     }
 
     constexpr unsigned MaxSoftwareRenderedHeight() noexcept {
@@ -159,17 +205,20 @@ namespace melonds {
     }
 
     constexpr unsigned MaxOpenGlRenderedWidth() noexcept {
-        using config::screen::MAX_HYBRID_RATIO;
+        using namespace config::screen;
         unsigned scale = config::video::MAX_OPENGL_SCALE;
         // TODO: What if this is too big?
 
-        return std::max(
+        return std::max({
             // Left/Right or Right/Left layout
             NDS_SCREEN_WIDTH * scale * 2,
 
             // Hybrid layout
-            (NDS_SCREEN_WIDTH * scale * MAX_HYBRID_RATIO) + (NDS_SCREEN_WIDTH * scale) + MAX_HYBRID_RATIO * 2
-        );
+            (NDS_SCREEN_WIDTH * scale * MAX_HYBRID_RATIO) + (NDS_SCREEN_WIDTH * scale) + MAX_HYBRID_RATIO * 2,
+
+            // Sideways layout
+            scale * (NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP),
+        });
     }
 
     constexpr unsigned MaxOpenGlRenderedHeight() noexcept {
