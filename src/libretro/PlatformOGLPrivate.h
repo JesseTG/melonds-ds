@@ -25,6 +25,22 @@
 #include <glsym/glsym.h>
 #endif
 
+#ifndef GL_BUFFER
+#define GL_BUFFER 0x82E0
+#endif
+
+#ifndef GL_PROGRAM
+#define GL_PROGRAM 0x82E2
+#endif
+
+#ifndef GL_VERTEX_ARRAY
+#define GL_VERTEX_ARRAY 0x8074
+#endif
+
+#ifndef GL_SHADER
+#define GL_SHADER 0x82E1
+#endif
+
 #ifdef HAVE_OPENGLES
 #define GL_UNSIGNED_SHORT_1_5_5_5_REV GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT
 #define GL_WRITE_ONLY GL_WRITE_ONLY_OES
