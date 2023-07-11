@@ -6,6 +6,7 @@ on:
         description: The directory in which to place the ccache cache.
         type: string
         required: false
+        default: "$HOME/.ccache"
       cmake-args:
         description: Additional arguments to pass to CMake.
         type: string
