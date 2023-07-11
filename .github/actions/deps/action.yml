@@ -29,7 +29,7 @@ runs:
       with:
         msystem: MINGW64
         update: true
-        install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-sccache
+        install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
 
     - name: Install Dependencies (macOS)
       if: ${{ contains(inputs.runs-on, 'macos') }}
