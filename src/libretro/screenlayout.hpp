@@ -22,6 +22,8 @@
 
 #include <libretro.h>
 
+#include <glm/vec2.hpp>
+
 #include "config.hpp"
 
 namespace melonds {
@@ -55,8 +57,9 @@ namespace melonds {
         unsigned BufferStride() const noexcept { return buffer_stride; }
         float BufferAspectRatio() const noexcept { return float(buffer_width) / float(buffer_height); }
 
-        unsigned ScreenWidth() const noexcept { return screen_width; }
-        unsigned ScreenHeight() const noexcept { return screen_height; }
+        unsigned ScreenWidth() const noexcept { return screen_size.x; }
+        unsigned ScreenHeight() const noexcept { return screen_size.y; }
+        glm::uvec2 ScreenSize() const noexcept { return screen_size; }
 
         unsigned LayoutIndex() const noexcept { return _layoutIndex; }
         unsigned NumberOfLayouts() const noexcept { return _numberOfLayouts; }
@@ -115,8 +118,7 @@ namespace melonds {
         bool direct_copy;
         unsigned scale;
 
-        unsigned screen_width;
-        unsigned screen_height;
+        glm::uvec2 screen_size;
         unsigned top_screen_offset;
         unsigned bottom_screen_offset;
 
