@@ -45,13 +45,19 @@ extern struct retro_hw_render_callback hw_render;
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 
 namespace melonds::opengl {
+    struct Vertex {
+        vec2 position;
+        vec2 texcoord;
+    };
+
+    static_assert(sizeof(Vertex) == sizeof(vec2::value_type) * 4);
     // TODO: Introduce a OpenGlState struct to hold all of these variables
     static bool openGlDebugAvailable = false;
     bool refresh_opengl = true;
     static bool context_initialized = false;
     static GLuint shader[3];
     static GLuint screen_framebuffer_texture;
-    static float screen_vertices[72];
+    static Vertex screen_vertices[18];
     static GLuint vao, vbo;
 
     static struct {
@@ -379,127 +385,186 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
             topScreen.y = screenSize.y; // ditto
             break;
         case ScreenLayout::HybridTop:
-            primary.x = screenSize.x * screenLayout.HybridRatio();
-            primary.y = screenSize.y * screenLayout.HybridRatio();
+            primary = screenSize * static_cast<float>(screenLayout.HybridRatio());
 
-            primaryTexV0.x = 0.0f;
-            primaryTexV0.y = 0.0f;
-            primaryTexV1.x = 0.0f;
-            primaryTexV1.y = 0.5f - pixel_pad;
-            primaryTexV2.x = 1.0f;
-            primaryTexV2.y = 0.5f - pixel_pad;
-            primaryTexV3.x = 0.0f;
-            primaryTexV3.y = 0.0f;
-            primaryTexV4.x = 1.0f;
-            primaryTexV4.y = 0.0f;
-            primaryTexV5.x = 1.0f;
-            primaryTexV5.y = 0.5f - pixel_pad;
+            primaryTexV0 = vec2(0);
+            primaryTexV1 = vec2(0, 0.5f - pixel_pad);
+            primaryTexV2 = vec2(1, 0.5f - pixel_pad);
+            primaryTexV3 = vec2(0);
+            primaryTexV4 = vec2(1, 0);
+            primaryTexV5 = vec2(1, 0.5f - pixel_pad);
 
             break;
         case ScreenLayout::HybridBottom:
-            primary.x = screenSize.x * screenLayout.HybridRatio();
-            primary.y = screenSize.y * screenLayout.HybridRatio();
+            primary = screenSize * static_cast<float>(screenLayout.HybridRatio());
 
-            primaryTexV0.x = 0.0f;
-            primaryTexV0.y = 0.5f + pixel_pad;
-            primaryTexV1.x = 0.0f;
-            primaryTexV1.y = 1.0f;
-            primaryTexV2.x = 1.0f;
-            primaryTexV2.y = 1.0f;
-            primaryTexV3.x = 0.0f;
-            primaryTexV3.y = 0.5f + pixel_pad;
-            primaryTexV4.x = 1.0f;
-            primaryTexV4.y = 0.5f + pixel_pad;
-            primaryTexV5.x = 1.0f;
-            primaryTexV5.y = 01.0;
+            primaryTexV0 = vec2(0, 0.5f + pixel_pad);
+            primaryTexV1 = vec2(0, 1);
+            primaryTexV2 = vec2(1, 1);
+            primaryTexV3 = vec2(0.0f, 0.5f + pixel_pad);
+            primaryTexV4 = vec2(1.0f, 0.5f + pixel_pad);
+            primaryTexV5 = vec2(1, 1);
 
             break;
     }
-
-#define SETVERTEX(i, x, y, t_x, t_y) \
-    do {                               \
-        screen_vertices[(4 * i) + 0] = x; \
-        screen_vertices[(4 * i) + 1] = y; \
-        screen_vertices[(4 * i) + 2] = t_x; \
-        screen_vertices[(4 * i) + 3] = t_y; \
-    } while (false)
 
     ScreenLayout layout = screenLayout.Layout();
     SmallScreenLayout smallScreenLayout = screenLayout.HybridSmallScreenLayout();
     if (screenLayout.IsHybridLayout()) {
         //Primary Screen
-        SETVERTEX(0, 0.0f, 0.0f, primaryTexV0.x, primaryTexV0.y); // top left
-        SETVERTEX(1, 0.0f, primary.y, primaryTexV1.x, primaryTexV1.y); // bottom left
-        SETVERTEX(2, primary.x, primary.y, primaryTexV2.x, primaryTexV2.y); // bottom right
-        SETVERTEX(3, 0.0f, 0.0f, primaryTexV3.x, primaryTexV3.y); // top left
-        SETVERTEX(4, primary.x, 0.0f, primaryTexV4.x, primaryTexV4.y); // top right
-        SETVERTEX(5, primary.x, primary.y, primaryTexV5.x, primaryTexV5.y); // bottom right
+        screen_vertices[0].position = vec2(0);
+        screen_vertices[0].texcoord = primaryTexV0; // top left
+
+        screen_vertices[1].position = vec2(0, primary.y);
+        screen_vertices[1].texcoord = primaryTexV1; // bottom left
+
+        screen_vertices[2].position = primary;
+        screen_vertices[2].texcoord = primaryTexV2; // bottom right
+
+        screen_vertices[3].position = vec2(0);
+        screen_vertices[3].texcoord = primaryTexV3; // top left
+
+        screen_vertices[4].position = vec2(primary.x, 0);
+        screen_vertices[4].texcoord = primaryTexV4; // top right
+
+        screen_vertices[5].position = primary;
+        screen_vertices[5].texcoord = primaryTexV5; // bottom right
 
         //Top screen
         if (smallScreenLayout == SmallScreenLayout::SmallScreenTop && layout == ScreenLayout::HybridTop) {
-            SETVERTEX(6, primary.x, 0.0f, 0.0f, 0.5f + pixel_pad); // top left
-            SETVERTEX(7, primary.x, 0.0f + screenSize.y, 0.0f, 1.0f); // bottom left
-            SETVERTEX(8, primary.x + screenSize.x, 0.0f + screenSize.y, 1.0f, 1.0f); // bottom right
-            SETVERTEX(9, primary.x, 0.0f, 0.0f, 0.5f + pixel_pad); // top left
-            SETVERTEX(10, primary.x + screenSize.x, 0.0f, 1.0f, 0.5f + pixel_pad); // top right
-            SETVERTEX(11, primary.x + screenSize.x, 0.0f + screenSize.y, 1.0f, 1.0f); // bottom right
+            screen_vertices[6].position = vec2(primary.x, 0);
+            screen_vertices[6].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+            screen_vertices[7].position = vec2(primary.x, screenSize.y);
+            screen_vertices[7].texcoord = vec2(0, 1); // bottom left
+
+            screen_vertices[8].position = vec2(primary.x, 0) + screenSize;
+            screen_vertices[8].texcoord = vec2(1); // bottom right
+
+            screen_vertices[9].position = vec2(primary.x, 0);
+            screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+            screen_vertices[10].position = vec2(primary.x + screenSize.x, 0);
+            screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
+
+            screen_vertices[11].position = vec2(primary.x, 0) + screenSize;
+            screen_vertices[11].texcoord = vec2(1); // bottom right
         } else if (smallScreenLayout == SmallScreenLayout::SmallScreenDuplicate
                    || (layout == ScreenLayout::HybridBottom && smallScreenLayout == SmallScreenLayout::SmallScreenTop)) {
-            SETVERTEX(6, primary.x, 0.0f, 0.0f, 0.0f); // top left
-            SETVERTEX(7, primary.x, 0.0f + screenSize.y, 0.0f, 0.5f - pixel_pad); // bottom left
-            SETVERTEX(8, primary.x + screenSize.x, 0.0f + screenSize.y, 1.0f, 0.5f - pixel_pad); // bottom right
-            SETVERTEX(9, primary.x, 0.0f, 0.0f, 0.0f); // top left
-            SETVERTEX(10, primary.x + screenSize.x, 0.0f, 1.0f, 0.0f); // top right
-            SETVERTEX(11, primary.x + screenSize.x, 0.0f + screenSize.y, 1.0f, 0.5f - pixel_pad); // bottom right
+            screen_vertices[6].position = vec2(primary.x, 0);
+            screen_vertices[6].texcoord = vec2(0); // top left
+
+            screen_vertices[7].position = vec2(primary.x, screenSize.y);
+            screen_vertices[7].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
+
+            screen_vertices[8].position = vec2(primary.x, 0) + screenSize;
+            screen_vertices[8].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
+
+            screen_vertices[9].position = vec2(primary.x, 0);
+            screen_vertices[9].texcoord = vec2(0); // top left
+
+            screen_vertices[10].position = vec2(primary.x + screenSize.x, 0);
+            screen_vertices[10].texcoord = vec2(1, 0); // top right
+
+            screen_vertices[11].position = vec2(primary.x, 0) + screenSize;
+            screen_vertices[11].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
         }
 
-
         //Bottom Screen
-        if (smallScreenLayout == SmallScreenLayout::SmallScreenBottom &&
-            layout == ScreenLayout::HybridTop) {
-            SETVERTEX(6, primary.x, primary.y - screenSize.y, 0.0f, 0.5f + pixel_pad); // top left
-            SETVERTEX(7, primary.x, primary.y, 0.0f, 1.0f); // bottom left
-            SETVERTEX(8, primary.x + screenSize.x, primary.y, 1.0f, 1.0f); // bottom right
-            SETVERTEX(9, primary.x, primary.y - screenSize.y, 0.0f, 0.5f + pixel_pad); // top left
-            SETVERTEX(10, primary.x + screenSize.x, primary.y - screenSize.y, 1.0f, 0.5f + pixel_pad); // top right
-            SETVERTEX(11, primary.x + screenSize.x, primary.y, 1.0f, 1.0f); // bottom right
+        if (smallScreenLayout == SmallScreenLayout::SmallScreenBottom && layout == ScreenLayout::HybridTop) {
+            screen_vertices[6].position = vec2(primary.x, primary.y - screenSize.y);
+            screen_vertices[6].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+            screen_vertices[7].position = primary;
+            screen_vertices[7].texcoord = vec2(0, 1); // bottom left
+
+            screen_vertices[8].position = vec2(primary.x + screenSize.x, primary.y);
+            screen_vertices[8].texcoord = vec2(1); // bottom right
+
+            screen_vertices[9].position = vec2(primary.x, primary.y - screenSize.y);
+            screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+            screen_vertices[10].position = vec2(primary.x + screenSize.x, primary.y - screenSize.y);
+            screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
+
+            screen_vertices[11].position = vec2(primary.x + screenSize.x, primary.y);
+            screen_vertices[11].texcoord = vec2(1); // bottom right
+
         } else if (smallScreenLayout == SmallScreenLayout::SmallScreenBottom && layout == ScreenLayout::HybridBottom) {
-            SETVERTEX(6, primary.x, primary.y - screenSize.y, 0.0f, 0.0f); // top left
-            SETVERTEX(7, primary.x, primary.y, 0.0f, 0.5f - pixel_pad); // bottom left
-            SETVERTEX(8, primary.x + screenSize.x, primary.y, 1.0f, 0.5f - pixel_pad); // bottom right
-            SETVERTEX(9, primary.x, primary.y - screenSize.y, 0.0f, 0.0f); // top left
-            SETVERTEX(10, primary.x + screenSize.x, primary.y - screenSize.y, 1.0f, 0.0f); // top right
-            SETVERTEX(11, primary.x + screenSize.x, primary.y, 1.0f, 0.5f - pixel_pad); // bottom right
+            screen_vertices[6].position = vec2(primary.x, primary.y - screenSize.y);
+            screen_vertices[6].texcoord = vec2(0); // top left
+
+            screen_vertices[7].position = primary;
+            screen_vertices[7].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
+
+            screen_vertices[8].position = vec2(primary.x + screenSize.x, primary.y);
+            screen_vertices[8].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
+
+            screen_vertices[9].position = vec2(primary.x, primary.y - screenSize.y);
+            screen_vertices[9].texcoord = vec2(0); // top left
+
+            screen_vertices[10].position = vec2(primary.x + screenSize.x, primary.y - screenSize.y);
+            screen_vertices[10].texcoord = vec2(1, 0); // top right
+
+            screen_vertices[11].position = vec2(primary.x + screenSize.x, primary.y);
+            screen_vertices[11].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
         } else if (smallScreenLayout == SmallScreenLayout::SmallScreenDuplicate) {
-            SETVERTEX(12, primary.x, primary.y - screenSize.y, 0.0f, 0.5f + pixel_pad); // top left
-            SETVERTEX(13, primary.x, primary.y, 0.0f, 1.0f); // bottom left
-            SETVERTEX(14, primary.x + screenSize.x, primary.y, 1.0f, 1.0f); // bottom right
-            SETVERTEX(15, primary.x, primary.y - screenSize.y, 0.0f, 0.5f + pixel_pad); // top left
-            SETVERTEX(16, primary.x + screenSize.x, primary.y - screenSize.y, 1.0f, 0.5f + pixel_pad); // top right
-            SETVERTEX(17, primary.x + screenSize.x, primary.y, 1.0f, 1.0f); // bottom right
+            screen_vertices[12].position = vec2(primary.x, primary.y - screenSize.y);
+            screen_vertices[12].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+            screen_vertices[13].position = primary;
+            screen_vertices[13].texcoord = vec2(0, 1); // bottom left
+
+            screen_vertices[14].position = vec2(primary.x + screenSize.x, primary.y);
+            screen_vertices[14].texcoord = vec2(1); // bottom right
+
+            screen_vertices[15].position = vec2(primary.x, primary.y - screenSize.y);
+            screen_vertices[15].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+            screen_vertices[16].position = vec2(primary.x + screenSize.x, primary.y - screenSize.y);
+            screen_vertices[16].texcoord = vec2(1, 0.5f + pixel_pad); // top right
+
+            screen_vertices[17].position = vec2(primary.x + screenSize.x, primary.y);
+            screen_vertices[17].texcoord = vec2(1); // bottom right
         }
     } else {
         // top screen
-        SETVERTEX(0, topScreen.x, topScreen.y, 0.0f, 0.0f); // top left
-        SETVERTEX(1, topScreen.x, topScreen.y + screenSize.y * top_screen_scale, 0.0f,
-                  0.5f - pixel_pad); // bottom left
-        SETVERTEX(2, topScreen.x + screenSize.x * top_screen_scale, topScreen.y + screenSize.y * top_screen_scale,
-                  1.0f, 0.5f - pixel_pad); // bottom right
-        SETVERTEX(3, topScreen.x, topScreen.y, 0.0f, 0.0f); // top left
-        SETVERTEX(4, topScreen.x + screenSize.x * top_screen_scale, topScreen.y, 1.0f, 0.0f); // top right
-        SETVERTEX(5, topScreen.x + screenSize.x * top_screen_scale, topScreen.y + screenSize.y * top_screen_scale,
-                  1.0f, 0.5f - pixel_pad); // bottom right
+        screen_vertices[0].position = topScreen;
+        screen_vertices[0].texcoord = vec2(0); // top left
+
+        screen_vertices[1].position = vec2(topScreen.x, topScreen.y + screenSize.y * top_screen_scale);
+        screen_vertices[1].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
+
+        screen_vertices[2].position = topScreen + (screenSize * top_screen_scale);
+        screen_vertices[2].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
+
+        screen_vertices[3].position = topScreen;
+        screen_vertices[3].texcoord = vec2(0); // top left
+
+        screen_vertices[4].position = vec2(topScreen.x + screenSize.x * top_screen_scale, topScreen.y);
+        screen_vertices[4].texcoord = vec2(1, 0); // top right
+
+        screen_vertices[5].position = topScreen + (screenSize * top_screen_scale);
+        screen_vertices[5].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
 
         // bottom screen
-        SETVERTEX(6, bottomScreen.x, bottomScreen.y, 0.0f, 0.5f + pixel_pad); // top left
-        SETVERTEX(7, bottomScreen.x, bottomScreen.y + screenSize.y * bottom_screen_scale, 0.0f, 1.0f); // bottom left
-        SETVERTEX(8, bottomScreen.x + screenSize.x * bottom_screen_scale,
-                  bottomScreen.y + screenSize.y * bottom_screen_scale, 1.0f, 1.0f); // bottom right
-        SETVERTEX(9, bottomScreen.x, bottomScreen.y, 0.0f, 0.5f + pixel_pad); // top left
-        SETVERTEX(10, bottomScreen.x + screenSize.x * bottom_screen_scale, bottomScreen.y, 1.0f,
-                  0.5f + pixel_pad); // top right
-        SETVERTEX(11, bottomScreen.x + screenSize.x * bottom_screen_scale,
-                  bottomScreen.y + screenSize.y * bottom_screen_scale, 1.0f, 1.0f); // bottom right
+        screen_vertices[6].position = bottomScreen;
+        screen_vertices[6].texcoord = vec2(0., 0.5f + pixel_pad); // top left
+
+        screen_vertices[7].position = vec2(bottomScreen.x, bottomScreen.y + screenSize.y * bottom_screen_scale);
+        screen_vertices[7].texcoord = vec2(0, 1); // bottom left
+
+        screen_vertices[8].position = bottomScreen + (screenSize * bottom_screen_scale);
+        screen_vertices[8].texcoord = vec2(1); // bottom right
+
+        screen_vertices[9].position = bottomScreen;
+        screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
+
+        screen_vertices[10].position = vec2(bottomScreen.x + screenSize.x * bottom_screen_scale, bottomScreen.y);
+        screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
+
+        screen_vertices[11].position = bottomScreen + (screenSize * bottom_screen_scale);
+        screen_vertices[11].texcoord = vec2(1.0f, 1.0f); // bottom right
     }
 
     // top screen
