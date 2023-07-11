@@ -46,6 +46,7 @@ add_library(libretro MODULE
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
+    "${glm_SOURCE_DIR}"
     )
 
 embed_binaries(libretro-assets
@@ -136,4 +137,4 @@ endif()
 target_compile_definitions(libretro PUBLIC MELONDSDS_VERSION="${CMAKE_PROJECT_VERSION}")
 target_compile_definitions(libretro PUBLIC MELONDSDS_NAME="${CMAKE_PROJECT_NAME}")
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets)
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static)
