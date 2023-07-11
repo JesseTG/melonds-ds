@@ -25,6 +25,7 @@ jobs:
       archive-name: melondsds_libretro-macos-universal
       runs-on: macos-latest
       lib-ext: dylib
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64;x86_64"
 
   linux-x86_64:
     name: Linux (x86_64)
@@ -41,6 +42,7 @@ jobs:
       archive-name: melondsds_libretro-linux-aarch64
       runs-on: ubuntu-latest
       lib-ext: so
+      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc-10 -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++-10
 
   android:
     name: Android
