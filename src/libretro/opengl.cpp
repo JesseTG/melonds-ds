@@ -346,11 +346,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
 
     // TODO: Replace these two variables with a transformation matrix
     vec2 topScreen = vec2(0, 0);
-    float top_screen_scale = 1.0f;
-
-    // TODO: Replace these variables with a transformation matrix
     vec2 bottomScreen = vec2(0, 0);
-    float bottom_screen_scale = 1.0f;
 
     vec2 primary = vec2(0, 0);
     vec2 primaryTexV0 = vec2(0, 0);
@@ -532,38 +528,38 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
         screen_vertices[0].position = topScreen;
         screen_vertices[0].texcoord = vec2(0); // top left
 
-        screen_vertices[1].position = vec2(topScreen.x, topScreen.y + screenSize.y * top_screen_scale);
+        screen_vertices[1].position = vec2(topScreen.x, topScreen.y + screenSize.y);
         screen_vertices[1].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
 
-        screen_vertices[2].position = topScreen + (screenSize * top_screen_scale);
+        screen_vertices[2].position = topScreen + screenSize;
         screen_vertices[2].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
 
         screen_vertices[3].position = topScreen;
         screen_vertices[3].texcoord = vec2(0); // top left
 
-        screen_vertices[4].position = vec2(topScreen.x + screenSize.x * top_screen_scale, topScreen.y);
+        screen_vertices[4].position = vec2(topScreen.x + screenSize.x, topScreen.y);
         screen_vertices[4].texcoord = vec2(1, 0); // top right
 
-        screen_vertices[5].position = topScreen + (screenSize * top_screen_scale);
+        screen_vertices[5].position = topScreen + screenSize;
         screen_vertices[5].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
 
         // bottom screen
         screen_vertices[6].position = bottomScreen;
         screen_vertices[6].texcoord = vec2(0., 0.5f + pixel_pad); // top left
 
-        screen_vertices[7].position = vec2(bottomScreen.x, bottomScreen.y + screenSize.y * bottom_screen_scale);
+        screen_vertices[7].position = vec2(bottomScreen.x, bottomScreen.y + screenSize.y);
         screen_vertices[7].texcoord = vec2(0, 1); // bottom left
 
-        screen_vertices[8].position = bottomScreen + (screenSize * bottom_screen_scale);
+        screen_vertices[8].position = bottomScreen + screenSize;
         screen_vertices[8].texcoord = vec2(1); // bottom right
 
         screen_vertices[9].position = bottomScreen;
         screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
 
-        screen_vertices[10].position = vec2(bottomScreen.x + screenSize.x * bottom_screen_scale, bottomScreen.y);
+        screen_vertices[10].position = vec2(bottomScreen.x + screenSize.x, bottomScreen.y);
         screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
 
-        screen_vertices[11].position = bottomScreen + (screenSize * bottom_screen_scale);
+        screen_vertices[11].position = bottomScreen + screenSize;
         screen_vertices[11].texcoord = vec2(1.0f, 1.0f); // bottom right
     }
 
