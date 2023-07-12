@@ -44,6 +44,11 @@ namespace melonds {
         Primary,
     };
 
+    enum class NdsScreenId {
+        Top,
+        Bottom,
+    };
+
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
