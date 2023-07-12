@@ -171,7 +171,6 @@ namespace melonds {
         retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
         bool _dirty;
-        [[deprecated("Move to ScreenBuffer")]] bool direct_copy;
         unsigned scale;
 
         glm::uvec2 screen_size;
@@ -197,6 +196,21 @@ namespace melonds {
         unsigned buffer_stride;
         [[deprecated("Move to ScreenBuffer")]] uint16_t *buffer_ptr;
     };
+
+    constexpr bool LayoutSupportsDirectCopy(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::TurnLeft:
+            case ScreenLayout::TurnRight:
+            case ScreenLayout::UpsideDown:
+            case ScreenLayout::TopBottom:
+            case ScreenLayout::BottomTop:
+            case ScreenLayout::TopOnly:
+            case ScreenLayout::BottomOnly:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     constexpr unsigned MaxSoftwareRenderedWidth() noexcept {
         using namespace config::screen;

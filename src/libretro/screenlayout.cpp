@@ -39,7 +39,7 @@ melonds::ScreenLayoutData::~ScreenLayoutData() {
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
-    if (direct_copy) {
+    if (LayoutSupportsDirectCopy(Layout())) {
         memcpy((uint32_t *) buffer_ptr + offset, src, screen_size.x * screen_size.y * PIXEL_SIZE);
     } else {
         unsigned y;
@@ -143,8 +143,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
     unsigned old_size = this->buffer_stride * this->buffer_height;
 
-    this->direct_copy = false;
-
     this->screen_size.x = melonds::NDS_SCREEN_WIDTH * scale;
     this->screen_size.y = melonds::NDS_SCREEN_HEIGHT * scale;
     unsigned scaledScreenGap = ScaledScreenGap();
@@ -154,8 +152,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
-            this->direct_copy = true;
-
             this->buffer_width = this->screen_size.x;
             this->buffer_height = this->screen_size.y * 2 + scaledScreenGap;
             this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
@@ -168,8 +164,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             break;
         case ScreenLayout::BottomTop:
-            this->direct_copy = true;
-
             this->buffer_width = this->screen_size.x;
             this->buffer_height = this->screen_size.y * 2 + scaledScreenGap;
             this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
@@ -207,8 +201,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             break;
         case ScreenLayout::TopOnly:
-            this->direct_copy = true;
-
             this->buffer_width = this->screen_size.x;
             this->buffer_height = this->screen_size.y;
             this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
@@ -221,8 +213,6 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
             break;
         case ScreenLayout::BottomOnly:
-            this->direct_copy = true;
-
             this->buffer_width = this->screen_size.x;
             this->buffer_height = this->screen_size.y;
             this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
