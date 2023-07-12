@@ -344,7 +344,6 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     vec2 screenSize = screenLayout.ScreenSize();
     float screen_gap = (float) screenLayout.ScaledScreenGap();
 
-    // TODO: Replace these two variables with a transformation matrix
     vec2 topScreen = vec2(0, 0);
     vec2 bottomScreen = vec2(0, 0);
 

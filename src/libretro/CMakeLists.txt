@@ -92,7 +92,7 @@ elseif (HAVE_OPENGLES32)
 endif ()
 
 if (ENABLE_JIT)
-    target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)  # TODO: Disable on certain platforms
+    target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)
 
     if (NOT APPLE)
         target_compile_definitions(libretro PUBLIC HAVE_JIT_FASTMEM)
