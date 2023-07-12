@@ -936,7 +936,7 @@ static bool melonds::config::parse_screen_options() noexcept {
     }
 
     enum TouchMode oldTouchMode = _touchMode;
-    if (optional<TouchMode> value = ParseTouchMode(get_variable(Keys::TOUCH_MODE))) {
+    if (optional<enum TouchMode> value = ParseTouchMode(get_variable(Keys::TOUCH_MODE))) {
         _touchMode = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::TOUCH_MODE, Values::MOUSE);
