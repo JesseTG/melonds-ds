@@ -183,7 +183,6 @@ namespace melonds {
         unsigned buffer_width;
         unsigned buffer_height;
         unsigned buffer_stride;
-        size_t buffer_len;
         [[deprecated("Move to ScreenBuffer")]] uint16_t *buffer_ptr;
     };
 
