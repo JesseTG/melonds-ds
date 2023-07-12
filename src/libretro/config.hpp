@@ -142,12 +142,6 @@ namespace melonds {
         SmallScreenDuplicate = 2
     };
 
-    enum class ScreenId {
-        Primary = 0,
-        Top = 1,
-        Bottom = 2,
-    };
-
     using MacAddress = std::array<std::uint8_t, 6>;
 
     namespace config {

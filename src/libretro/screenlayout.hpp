@@ -38,6 +38,12 @@ namespace melonds {
     // We require a pixel format of RETRO_PIXEL_FORMAT_XRGB8888, so we can assume 4 bytes here
     constexpr int PIXEL_SIZE = 4;
 
+    enum class ScreenId {
+        Primary = 0,
+        Top = 1,
+        Bottom = 2,
+    };
+
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
