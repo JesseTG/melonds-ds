@@ -76,6 +76,7 @@ namespace melonds {
 
         unsigned ScreenWidth() const noexcept { return screen_size.x; }
         unsigned ScreenHeight() const noexcept { return screen_size.y; }
+        unsigned ScreenArea() const noexcept { return screen_size.x * screen_size.y; }
         float ScreenAspectRatio() const noexcept {
             switch (Layout()) {
                 case ScreenLayout::TurnLeft:
