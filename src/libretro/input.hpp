@@ -18,6 +18,7 @@
 #define MELONDS_DS_INPUT_HPP
 
 #include <libretro.h>
+#include <glm/vec2.hpp>
 
 namespace melonds {
     class ScreenLayoutData;
@@ -28,27 +29,32 @@ namespace melonds {
     public:
         [[nodiscard]] bool CursorEnabled() const noexcept;
         [[nodiscard]] bool IsTouchingScreen() const noexcept { return touching; }
-        [[nodiscard]] int TouchX() const noexcept { return touch_x; }
-        [[nodiscard]] int TouchY() const noexcept { return touch_y; }
-        [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutPressed; }
-        [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutPressed && !previousCycleLayoutPressed; }
-        [[nodiscard]] bool CycleLayoutReleased() const noexcept { return !cycleLayoutPressed && previousCycleLayoutPressed; }
-        [[nodiscard]] bool MicButtonPressed() const noexcept { return holding_noise_btn; }
-        [[nodiscard]] bool MicButtonJustPressed() const noexcept { return holding_noise_btn && !previous_holding_noise_btn; }
-        [[nodiscard]] bool MicButtonJustReleased() const noexcept { return !holding_noise_btn && previous_holding_noise_btn; }
-        [[nodiscard]] bool LidClosed() const noexcept { return lid_closed; }
+        [[nodiscard]] bool ScreenTouched() const noexcept { return touching && !previousTouching; }
+        [[nodiscard]] bool ScreenReleased() const noexcept { return !touching && previousTouching; }
+        [[nodiscard]] int TouchX() const noexcept { return touch.x; }
+        [[nodiscard]] int TouchY() const noexcept { return touch.y; }
+        [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutButton; }
+        [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutButton && !previousCycleLayoutButton; }
+        [[nodiscard]] bool CycleLayoutReleased() const noexcept { return !cycleLayoutButton && previousCycleLayoutButton; }
+        [[nodiscard]] bool MicButtonDown() const noexcept { return micButton; }
+        [[nodiscard]] bool MicButtonPressed() const noexcept { return micButton && !previousMicButton; }
+        [[nodiscard]] bool MicButtonReleased() const noexcept { return !micButton && previousMicButton; }
+        [[nodiscard]] bool ToggleLidDown() const noexcept { return toggleLidButton; }
+        [[nodiscard]] bool ToggleLidPressed() const noexcept { return toggleLidButton && !previousToggleLidButton; }
+        [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
         void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
         bool touching;
-        int touch_x, touch_y;
+        bool previousTouching;
+        glm::ivec2 touch;
 
-        bool previous_holding_noise_btn = false;
-        bool holding_noise_btn = false;
-        bool cycleLayoutPressed = false;
-        bool previousCycleLayoutPressed = false;
-        bool lid_closed = false;
-        bool _has_touched = false;
+        bool toggleLidButton;
+        bool previousToggleLidButton;
+        bool previousMicButton;
+        bool micButton;
+        bool cycleLayoutButton;
+        bool previousCycleLayoutButton;
 
     };
 }

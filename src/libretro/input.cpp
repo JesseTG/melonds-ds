@@ -17,13 +17,17 @@
 #include "input.hpp"
 
 #include <algorithm>
+#include <retro_miscellaneous.h>
 #include <NDS.h>
+#include <glm/ext/vector_common.hpp>
 
 #include "config.hpp"
 #include "environment.hpp"
 #include "libretro.hpp"
 #include "screenlayout.hpp"
 #include "utils.hpp"
+
+using glm::ivec2;
 
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -76,88 +80,74 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
 #define ADD_KEY_TO_MASK(key, i, bits) \
     do { \
         if (bits & (1 << (key))) {               \
-            input_mask &= ~(1 << (i));           \
+            ndsInputBits &= ~(1 << (i));           \
         }                                      \
         else {                                 \
-            input_mask |= (1 << (i));            \
+            ndsInputBits |= (1 << (i));            \
         }                                      \
     } while (false)
 
+// TODO: Refactor Update to only read global state;
+// apply it in a separate function
 void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
-    uint32_t joypad_bits;
-    int i;
-    uint32_t input_mask = 0xFFF;
+    uint32_t retroInputBits; // Input bits from libretro
+    uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 
     retro::input_poll();
 
     if (retro::supports_bitmasks()) {
-        joypad_bits = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+        retroInputBits = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
     } else {
-        joypad_bits = 0;
-        for (i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R3 + 1); i++)
-            joypad_bits |= retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
+        retroInputBits = 0;
+        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R3 + 1); i++)
+            retroInputBits |= retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
     }
 
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_A, 0, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_B, 1, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_SELECT, 2, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_START, 3, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_RIGHT, 4, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_LEFT, 5, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_UP, 6, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_DOWN, 7, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_R, 8, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_L, 9, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_X, 10, joypad_bits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_Y, 11, joypad_bits);
+    // Delicate bit manipulation; do not touch!
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_A, 0, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_B, 1, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_SELECT, 2, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_START, 3, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_RIGHT, 4, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_LEFT, 5, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_UP, 6, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_DOWN, 7, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_R, 8, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_L, 9, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_X, 10, retroInputBits);
+    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_Y, 11, retroInputBits);
 
-    NDS::SetKeyMask(input_mask);
+    NDS::SetKeyMask(ndsInputBits);
 
-    bool lid_closed_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3);
-    if (lid_closed_btn != lid_closed) {
-        NDS::SetLidClosed(lid_closed_btn);
-        lid_closed = lid_closed_btn;
-        retro::log(RETRO_LOG_DEBUG, "%s the lid", lid_closed ? "Closed" : "Opened");
-    }
+    previousToggleLidButton = toggleLidButton;
+    toggleLidButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_L3);
 
-    previous_holding_noise_btn = holding_noise_btn;
-    holding_noise_btn = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2);
+    previousMicButton = micButton;
+    micButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
 
-    previousCycleLayoutPressed = cycleLayoutPressed;
-    cycleLayoutPressed = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2);
+    previousCycleLayoutButton = cycleLayoutButton;
+    cycleLayoutButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R2);
 
-//    if (micNoiseType == MicInput && // If the player wants to use their real mic...
-//        noise_button_required && // ...and they don't always want it hot...
-//        (state.holding_noise_btn != state.previous_holding_noise_btn) &&
-//        // ...and they just pressed or released the button...
-//        micHandle != NULL && micInterface.interface_version > 0 // ...and the mic is valid...
-//            ) {
-//        bool stateSet = micInterface.set_mic_state(micHandle, state.holding_noise_btn);
-//        // ...then set the state of the mic to the active staste of the noise button
-//
-//        if (!stateSet)
-//            retro::log(RETRO_LOG_ERROR, "[melonDS] Error setting state of microphone to %s\n",
-//                   state.holding_noise_btn ? "enabled" : "disabled");
-//    }
-
+    previousTouching = touching;
+    // TODO: Touching should be disabled when the lid is closed
     if (screen_layout_data.Layout() != ScreenLayout::TopOnly) {
         switch (config::screen::TouchMode()) {
             case TouchMode::Disabled:
                 touching = false;
                 break;
             case TouchMode::Mouse: {
-                int16_t mouse_x = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-                int16_t mouse_y = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+                int16_t mouse_dx = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+                int16_t mouse_dy = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
 
                 touching = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
 
-                touch_x = std::clamp(touch_x + mouse_x, 0, NDS_SCREEN_WIDTH - 1);
-                touch_y = std::clamp(touch_y + mouse_y, 0, NDS_SCREEN_HEIGHT - 1);
-            }
-
+                touch.x = std::clamp(touch.x + mouse_dx, 0, NDS_SCREEN_WIDTH - 1);
+                touch.y = std::clamp(touch.y + mouse_dy, 0, NDS_SCREEN_HEIGHT - 1);
                 break;
-            case TouchMode::Touch:
-                if (retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED)) {
+            }
+            case TouchMode::Touch: {
+                bool pointerPressed = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+                if (pointerPressed) {
                     int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
                     int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
@@ -175,44 +165,51 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
                         (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
                         touching = true;
 
-                        touch_x = std::clamp(
+                        touch.x = std::clamp(
                             static_cast<int>((x - screen_layout_data.TouchOffsetX()) * NDS_SCREEN_WIDTH /
                                              screen_layout_data.ScreenWidth()),
                             0, NDS_SCREEN_WIDTH - 1);
-                        touch_y = std::clamp(
+                        touch.y = std::clamp(
                             static_cast<int>((y - screen_layout_data.TouchOffsetY()) * NDS_SCREEN_HEIGHT /
                                              screen_layout_data.ScreenHeight()),
                             0,
                             NDS_SCREEN_HEIGHT - 1);
                     }
-                } else if (touching) {
+                } else {
                     touching = false;
                 }
 
                 break;
-            case TouchMode::Joystick:
+            }
+            case TouchMode::Joystick: {
                 int16_t joystick_x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
                                                         RETRO_DEVICE_ID_ANALOG_X) / 2048;
                 int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
                                                         RETRO_DEVICE_ID_ANALOG_Y) / 2048;
 
-                touch_x = std::clamp(touch_x + joystick_x, 0, melonds::NDS_SCREEN_WIDTH - 1);
-                touch_y = std::clamp(touch_y + joystick_y, 0, melonds::NDS_SCREEN_HEIGHT - 1);
+                touch.x = std::clamp(touch.x + joystick_x, 0, melonds::NDS_SCREEN_WIDTH - 1);
+                touch.y = std::clamp(touch.y + joystick_y, 0, melonds::NDS_SCREEN_HEIGHT - 1);
 
                 touching = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3);
 
                 break;
+            }
+
         }
     } else {
         touching = false;
     }
 
-    if (touching) {
-        NDS::TouchScreen(touch_x, touch_y);
-        _has_touched = true;
-    } else if (_has_touched) {
+    // TODO: Should the input object state modify global state?
+    if (IsTouchingScreen()) {
+        NDS::TouchScreen(touch.x, touch.y);
+    } else if (ScreenReleased()) {
         NDS::ReleaseScreen();
-        _has_touched = false;
+    }
+
+    if (ToggleLidPressed()) {
+        NDS::SetLidClosed(!NDS::IsLidClosed());
+        retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
     }
 }
 

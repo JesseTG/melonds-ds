@@ -372,16 +372,16 @@ static void melonds::read_microphone(melonds::InputState& inputState) noexcept {
         case MicButtonMode::Hold: {
             // ...must be held...
             mic_state_toggled = false;
-            if (!inputState.MicButtonPressed()) {
+            if (!inputState.MicButtonDown()) {
                 // ...but it isn't...
                 mic_input_mode = MicInputMode::None;
             }
-            should_mic_be_on = inputState.MicButtonPressed();
+            should_mic_be_on = inputState.MicButtonDown();
             break;
         }
         case MicButtonMode::Toggle: {
             // ...must be toggled...
-            if (inputState.MicButtonJustPressed()) {
+            if (inputState.MicButtonPressed()) {
                 // ...but it isn't...
                 mic_state_toggled = !mic_state_toggled;
                 if (!mic_state_toggled) {

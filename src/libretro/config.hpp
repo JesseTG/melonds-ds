@@ -150,7 +150,7 @@ namespace melonds {
 
     enum class TouchMode {
         Disabled,
-        Mouse,
+        Mouse [[deprecated]],
         Touch,
         Joystick,
     };
