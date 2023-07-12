@@ -15,9 +15,13 @@
 */
 
 #include "screenlayout.hpp"
-#include "config.hpp"
-#include <functional>
+
 #include <cstring>
+#include <functional>
+
+#include <glm/gtx/matrix_transform_2d.hpp>
+
+#include "config.hpp"
 
 using glm::vec2;
 using glm::mat3;
