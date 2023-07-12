@@ -53,8 +53,8 @@ namespace melonds {
     public:
         ScreenLayoutData();
         ~ScreenLayoutData();
-        [[deprecated("Move to ScreenBuffer")]] void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
-        [[deprecated("Move to ScreenBuffer")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
+        void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
+        void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
         [[deprecated("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
         void Clear();
 
@@ -62,8 +62,8 @@ namespace melonds {
 
         bool Dirty() const noexcept { return _dirty; }
 
-        [[deprecated("Move to ScreenBuffer")]] void* Buffer() noexcept { return buffer_ptr; }
-        [[deprecated("Move to ScreenBuffer")]] const void* Buffer() const noexcept { return buffer_ptr; }
+        void* Buffer() noexcept { return buffer_ptr; }
+        const void* Buffer() const noexcept { return buffer_ptr; }
 
         unsigned BufferWidth() const noexcept { return buffer_width; }
         unsigned BufferHeight() const noexcept { return buffer_height; }
@@ -190,11 +190,10 @@ namespace melonds {
         unsigned _numberOfLayouts;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _layouts;
 
-        // TODO: Move the buffer to a separate class
         unsigned buffer_width;
         unsigned buffer_height;
         unsigned buffer_stride;
-        [[deprecated("Move to ScreenBuffer")]] uint16_t *buffer_ptr;
+        uint16_t *buffer_ptr;
     };
 
     constexpr bool LayoutSupportsDirectCopy(ScreenLayout layout) noexcept {
