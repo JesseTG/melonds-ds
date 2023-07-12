@@ -51,9 +51,9 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset)
 
 }
 
-void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept {
+void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept {
     switch (screen_id) {
-        case ScreenId::Primary: {
+        case HybridScreenId::Primary: {
             unsigned buffer_y, buffer_x;
             unsigned x, y, pixel;
             uint32_t pixel_data;
@@ -75,7 +75,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId s
             }
         }
             break;
-        case ScreenId::Top: {
+        case HybridScreenId::Top: {
             unsigned y;
             for (y = 0; y < screen_size.y; y++) {
                 memcpy((uint16_t *) buffer_ptr
@@ -88,7 +88,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, ScreenId s
             }
         }
             break;
-        case ScreenId::Bottom: {
+        case HybridScreenId::Bottom: {
             unsigned y;
             for (y = 0; y < screen_size.y; y++) {
                 memcpy((uint16_t *) buffer_ptr

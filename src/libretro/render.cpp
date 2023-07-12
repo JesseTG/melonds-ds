@@ -86,18 +86,18 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     if (screen_layout_data.IsHybridLayout()) {
         unsigned primary = screen_layout_data.Layout() == ScreenLayout::HybridTop ? 0 : 1;
 
-        screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], ScreenId::Primary);
+        screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary);
 
         switch (screen_layout_data.HybridSmallScreenLayout()) {
             case SmallScreenLayout::SmallScreenTop:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], ScreenId::Bottom);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Bottom);
                 break;
             case SmallScreenLayout::SmallScreenBottom:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom);
                 break;
             case SmallScreenLayout::SmallScreenDuplicate:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], ScreenId::Top);
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], ScreenId::Bottom);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top);
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom);
                 break;
         }
 

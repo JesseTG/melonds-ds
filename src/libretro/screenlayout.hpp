@@ -38,10 +38,10 @@ namespace melonds {
     // We require a pixel format of RETRO_PIXEL_FORMAT_XRGB8888, so we can assume 4 bytes here
     constexpr int PIXEL_SIZE = 4;
 
-    enum class ScreenId {
-        Primary = 0,
-        Top = 1,
-        Bottom = 2,
+    enum class HybridScreenId {
+        Top,
+        Bottom,
+        Primary,
     };
 
     class ScreenLayoutData {
@@ -49,7 +49,7 @@ namespace melonds {
         ScreenLayoutData();
         ~ScreenLayoutData();
         [[deprecated("Move to ScreenBuffer")]] void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
-        [[deprecated("Move to ScreenBuffer")]] void CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept;
+        [[deprecated("Move to ScreenBuffer")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
         [[deprecated("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
         void Clear();
 
