@@ -43,6 +43,7 @@ namespace retro {
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _config_categories_supported;
+    static unsigned _message_interface_version;
 
     // Cached so that the save directory won't change during a session
     static optional<string> _save_directory;
@@ -236,10 +237,7 @@ bool retro::set_message(const struct retro_message_ext* message) {
     if (message == nullptr)
         return false;
 
-    unsigned message_interface_version = numeric_limits<unsigned>::max();
-    environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &message_interface_version);
-
-    switch (message_interface_version) {
+    switch (_message_interface_version) {
         // Given that the frontend supports...
         case 0: { // ...the basic messaging interface...
             // Let's match the semantics of RETRO_ENVIRONMENT_SET_MESSAGE, since that's all we have
@@ -259,10 +257,6 @@ bool retro::set_message(const struct retro_message_ext* message) {
             // intentional fall-through
         case 1: { // ...the extended messaging interface...
             return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void*) message);
-        }
-        case numeric_limits<unsigned>::max(): { // ...no messaging interface at all...
-            log(message->level, "%s", message->msg);
-            return false;
         }
     }
 }
@@ -361,6 +355,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     }
 
     retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
+    environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version);
 
     const char* save_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
