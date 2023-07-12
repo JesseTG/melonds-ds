@@ -150,8 +150,8 @@ namespace melonds {
             hybrid_ratio = _hybrid_ratio;
         }
 
-        unsigned TopScreenOffset() const noexcept { return top_screen_offset; }
-        unsigned BottomScreenOffset() const noexcept { return bottom_screen_offset; }
+        unsigned TopScreenBufferOffset() const noexcept { return top_screen_offset; }
+        unsigned BottomScreenBufferOffset() const noexcept { return bottom_screen_offset; }
 
         unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
         unsigned TouchOffsetY() const noexcept { return touch_offset_y; }

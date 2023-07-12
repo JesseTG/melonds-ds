@@ -105,10 +105,10 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
             screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
     } else {
         if (screen_layout_data.TopScreenEnabled())
-            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenOffset());
+            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenBufferOffset());
         if (screen_layout_data.BottomScreenEnabled())
             screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1],
-                                          screen_layout_data.BottomScreenOffset());
+                                          screen_layout_data.BottomScreenBufferOffset());
 
         if (input_state.CursorEnabled() && screen_layout_data.Layout() != ScreenLayout::TopOnly)
             screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
