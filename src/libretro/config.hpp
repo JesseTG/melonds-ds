@@ -148,13 +148,6 @@ namespace melonds {
         Bottom = 2,
     };
 
-    enum class TouchMode {
-        Disabled,
-        Mouse [[deprecated]],
-        Touch,
-        Joystick,
-    };
-
     using MacAddress = std::array<std::uint8_t, 6>;
 
     namespace config {
@@ -228,7 +221,6 @@ namespace melonds {
             [[nodiscard]] unsigned ScreenGap() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
             [[nodiscard]] SmallScreenLayout SmallScreenLayout() noexcept;
-            [[nodiscard]] TouchMode TouchMode() noexcept;
         }
 
         namespace video {

@@ -191,8 +191,6 @@ namespace melonds::config {
     }
 
     static optional<Renderer> ParseRenderer(const char* value) noexcept;
-    static optional<TouchMode> ParseTouchMode(const char* value) noexcept;
-
 
     static void parse_jit_options() noexcept;
     static void parse_system_options() noexcept;
@@ -201,7 +199,7 @@ namespace melonds::config {
 
     /// @returns true if the OpenGL state needs to be rebuilt
     static bool parse_video_options(bool initializing) noexcept;
-    static bool parse_screen_options() noexcept;
+    static void parse_screen_options() noexcept;
     static void parse_homebrew_save_options(
         const optional<struct retro_game_info>& nds_info,
         const optional<NDSHeader>& header
@@ -343,9 +341,6 @@ namespace melonds::config {
 
         static melonds::SmallScreenLayout _smallScreenLayout;
         melonds::SmallScreenLayout SmallScreenLayout() noexcept { return _smallScreenLayout; }
-
-        static melonds::TouchMode _touchMode;
-        melonds::TouchMode TouchMode() noexcept { return _touchMode; }
     }
 
     namespace system {
@@ -394,14 +389,6 @@ namespace melonds::config {
 
         int ScaleFactor() noexcept { return RenderSettings().GL_ScaleFactor; }
     }
-}
-
-static optional<melonds::TouchMode> melonds::config::ParseTouchMode(const char* value) noexcept {
-    if (string_is_equal(value, Config::Retro::Values::DISABLED)) return TouchMode::Disabled;
-    if (string_is_equal(value, Config::Retro::Values::MOUSE)) return TouchMode::Mouse;
-    if (string_is_equal(value, Config::Retro::Values::JOYSTICK)) return TouchMode::Joystick;
-    if (string_is_equal(value, Config::Retro::Values::TOUCH)) return TouchMode::Touch;
-    return nullopt;
 }
 
 static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
@@ -462,7 +449,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::parse_firmware_options();
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(true);
-    openGlNeedsRefresh |= config::parse_screen_options();
+    config::parse_screen_options();
 
     config::apply_system_options(header);
     config::apply_save_options(header);
@@ -488,7 +475,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
 void melonds::UpdateConfig(ScreenLayoutData& screenLayout) noexcept {
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
-    openGlNeedsRefresh |= config::parse_screen_options();
+    config::parse_screen_options();
 
     config::apply_audio_options();
     config::apply_screen_options(screenLayout);
@@ -900,12 +887,10 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
     return needsOpenGlRefresh;
 }
 
-static bool melonds::config::parse_screen_options() noexcept {
+static void melonds::config::parse_screen_options() noexcept {
     using namespace Config::Retro;
     using namespace melonds::config::screen;
     using retro::get_variable;
-
-    bool needsOpenGlRefresh = false;
 
     if (const char* value = get_variable(Keys::SCREEN_GAP); !string_is_empty(value)) {
         _screenGap = std::stoi(value); // TODO: Handle errors
@@ -935,22 +920,6 @@ static bool melonds::config::parse_screen_options() noexcept {
         _smallScreenLayout = SmallScreenLayout::SmallScreenDuplicate;
     }
 
-    enum TouchMode oldTouchMode = _touchMode;
-    if (optional<enum TouchMode> value = ParseTouchMode(get_variable(Keys::TOUCH_MODE))) {
-        _touchMode = *value;
-    } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", Keys::TOUCH_MODE, Values::MOUSE);
-        _touchMode = TouchMode::Mouse;
-    }
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (_touchMode != oldTouchMode) {
-        // May need to refresh the screen if the touch mode changed,
-        // as we may need to start (or stop) drawing a cursor.
-        needsOpenGlRefresh = true;
-    }
-#endif
-
     if (optional<int> value = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, MAX_SCREEN_LAYOUTS)) {
         _numberOfScreenLayouts = *value;
     } else {
@@ -966,8 +935,6 @@ static bool melonds::config::parse_screen_options() noexcept {
             _screenLayouts[i] = ScreenLayout::TopBottom;
         }
     }
-
-    return needsOpenGlRefresh;
 }
 
 /**

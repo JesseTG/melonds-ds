@@ -130,71 +130,39 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
     previousTouching = touching;
     // TODO: Touching should be disabled when the lid is closed
+    // TODO: Get touch input from the joystick regardless of the screen layout
+    // TODO: If touching the screen, prioritize the pointer
     if (screen_layout_data.Layout() != ScreenLayout::TopOnly) {
-        switch (config::screen::TouchMode()) {
-            case TouchMode::Disabled:
-                touching = false;
-                break;
-            case TouchMode::Mouse: {
-                int16_t mouse_dx = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-                int16_t mouse_dy = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+        bool pointerPressed = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+        if (pointerPressed) {
+            int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+            int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-                touching = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+            unsigned int touch_scale = screen_layout_data.Layout() == ScreenLayout::HybridBottom
+                                       ? screen_layout_data.HybridRatio() : 1;
 
-                touch.x = std::clamp(touch.x + mouse_dx, 0, NDS_SCREEN_WIDTH - 1);
-                touch.y = std::clamp(touch.y + mouse_dy, 0, NDS_SCREEN_HEIGHT - 1);
-                break;
+            unsigned int x =
+                ((int) pointer_x + 0x8000) * screen_layout_data.BufferWidth() / 0x10000 / touch_scale;
+            unsigned int y =
+                ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
+
+            if ((x >= screen_layout_data.TouchOffsetX()) &&
+                (x < screen_layout_data.TouchOffsetX() + screen_layout_data.ScreenWidth()) &&
+                (y >= screen_layout_data.TouchOffsetY()) &&
+                (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
+                touching = true;
+
+                touch.x = std::clamp(
+                    static_cast<int>((x - screen_layout_data.TouchOffsetX()) * NDS_SCREEN_WIDTH / screen_layout_data.ScreenWidth()),
+                    0, NDS_SCREEN_WIDTH - 1);
+                touch.y = std::clamp(
+                    static_cast<int>((y - screen_layout_data.TouchOffsetY()) * NDS_SCREEN_HEIGHT /
+                                     screen_layout_data.ScreenHeight()),
+                    0,
+                    NDS_SCREEN_HEIGHT - 1);
             }
-            case TouchMode::Touch: {
-                bool pointerPressed = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-                if (pointerPressed) {
-                    int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-                    int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
-
-                    unsigned int touch_scale = screen_layout_data.Layout() == ScreenLayout::HybridBottom
-                                               ? screen_layout_data.HybridRatio() : 1;
-
-                    unsigned int x =
-                            ((int) pointer_x + 0x8000) * screen_layout_data.BufferWidth() / 0x10000 / touch_scale;
-                    unsigned int y =
-                            ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
-
-                    if ((x >= screen_layout_data.TouchOffsetX()) &&
-                        (x < screen_layout_data.TouchOffsetX() + screen_layout_data.ScreenWidth()) &&
-                        (y >= screen_layout_data.TouchOffsetY()) &&
-                        (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
-                        touching = true;
-
-                        touch.x = std::clamp(
-                            static_cast<int>((x - screen_layout_data.TouchOffsetX()) * NDS_SCREEN_WIDTH /
-                                             screen_layout_data.ScreenWidth()),
-                            0, NDS_SCREEN_WIDTH - 1);
-                        touch.y = std::clamp(
-                            static_cast<int>((y - screen_layout_data.TouchOffsetY()) * NDS_SCREEN_HEIGHT /
-                                             screen_layout_data.ScreenHeight()),
-                            0,
-                            NDS_SCREEN_HEIGHT - 1);
-                    }
-                } else {
-                    touching = false;
-                }
-
-                break;
-            }
-            case TouchMode::Joystick: {
-                int16_t joystick_x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
-                                                        RETRO_DEVICE_ID_ANALOG_X) / 2048;
-                int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
-                                                        RETRO_DEVICE_ID_ANALOG_Y) / 2048;
-
-                touch.x = std::clamp(touch.x + joystick_x, 0, melonds::NDS_SCREEN_WIDTH - 1);
-                touch.y = std::clamp(touch.y + joystick_y, 0, melonds::NDS_SCREEN_HEIGHT - 1);
-
-                touching = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3);
-
-                break;
-            }
-
+        } else {
+            touching = false;
         }
     } else {
         touching = false;
@@ -214,5 +182,5 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 }
 
 bool melonds::InputState::CursorEnabled() const noexcept {
-    return config::screen::TouchMode() == TouchMode::Mouse || config::screen::TouchMode() == TouchMode::Joystick;
+    return true;
 }
