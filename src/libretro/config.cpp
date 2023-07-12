@@ -191,6 +191,7 @@ namespace melonds::config {
     }
 
     static optional<Renderer> ParseRenderer(const char* value) noexcept;
+    static optional<TouchMode> ParseTouchMode(const char* value) noexcept;
 
 
     static void parse_jit_options() noexcept;
@@ -393,6 +394,14 @@ namespace melonds::config {
 
         int ScaleFactor() noexcept { return RenderSettings().GL_ScaleFactor; }
     }
+}
+
+static optional<melonds::TouchMode> melonds::config::ParseTouchMode(const char* value) noexcept {
+    if (string_is_equal(value, Config::Retro::Values::DISABLED)) return TouchMode::Disabled;
+    if (string_is_equal(value, Config::Retro::Values::MOUSE)) return TouchMode::Mouse;
+    if (string_is_equal(value, Config::Retro::Values::JOYSTICK)) return TouchMode::Joystick;
+    if (string_is_equal(value, Config::Retro::Values::TOUCH)) return TouchMode::Touch;
+    return nullopt;
 }
 
 static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
@@ -927,15 +936,8 @@ static bool melonds::config::parse_screen_options() noexcept {
     }
 
     enum TouchMode oldTouchMode = _touchMode;
-    if (const char* value = get_variable(Keys::TOUCH_MODE); !string_is_empty(value)) {
-        if (string_is_equal(value, Values::MOUSE))
-            _touchMode = TouchMode::Mouse;
-        else if (string_is_equal(value, Values::TOUCH))
-            _touchMode = TouchMode::Touch;
-        else if (string_is_equal(value, Values::JOYSTICK))
-            _touchMode = TouchMode::Joystick;
-        else
-            _touchMode = TouchMode::Disabled;
+    if (optional<TouchMode> value = ParseTouchMode(get_variable(Keys::TOUCH_MODE))) {
+        _touchMode = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::TOUCH_MODE, Values::MOUSE);
         _touchMode = TouchMode::Mouse;
