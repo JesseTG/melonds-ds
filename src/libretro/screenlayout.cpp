@@ -19,11 +19,15 @@
 #include <functional>
 #include <cstring>
 
-melonds::ScreenLayoutData::ScreenLayoutData() {
-    this->buffer_ptr = nullptr;
-    this->hybrid_ratio = 2;
-    this->_dirty = true; // Uninitialized
-    this->_numberOfLayouts = 1;
+using glm::vec2;
+using glm::mat3;
+
+melonds::ScreenLayoutData::ScreenLayoutData() :
+    _dirty(true), // Uninitialized
+    transformMatrix(1), // Identity matrix
+    hybrid_ratio(2),
+    _numberOfLayouts(1),
+    buffer_ptr(nullptr) {
 }
 
 melonds::ScreenLayoutData::~ScreenLayoutData() {

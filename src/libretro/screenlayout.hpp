@@ -23,6 +23,7 @@
 #include <libretro.h>
 
 #include <glm/vec2.hpp>
+#include <glm/mat3x3.hpp>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -162,6 +163,7 @@ namespace melonds {
         unsigned scale;
 
         glm::uvec2 screen_size;
+        glm::mat3 transformMatrix;
         unsigned top_screen_offset;
         unsigned bottom_screen_offset;
 
