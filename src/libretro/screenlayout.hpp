@@ -42,8 +42,8 @@ namespace melonds {
     public:
         ScreenLayoutData();
         ~ScreenLayoutData();
-        void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
-        void CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept;
+        [[deprecated("Move to ScreenBuffer")]] void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
+        [[deprecated("Move to ScreenBuffer")]] void CopyHybridScreen(const uint32_t* src, ScreenId screen_id) noexcept;
         [[deprecated("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
         void Clear();
 
@@ -51,8 +51,8 @@ namespace melonds {
 
         bool Dirty() const noexcept { return _dirty; }
 
-        void* Buffer() noexcept { return buffer_ptr; }
-        const void* Buffer() const noexcept { return buffer_ptr; }
+        [[deprecated("Move to ScreenBuffer")]] void* Buffer() noexcept { return buffer_ptr; }
+        [[deprecated("Move to ScreenBuffer")]] const void* Buffer() const noexcept { return buffer_ptr; }
 
         unsigned BufferWidth() const noexcept { return buffer_width; }
         unsigned BufferHeight() const noexcept { return buffer_height; }
@@ -159,7 +159,7 @@ namespace melonds {
         retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
         bool _dirty;
-        bool direct_copy;
+        [[deprecated("Move to ScreenBuffer")]] bool direct_copy;
         unsigned scale;
 
         glm::uvec2 screen_size;
@@ -184,7 +184,7 @@ namespace melonds {
         unsigned buffer_height;
         unsigned buffer_stride;
         size_t buffer_len;
-        uint16_t *buffer_ptr;
+        [[deprecated("Move to ScreenBuffer")]] uint16_t *buffer_ptr;
     };
 
     constexpr unsigned MaxSoftwareRenderedWidth() noexcept {
