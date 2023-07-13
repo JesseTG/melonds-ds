@@ -33,6 +33,7 @@ namespace melonds {
         [[nodiscard]] bool ScreenReleased() const noexcept { return !touching && previousTouching; }
         [[nodiscard]] int TouchX() const noexcept { return touch.x; }
         [[nodiscard]] int TouchY() const noexcept { return touch.y; }
+        [[nodiscard]] glm::ivec2 TouchPosition() const noexcept { return touch; }
         [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutButton; }
         [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutButton && !previousCycleLayoutButton; }
         [[nodiscard]] bool CycleLayoutReleased() const noexcept { return !cycleLayoutButton && previousCycleLayoutButton; }
