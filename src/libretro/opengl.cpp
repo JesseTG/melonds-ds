@@ -341,8 +341,8 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    vec2 screenSize = screenLayout.ScreenSize();
-    float screen_gap = (float) screenLayout.ScaledScreenGap();
+    vec2 screenSize = NDS_SCREEN_SIZE<unsigned> * screenLayout.Scale();
+    float screen_gap = (float) screenLayout.ScreenGap() * screenLayout.Scale();
 
     vec2 topScreen = vec2(0, 0);
     vec2 bottomScreen = vec2(0, 0);
