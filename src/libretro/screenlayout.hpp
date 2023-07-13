@@ -56,7 +56,7 @@ namespace melonds {
         ~ScreenLayoutData();
         void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
         void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
-        [[deprecated("Move to render.cpp")]] void draw_cursor(int32_t x, int32_t y);
+        [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch) noexcept;
         void Clear();
 
         void Update(Renderer renderer) noexcept;

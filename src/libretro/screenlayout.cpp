@@ -106,17 +106,21 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
     }
 }
 
-void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
+void melonds::ScreenLayoutData::DrawCursor(ivec2 touch) noexcept {
+    // Only used for software rendering
+    if (!buffer)
+        return;
+
     auto *base_offset = (uint32_t *) buffer;
 
     uint32_t scale = Layout() == ScreenLayout::HybridBottom ? hybridRatio : 1;
     float cursorSize = melonds::config::video::CursorSize();
-    uint32_t start_y = std::clamp<float>(y - cursorSize, 0, screenSize.y) * scale;
-    uint32_t end_y = std::clamp<float>(y + cursorSize, 0, screenSize.y) * scale;
+    uint32_t start_y = std::clamp<float>(touch.y - cursorSize, 0, NDS_SCREEN_HEIGHT) * scale;
+    uint32_t end_y = std::clamp<float>(touch.y + cursorSize, 0, NDS_SCREEN_HEIGHT) * scale;
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp<float>(x - cursorSize, 0, screenSize.x) * scale;
-        uint32_t end_x = std::clamp<float>(x + cursorSize, 0, screenSize.x) * scale;
+        uint32_t start_x = std::clamp<float>(touch.x - cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
+        uint32_t end_x = std::clamp<float>(touch.x + cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
             uint32_t *offset = base_offset + ((y + touchOffset.y) * bufferWidth) + ((x + touchOffset.x));

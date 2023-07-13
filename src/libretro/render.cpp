@@ -104,7 +104,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
         }
 
         if (input_state.CursorEnabled())
-            screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
+            screen_layout_data.DrawCursor(input_state.TouchPosition());
     } else {
         if (screen_layout_data.TopScreenEnabled())
             screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenBufferOffset());
@@ -113,7 +113,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
                                           screen_layout_data.BottomScreenBufferOffset());
 
         if (input_state.CursorEnabled() && screen_layout_data.Layout() != ScreenLayout::TopOnly)
-            screen_layout_data.draw_cursor(input_state.TouchX(), input_state.TouchY());
+            screen_layout_data.DrawCursor(input_state.TouchPosition());
     }
 
     retro::video_refresh(
