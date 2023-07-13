@@ -23,6 +23,8 @@
 
 #include "config.hpp"
 
+using glm::ivec2;
+using glm::uvec2;
 using glm::vec2;
 using glm::mat3;
 
@@ -117,7 +119,7 @@ void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
         uint32_t end_x = std::clamp<float>(x + cursorSize, 0, screenSize.x) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
-            uint32_t *offset = base_offset + ((y + touch_offset_y) * bufferWidth) + ((x + touch_offset_x));
+            uint32_t *offset = base_offset + ((y + touchOffset.y) * bufferWidth) + ((x + touchOffset.x));
             uint32_t pixel = *offset;
             *(uint32_t *) offset = (0xFFFFFF - pixel) | 0xFF000000;
         }
@@ -149,8 +151,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferHeight = this->screenSize.y * 2 + scaledScreenGap;
             this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
-            this->touch_offset_x = 0;
-            this->touch_offset_y = this->screenSize.y + scaledScreenGap;
+            this->touchOffset = uvec2(0, this->screenSize.y + scaledScreenGap);
 
             this->topScreenBufferOffset = 0;
             this->bottomScreenBufferOffset = this->bufferWidth * (this->screenSize.y + scaledScreenGap);
@@ -161,8 +162,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferHeight = this->screenSize.y * 2 + scaledScreenGap;
             this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
-            this->touch_offset_x = 0;
-            this->touch_offset_y = 0;
+            this->touchOffset = uvec2(0, 0);
 
             this->topScreenBufferOffset = this->bufferWidth * (this->screenSize.y + scaledScreenGap);
             this->bottomScreenBufferOffset = 0;
@@ -173,8 +173,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferHeight = this->screenSize.y;
             this->bufferStride = this->screenSize.x * 2 * PIXEL_SIZE;
 
-            this->touch_offset_x = this->screenSize.x;
-            this->touch_offset_y = 0;
+            this->touchOffset = uvec2(this->screenSize.x, 0);
 
             this->topScreenBufferOffset = 0;
             this->bottomScreenBufferOffset = (this->screenSize.x * 2);
@@ -186,8 +185,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferHeight = this->screenSize.y;
             this->bufferStride = this->screenSize.x * 2 * PIXEL_SIZE;
 
-            this->touch_offset_x = 0;
-            this->touch_offset_y = 0;
+            this->touchOffset = uvec2(0, 0);
 
             this->topScreenBufferOffset = (this->screenSize.x * 2);
             this->bottomScreenBufferOffset = 0;
@@ -199,8 +197,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
             // should be disabled in top only
-            this->touch_offset_x = 0;
-            this->touch_offset_y = 0;
+            this->touchOffset = uvec2(0, 0);
 
             this->topScreenBufferOffset = 0;
 
@@ -210,8 +207,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferHeight = this->screenSize.y;
             this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
-            this->touch_offset_x = 0;
-            this->touch_offset_y = 0;
+            this->touchOffset = uvec2(0, 0);
 
             this->bottomScreenBufferOffset = 0;
 
@@ -225,11 +221,9 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             this->bufferStride = this->bufferWidth * PIXEL_SIZE;
 
             if (Layout() == ScreenLayout::HybridTop) {
-                this->touch_offset_x = (this->screenSize.x * this->hybridRatio) + (this->hybridRatio / 2);
-                this->touch_offset_y = (this->screenSize.y * (this->hybridRatio - 1));
+                touchOffset = uvec2((screenSize.x * hybridRatio) + (hybridRatio / 2), (screenSize.y * (hybridRatio - 1)));
             } else {
-                this->touch_offset_x = 0;
-                this->touch_offset_y = 0;
+                this->touchOffset = uvec2(0, 0);
             }
 
             break;

@@ -66,8 +66,13 @@ namespace melonds {
         void* Buffer() noexcept { return buffer; }
         const void* Buffer() const noexcept { return buffer; }
 
+        /// The width of the image necessary to hold this layout, in pixels
         unsigned BufferWidth() const noexcept { return bufferWidth; }
+
+        /// The height of the image necessary to hold this layout, in pixels
         unsigned BufferHeight() const noexcept { return bufferHeight; }
+
+        /// The size of the image necessary to hold this layout, in pixels
         glm::uvec2 BufferSize() const noexcept { return glm::uvec2(bufferWidth, bufferHeight); }
         unsigned BufferStride() const noexcept { return bufferStride; }
         float BufferAspectRatio() const noexcept {
@@ -172,8 +177,14 @@ namespace melonds {
         unsigned BottomScreenBufferOffset() const noexcept { return bottomScreenBufferOffset; }
         unsigned ScreenBufferOffset(NdsScreenId screen) const noexcept { return screen == NdsScreenId::Top ? topScreenBufferOffset : bottomScreenBufferOffset; }
 
-        unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
-        unsigned TouchOffsetY() const noexcept { return touch_offset_y; }
+        [[deprecated("Use TransformInput instead")]] unsigned TouchOffsetX() const noexcept { return touchOffset.x; }
+        [[deprecated("Use TransformInput instead")]] unsigned TouchOffsetY() const noexcept { return touchOffset.y; }
+
+        /// @param input Coordinates in pointer space (from -32767 to 32767)
+        [[nodiscard]] glm::ivec2 TransformInput(glm::ivec2 input) const noexcept {
+            glm::vec3 transformed = transformMatrix * glm::vec3(input, 1.0f);
+            return glm::ivec2(transformed.x, transformed.y);
+        }
 
         retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
@@ -185,8 +196,7 @@ namespace melonds {
         unsigned topScreenBufferOffset;
         unsigned bottomScreenBufferOffset;
 
-        [[deprecated]] unsigned touch_offset_x;
-        [[deprecated]] unsigned touch_offset_y;
+        glm::uvec2 touchOffset;
 
         unsigned screenGap;
 
