@@ -202,8 +202,14 @@ namespace melonds {
 
         glm::uvec2 screenSize;
         glm::mat3 transformMatrix;
-        unsigned topScreenBufferOffset;
-        unsigned bottomScreenBufferOffset;
+
+        // The starting point of the top screen's pixel data, in bytes.
+        // Only used with the software renderer.
+        size_t topScreenBufferOffset;
+
+        // The starting point of the bottom screen's pixel data, in bytes
+        // Only used with the software renderer.
+        size_t bottomScreenBufferOffset;
 
         glm::uvec2 touchOffset;
 
