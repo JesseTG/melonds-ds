@@ -29,23 +29,23 @@ using glm::mat3;
 melonds::ScreenLayoutData::ScreenLayoutData() :
     _dirty(true), // Uninitialized
     transformMatrix(1), // Identity matrix
-    hybrid_ratio(2),
+    hybridRatio(2),
     _numberOfLayouts(1),
-    buffer_ptr(nullptr) {
+    buffer(nullptr) {
 }
 
 melonds::ScreenLayoutData::~ScreenLayoutData() {
-    free(buffer_ptr);
+    free(buffer);
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
     if (LayoutSupportsDirectCopy(Layout())) {
-        memcpy((uint32_t *) buffer_ptr + offset, src, screen_size.x * screen_size.y * PIXEL_SIZE);
+        memcpy((uint32_t *) buffer + offset, src, screenSize.x * screenSize.y * PIXEL_SIZE);
     } else {
         unsigned y;
-        for (y = 0; y < screen_size.y; y++) {
-            memcpy((uint16_t *) buffer_ptr + offset + (y * screen_size.x * PIXEL_SIZE),
-                   src + (y * screen_size.x), screen_size.x * PIXEL_SIZE);
+        for (y = 0; y < screenSize.y; y++) {
+            memcpy((uint16_t *) buffer + offset + (y * screenSize.x * PIXEL_SIZE),
+                   src + (y * screenSize.x), screenSize.x * PIXEL_SIZE);
         }
     }
 
@@ -57,18 +57,18 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
             unsigned buffer_y, buffer_x;
             unsigned x, y, pixel;
             uint32_t pixel_data;
-            unsigned buffer_height = screen_size.y * hybrid_ratio;
-            unsigned buffer_width = screen_size.x * hybrid_ratio;
+            unsigned buffer_height = screenSize.y * hybridRatio;
+            unsigned buffer_width = screenSize.x * hybridRatio;
 
             for (buffer_y = 0; buffer_y < buffer_height; buffer_y++) {
-                y = buffer_y / hybrid_ratio;
+                y = buffer_y / hybridRatio;
                 for (buffer_x = 0; buffer_x < buffer_width; buffer_x++) {
-                    x = buffer_x / hybrid_ratio;
+                    x = buffer_x / hybridRatio;
 
-                    pixel_data = *(uint32_t *) (src + (y * screen_size.x) + x);
+                    pixel_data = *(uint32_t *) (src + (y * screenSize.x) + x);
 
-                    for (pixel = 0; pixel < hybrid_ratio; pixel++) {
-                        *(uint32_t *) (buffer_ptr + (buffer_y * buffer_stride / 2) + pixel * 2 +
+                    for (pixel = 0; pixel < hybridRatio; pixel++) {
+                        *(uint32_t *) (buffer + (buffer_y * bufferStride / 2) + pixel * 2 +
                                        (buffer_x * 2)) = pixel_data;
                     }
                 }
@@ -77,27 +77,27 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
             break;
         case HybridScreenId::Top: {
             unsigned y;
-            for (y = 0; y < screen_size.y; y++) {
-                memcpy((uint16_t *) buffer_ptr
+            for (y = 0; y < screenSize.y; y++) {
+                memcpy((uint16_t *) buffer
                        // X
-                       + ((screen_size.x * hybrid_ratio * 2) +
-                          (hybrid_ratio % 2 == 0 ? hybrid_ratio : ((hybrid_ratio / 2) * 4)))
+                       + ((screenSize.x * hybridRatio * 2) +
+                          (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
                        // Y
-                       + (y * buffer_stride / 2),
-                       src + (y * screen_size.x), (screen_size.x) * PIXEL_SIZE);
+                       + (y * bufferStride / 2),
+                       src + (y * screenSize.x), (screenSize.x) * PIXEL_SIZE);
             }
         }
             break;
         case HybridScreenId::Bottom: {
             unsigned y;
-            for (y = 0; y < screen_size.y; y++) {
-                memcpy((uint16_t *) buffer_ptr
+            for (y = 0; y < screenSize.y; y++) {
+                memcpy((uint16_t *) buffer
                        // X
-                       + ((screen_size.x * hybrid_ratio * 2) +
-                          (hybrid_ratio % 2 == 0 ? hybrid_ratio : ((hybrid_ratio / 2) * 4)))
+                       + ((screenSize.x * hybridRatio * 2) +
+                          (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
                        // Y
-                       + ((y + (screen_size.y * (hybrid_ratio - 1))) * buffer_stride / 2),
-                       src + (y * screen_size.x), (screen_size.x) * PIXEL_SIZE);
+                       + ((y + (screenSize.y * (hybridRatio - 1))) * bufferStride / 2),
+                       src + (y * screenSize.x), (screenSize.x) * PIXEL_SIZE);
             }
         }
             break;
@@ -105,19 +105,19 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
 }
 
 void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
-    auto *base_offset = (uint32_t *) buffer_ptr;
+    auto *base_offset = (uint32_t *) buffer;
 
-    uint32_t scale = Layout() == ScreenLayout::HybridBottom ? hybrid_ratio : 1;
+    uint32_t scale = Layout() == ScreenLayout::HybridBottom ? hybridRatio : 1;
     float cursorSize = melonds::config::video::CursorSize();
-    uint32_t start_y = std::clamp<float>(y - cursorSize, 0, screen_size.y) * scale;
-    uint32_t end_y = std::clamp<float>(y + cursorSize, 0, screen_size.y) * scale;
+    uint32_t start_y = std::clamp<float>(y - cursorSize, 0, screenSize.y) * scale;
+    uint32_t end_y = std::clamp<float>(y + cursorSize, 0, screenSize.y) * scale;
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp<float>(x - cursorSize, 0, screen_size.x) * scale;
-        uint32_t end_x = std::clamp<float>(x + cursorSize, 0, screen_size.x) * scale;
+        uint32_t start_x = std::clamp<float>(x - cursorSize, 0, screenSize.x) * scale;
+        uint32_t end_x = std::clamp<float>(x + cursorSize, 0, screenSize.x) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
-            uint32_t *offset = base_offset + ((y + touch_offset_y) * buffer_width) + ((x + touch_offset_x));
+            uint32_t *offset = base_offset + ((y + touch_offset_y) * bufferWidth) + ((x + touch_offset_x));
             uint32_t pixel = *offset;
             *(uint32_t *) offset = (0xFFFFFF - pixel) | 0xFF000000;
         }
@@ -126,114 +126,107 @@ void melonds::ScreenLayoutData::draw_cursor(int32_t x, int32_t y) {
 
 
 void melonds::ScreenLayoutData::Clear() {
-    if (buffer_ptr != nullptr) {
-        memset(buffer_ptr, 0, buffer_stride * buffer_height);
+    if (buffer != nullptr) {
+        memset(buffer, 0, bufferStride * bufferHeight);
     }
 }
 
 using melonds::ScreenLayoutData;
 
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
-    if (renderer == Renderer::OpenGl) {
-        // TODO: Move this to a setter instead of global access
-        scale = config::video::ScaleFactor();
-    } else {
-        this->scale = 1;
-    }
+    unsigned old_size = this->bufferStride * this->bufferHeight;
 
-    unsigned old_size = this->buffer_stride * this->buffer_height;
-
-    this->screen_size.x = melonds::NDS_SCREEN_WIDTH * scale;
-    this->screen_size.y = melonds::NDS_SCREEN_HEIGHT * scale;
-    unsigned scaledScreenGap = ScaledScreenGap();
+    this->screenSize.x = melonds::NDS_SCREEN_WIDTH * scale;
+    this->screenSize.y = melonds::NDS_SCREEN_HEIGHT * scale;
+    unsigned scaledScreenGap = scale * screenGap;
 
     switch (Layout()) {
         case ScreenLayout::TurnLeft:
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
-            this->buffer_width = this->screen_size.x;
-            this->buffer_height = this->screen_size.y * 2 + scaledScreenGap;
-            this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
+            this->bufferWidth = this->screenSize.x;
+            this->bufferHeight = this->screenSize.y * 2 + scaledScreenGap;
+            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
-            this->touch_offset_y = this->screen_size.y + scaledScreenGap;
+            this->touch_offset_y = this->screenSize.y + scaledScreenGap;
 
-            this->top_screen_offset = 0;
-            this->bottom_screen_offset = this->buffer_width * (this->screen_size.y + scaledScreenGap);
+            this->topScreenBufferOffset = 0;
+            this->bottomScreenBufferOffset = this->bufferWidth * (this->screenSize.y + scaledScreenGap);
 
             break;
         case ScreenLayout::BottomTop:
-            this->buffer_width = this->screen_size.x;
-            this->buffer_height = this->screen_size.y * 2 + scaledScreenGap;
-            this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
+            this->bufferWidth = this->screenSize.x;
+            this->bufferHeight = this->screenSize.y * 2 + scaledScreenGap;
+            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
 
-            this->top_screen_offset = this->buffer_width * (this->screen_size.y + scaledScreenGap);
-            this->bottom_screen_offset = 0;
+            this->topScreenBufferOffset = this->bufferWidth * (this->screenSize.y + scaledScreenGap);
+            this->bottomScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::LeftRight:
-            this->buffer_width = this->screen_size.x * 2;
-            this->buffer_height = this->screen_size.y;
-            this->buffer_stride = this->screen_size.x * 2 * PIXEL_SIZE;
+            this->bufferWidth = this->screenSize.x * 2;
+            this->bufferHeight = this->screenSize.y;
+            this->bufferStride = this->screenSize.x * 2 * PIXEL_SIZE;
 
-            this->touch_offset_x = this->screen_size.x;
+            this->touch_offset_x = this->screenSize.x;
             this->touch_offset_y = 0;
 
-            this->top_screen_offset = 0;
-            this->bottom_screen_offset = (this->screen_size.x * 2);
+            this->topScreenBufferOffset = 0;
+            this->bottomScreenBufferOffset = (this->screenSize.x * 2);
 
             break;
         case ScreenLayout::RightLeft:
 
-            this->buffer_width = this->screen_size.x * 2;
-            this->buffer_height = this->screen_size.y;
-            this->buffer_stride = this->screen_size.x * 2 * PIXEL_SIZE;
+            this->bufferWidth = this->screenSize.x * 2;
+            this->bufferHeight = this->screenSize.y;
+            this->bufferStride = this->screenSize.x * 2 * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
 
-            this->top_screen_offset = (this->screen_size.x * 2);
-            this->bottom_screen_offset = 0;
+            this->topScreenBufferOffset = (this->screenSize.x * 2);
+            this->bottomScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::TopOnly:
-            this->buffer_width = this->screen_size.x;
-            this->buffer_height = this->screen_size.y;
-            this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
+            this->bufferWidth = this->screenSize.x;
+            this->bufferHeight = this->screenSize.y;
+            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
             // should be disabled in top only
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
 
-            this->top_screen_offset = 0;
+            this->topScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::BottomOnly:
-            this->buffer_width = this->screen_size.x;
-            this->buffer_height = this->screen_size.y;
-            this->buffer_stride = this->screen_size.x * PIXEL_SIZE;
+            this->bufferWidth = this->screenSize.x;
+            this->bufferHeight = this->screenSize.y;
+            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
 
             this->touch_offset_x = 0;
             this->touch_offset_y = 0;
 
-            this->bottom_screen_offset = 0;
+            this->bottomScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::HybridTop:
         case ScreenLayout::HybridBottom:
 
-            this->buffer_width =
-                (this->screen_size.x * this->hybrid_ratio) + this->screen_size.x + (this->hybrid_ratio * 2);
-            this->buffer_height = (this->screen_size.y * this->hybrid_ratio);
-            this->buffer_stride = this->buffer_width * PIXEL_SIZE;
+            this->bufferWidth =
+                (this->screenSize.x * this->hybridRatio) + this->screenSize.x + (this->hybridRatio * 2);
+            this->bufferHeight = (this->screenSize.y * this->hybridRatio);
+            this->bufferStride = this->bufferWidth * PIXEL_SIZE;
 
             if (Layout() == ScreenLayout::HybridTop) {
-                this->touch_offset_x = (this->screen_size.x * this->hybrid_ratio) + (this->hybrid_ratio / 2);
-                this->touch_offset_y = (this->screen_size.y * (this->hybrid_ratio - 1));
+                this->touch_offset_x = (this->screenSize.x * this->hybridRatio) + (this->hybridRatio / 2);
+                this->touch_offset_y = (this->screenSize.y * (this->hybridRatio - 1));
             } else {
                 this->touch_offset_x = 0;
                 this->touch_offset_y = 0;
@@ -248,18 +241,18 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         retro::set_error_message("Failed to rotate screen; effective layout will be Top/Bottom instead.");
     }
 
-    if (renderer == Renderer::OpenGl && this->buffer_ptr != nullptr) {
+    if (renderer == Renderer::OpenGl && this->buffer != nullptr) {
         // not needed anymore :)
-        free(this->buffer_ptr);
-        this->buffer_ptr = nullptr;
+        free(this->buffer);
+        this->buffer = nullptr;
     } else {
-        unsigned new_size = this->buffer_stride * this->buffer_height;
+        unsigned new_size = this->bufferStride * this->bufferHeight;
 
-        if (old_size != new_size || this->buffer_ptr == nullptr) {
-            if (this->buffer_ptr != nullptr) free(this->buffer_ptr);
-            this->buffer_ptr = (uint16_t *) malloc(new_size);
+        if (old_size != new_size || this->buffer == nullptr) {
+            if (this->buffer != nullptr) free(this->buffer);
+            this->buffer = (uint16_t *) malloc(new_size);
 
-            memset(this->buffer_ptr, 0, new_size);
+            memset(this->buffer, 0, new_size);
         }
     }
 

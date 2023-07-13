@@ -24,6 +24,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/mat3x3.hpp>
+#include <glm/trigonometric.hpp>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -62,36 +63,36 @@ namespace melonds {
 
         bool Dirty() const noexcept { return _dirty; }
 
-        void* Buffer() noexcept { return buffer_ptr; }
-        const void* Buffer() const noexcept { return buffer_ptr; }
+        void* Buffer() noexcept { return buffer; }
+        const void* Buffer() const noexcept { return buffer; }
 
-        unsigned BufferWidth() const noexcept { return buffer_width; }
-        unsigned BufferHeight() const noexcept { return buffer_height; }
-        glm::uvec2 BufferSize() const noexcept { return glm::uvec2(buffer_width, buffer_height); }
-        unsigned BufferStride() const noexcept { return buffer_stride; }
+        unsigned BufferWidth() const noexcept { return bufferWidth; }
+        unsigned BufferHeight() const noexcept { return bufferHeight; }
+        glm::uvec2 BufferSize() const noexcept { return glm::uvec2(bufferWidth, bufferHeight); }
+        unsigned BufferStride() const noexcept { return bufferStride; }
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {
                 case ScreenLayout::TurnLeft:
                 case ScreenLayout::TurnRight:
-                    return float(buffer_height) / float(buffer_width);
+                    return float(bufferHeight) / float(bufferWidth);
                 default:
-                    return float(buffer_width) / float(buffer_height);
+                    return float(bufferWidth) / float(bufferHeight);
             }
         }
 
-        unsigned ScreenWidth() const noexcept { return screen_size.x; }
-        unsigned ScreenHeight() const noexcept { return screen_size.y; }
-        unsigned ScreenArea() const noexcept { return screen_size.x * screen_size.y; }
+        unsigned ScreenWidth() const noexcept { return screenSize.x; }
+        unsigned ScreenHeight() const noexcept { return screenSize.y; }
+        unsigned ScreenArea() const noexcept { return screenSize.x * screenSize.y; }
         float ScreenAspectRatio() const noexcept {
             switch (Layout()) {
                 case ScreenLayout::TurnLeft:
                 case ScreenLayout::TurnRight:
-                    return float(screen_size.y) / float(screen_size.x);
+                    return float(screenSize.y) / float(screenSize.x);
                 default:
-                    return float(screen_size.x) / float(screen_size.y);
+                    return float(screenSize.x) / float(screenSize.y);
             }
         }
-        glm::uvec2 ScreenSize() const noexcept { return screen_size; }
+        glm::uvec2 ScreenSize() const noexcept { return screenSize; }
 
         unsigned LayoutIndex() const noexcept { return _layoutIndex; }
         unsigned NumberOfLayouts() const noexcept { return _numberOfLayouts; }
@@ -116,10 +117,10 @@ namespace melonds {
         }
 
         bool IsHybridLayout() const noexcept { return Layout() == ScreenLayout::HybridTop || Layout() == ScreenLayout::HybridBottom; }
-        SmallScreenLayout HybridSmallScreenLayout() const noexcept { return hybrid_small_screen; }
+        SmallScreenLayout HybridSmallScreenLayout() const noexcept { return hybridSmallScreenLayout; }
         void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept {
-            if (IsHybridLayout() && _layout != hybrid_small_screen) _dirty = true;
-            hybrid_small_screen = _layout;
+            if (IsHybridLayout() && _layout != hybridSmallScreenLayout) _dirty = true;
+            hybridSmallScreenLayout = _layout;
         }
 
         bool IsLayoutRotated() const noexcept {
@@ -149,21 +150,27 @@ namespace melonds {
         bool TopScreenEnabled() const noexcept { return Layout() != ScreenLayout::BottomOnly; }
         bool BottomScreenEnabled() const noexcept { return Layout() != ScreenLayout::TopOnly; }
 
-        unsigned ScreenGap() const noexcept { return screen_gap_unscaled; }
+        unsigned ScreenGap() const noexcept { return screenGap; }
         void ScreenGap(unsigned _screen_gap) noexcept {
-            if (_screen_gap != screen_gap_unscaled) _dirty = true;
-            screen_gap_unscaled = _screen_gap;
+            if (_screen_gap != screenGap) _dirty = true;
+            screenGap = _screen_gap;
         }
-        unsigned ScaledScreenGap() const noexcept { return screen_gap_unscaled * scale; }
+        unsigned ScaledScreenGap() const noexcept { return screenGap * scale; }
+        unsigned Scale() const noexcept { return scale; }
+        void SetScale(unsigned _scale) noexcept {
+            if (_scale != scale) _dirty = true;
+            scale = _scale;
+        }
 
-        unsigned HybridRatio() const noexcept { return hybrid_ratio; }
+        unsigned HybridRatio() const noexcept { return hybridRatio; }
         void HybridRatio(unsigned _hybrid_ratio) noexcept {
-            if (IsHybridLayout() && _hybrid_ratio != hybrid_ratio) _dirty = true;
-            hybrid_ratio = _hybrid_ratio;
+            if (IsHybridLayout() && _hybrid_ratio != hybridRatio) _dirty = true;
+            hybridRatio = _hybrid_ratio;
         }
 
-        unsigned TopScreenBufferOffset() const noexcept { return top_screen_offset; }
-        unsigned BottomScreenBufferOffset() const noexcept { return bottom_screen_offset; }
+        unsigned TopScreenBufferOffset() const noexcept { return topScreenBufferOffset; }
+        unsigned BottomScreenBufferOffset() const noexcept { return bottomScreenBufferOffset; }
+        unsigned ScreenBufferOffset(NdsScreenId screen) const noexcept { return screen == NdsScreenId::Top ? topScreenBufferOffset : bottomScreenBufferOffset; }
 
         unsigned TouchOffsetX() const noexcept { return touch_offset_x; }
         unsigned TouchOffsetY() const noexcept { return touch_offset_y; }
@@ -173,27 +180,27 @@ namespace melonds {
         bool _dirty;
         unsigned scale;
 
-        glm::uvec2 screen_size;
+        glm::uvec2 screenSize;
         glm::mat3 transformMatrix;
-        unsigned top_screen_offset;
-        unsigned bottom_screen_offset;
+        unsigned topScreenBufferOffset;
+        unsigned bottomScreenBufferOffset;
 
-        unsigned touch_offset_x;
-        unsigned touch_offset_y;
+        [[deprecated]] unsigned touch_offset_x;
+        [[deprecated]] unsigned touch_offset_y;
 
-        unsigned screen_gap_unscaled;
+        unsigned screenGap;
 
-        SmallScreenLayout hybrid_small_screen;
-        unsigned hybrid_ratio;
+        SmallScreenLayout hybridSmallScreenLayout;
+        unsigned hybridRatio;
 
         unsigned _layoutIndex;
         unsigned _numberOfLayouts;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _layouts;
 
-        unsigned buffer_width;
-        unsigned buffer_height;
-        unsigned buffer_stride;
-        uint16_t *buffer_ptr;
+        unsigned bufferWidth;
+        unsigned bufferHeight;
+        unsigned bufferStride;
+        uint16_t *buffer;
     };
 
     constexpr bool LayoutSupportsDirectCopy(ScreenLayout layout) noexcept {
@@ -208,6 +215,19 @@ namespace melonds {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    constexpr float LayoutAngle(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::TurnLeft:
+                return glm::radians(90.f);
+            case ScreenLayout::TurnRight:
+                return glm::radians(270.f);
+            case ScreenLayout::UpsideDown:
+                return glm::radians(180.f);
+            default:
+                return 0.0f;
         }
     }
 

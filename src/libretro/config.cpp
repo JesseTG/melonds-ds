@@ -1214,6 +1214,11 @@ static void melonds::config::apply_save_options(const optional<NDSHeader>& heade
 }
 
 static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout) noexcept {
+    using namespace config::video;
+    using namespace render;
+
+    Renderer renderer = CurrentRenderer() == Renderer::None ?  ConfiguredRenderer() : CurrentRenderer();
+    screenLayout.SetScale(renderer == Renderer::OpenGl ? ScaleFactor() : 1);
     screenLayout.SetLayouts(screen::ScreenLayouts(), screen::NumberOfScreenLayouts());
     screenLayout.HybridSmallScreenLayout(screen::SmallScreenLayout());
     screenLayout.ScreenGap(screen::ScreenGap());
