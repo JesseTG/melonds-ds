@@ -137,27 +137,45 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
         int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-        unsigned int touch_scale = screen_layout_data.Layout() == ScreenLayout::HybridBottom
-                                   ? screen_layout_data.HybridRatio() : 1;
+//        char text[1024];
+//        sprintf(text, "Pointer: %d, %d", pointer_x, pointer_y);
+//        retro_message_ext message {
+//            .msg = text,
+//            .duration = 60,
+//            .priority = 0,
+//            .level = RETRO_LOG_DEBUG,
+//            .target = RETRO_MESSAGE_TARGET_OSD,
+//            .type = RETRO_MESSAGE_TYPE_STATUS,
+//            .progress = -1
+//        };
+//        retro::set_message(&message);
+        ivec2 transformed_pointer = screen_layout_data.TransformInput(pointer_x, pointer_y);
+//        unsigned int touch_scale = screen_layout_data.Layout() == ScreenLayout::HybridBottom
+//                                   ? screen_layout_data.HybridRatio() : 1;
 
-        unsigned int x =
-            ((int) pointer_x + 0x8000) * screen_layout_data.BufferWidth() / 0x10000 / touch_scale;
-        unsigned int y =
-            ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
+//        unsigned int x =
+//            ((int) pointer_x + 0x8000) * screen_layout_data.BufferWidth() / 0x10000 / touch_scale;
+//        unsigned int y =
+//            ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
 
-        if ((x >= screen_layout_data.TouchOffsetX()) &&
-            (x < screen_layout_data.TouchOffsetX() + screen_layout_data.ScreenWidth()) &&
-            (y >= screen_layout_data.TouchOffsetY()) &&
-            (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
-            touch.x = std::clamp(
-                static_cast<int>((x - screen_layout_data.TouchOffsetX()) * NDS_SCREEN_WIDTH / screen_layout_data.ScreenWidth()),
-                0, NDS_SCREEN_WIDTH - 1);
-            touch.y = std::clamp(
-                static_cast<int>((y - screen_layout_data.TouchOffsetY()) * NDS_SCREEN_HEIGHT /
-                                 screen_layout_data.ScreenHeight()),
-                0,
-                NDS_SCREEN_HEIGHT - 1);
-        }
+        touch = glm::clamp(transformed_pointer, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+
+//        if (touching && !previousTouching) {
+//            retro::debug("(%d, %d) -> (%d, %d) -> (%d, %d)\n", pointer_x, pointer_y, transformed_pointer.x, transformed_pointer.y, touch.x, touch.y);
+//        }
+//        if ((x >= screen_layout_data.TouchOffsetX()) &&
+//            (x < screen_layout_data.TouchOffsetX() + screen_layout_data.ScreenWidth()) &&
+//            (y >= screen_layout_data.TouchOffsetY()) &&
+//            (y < screen_layout_data.TouchOffsetY() + screen_layout_data.ScreenHeight())) {
+//            touch.x = std::clamp(
+//                static_cast<int>((x - screen_layout_data.TouchOffsetX()) * NDS_SCREEN_WIDTH / screen_layout_data.ScreenWidth()),
+//                0, NDS_SCREEN_WIDTH - 1);
+//            touch.y = std::clamp(
+//                static_cast<int>((y - screen_layout_data.TouchOffsetY()) * NDS_SCREEN_HEIGHT /
+//                                 screen_layout_data.ScreenHeight()),
+//                0,
+//                NDS_SCREEN_HEIGHT - 1);
+//        }
     } else {
         touching = false;
     }

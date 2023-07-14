@@ -46,7 +46,7 @@ namespace melonds {
     constexpr int PIXEL_SIZE = 4;
 
     template<typename T>
-    constexpr T RETRO_MAX_POINTER_LENGTH = 32767;
+    constexpr T RETRO_MAX_POINTER_COORDINATE = 32767;
 
     enum class HybridScreenId {
         Top,
@@ -93,20 +93,6 @@ namespace melonds {
                     return float(bufferWidth) / float(bufferHeight);
             }
         }
-
-        unsigned ScreenWidth() const noexcept { return screenSize.x; }
-        unsigned ScreenHeight() const noexcept { return screenSize.y; }
-        unsigned ScreenArea() const noexcept { return screenSize.x * screenSize.y; }
-        float ScreenAspectRatio() const noexcept {
-            switch (Layout()) {
-                case ScreenLayout::TurnLeft:
-                case ScreenLayout::TurnRight:
-                    return float(screenSize.y) / float(screenSize.x);
-                default:
-                    return float(screenSize.x) / float(screenSize.y);
-            }
-        }
-        glm::uvec2 ScreenSize() const noexcept { return screenSize; }
 
         unsigned LayoutIndex() const noexcept { return _layoutIndex; }
         unsigned NumberOfLayouts() const noexcept { return _numberOfLayouts; }
@@ -169,7 +155,7 @@ namespace melonds {
             if (_screen_gap != screenGap) _dirty = true;
             screenGap = _screen_gap;
         }
-        unsigned ScaledScreenGap() const noexcept { return screenGap * scale; }
+
         unsigned Scale() const noexcept { return scale; }
         void SetScale(unsigned _scale) noexcept {
             if (_scale != scale) _dirty = true;
@@ -186,13 +172,14 @@ namespace melonds {
         unsigned BottomScreenBufferOffset() const noexcept { return bottomScreenBufferOffset; }
         unsigned ScreenBufferOffset(NdsScreenId screen) const noexcept { return screen == NdsScreenId::Top ? topScreenBufferOffset : bottomScreenBufferOffset; }
 
-        [[deprecated("Use TransformInput instead")]] unsigned TouchOffsetX() const noexcept { return touchOffset.x; }
-        [[deprecated("Use TransformInput instead")]] unsigned TouchOffsetY() const noexcept { return touchOffset.y; }
-
         /// @param input Coordinates in pointer space (from -32767 to 32767)
-        [[nodiscard]] glm::ivec2 TransformInput(glm::ivec2 input) const noexcept {
-            glm::vec3 transformed = transformMatrix * glm::vec3(input, 1.0f);
+        [[nodiscard]] glm::ivec2 TransformInput(glm::i16vec2 input) const noexcept {
+            glm::vec3 transformed = touchMatrix * glm::vec3(input, 1.0f);
             return glm::ivec2(transformed.x, transformed.y);
+        }
+
+        [[nodiscard]] glm::ivec2 TransformInput(int16_t x, int16_t y) const noexcept {
+            return TransformInput(glm::i16vec2(x, y));
         }
 
         retro_game_geometry Geometry(Renderer renderer) const noexcept;
@@ -200,8 +187,7 @@ namespace melonds {
         bool _dirty;
         unsigned scale;
 
-        glm::uvec2 screenSize;
-        glm::mat3 transformMatrix;
+        glm::mat3 touchMatrix;
 
         // The starting point of the top screen's pixel data, in bytes.
         // Only used with the software renderer.

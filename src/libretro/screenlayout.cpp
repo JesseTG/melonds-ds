@@ -24,13 +24,14 @@
 #include "config.hpp"
 
 using glm::ivec2;
+using glm::ivec3;
 using glm::uvec2;
 using glm::vec2;
 using glm::mat3;
 
 melonds::ScreenLayoutData::ScreenLayoutData() :
     _dirty(true), // Uninitialized
-    transformMatrix(1), // Identity matrix
+    touchMatrix(1), // Identity matrix
     hybridRatio(2),
     _numberOfLayouts(1),
     buffer(nullptr) {
@@ -41,68 +42,74 @@ melonds::ScreenLayoutData::~ScreenLayoutData() {
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
+    // Only used for software rendering
     if (LayoutSupportsDirectCopy(Layout())) {
-        memcpy((uint32_t *) buffer + offset, src, screenSize.x * screenSize.y * PIXEL_SIZE);
+        memcpy((uint32_t *) buffer + offset, src, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
     } else {
-        unsigned y;
-        for (y = 0; y < screenSize.y; y++) {
-            memcpy((uint16_t *) buffer + offset + (y * screenSize.x * PIXEL_SIZE),
-                   src + (y * screenSize.x), screenSize.x * PIXEL_SIZE);
+        for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
+            memcpy(
+                (uint16_t *) buffer + offset + (y * NDS_SCREEN_WIDTH * PIXEL_SIZE),
+                src + (y * NDS_SCREEN_WIDTH),
+                NDS_SCREEN_WIDTH * PIXEL_SIZE
+            );
         }
     }
 
 }
 
 void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept {
+    // Only used for software rendering
     switch (screen_id) {
         case HybridScreenId::Primary: {
-            unsigned buffer_y, buffer_x;
-            unsigned x, y, pixel;
-            uint32_t pixel_data;
-            unsigned buffer_height = screenSize.y * hybridRatio;
-            unsigned buffer_width = screenSize.x * hybridRatio;
+            // TODO: Use one of the libretro scalers instead of this loop
+            unsigned buffer_height = NDS_SCREEN_HEIGHT * hybridRatio;
+            unsigned buffer_width = NDS_SCREEN_WIDTH * hybridRatio;
 
-            for (buffer_y = 0; buffer_y < buffer_height; buffer_y++) {
-                y = buffer_y / hybridRatio;
-                for (buffer_x = 0; buffer_x < buffer_width; buffer_x++) {
-                    x = buffer_x / hybridRatio;
+            for (unsigned buffer_y = 0; buffer_y < buffer_height; buffer_y++) {
+                unsigned y = buffer_y / hybridRatio;
+                for (unsigned buffer_x = 0; buffer_x < buffer_width; buffer_x++) {
+                    unsigned x = buffer_x / hybridRatio;
 
-                    pixel_data = *(uint32_t *) (src + (y * screenSize.x) + x);
+                    uint32_t pixel_data = *(uint32_t *) (src + (y * NDS_SCREEN_WIDTH) + x);
 
-                    for (pixel = 0; pixel < hybridRatio; pixel++) {
+                    for (unsigned pixel = 0; pixel < hybridRatio; pixel++) {
                         *(uint32_t *) (buffer + (buffer_y * bufferStride / 2) + pixel * 2 +
                                        (buffer_x * 2)) = pixel_data;
                     }
                 }
             }
-        }
+
             break;
+        }
         case HybridScreenId::Top: {
-            unsigned y;
-            for (y = 0; y < screenSize.y; y++) {
+            for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
                 memcpy((uint16_t *) buffer
                        // X
-                       + ((screenSize.x * hybridRatio * 2) +
+                       + ((NDS_SCREEN_WIDTH * hybridRatio * 2) +
                           (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
                        // Y
                        + (y * bufferStride / 2),
-                       src + (y * screenSize.x), (screenSize.x) * PIXEL_SIZE);
+                       src + (y * NDS_SCREEN_WIDTH),
+                       NDS_SCREEN_WIDTH * PIXEL_SIZE
+               );
             }
-        }
+
             break;
+        }
         case HybridScreenId::Bottom: {
-            unsigned y;
-            for (y = 0; y < screenSize.y; y++) {
+            for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
                 memcpy((uint16_t *) buffer
                        // X
-                       + ((screenSize.x * hybridRatio * 2) +
+                       + ((NDS_SCREEN_WIDTH * hybridRatio * 2) +
                           (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
                        // Y
-                       + ((y + (screenSize.y * (hybridRatio - 1))) * bufferStride / 2),
-                       src + (y * screenSize.x), (screenSize.x) * PIXEL_SIZE);
+                       + ((y + (NDS_SCREEN_HEIGHT * (hybridRatio - 1))) * bufferStride / 2),
+                       src + (y * NDS_SCREEN_WIDTH),
+                       NDS_SCREEN_WIDTH * PIXEL_SIZE);
             }
-        }
+
             break;
+        }
     }
 }
 
@@ -140,103 +147,93 @@ void melonds::ScreenLayoutData::Clear() {
 using melonds::ScreenLayoutData;
 
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
-    unsigned old_size = this->bufferStride * this->bufferHeight;
+    size_t oldBufferSize = bufferStride * bufferHeight;
 
-    this->screenSize.x = melonds::NDS_SCREEN_WIDTH * scale;
-    this->screenSize.y = melonds::NDS_SCREEN_HEIGHT * scale;
-    unsigned scaledScreenGap = scale * screenGap;
-
-    switch (Layout()) {
+    // TODO: Apply the scale to the buffer dimensions later, not here
+    ScreenLayout layout = Layout();
+    switch (layout) {
         case ScreenLayout::TurnLeft:
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
-            this->bufferWidth = this->screenSize.x;
-            this->bufferHeight = this->screenSize.y * 2 + scaledScreenGap;
-            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
-
-            this->touchOffset = uvec2(0, this->screenSize.y + scaledScreenGap);
-
-            this->topScreenBufferOffset = 0;
-            this->bottomScreenBufferOffset = this->bufferWidth * (this->screenSize.y + scaledScreenGap);
+            bufferWidth = NDS_SCREEN_WIDTH * scale;
+            bufferHeight = (NDS_SCREEN_HEIGHT * 2 + screenGap) * scale;
+            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
+            touchOffset = uvec2(0, NDS_SCREEN_HEIGHT + screenGap);// * scale;
+            topScreenBufferOffset = 0;
+            bottomScreenBufferOffset = bufferWidth * (NDS_SCREEN_HEIGHT + screenGap) * scale;
+            // We rely on the libretro frontend to rotate the screen for us,
+            // so we don't have to treat the buffer dimensions specially here
 
             break;
         case ScreenLayout::BottomTop:
-            this->bufferWidth = this->screenSize.x;
-            this->bufferHeight = this->screenSize.y * 2 + scaledScreenGap;
-            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
-
-            this->touchOffset = uvec2(0, 0);
-
-            this->topScreenBufferOffset = this->bufferWidth * (this->screenSize.y + scaledScreenGap);
-            this->bottomScreenBufferOffset = 0;
+            bufferWidth = NDS_SCREEN_WIDTH * scale;
+            bufferHeight = (NDS_SCREEN_HEIGHT * 2 + screenGap) * scale;
+            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
+            touchOffset = uvec2(0, 0);
+            topScreenBufferOffset = bufferWidth * (NDS_SCREEN_HEIGHT + screenGap) * scale;
+            bottomScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::LeftRight:
-            this->bufferWidth = this->screenSize.x * 2;
-            this->bufferHeight = this->screenSize.y;
-            this->bufferStride = this->screenSize.x * 2 * PIXEL_SIZE;
-
-            this->touchOffset = uvec2(this->screenSize.x, 0);
-
-            this->topScreenBufferOffset = 0;
-            this->bottomScreenBufferOffset = (this->screenSize.x * 2);
+            bufferWidth = NDS_SCREEN_WIDTH * 2 * scale;
+            bufferHeight = NDS_SCREEN_HEIGHT * scale;
+            bufferStride = NDS_SCREEN_WIDTH * 2 * PIXEL_SIZE * scale;
+            touchOffset = uvec2(NDS_SCREEN_WIDTH, 0);// * scale;
+            topScreenBufferOffset = 0;
+            bottomScreenBufferOffset = NDS_SCREEN_WIDTH * 2 * scale;
 
             break;
         case ScreenLayout::RightLeft:
-
-            this->bufferWidth = this->screenSize.x * 2;
-            this->bufferHeight = this->screenSize.y;
-            this->bufferStride = this->screenSize.x * 2 * PIXEL_SIZE;
-
-            this->touchOffset = uvec2(0, 0);
-
-            this->topScreenBufferOffset = (this->screenSize.x * 2);
-            this->bottomScreenBufferOffset = 0;
+            bufferWidth = NDS_SCREEN_WIDTH * 2 * scale;
+            bufferHeight = NDS_SCREEN_HEIGHT * scale;
+            bufferStride = NDS_SCREEN_WIDTH * 2 * PIXEL_SIZE * scale;
+            touchOffset = uvec2(0, 0);
+            topScreenBufferOffset = NDS_SCREEN_WIDTH * 2 * scale;
+            bottomScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::TopOnly:
-            this->bufferWidth = this->screenSize.x;
-            this->bufferHeight = this->screenSize.y;
-            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
-
-            // should be disabled in top only
-            this->touchOffset = uvec2(0, 0);
-
-            this->topScreenBufferOffset = 0;
+            bufferWidth = NDS_SCREEN_WIDTH * scale;
+            bufferHeight = NDS_SCREEN_HEIGHT * scale;
+            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
+            touchOffset = uvec2(0, 0);
+            topScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::BottomOnly:
-            this->bufferWidth = this->screenSize.x;
-            this->bufferHeight = this->screenSize.y;
-            this->bufferStride = this->screenSize.x * PIXEL_SIZE;
-
-            this->touchOffset = uvec2(0, 0);
-
-            this->bottomScreenBufferOffset = 0;
+            bufferWidth = NDS_SCREEN_WIDTH * scale;
+            bufferHeight = NDS_SCREEN_HEIGHT * scale;
+            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
+            touchOffset = uvec2(0, 0);
+            bottomScreenBufferOffset = 0;
 
             break;
         case ScreenLayout::HybridTop:
         case ScreenLayout::HybridBottom:
-
-            this->bufferWidth =
-                (this->screenSize.x * this->hybridRatio) + this->screenSize.x + (this->hybridRatio * 2);
-            this->bufferHeight = (this->screenSize.y * this->hybridRatio);
-            this->bufferStride = this->bufferWidth * PIXEL_SIZE;
+            bufferWidth = (NDS_SCREEN_WIDTH * hybridRatio * scale) + NDS_SCREEN_WIDTH * scale + (hybridRatio * 2);
+            bufferHeight = NDS_SCREEN_HEIGHT * hybridRatio * scale;
+            bufferStride = bufferWidth * PIXEL_SIZE;
 
             if (Layout() == ScreenLayout::HybridTop) {
-                touchOffset = uvec2((screenSize.x * hybridRatio) + (hybridRatio / 2), (screenSize.y * (hybridRatio - 1)));
+                touchOffset = uvec2((NDS_SCREEN_WIDTH * hybridRatio) + (hybridRatio / 2), (NDS_SCREEN_HEIGHT * (hybridRatio - 1))); // * scale;
             } else {
-                this->touchOffset = uvec2(0, 0);
+                touchOffset = uvec2(0, 0);
             }
-
             break;
     }
 
-    if (retro::set_screen_rotation(LayoutOrientation())) {
-        // TODO: Set input transformation matrix
-    } else {
-        retro::set_error_message("Failed to rotate screen; effective layout will be Top/Bottom instead.");
+    float rotation = LayoutAngle(layout);
+    vec2 scaleVector = {
+        (bufferWidth * static_cast<float>(scale)) / std::numeric_limits<uint16_t>::max(),
+        (bufferHeight * static_cast<float>(scale)) / std::numeric_limits<uint16_t>::max()
+    };
+    ivec2 translation = ivec2(touchOffset) - (ivec2(bufferWidth, 0) / 2);
+
+    // This transformation order is important!
+    touchMatrix = rotate(mat3(1), rotation) * glm::scale(mat3(1), scaleVector) * glm::translate(mat3(1), vec2(translation));
+    if (!retro::set_screen_rotation(LayoutOrientation())) {
+        // TODO: Handle this error
     }
 
     if (renderer == Renderer::OpenGl && this->buffer != nullptr) {
@@ -246,7 +243,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     } else {
         unsigned new_size = this->bufferStride * this->bufferHeight;
 
-        if (old_size != new_size || this->buffer == nullptr) {
+        if (oldBufferSize != new_size || this->buffer == nullptr) {
             if (this->buffer != nullptr) free(this->buffer);
             this->buffer = (uint16_t *) malloc(new_size);
 
@@ -256,6 +253,8 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
     _dirty = false;
 }
+
+
 
 retro_game_geometry melonds::ScreenLayoutData::Geometry(melonds::Renderer renderer) const noexcept {
     retro_game_geometry geometry {
