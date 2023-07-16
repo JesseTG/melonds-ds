@@ -19,15 +19,20 @@
 #include <algorithm>
 #include <retro_miscellaneous.h>
 #include <NDS.h>
+#include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/ext/vector_common.hpp>
 
 #include "config.hpp"
 #include "environment.hpp"
 #include "libretro.hpp"
+#include "math.hpp"
 #include "screenlayout.hpp"
 #include "utils.hpp"
 
 using glm::ivec2;
+using glm::ivec3;
+using glm::mat3;
+using glm::vec2;
 
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -137,19 +142,13 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
         int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-//        char text[1024];
-//        sprintf(text, "Pointer: %d, %d", pointer_x, pointer_y);
-//        retro_message_ext message {
-//            .msg = text,
-//            .duration = 60,
-//            .priority = 0,
-//            .level = RETRO_LOG_DEBUG,
-//            .target = RETRO_MESSAGE_TARGET_OSD,
-//            .type = RETRO_MESSAGE_TYPE_STATUS,
-//            .progress = -1
-//        };
-//        retro::set_message(&message);
-        ivec2 transformed_pointer = screen_layout_data.TransformInput(pointer_x, pointer_y);
+        int16_t joystick_x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
+        int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
+        // TODO: Provide an option to allow the joystick input to stay relative to the screen
+
+        mat3 joystickMatrix = melonds::math::ts(NDS_SCREEN_SIZE<float> / 2.0f, NDS_SCREEN_SIZE<float> / 65535.0f);
+        ivec2 transformed_pointer = screen_layout_data.TransformPointerInput(pointer_x, pointer_y);
+        ivec2 transformed_joystick = joystickMatrix * ivec3(joystick_x, joystick_y, 1);
 //        unsigned int touch_scale = screen_layout_data.Layout() == ScreenLayout::HybridBottom
 //                                   ? screen_layout_data.HybridRatio() : 1;
 
@@ -158,8 +157,8 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 //        unsigned int y =
 //            ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
 
-        touch = glm::clamp(transformed_pointer, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-
+        //touch = glm::clamp(transformed_pointer, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+        touch = glm::clamp(transformed_joystick, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
 //        if (touching && !previousTouching) {
 //            retro::debug("(%d, %d) -> (%d, %d) -> (%d, %d)\n", pointer_x, pointer_y, transformed_pointer.x, transformed_pointer.y, touch.x, touch.y);
 //        }

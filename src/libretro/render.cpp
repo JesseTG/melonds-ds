@@ -120,7 +120,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
         (const uint8_t *) screen_layout_data.Buffer(),
         screen_layout_data.BufferWidth(),
         screen_layout_data.BufferHeight(),
-        screen_layout_data.BufferWidth() * sizeof(uint32_t)
+        screen_layout_data.BufferStride()
     );
 }
 
