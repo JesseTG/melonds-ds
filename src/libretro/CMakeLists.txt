@@ -23,6 +23,7 @@ add_library(libretro MODULE
     input.hpp
     libretro.cpp
     libretro.hpp
+    math.hpp
     microphone.cpp
     microphone.hpp
     memory.cpp
