@@ -30,6 +30,7 @@
 
 using std::array;
 using std::max;
+using glm::inverse;
 using glm::ivec2;
 using glm::ivec3;
 using glm::scale;
@@ -40,18 +41,19 @@ using glm::mat3;
 
 melonds::ScreenLayoutData::ScreenLayoutData() :
     _dirty(true), // Uninitialized
-    touchMatrix(1), // Identity matrix
-    joystickMatrix(1),
+    joystickMatrix(1), // Identity matrix
     topScreenMatrix(1),
     bottomScreenMatrix(1),
+    bottomScreenMatrixInverse(1),
     hybridScreenMatrix(1),
+    pointerMatrix(1),
     hybridRatio(2),
     _numberOfLayouts(1),
     buffer(nullptr) {
 }
 
 melonds::ScreenLayoutData::~ScreenLayoutData() {
-    free(buffer);
+    delete[] buffer;
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
@@ -63,7 +65,8 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset)
     // If a screen doesn't need anything drawn to its side (such as blank space or another screen),
     // then we can just copy the entire screen at once.
     // But if a screen *does* need anything drawn on either side of it,
-    // then we have to copy each row of pixels individually to a different offset.
+    // then its pixels can't all be contiguous in memory.
+    // In that case, we have to copy each row of pixels individually to a different offset.
     if (LayoutSupportsDirectCopy(Layout())) {
         memcpy((uint32_t *) buffer + offset, src, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
     } else {
@@ -136,12 +139,6 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
     }
 }
 
-void melonds::ScreenLayoutData::DirectCopy(const uint32_t* source, unsigned offset) noexcept {
-
-    memcpy((uint32_t *) buffer + offset, src, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
-}
-
-
 void melonds::ScreenLayoutData::DrawCursor(ivec2 touch) noexcept {
     // Only used for software rendering
     if (!buffer)
@@ -159,8 +156,7 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch) noexcept {
         uint32_t end_x = std::clamp<float>(touch.x + cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
-            // TODO: Transform the coordinates instead of doing this
-            uint32_t *offset = base_offset + ((y + touchOffset.y) * bufferWidth) + ((x + touchOffset.x));
+            uint32_t *offset = base_offset + (y * bufferSize.x) + x;
             uint32_t pixel = *offset;
             *(uint32_t *) offset = (0xFFFFFF - pixel) | 0xFF000000;
         }
@@ -173,23 +169,18 @@ void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const 
         return;
 
     switch (Layout()) {
-        case ScreenLayout::TopBottom:
-    }
-
-}
-
-
-void melonds::ScreenLayoutData::Clear() {
-    if (buffer != nullptr) {
-        memset(buffer, 0, bufferLength);
+        case ScreenLayout::HybridBottom:
+        case ScreenLayout::HybridTop:
+            // TODO: Implement
+        default:
+            break;
     }
 }
 
 using melonds::ScreenLayoutData;
 
-
 /// For a screen in the top left corner
-constexpr mat3 NorthwestMatrix(unsigned resolutionScale) noexcept {
+mat3 NorthwestMatrix(unsigned resolutionScale) noexcept {
     return scale(mat3(1), vec2(resolutionScale));
 }
 
@@ -238,7 +229,7 @@ constexpr mat3 HybridSoutheastMatrix(unsigned resolutionScale, unsigned hybridRa
     );
 }
 
-mat3 melonds::ScreenLayoutData::GetTopScreenMatrix() const noexcept {
+mat3 melonds::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcept {
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TopOnly:
@@ -246,52 +237,80 @@ mat3 melonds::ScreenLayoutData::GetTopScreenMatrix() const noexcept {
         case ScreenLayout::TurnLeft:
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
-            return NorthwestMatrix(resolutionScale);
+            return NorthwestMatrix(scale);
         case ScreenLayout::BottomTop:
-            return SouthwestMatrix(resolutionScale, screenGap);
+            return SouthwestMatrix(scale, screenGap);
         case ScreenLayout::RightLeft:
-            return EastMatrix(resolutionScale);
+            return EastMatrix(scale);
         case ScreenLayout::HybridTop:
         case ScreenLayout::HybridBottom:
-            return HybridNortheastMatrix(resolutionScale, hybridRatio);
+            return HybridNortheastMatrix(scale, hybridRatio);
         default:
             return mat3(1);
     }
 }
 
-mat3 melonds::ScreenLayoutData::GetBottomScreenMatrix() const noexcept {
+mat3 melonds::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noexcept {
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TurnLeft:
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
-            return SouthwestMatrix(resolutionScale, screenGap);
+            return SouthwestMatrix(scale, screenGap);
         case ScreenLayout::BottomTop:
         case ScreenLayout::BottomOnly:
         case ScreenLayout::RightLeft:
-            return NorthwestMatrix(resolutionScale);
+            return NorthwestMatrix(scale);
         case ScreenLayout::LeftRight:
-            return EastMatrix(resolutionScale);
+            return EastMatrix(scale);
         case ScreenLayout::HybridTop:
         case ScreenLayout::HybridBottom:
-            return HybridSoutheastMatrix(resolutionScale, hybridRatio);
+            return HybridSoutheastMatrix(scale, hybridRatio);
         default:
             return mat3(1);
     }
 }
 
-glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix() const noexcept {
+glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const noexcept {
     switch (Layout()) {
         case ScreenLayout::HybridBottom:
         case ScreenLayout::HybridTop:
-            return HybridWestMatrix(resolutionScale, hybridRatio);
+            return HybridWestMatrix(scale, hybridRatio);
         default:
             return mat3(1);
     }
 }
 
+
+size_t melonds::ScreenLayoutData::GetTopScreenBufferOffset(unsigned scale) const noexcept {
+    switch (Layout()) {
+        case ScreenLayout::RightLeft:
+            return NDS_SCREEN_WIDTH * 2 * scale;
+        case ScreenLayout::BottomTop:
+            return bufferSize.x * (NDS_SCREEN_HEIGHT + screenGap) * scale;
+        default:
+            return 0;
+    }
+}
+size_t melonds::ScreenLayoutData::GetBottomScreenBufferOffset(unsigned int scale) const noexcept {
+    switch (Layout()) {
+        case ScreenLayout::LeftRight:
+            return NDS_SCREEN_WIDTH * 2 * scale;
+        case ScreenLayout::TopBottom:
+            return bufferSize.x * (NDS_SCREEN_HEIGHT + screenGap) * scale;
+        default:
+            return 0;
+    }
+}
+
+size_t melonds::ScreenLayoutData::GetHybridScreenBufferOffset(unsigned scale) const noexcept {
+    return 0;
+    // TODO: When I add support for right-ended hybrid layouts, implement this
+}
+
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
-    size_t oldBufferLength = bufferLength;
+    unsigned scale = (renderer == Renderer::Software) ? 1 : resolutionScale;
+    uvec2 oldBufferSize = bufferSize;
 
     // These points represent the NDS screen coordinates without transformations
     array<vec2, 4> baseScreenPoints = {
@@ -302,9 +321,11 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     };
 
     // Get the matrices we'll be using
-    topScreenMatrix = GetTopScreenMatrix();
-    bottomScreenMatrix = GetBottomScreenMatrix();
-    hybridScreenMatrix = GetHybridScreenMatrix();
+    // (except the pointer matrix, we need to compute the buffer size first)
+    topScreenMatrix = GetTopScreenMatrix(scale);
+    bottomScreenMatrix = GetBottomScreenMatrix(scale);
+    hybridScreenMatrix = GetHybridScreenMatrix(scale);
+    bottomScreenMatrixInverse = inverse(bottomScreenMatrix);
 
     // Transform the base screen points
     array<vec2, 12> transformedScreenPoints = {
@@ -329,112 +350,27 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         bufferSize.y = max<unsigned>(bufferSize.y, p.y);
     }
     bufferStride = bufferSize.x * PIXEL_SIZE;
-    bufferLength = bufferSize.x * bufferSize.y * PIXEL_SIZE;
 
-    // TODO: Compute topScreenBufferOffset and bottomScreenBufferOffset
+    topScreenBufferOffset = GetTopScreenBufferOffset(scale);
+    bottomScreenBufferOffset = GetBottomScreenBufferOffset(scale);
+    hybridScreenBufferOffset = GetHybridScreenBufferOffset(scale);
+    pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
 
-    ScreenLayout layout = Layout();
-//    switch (layout) {
-//        case ScreenLayout::TurnLeft:
-//        case ScreenLayout::TurnRight:
-//        case ScreenLayout::UpsideDown:
-//        case ScreenLayout::TopBottom:
-//            bufferWidth = NDS_SCREEN_WIDTH * scale;
-//            bufferHeight = (NDS_SCREEN_HEIGHT * 2 + screenGap) * scale;
-//            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
-//            touchOffset = uvec2(0, NDS_SCREEN_HEIGHT + screenGap);// * scale;
-//            topScreenBufferOffset = 0;
-//            bottomScreenBufferOffset = bufferWidth * (NDS_SCREEN_HEIGHT + screenGap) * scale;
-//            // We rely on the libretro frontend to rotate the screen for us,
-//            // so we don't have to treat the buffer dimensions specially here
-//
-//            break;
-//        case ScreenLayout::BottomTop:
-//            bufferWidth = NDS_SCREEN_WIDTH * scale;
-//            bufferHeight = (NDS_SCREEN_HEIGHT * 2 + screenGap) * scale;
-//            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
-//            touchOffset = uvec2(0, 0);
-//            topScreenBufferOffset = bufferWidth * (NDS_SCREEN_HEIGHT + screenGap) * scale;
-//            bottomScreenBufferOffset = 0;
-//
-//            break;
-//        case ScreenLayout::LeftRight:
-//            bufferWidth = NDS_SCREEN_WIDTH * 2 * scale;
-//            bufferHeight = NDS_SCREEN_HEIGHT * scale;
-//            bufferStride = NDS_SCREEN_WIDTH * 2 * PIXEL_SIZE * scale;
-//            touchOffset = uvec2(NDS_SCREEN_WIDTH, 0);// * scale;
-//            topScreenBufferOffset = 0;
-//            bottomScreenBufferOffset = NDS_SCREEN_WIDTH * 2 * scale;
-//
-//            break;
-//        case ScreenLayout::RightLeft:
-//            bufferWidth = NDS_SCREEN_WIDTH * 2 * scale;
-//            bufferHeight = NDS_SCREEN_HEIGHT * scale;
-//            bufferStride = NDS_SCREEN_WIDTH * 2 * PIXEL_SIZE * scale;
-//            touchOffset = uvec2(0, 0);
-//            topScreenBufferOffset = NDS_SCREEN_WIDTH * 2 * scale;
-//            bottomScreenBufferOffset = 0;
-//
-//            break;
-//        case ScreenLayout::TopOnly:
-//            bufferWidth = NDS_SCREEN_WIDTH * scale;
-//            bufferHeight = NDS_SCREEN_HEIGHT * scale;
-//            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
-//            touchOffset = uvec2(0, 0);
-//            topScreenBufferOffset = 0;
-//
-//            break;
-//        case ScreenLayout::BottomOnly:
-//            bufferWidth = NDS_SCREEN_WIDTH * scale;
-//            bufferHeight = NDS_SCREEN_HEIGHT * scale;
-//            bufferStride = NDS_SCREEN_WIDTH * PIXEL_SIZE * scale;
-//            touchOffset = uvec2(0, 0);
-//            bottomScreenBufferOffset = 0;
-//
-//            break;
-//        case ScreenLayout::HybridTop:
-//        case ScreenLayout::HybridBottom:
-//            bufferWidth = (NDS_SCREEN_WIDTH * hybridRatio * scale) + NDS_SCREEN_WIDTH * scale + (hybridRatio * 2);
-//            bufferHeight = NDS_SCREEN_HEIGHT * hybridRatio * scale;
-//            bufferStride = bufferWidth * PIXEL_SIZE;
-//
-//            if (Layout() == ScreenLayout::HybridTop) {
-//                touchOffset = uvec2((NDS_SCREEN_WIDTH * hybridRatio) + (hybridRatio / 2), (NDS_SCREEN_HEIGHT * (hybridRatio - 1))); // * scale;
-//            } else {
-//                touchOffset = uvec2(0, 0);
-//            }
-//            break;
-//    }
-
-    // First compute the matrices for the top, bottom, and hybrid screens
-//
-//    // TODO: Apply the scale to the buffer dimensions later, not here
-
-//
-//    float rotation = LayoutAngle(layout);
-//    vec2 scaleVector = {
-//        (bufferWidth * static_cast<float>(scale)) / std::numeric_limits<uint16_t>::max(),
-//        (bufferHeight * static_cast<float>(scale)) / std::numeric_limits<uint16_t>::max()
-//    };
-//    ivec2 translation = ivec2(touchOffset) - (ivec2(bufferWidth, 0) / 2);
-//
-//    // This transformation order is important!
-//    touchMatrix = rotate(mat3(1), rotation) * glm::scale(mat3(1), scaleVector) * glm::translate(mat3(1), vec2(translation));
     if (!retro::set_screen_rotation(LayoutOrientation())) {
         // TODO: Rotate the screen outside screenlayout, but _before_ update;
         // if it failed, handle it accordingly in update
     }
 
-    if (renderer == Renderer::OpenGl && this->buffer != nullptr) {
+    if (renderer == Renderer::OpenGl && buffer != nullptr) {
         // not needed anymore :)
-        free(this->buffer);
-        this->buffer = nullptr;
+        delete[] buffer;
+        buffer = nullptr;
     } else {
-        if (oldBufferLength != bufferLength || this->buffer == nullptr) {
-            if (this->buffer != nullptr) free(this->buffer);
-            this->buffer = (uint16_t *) malloc(bufferLength);
+        if (bufferSize != oldBufferSize || buffer == nullptr) {
+            delete[] buffer;
+            buffer = new uint32_t[bufferSize.x * bufferSize.y];
 
-            memset(this->buffer, 0, bufferLength);
+            memset(buffer, 0, bufferSize.x * bufferSize.y * sizeof(uint32_t));
         }
     }
 

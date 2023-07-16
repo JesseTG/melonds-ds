@@ -158,7 +158,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 //            ((int) pointer_y + 0x8000) * screen_layout_data.BufferHeight() / 0x10000 / touch_scale;
 
         //touch = glm::clamp(transformed_pointer, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-        touch = glm::clamp(transformed_joystick, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+        touch = glm::clamp(transformed_pointer, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
 //        if (touching && !previousTouching) {
 //            retro::debug("(%d, %d) -> (%d, %d) -> (%d, %d)\n", pointer_x, pointer_y, transformed_pointer.x, transformed_pointer.y, touch.x, touch.y);
 //        }

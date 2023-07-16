@@ -68,7 +68,6 @@ namespace melonds {
         [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
         [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch) noexcept;
         void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, std::optional<glm::ivec2> touch) noexcept;
-        void Clear();
 
         void Update(Renderer renderer) noexcept;
 
@@ -86,6 +85,8 @@ namespace melonds {
         /// The size of the image necessary to hold this layout, in pixels
         glm::uvec2 BufferSize() const noexcept { return bufferSize; }
 
+        size_t TopScreenBufferOffset() const noexcept { return topScreenBufferOffset; }
+        size_t BottomScreenBufferOffset() const noexcept { return bottomScreenBufferOffset; }
         unsigned BufferStride() const noexcept { return bufferStride; }
 
         float BufferAspectRatio() const noexcept {
@@ -174,7 +175,7 @@ namespace melonds {
 
         /// @param input Coordinates in pointer space (from -32767 to 32767)
         [[nodiscard]] glm::ivec2 TransformPointerInput(glm::i16vec2 input) const noexcept {
-            glm::vec3 transformed = touchMatrix * glm::vec3(input, 1.0f);
+            glm::vec3 transformed = bottomScreenMatrixInverse * pointerMatrix * glm::vec3(input, 1.0f);
             return glm::ivec2(transformed.x, transformed.y);
         }
 
@@ -184,19 +185,22 @@ namespace melonds {
 
         retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
-        glm::mat3 GetTopScreenMatrix() const noexcept;
-        glm::mat3 GetBottomScreenMatrix() const noexcept;
-        glm::mat3 GetHybridScreenMatrix() const noexcept;
+        glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
+        glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
+        glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
+        size_t GetTopScreenBufferOffset(unsigned scale) const noexcept;
+        size_t GetBottomScreenBufferOffset(unsigned scale) const noexcept;
+        size_t GetHybridScreenBufferOffset(unsigned scale) const noexcept;
 
         bool _dirty;
         unsigned resolutionScale;
 
-        glm::mat3 touchMatrix;
         glm::mat3 joystickMatrix;
-
         glm::mat3 topScreenMatrix;
         glm::mat3 bottomScreenMatrix;
+        glm::mat3 bottomScreenMatrixInverse;
         glm::mat3 hybridScreenMatrix;
+        glm::mat3 pointerMatrix;
 
         unsigned screenGap;
 
@@ -207,11 +211,13 @@ namespace melonds {
         unsigned _numberOfLayouts;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _layouts;
 
+        size_t topScreenBufferOffset;
+        size_t bottomScreenBufferOffset;
+        size_t hybridScreenBufferOffset;
         // Dimensions of the screen needed to render this layout, in pixels
         glm::uvec2 bufferSize;
-        size_t bufferLength;
         unsigned bufferStride;
-        uint16_t *buffer;
+        uint32_t *buffer;
     };
 
     constexpr bool LayoutSupportsDirectCopy(ScreenLayout layout) noexcept {
