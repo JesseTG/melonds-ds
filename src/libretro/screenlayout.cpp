@@ -341,7 +341,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     };
 
     // We need to compute the buffer size to use it for rendering and the touch screen
-    uvec2 bufferSize = uvec2(0);
+    bufferSize = uvec2(0);
     for (const vec2& p : transformedScreenPoints) {
         bufferSize.x = max<unsigned>(bufferSize.x, p.x);
         bufferSize.y = max<unsigned>(bufferSize.y, p.y);
