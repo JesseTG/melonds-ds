@@ -16,6 +16,9 @@
 
 #include "render.hpp"
 
+#include <optional>
+
+#include <glm/vec2.hpp>
 #include <retro_assert.h>
 #include <GPU3D.h>
 
@@ -24,6 +27,10 @@
 #include "opengl.hpp"
 #include "screenlayout.hpp"
 #include "environment.hpp"
+
+using std::nullopt;
+using std::optional;
+using glm::ivec2;
 
 namespace melonds::render {
     static Renderer _CurrentRenderer = Renderer::None;
@@ -117,10 +124,10 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     }
 
     retro::video_refresh(
-        (const uint8_t *) screen_layout_data.Buffer(),
-        screen_layout_data.BufferWidth(),
-        screen_layout_data.BufferHeight(),
-        screen_layout_data.BufferStride()
+        (const uint8_t *) screen_layout_data.Buffer()[0],
+        screen_layout_data.Buffer().Width(),
+        screen_layout_data.Buffer().Height(),
+        screen_layout_data.Buffer().Stride()
     );
 }
 

@@ -33,6 +33,7 @@ using glm::ivec2;
 using glm::ivec3;
 using glm::mat3;
 using glm::vec2;
+using glm::uvec2;
 
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -157,7 +158,8 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
     // TODO: Should the input object state modify global state?
     if (IsTouchingScreen()) {
-        NDS::TouchScreen(std::clamp(touch.x, 0, NDS_SCREEN_WIDTH - 1), std::clamp(touch.y, 0, NDS_SCREEN_HEIGHT - 1));
+        uvec2 clampedTouch = glm::clamp(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+        NDS::TouchScreen(clampedTouch.x, clampedTouch.y);
     } else if (ScreenReleased()) {
         NDS::ReleaseScreen();
     }
