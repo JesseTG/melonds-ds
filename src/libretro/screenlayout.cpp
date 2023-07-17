@@ -49,11 +49,7 @@ melonds::ScreenLayoutData::ScreenLayoutData() :
     pointerMatrix(1),
     hybridRatio(2),
     _numberOfLayouts(1),
-    buffer(nullptr) {
-}
-
-melonds::ScreenLayoutData::~ScreenLayoutData() {
-    delete[] buffer;
+    buffer(uvec2(0)) {
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
@@ -68,13 +64,13 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset)
     // then its pixels can't all be contiguous in memory.
     // In that case, we have to copy each row of pixels individually to a different offset.
     if (LayoutSupportsDirectCopy(Layout())) {
-        memcpy((uint32_t *) buffer + offset, src, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
+        memcpy(buffer.Buffer() + offset, src, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
     } else {
         // Not all of this screen's pixels will be contiguous in memory, so we have to copy them row by row
         for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
             // For each row of the rendered screen...
             memcpy(
-                (uint16_t *) buffer + offset + (y * NDS_SCREEN_WIDTH * PIXEL_SIZE),
+                (uint16_t *) buffer.Buffer() + offset + (y * NDS_SCREEN_WIDTH * PIXEL_SIZE),
                 src + (y * NDS_SCREEN_WIDTH),
                 NDS_SCREEN_WIDTH * PIXEL_SIZE
             );
@@ -99,7 +95,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
                     uint32_t pixel_data = *(uint32_t *) (src + (y * NDS_SCREEN_WIDTH) + x);
 
                     for (unsigned pixel = 0; pixel < hybridRatio; pixel++) {
-                        *(uint32_t *) (buffer + (buffer_y * bufferStride / 2) + pixel * 2 +
+                        *(uint32_t *) (buffer.Buffer() + (buffer_y * buffer.Stride() / 2) + pixel * 2 +
                                        (buffer_x * 2)) = pixel_data;
                     }
                 }
@@ -109,12 +105,12 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
         }
         case HybridScreenId::Top: {
             for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
-                memcpy((uint16_t *) buffer
+                memcpy(buffer.Buffer()
                        // X
                        + ((NDS_SCREEN_WIDTH * hybridRatio * 2) +
                           (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
                        // Y
-                       + (y * bufferStride / 2),
+                       + (y * buffer.Stride() / 2),
                        src + (y * NDS_SCREEN_WIDTH),
                        NDS_SCREEN_WIDTH * PIXEL_SIZE
                );
@@ -124,12 +120,12 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
         }
         case HybridScreenId::Bottom: {
             for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
-                memcpy((uint16_t *) buffer
+                memcpy(buffer.Buffer()
                        // X
                        + ((NDS_SCREEN_WIDTH * hybridRatio * 2) +
                           (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
                        // Y
-                       + ((y + (NDS_SCREEN_HEIGHT * (hybridRatio - 1))) * bufferStride / 2),
+                       + ((y + (NDS_SCREEN_HEIGHT * (hybridRatio - 1))) * buffer.Stride() / 2),
                        src + (y * NDS_SCREEN_WIDTH),
                        NDS_SCREEN_WIDTH * PIXEL_SIZE);
             }
@@ -144,16 +140,17 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch) noexcept {
     if (!buffer)
         return;
 
-    auto *base_offset = (uint32_t *) buffer;
+    uint32_t* base_offset = buffer.Buffer();
+    ivec2 transformedTouch = bottomScreenMatrixInverse * vec3(touch, 1);
 
     uint32_t scale = Layout() == ScreenLayout::HybridBottom ? hybridRatio : 1;
     float cursorSize = melonds::config::video::CursorSize();
-    uint32_t start_y = std::clamp<float>(touch.y - cursorSize, 0, NDS_SCREEN_HEIGHT) * scale;
-    uint32_t end_y = std::clamp<float>(touch.y + cursorSize, 0, NDS_SCREEN_HEIGHT) * scale;
+    uint32_t start_y = std::clamp<uint32_t>(transformedTouch.y - cursorSize, 0, NDS_SCREEN_HEIGHT) * scale;
+    uint32_t end_y = std::clamp<uint32_t>(transformedTouch.y + cursorSize, 0, NDS_SCREEN_HEIGHT) * scale;
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp<float>(touch.x - cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
-        uint32_t end_x = std::clamp<float>(touch.x + cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
+        uint32_t start_x = std::clamp<uint32_t>(transformedTouch.x - cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
+        uint32_t end_x = std::clamp<uint32_t>(transformedTouch.x + cursorSize, 0, NDS_SCREEN_WIDTH) * scale;
 
         for (uint32_t x = start_x; x < end_x; x++) {
             uint32_t *offset = base_offset + (y * bufferSize.x) + x;
@@ -344,12 +341,11 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     };
 
     // We need to compute the buffer size to use it for rendering and the touch screen
-    bufferSize = uvec2(0);
+    uvec2 bufferSize = uvec2(0);
     for (const vec2& p : transformedScreenPoints) {
         bufferSize.x = max<unsigned>(bufferSize.x, p.x);
         bufferSize.y = max<unsigned>(bufferSize.y, p.y);
     }
-    bufferStride = bufferSize.x * PIXEL_SIZE;
 
     topScreenBufferOffset = GetTopScreenBufferOffset(scale);
     bottomScreenBufferOffset = GetBottomScreenBufferOffset(scale);
@@ -361,17 +357,11 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         // if it failed, handle it accordingly in update
     }
 
-    if (renderer == Renderer::OpenGl && buffer != nullptr) {
+    if (renderer == Renderer::OpenGl && buffer) {
         // not needed anymore :)
-        delete[] buffer;
         buffer = nullptr;
-    } else {
-        if (bufferSize != oldBufferSize || buffer == nullptr) {
-            delete[] buffer;
-            buffer = new uint32_t[bufferSize.x * bufferSize.y];
-
-            memset(buffer, 0, bufferSize.x * bufferSize.y * sizeof(uint32_t));
-        }
+    } else if (bufferSize != oldBufferSize || !buffer) {
+        buffer = PixelBuffer(bufferSize);
     }
 
     _dirty = false;
@@ -381,8 +371,8 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
 retro_game_geometry melonds::ScreenLayoutData::Geometry(melonds::Renderer renderer) const noexcept {
     retro_game_geometry geometry {
-        .base_width = BufferWidth(),
-        .base_height = BufferHeight(),
+        .base_width = buffer.Size().x,
+        .base_height = buffer.Size().y,
         .max_width = MaxSoftwareRenderedWidth(),
         .max_height = MaxSoftwareRenderedHeight(),
         .aspect_ratio = BufferAspectRatio(),

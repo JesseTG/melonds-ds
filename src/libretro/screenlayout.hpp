@@ -29,6 +29,7 @@
 
 #include "config.hpp"
 #include "environment.hpp"
+#include "buffer.hpp"
 
 namespace melonds {
     /// The native width of a single Nintendo DS screen, in pixels
@@ -63,7 +64,6 @@ namespace melonds {
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
-        ~ScreenLayoutData();
         [[deprecated("Use CombineScreens instead")]] void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
         [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
         [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch) noexcept;
@@ -73,29 +73,28 @@ namespace melonds {
 
         bool Dirty() const noexcept { return _dirty; }
 
-        void* Buffer() noexcept { return buffer; }
-        const void* Buffer() const noexcept { return buffer; }
+        PixelBuffer& Buffer() noexcept { return buffer; }
+        const PixelBuffer& Buffer() const noexcept { return buffer; }
 
         /// The width of the image necessary to hold this layout, in pixels
-        unsigned BufferWidth() const noexcept { return bufferSize.x; }
+        unsigned BufferWidth() const noexcept { return buffer ? buffer.Width() : bufferSize.x; }
 
         /// The height of the image necessary to hold this layout, in pixels
-        unsigned BufferHeight() const noexcept { return bufferSize.y; }
+        unsigned BufferHeight() const noexcept { return buffer ? buffer.Height() : bufferSize.y; }
 
         /// The size of the image necessary to hold this layout, in pixels
-        glm::uvec2 BufferSize() const noexcept { return bufferSize; }
+        glm::uvec2 BufferSize() const noexcept { return buffer ? buffer.Size() : bufferSize; }
 
         size_t TopScreenBufferOffset() const noexcept { return topScreenBufferOffset; }
         size_t BottomScreenBufferOffset() const noexcept { return bottomScreenBufferOffset; }
-        unsigned BufferStride() const noexcept { return bufferStride; }
 
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {
                 case ScreenLayout::TurnLeft:
                 case ScreenLayout::TurnRight:
-                    return float(bufferSize.y) / float(bufferSize.x);
+                    return float(buffer.Size().y) / float(buffer.Size().x);
                 default:
-                    return float(bufferSize.x) / float(bufferSize.y);
+                    return float(buffer.Size().x) / float(buffer.Size().y);
             }
         }
 
@@ -214,11 +213,11 @@ namespace melonds {
         size_t topScreenBufferOffset;
         size_t bottomScreenBufferOffset;
         size_t hybridScreenBufferOffset;
-        // Dimensions of the screen needed to render this layout, in pixels
+
         glm::uvec2 bufferSize;
-        unsigned bufferStride;
-        uint32_t *buffer;
+        PixelBuffer buffer;
     };
+
 
     constexpr bool LayoutSupportsDirectCopy(ScreenLayout layout) noexcept {
         switch (layout) {
