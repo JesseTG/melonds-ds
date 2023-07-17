@@ -16,11 +16,7 @@
 
 #include "input.hpp"
 
-#include <algorithm>
-#include <retro_miscellaneous.h>
 #include <NDS.h>
-#include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/ext/vector_common.hpp>
 #include <glm/gtx/common.hpp>
 
 #include "config.hpp"
