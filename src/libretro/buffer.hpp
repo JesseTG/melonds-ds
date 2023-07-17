@@ -57,6 +57,7 @@ namespace melonds {
         unsigned Stride() const noexcept { return stride; }
         uint32_t *Buffer() noexcept { return buffer; }
         const uint32_t *Buffer() const noexcept { return buffer; }
+        void Clear() noexcept;
     private:
         glm::uvec2 size;
         unsigned stride;

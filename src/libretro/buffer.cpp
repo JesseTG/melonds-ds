@@ -77,3 +77,9 @@ melonds::PixelBuffer& melonds::PixelBuffer::operator=(std::nullptr_t) noexcept {
     buffer = nullptr;
     return *this;
 }
+
+void melonds::PixelBuffer::Clear() noexcept {
+    if (buffer) {
+        memset(buffer, 0, size.x * size.y * sizeof(uint32_t));
+    }
+}

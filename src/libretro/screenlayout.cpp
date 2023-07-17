@@ -370,6 +370,12 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 }
 
 
+void melonds::ScreenLayoutData::Clear() noexcept {
+    if (buffer) {
+        buffer.Clear();
+    }
+}
+
 
 retro_game_geometry melonds::ScreenLayoutData::Geometry(melonds::Renderer renderer) const noexcept {
     retro_game_geometry geometry {

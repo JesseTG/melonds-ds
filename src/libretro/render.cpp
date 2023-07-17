@@ -92,6 +92,11 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     retro_assert(_CurrentRenderer == Renderer::Software);
     int frontbuf = GPU::FrontBuffer;
 
+    const uint32_t* topScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][0];
+    const uint32_t* bottomScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][1];
+    optional<ivec2> touch = input_state.CursorEnabled() ? optional<ivec2>(input_state.TouchPosition()) : nullopt;
+    //screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer, touch);
+    screen_layout_data.Clear();
     if (screen_layout_data.IsHybridLayout()) {
         unsigned primary = screen_layout_data.Layout() == ScreenLayout::HybridTop ? 0 : 1;
 

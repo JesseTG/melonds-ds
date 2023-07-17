@@ -72,6 +72,7 @@ namespace melonds {
         void Update(Renderer renderer) noexcept;
 
         bool Dirty() const noexcept { return _dirty; }
+        void Clear() noexcept;
 
         PixelBuffer& Buffer() noexcept { return buffer; }
         const PixelBuffer& Buffer() const noexcept { return buffer; }
