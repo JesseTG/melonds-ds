@@ -5,6 +5,8 @@ include(embed-binaries)
 
 add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
+    buffer.cpp
+    buffer.hpp
     config.cpp
     config.hpp
     content.cpp
