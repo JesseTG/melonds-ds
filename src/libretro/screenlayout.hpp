@@ -108,9 +108,9 @@ namespace melonds {
             switch (Layout()) {
                 case ScreenLayout::TurnLeft:
                 case ScreenLayout::TurnRight:
-                    return float(buffer.Size().y) / float(buffer.Size().x);
+                    return float(BufferWidth()) / float(BufferHeight());
                 default:
-                    return float(buffer.Size().x) / float(buffer.Size().y);
+                    return float(BufferWidth()) / float(BufferHeight());
             }
         }
 

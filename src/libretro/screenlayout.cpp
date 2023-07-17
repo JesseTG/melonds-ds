@@ -337,8 +337,8 @@ void melonds::ScreenLayoutData::Clear() noexcept {
 
 retro_game_geometry melonds::ScreenLayoutData::Geometry(melonds::Renderer renderer) const noexcept {
     retro_game_geometry geometry {
-        .base_width = buffer.Size().x,
-        .base_height = buffer.Size().y,
+        .base_width = BufferWidth(),
+        .base_height = BufferHeight(),
         .max_width = MaxSoftwareRenderedWidth(),
         .max_height = MaxSoftwareRenderedHeight(),
         .aspect_ratio = BufferAspectRatio(),
