@@ -290,7 +290,8 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     hybridScreenTranslation = transformedScreenPoints[8];
     pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
 
-    if (!retro::set_screen_rotation(LayoutOrientation())) {
+    ScreenLayout layout = Layout();
+    if (!retro::set_screen_rotation(LayoutOrientation(layout))) {
         // TODO: Rotate the screen outside screenlayout, but _before_ update;
         // if it failed, handle it accordingly in update
     }

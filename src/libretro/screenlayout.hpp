@@ -153,19 +153,6 @@ namespace melonds {
             }
         }
 
-        retro::ScreenOrientation LayoutOrientation() const noexcept {
-            switch (Layout()) {
-                case ScreenLayout::TurnLeft:
-                    return retro::ScreenOrientation::RotatedLeft;
-                case ScreenLayout::TurnRight:
-                    return retro::ScreenOrientation::RotatedRight;
-                case ScreenLayout::UpsideDown:
-                    return retro::ScreenOrientation::UpsideDown;
-                default:
-                    return retro::ScreenOrientation::Normal;
-            }
-        }
-
         bool TopScreenEnabled() const noexcept { return Layout() != ScreenLayout::BottomOnly; }
         bool BottomScreenEnabled() const noexcept { return Layout() != ScreenLayout::TopOnly; }
 
@@ -271,6 +258,19 @@ namespace melonds {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    constexpr retro::ScreenOrientation LayoutOrientation(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::TurnLeft:
+                return retro::ScreenOrientation::RotatedLeft;
+            case ScreenLayout::TurnRight:
+                return retro::ScreenOrientation::RotatedRight;
+            case ScreenLayout::UpsideDown:
+                return retro::ScreenOrientation::UpsideDown;
+            default:
+                return retro::ScreenOrientation::Normal;
         }
     }
 
