@@ -49,6 +49,7 @@ namespace melonds {
         bool touching;
         bool previousTouching;
         glm::ivec2 touch;
+        glm::ivec2 hybridTouch;
         glm::ivec2 joystickTouch;
 
         bool toggleLidButton;

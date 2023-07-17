@@ -21,6 +21,7 @@
 #include <NDS.h>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/ext/vector_common.hpp>
+#include <glm/gtx/common.hpp>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -149,6 +150,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
         mat3 joystickMatrix = melonds::math::ts(NDS_SCREEN_SIZE<float> / 2.0f, NDS_SCREEN_SIZE<float> / 65535.0f);
         ivec2 transformed_pointer = screen_layout_data.TransformPointerInput(pointer_x, pointer_y);
+        ivec2 transformedHybridPointer = screen_layout_data.TransformPointerInputToHybridScreen(pointer_x, pointer_y);
         ivec2 transformed_joystick = joystickMatrix * ivec3(joystick_x, joystick_y, 1);
 
         char text[1024];
@@ -165,13 +167,20 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         retro::set_message(&message);
 
         touch = transformed_pointer;
+        hybridTouch = transformedHybridPointer;
     } else {
         touching = false;
     }
 
     // TODO: Should the input object state modify global state?
     if (IsTouchingScreen()) {
-        uvec2 clampedTouch = glm::clamp(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+        uvec2 clampedTouch;
+        if (screen_layout_data.Layout() == ScreenLayout::HybridBottom && !glm::all(glm::openBounded(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned>))) {
+            clampedTouch = glm::clamp(uvec2(hybridTouch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+        } else {
+            clampedTouch = glm::clamp(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+        }
+
         NDS::TouchScreen(clampedTouch.x, clampedTouch.y);
     } else if (ScreenReleased()) {
         NDS::ReleaseScreen();

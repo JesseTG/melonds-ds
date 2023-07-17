@@ -97,7 +97,7 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
     }
 }
 
-void melonds::ScreenLayoutData::DrawCursor(ivec2 touch) noexcept {
+void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noexcept {
     // Only used for software rendering
     if (!buffer)
         return;
@@ -105,18 +105,18 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch) noexcept {
     uint32_t* base_offset = buffer.Buffer();
 
     ivec2 clampedTouch = glm::clamp(touch, ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
-    ivec2 transformedTouch = bottomScreenMatrix * vec3(clampedTouch, 1);
+    ivec2 transformedTouch = matrix * vec3(clampedTouch, 1);
 
-    uint32_t scale = Layout() == ScreenLayout::HybridBottom ? hybridRatio : 1;
     float cursorSize = melonds::config::video::CursorSize();
-    uint32_t start_y = std::clamp<uint32_t>(transformedTouch.y - cursorSize, 0, bufferSize.y - 1) * scale;
-    uint32_t end_y = std::clamp<uint32_t>(transformedTouch.y + cursorSize, 0, bufferSize.y - 1) * scale;
+    uint32_t start_y = std::clamp<uint32_t>(transformedTouch.y - cursorSize, 0, bufferSize.y - 1);
+    uint32_t end_y = std::clamp<uint32_t>(transformedTouch.y + cursorSize, 0, bufferSize.y - 1);
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp<uint32_t>(transformedTouch.x - cursorSize, 0, bufferSize.x - 1) * scale;
-        uint32_t end_x = std::clamp<uint32_t>(transformedTouch.x + cursorSize, 0, bufferSize.x - 1) * scale;
+        uint32_t start_x = std::clamp<uint32_t>(transformedTouch.x - cursorSize, 0, bufferSize.x - 1);
+        uint32_t end_x = std::clamp<uint32_t>(transformedTouch.x + cursorSize, 0, bufferSize.x - 1);
 
         for (uint32_t x = start_x; x < end_x; x++) {
+            // TODO: Replace with SIMD (does GLM have a SIMD version of this?)
             uint32_t *offset = base_offset + (y * bufferSize.x) + x;
             uint32_t pixel = *offset;
             *(uint32_t *) offset = (0xFFFFFF - pixel) | 0xFF000000;
@@ -259,6 +259,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     topScreenMatrix = GetTopScreenMatrix(scale);
     bottomScreenMatrix = GetBottomScreenMatrix(scale);
     hybridScreenMatrix = GetHybridScreenMatrix(scale);
+    hybridScreenMatrixInverse = inverse(hybridScreenMatrix);
     bottomScreenMatrixInverse = inverse(bottomScreenMatrix);
 
     // Transform the base screen points

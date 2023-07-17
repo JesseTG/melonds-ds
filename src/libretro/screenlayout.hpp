@@ -78,7 +78,7 @@ namespace melonds {
         ~ScreenLayoutData() noexcept;
         [[deprecated("Use CombineScreens instead")]] void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
         [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept;
-        [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch) noexcept;
+        [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch, const glm::mat3& matrix) noexcept;
         void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, std::optional<glm::ivec2> touch) noexcept;
 
         void Update(Renderer renderer) noexcept;
@@ -101,6 +101,8 @@ namespace melonds {
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 TopScreenTranslation() const noexcept { return topScreenTranslation; }
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 BottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 HybridScreenTranslation() const noexcept { return hybridScreenTranslation; }
+        [[deprecated("Use CombineScreens instead")]] const glm::mat3& BottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
+        [[deprecated("Use CombineScreens instead")]] const glm::mat3& HybridScreenMatrix() const noexcept { return hybridScreenMatrix; }
 
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {
@@ -195,6 +197,16 @@ namespace melonds {
             return TransformPointerInput(glm::i16vec2(x, y));
         }
 
+        /// @param input Coordinates in pointer space (from -32767 to 32767)
+        [[nodiscard]] glm::ivec2 TransformPointerInputToHybridScreen(glm::i16vec2 input) const noexcept {
+            glm::vec3 transformed = hybridScreenMatrixInverse * pointerMatrix * glm::vec3(input, 1.0f);
+            return glm::ivec2(transformed.x, transformed.y);
+        }
+
+        [[nodiscard]] glm::ivec2 TransformPointerInputToHybridScreen(int16_t x, int16_t y) const noexcept {
+            return TransformPointerInputToHybridScreen(glm::i16vec2(x, y));
+        }
+
         retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
@@ -209,6 +221,7 @@ namespace melonds {
         glm::mat3 bottomScreenMatrix;
         glm::mat3 bottomScreenMatrixInverse;
         glm::mat3 hybridScreenMatrix;
+        glm::mat3 hybridScreenMatrixInverse;
         glm::mat3 pointerMatrix;
 
         unsigned screenGap;
