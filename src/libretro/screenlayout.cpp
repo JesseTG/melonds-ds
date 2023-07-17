@@ -303,7 +303,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             buffer = PixelBuffer(bufferSize);
         }
 
-        if (IsHybridLayout()) {
+        if (IsHybridLayout(Layout())) {
             // TODO: Don't recreate this buffer if the hybrid ratio didn't change
             // TODO: Maintain a separate _hybridDirty flag
             hybridBuffer = PixelBuffer(NDS_SCREEN_SIZE<unsigned> * hybridRatio);

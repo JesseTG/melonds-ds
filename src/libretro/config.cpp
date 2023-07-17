@@ -547,17 +547,15 @@ bool melonds::update_option_visibility() {
     for (unsigned i = 0; i < config::screen::MAX_SCREEN_LAYOUTS; i++) {
         optional<melonds::ScreenLayout> parsedLayout = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUTS[i]));
 
-        anyHybridLayouts |= !parsedLayout || *parsedLayout == ScreenLayout::HybridTop || *parsedLayout == ScreenLayout::HybridBottom;
-        anyVerticalLayouts |= !parsedLayout || *parsedLayout == ScreenLayout::TopBottom || *parsedLayout == ScreenLayout::BottomTop;
+        anyHybridLayouts |= !parsedLayout || IsHybridLayout(*parsedLayout);
+        anyVerticalLayouts |= !parsedLayout || LayoutSupportsScreenGap(*parsedLayout);
     }
     ShowHybridOptions = anyHybridLayouts;
     ShowVerticalLayoutOptions = anyVerticalLayouts;
 
     if (ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(Keys::HYBRID_SMALL_SCREEN, ShowHybridOptions);
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-        set_option_visible(Keys::HYBRID_RATIO, ShowHybridOptions && ShowOpenGlOptions);
-#endif
+        set_option_visible(Keys::HYBRID_RATIO, ShowHybridOptions);
 
         updated = true;
     }
@@ -1630,7 +1628,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     {
         Config::Retro::Keys::HYBRID_RATIO,
-        "Hybrid Ratio (OpenGL Only)",
+        "Hybrid Ratio",
         nullptr,
         nullptr,
         nullptr,

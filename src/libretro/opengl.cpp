@@ -405,7 +405,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
 
     ScreenLayout layout = screenLayout.Layout();
     HybridSideScreenDisplay smallScreenLayout = screenLayout.HybridSmallScreenLayout();
-    if (screenLayout.IsHybridLayout()) {
+    if (IsHybridLayout(layout)) {
         //Primary Screen
         screen_vertices[0].position = vec2(0);
         screen_vertices[0].texcoord = primaryTexV0; // top left

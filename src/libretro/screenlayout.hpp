@@ -62,6 +62,16 @@ namespace melonds {
         Bottom,
     };
 
+    constexpr bool IsHybridLayout(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::HybridTop:
+            case ScreenLayout::HybridBottom:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
@@ -124,10 +134,9 @@ namespace melonds {
             if (oldLayout != Layout()) _dirty = true;
         }
 
-        bool IsHybridLayout() const noexcept { return Layout() == ScreenLayout::HybridTop || Layout() == ScreenLayout::HybridBottom; }
         HybridSideScreenDisplay HybridSmallScreenLayout() const noexcept { return hybridSmallScreenLayout; }
         void HybridSmallScreenLayout(HybridSideScreenDisplay _layout) noexcept {
-            if (IsHybridLayout() && _layout != hybridSmallScreenLayout) _dirty = true;
+            if (IsHybridLayout(Layout()) && _layout != hybridSmallScreenLayout) _dirty = true;
             hybridSmallScreenLayout = _layout;
         }
 
@@ -172,7 +181,7 @@ namespace melonds {
 
         unsigned HybridRatio() const noexcept { return hybridRatio; }
         void HybridRatio(unsigned _hybrid_ratio) noexcept {
-            if (IsHybridLayout() && _hybrid_ratio != hybridRatio) _dirty = true;
+            if (IsHybridLayout(Layout()) && _hybrid_ratio != hybridRatio) _dirty = true;
             hybridRatio = _hybrid_ratio;
         }
 
@@ -224,6 +233,18 @@ namespace melonds {
         struct scaler_ctx hybridScaler;
     };
 
+    constexpr bool LayoutSupportsScreenGap(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::TurnLeft:
+            case ScreenLayout::TurnRight:
+            case ScreenLayout::UpsideDown:
+            case ScreenLayout::TopBottom:
+            case ScreenLayout::BottomTop:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     constexpr bool LayoutSupportsDirectCopy(ScreenLayout layout) noexcept {
         switch (layout) {

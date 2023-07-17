@@ -98,7 +98,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     optional<ivec2> touch = input_state.CursorEnabled() ? optional<ivec2>(input_state.TouchPosition()) : nullopt;
     //screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer, touch);
     screen_layout_data.Clear();
-    if (screen_layout_data.IsHybridLayout()) {
+    if (IsHybridLayout(screen_layout_data.Layout())) {
         unsigned primary = screen_layout_data.Layout() == ScreenLayout::HybridTop ? 0 : 1;
 
         screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary, screen_layout_data.HybridScreenTranslation());
