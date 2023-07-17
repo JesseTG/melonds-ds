@@ -15,10 +15,13 @@
 */
 
 #include "buffer.hpp"
+#include "screenlayout.hpp"
 
 #include <cstring>
 
-melonds::PixelBuffer::PixelBuffer(glm::uvec2 size) noexcept :
+using glm::uvec2;
+
+melonds::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
     size(size),
     stride(size.x * sizeof(uint32_t)),
     buffer(new uint32_t[size.x * size.y]) {
@@ -72,7 +75,7 @@ melonds::PixelBuffer& melonds::PixelBuffer::operator=(PixelBuffer&& other) noexc
 
 melonds::PixelBuffer& melonds::PixelBuffer::operator=(std::nullptr_t) noexcept {
     delete[] buffer;
-    size = glm::uvec2(0, 0);
+    size = uvec2(0, 0);
     stride = 0;
     buffer = nullptr;
     return *this;
@@ -81,5 +84,20 @@ melonds::PixelBuffer& melonds::PixelBuffer::operator=(std::nullptr_t) noexcept {
 void melonds::PixelBuffer::Clear() noexcept {
     if (buffer) {
         memset(buffer, 0, size.x * size.y * sizeof(uint32_t));
+    }
+}
+
+void melonds::PixelBuffer::CopyDirect(const uint32_t* source, uvec2 destination) noexcept {
+    memcpy(&this->operator[](destination), source, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
+}
+
+void melonds::PixelBuffer::CopyRows(const uint32_t* source, uvec2 destination, uvec2 destinationSize) noexcept {
+    for (unsigned y = 0; y < destinationSize.y; y++) {
+        // For each row of the rendered screen...
+        memcpy(
+            &this->operator[](uvec2(destination.x, destination.y + y)),
+            source + (y * destinationSize.x),
+            destinationSize.x * PIXEL_SIZE
+        );
     }
 }

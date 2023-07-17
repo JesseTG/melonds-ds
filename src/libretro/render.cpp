@@ -31,6 +31,7 @@
 using std::nullopt;
 using std::optional;
 using glm::ivec2;
+using glm::uvec2;
 
 namespace melonds::render {
     static Renderer _CurrentRenderer = Renderer::None;
@@ -100,29 +101,29 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     if (screen_layout_data.IsHybridLayout()) {
         unsigned primary = screen_layout_data.Layout() == ScreenLayout::HybridTop ? 0 : 1;
 
-        screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary);
+        screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary, screen_layout_data.HybridScreenTranslation());
 
         switch (screen_layout_data.HybridSmallScreenLayout()) {
-            case SmallScreenLayout::SmallScreenTop:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Bottom);
+            case HybridSideScreenDisplay::Top:
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
                 break;
-            case SmallScreenLayout::SmallScreenBottom:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom);
+            case HybridSideScreenDisplay::Bottom:
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
                 break;
-            case SmallScreenLayout::SmallScreenDuplicate:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top);
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom);
+            case HybridSideScreenDisplay::Both:
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
                 break;
         }
 
-        if (input_state.CursorEnabled())
-            screen_layout_data.DrawCursor(input_state.TouchPosition());
+//        if (input_state.CursorEnabled())
+//            screen_layout_data.DrawCursor(input_state.TouchPosition());
     } else {
         if (screen_layout_data.TopScreenEnabled())
-            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenBufferOffset());
+            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenTranslation());
+
         if (screen_layout_data.BottomScreenEnabled())
-            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1],
-                                          screen_layout_data.BottomScreenBufferOffset());
+            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1], screen_layout_data.BottomScreenTranslation());
 
         if (input_state.CursorEnabled() && screen_layout_data.Layout() != ScreenLayout::TopOnly)
             screen_layout_data.DrawCursor(input_state.TouchPosition());

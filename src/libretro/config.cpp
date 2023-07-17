@@ -339,8 +339,8 @@ namespace melonds::config {
         unsigned HybridRatio() noexcept { return 2; }
 #endif
 
-        static melonds::SmallScreenLayout _smallScreenLayout;
-        melonds::SmallScreenLayout SmallScreenLayout() noexcept { return _smallScreenLayout; }
+        static melonds::HybridSideScreenDisplay _smallScreenLayout;
+        melonds::HybridSideScreenDisplay SmallScreenLayout() noexcept { return _smallScreenLayout; }
     }
 
     namespace system {
@@ -910,14 +910,14 @@ static void melonds::config::parse_screen_options() noexcept {
 
     if (const char* value = get_variable(Keys::HYBRID_SMALL_SCREEN); !string_is_empty(value)) {
         if (string_is_equal(value, Values::TOP))
-            _smallScreenLayout = SmallScreenLayout::SmallScreenTop;
+            _smallScreenLayout = HybridSideScreenDisplay::Top;
         else if (string_is_equal(value, Values::BOTTOM))
-            _smallScreenLayout = SmallScreenLayout::SmallScreenBottom;
+            _smallScreenLayout = HybridSideScreenDisplay::Bottom;
         else
-            _smallScreenLayout = SmallScreenLayout::SmallScreenDuplicate;
+            _smallScreenLayout = HybridSideScreenDisplay::Both;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::HYBRID_SMALL_SCREEN, Values::BOTH);
-        _smallScreenLayout = SmallScreenLayout::SmallScreenDuplicate;
+        _smallScreenLayout = HybridSideScreenDisplay::Both;
     }
 
     if (optional<int> value = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, MAX_SCREEN_LAYOUTS)) {

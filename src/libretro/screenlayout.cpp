@@ -49,10 +49,15 @@ melonds::ScreenLayoutData::ScreenLayoutData() :
     pointerMatrix(1),
     hybridRatio(2),
     _numberOfLayouts(1),
-    buffer(uvec2(0)) {
+    buffer(nullptr),
+    hybridBuffer(nullptr) {
 }
 
-void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset) noexcept {
+melonds::ScreenLayoutData::~ScreenLayoutData() noexcept {
+    scaler_ctx_gen_reset(&hybridScaler);
+}
+
+void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept {
     // Only used for software rendering
 
     // melonDS's software renderer draws each emulated screen to its own buffer,
@@ -64,72 +69,29 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, unsigned offset)
     // then its pixels can't all be contiguous in memory.
     // In that case, we have to copy each row of pixels individually to a different offset.
     if (LayoutSupportsDirectCopy(Layout())) {
-        memcpy(buffer.Buffer() + offset, src, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
+        buffer.CopyDirect(src, destTranslation);
     } else {
         // Not all of this screen's pixels will be contiguous in memory, so we have to copy them row by row
-        for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
-            // For each row of the rendered screen...
-            memcpy(
-                (uint16_t *) buffer.Buffer() + offset + (y * NDS_SCREEN_WIDTH * PIXEL_SIZE),
-                src + (y * NDS_SCREEN_WIDTH),
-                NDS_SCREEN_WIDTH * PIXEL_SIZE
-            );
-        }
+        buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
     }
 
 }
 
-void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept {
+void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept {
     // Only used for software rendering
+
     switch (screen_id) {
         case HybridScreenId::Primary: {
-            // TODO: Use one of the libretro scalers instead of this loop
-            unsigned buffer_height = NDS_SCREEN_HEIGHT * hybridRatio;
-            unsigned buffer_width = NDS_SCREEN_WIDTH * hybridRatio;
-
-            for (unsigned buffer_y = 0; buffer_y < buffer_height; buffer_y++) {
-                unsigned y = buffer_y / hybridRatio;
-                for (unsigned buffer_x = 0; buffer_x < buffer_width; buffer_x++) {
-                    unsigned x = buffer_x / hybridRatio;
-
-                    uint32_t pixel_data = *(uint32_t *) (src + (y * NDS_SCREEN_WIDTH) + x);
-
-                    for (unsigned pixel = 0; pixel < hybridRatio; pixel++) {
-                        *(uint32_t *) (buffer.Buffer() + (buffer_y * buffer.Stride() / 2) + pixel * 2 +
-                                       (buffer_x * 2)) = pixel_data;
-                    }
-                }
-            }
-
+            scaler_ctx_scale(&hybridScaler, hybridBuffer.Buffer(), src);
+            buffer.CopyRows(hybridBuffer.Buffer(), destTranslation, NDS_SCREEN_SIZE<unsigned> * hybridRatio);
             break;
         }
         case HybridScreenId::Top: {
-            for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
-                memcpy(buffer.Buffer()
-                       // X
-                       + ((NDS_SCREEN_WIDTH * hybridRatio * 2) +
-                          (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
-                       // Y
-                       + (y * buffer.Stride() / 2),
-                       src + (y * NDS_SCREEN_WIDTH),
-                       NDS_SCREEN_WIDTH * PIXEL_SIZE
-               );
-            }
-
+            buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
             break;
         }
         case HybridScreenId::Bottom: {
-            for (unsigned y = 0; y < NDS_SCREEN_HEIGHT; y++) {
-                memcpy(buffer.Buffer()
-                       // X
-                       + ((NDS_SCREEN_WIDTH * hybridRatio * 2) +
-                          (hybridRatio % 2 == 0 ? hybridRatio : ((hybridRatio / 2) * 4)))
-                       // Y
-                       + ((y + (NDS_SCREEN_HEIGHT * (hybridRatio - 1))) * buffer.Stride() / 2),
-                       src + (y * NDS_SCREEN_WIDTH),
-                       NDS_SCREEN_WIDTH * PIXEL_SIZE);
-            }
-
+            buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
             break;
         }
     }
@@ -280,33 +242,6 @@ glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const
     }
 }
 
-
-size_t melonds::ScreenLayoutData::GetTopScreenBufferOffset(unsigned scale) const noexcept {
-    switch (Layout()) {
-        case ScreenLayout::RightLeft:
-            return NDS_SCREEN_WIDTH * 2 * scale;
-        case ScreenLayout::BottomTop:
-            return bufferSize.x * (NDS_SCREEN_HEIGHT + screenGap) * scale;
-        default:
-            return 0;
-    }
-}
-size_t melonds::ScreenLayoutData::GetBottomScreenBufferOffset(unsigned int scale) const noexcept {
-    switch (Layout()) {
-        case ScreenLayout::LeftRight:
-            return NDS_SCREEN_WIDTH * 2 * scale;
-        case ScreenLayout::TopBottom:
-            return bufferSize.x * (NDS_SCREEN_HEIGHT + screenGap) * scale;
-        default:
-            return 0;
-    }
-}
-
-size_t melonds::ScreenLayoutData::GetHybridScreenBufferOffset(unsigned scale) const noexcept {
-    return 0;
-    // TODO: When I add support for right-ended hybrid layouts, implement this
-}
-
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     unsigned scale = (renderer == Renderer::Software) ? 1 : resolutionScale;
     uvec2 oldBufferSize = bufferSize;
@@ -349,9 +284,9 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         bufferSize.y = max<unsigned>(bufferSize.y, p.y);
     }
 
-    topScreenBufferOffset = GetTopScreenBufferOffset(scale);
-    bottomScreenBufferOffset = GetBottomScreenBufferOffset(scale);
-    hybridScreenBufferOffset = GetHybridScreenBufferOffset(scale);
+    topScreenTranslation = transformedScreenPoints[0];
+    bottomScreenTranslation = transformedScreenPoints[4];
+    hybridScreenTranslation = transformedScreenPoints[8];
     pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
 
     if (!retro::set_screen_rotation(LayoutOrientation())) {
@@ -359,11 +294,32 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
         // if it failed, handle it accordingly in update
     }
 
-    if (renderer == Renderer::OpenGl && buffer) {
+    if (renderer == Renderer::OpenGl) {
         // not needed anymore :)
         buffer = nullptr;
-    } else if (bufferSize != oldBufferSize || !buffer) {
-        buffer = PixelBuffer(bufferSize);
+        hybridBuffer = nullptr;
+    } else {
+        if (bufferSize != oldBufferSize || !buffer) {
+            buffer = PixelBuffer(bufferSize);
+        }
+
+        if (IsHybridLayout()) {
+            // TODO: Don't recreate this buffer if the hybrid ratio didn't change
+            // TODO: Maintain a separate _hybridDirty flag
+            hybridBuffer = PixelBuffer(NDS_SCREEN_SIZE<unsigned> * hybridRatio);
+            hybridScaler.in_width = NDS_SCREEN_WIDTH;
+            hybridScaler.in_height = NDS_SCREEN_HEIGHT;
+            hybridScaler.in_stride = NDS_SCREEN_WIDTH * sizeof(uint32_t);
+            hybridScaler.out_width = NDS_SCREEN_WIDTH * hybridRatio;
+            hybridScaler.out_height = NDS_SCREEN_HEIGHT * hybridRatio;
+            hybridScaler.out_stride = NDS_SCREEN_WIDTH * hybridRatio * sizeof(uint32_t);
+            hybridScaler.in_fmt = SCALER_FMT_ARGB8888;
+            hybridScaler.out_fmt = SCALER_FMT_ARGB8888;
+            hybridScaler.scaler_type = SCALER_TYPE_POINT;
+            scaler_ctx_gen_filter(&hybridScaler);
+        } else {
+            hybridBuffer = nullptr;
+        }
     }
 
     _dirty = false;

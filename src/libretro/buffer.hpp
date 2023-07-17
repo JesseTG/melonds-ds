@@ -34,19 +34,19 @@ namespace melonds {
         PixelBuffer& operator=(std::nullptr_t) noexcept;
 
         [[nodiscard]] uint32_t operator[](glm::uvec2 pos) const noexcept {
-            return buffer[pos.y * stride + pos.x];
+            return buffer[pos.y * size.x + pos.x];
         }
 
         [[nodiscard]] uint32_t& operator[](glm::uvec2 pos) noexcept {
-            return buffer[pos.y * stride + pos.x];
+            return buffer[pos.y * size.x + pos.x];
         }
 
         [[nodiscard]] uint32_t* operator[](unsigned row) noexcept {
-            return buffer + row * stride;
+            return buffer + row * size.x;
         }
 
         [[nodiscard]] const uint32_t* operator[](unsigned row) const noexcept {
-            return buffer + row * stride;
+            return buffer + row * size.x;
         }
 
         operator bool() const noexcept { return buffer != nullptr; }
@@ -58,6 +58,8 @@ namespace melonds {
         uint32_t *Buffer() noexcept { return buffer; }
         const uint32_t *Buffer() const noexcept { return buffer; }
         void Clear() noexcept;
+        void CopyDirect(const uint32_t* source, glm::uvec2 destination) noexcept;
+        void CopyRows(const uint32_t* source, glm::uvec2 destination, glm::uvec2 destinationSize) noexcept;
     private:
         glm::uvec2 size;
         unsigned stride;

@@ -136,10 +136,10 @@ namespace melonds {
         UpsideDown = 10,
     };
 
-    enum class SmallScreenLayout {
-        SmallScreenTop = 0,
-        SmallScreenBottom = 1,
-        SmallScreenDuplicate = 2
+    enum class HybridSideScreenDisplay {
+        Top,
+        Bottom,
+        Both
     };
 
     using MacAddress = std::array<std::uint8_t, 6>;
@@ -214,7 +214,7 @@ namespace melonds {
             [[nodiscard]] std::array<ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept;
             [[nodiscard]] unsigned ScreenGap() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
-            [[nodiscard]] SmallScreenLayout SmallScreenLayout() noexcept;
+            [[deprecated("Render both screens instead")]] [[nodiscard]] HybridSideScreenDisplay SmallScreenLayout() noexcept;
         }
 
         namespace video {

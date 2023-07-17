@@ -22,6 +22,7 @@
 #include <optional>
 
 #include <libretro.h>
+#include <gfx/scaler/scaler.h>
 
 #include <glm/vec2.hpp>
 #include <glm/mat3x3.hpp>
@@ -64,8 +65,9 @@ namespace melonds {
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
-        [[deprecated("Use CombineScreens instead")]] void CopyScreen(const uint32_t* src, unsigned offset) noexcept;
-        [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id) noexcept;
+        ~ScreenLayoutData() noexcept;
+        [[deprecated("Use CombineScreens instead")]] void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
+        [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept;
         [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch) noexcept;
         void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, std::optional<glm::ivec2> touch) noexcept;
 
@@ -86,8 +88,9 @@ namespace melonds {
         /// The size of the image necessary to hold this layout, in pixels
         glm::uvec2 BufferSize() const noexcept { return buffer ? buffer.Size() : bufferSize; }
 
-        size_t TopScreenBufferOffset() const noexcept { return topScreenBufferOffset; }
-        size_t BottomScreenBufferOffset() const noexcept { return bottomScreenBufferOffset; }
+        [[deprecated("Use CombineScreens instead")]] glm::uvec2 TopScreenTranslation() const noexcept { return topScreenTranslation; }
+        [[deprecated("Use CombineScreens instead")]] glm::uvec2 BottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
+        [[deprecated("Use CombineScreens instead")]] glm::uvec2 HybridScreenTranslation() const noexcept { return hybridScreenTranslation; }
 
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {
@@ -122,8 +125,8 @@ namespace melonds {
         }
 
         bool IsHybridLayout() const noexcept { return Layout() == ScreenLayout::HybridTop || Layout() == ScreenLayout::HybridBottom; }
-        SmallScreenLayout HybridSmallScreenLayout() const noexcept { return hybridSmallScreenLayout; }
-        void HybridSmallScreenLayout(SmallScreenLayout _layout) noexcept {
+        HybridSideScreenDisplay HybridSmallScreenLayout() const noexcept { return hybridSmallScreenLayout; }
+        void HybridSmallScreenLayout(HybridSideScreenDisplay _layout) noexcept {
             if (IsHybridLayout() && _layout != hybridSmallScreenLayout) _dirty = true;
             hybridSmallScreenLayout = _layout;
         }
@@ -188,9 +191,6 @@ namespace melonds {
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
-        size_t GetTopScreenBufferOffset(unsigned scale) const noexcept;
-        size_t GetBottomScreenBufferOffset(unsigned scale) const noexcept;
-        size_t GetHybridScreenBufferOffset(unsigned scale) const noexcept;
 
         bool _dirty;
         unsigned resolutionScale;
@@ -204,19 +204,24 @@ namespace melonds {
 
         unsigned screenGap;
 
-        SmallScreenLayout hybridSmallScreenLayout;
+        HybridSideScreenDisplay hybridSmallScreenLayout;
         unsigned hybridRatio;
 
         unsigned _layoutIndex;
         unsigned _numberOfLayouts;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _layouts;
 
-        size_t topScreenBufferOffset;
-        size_t bottomScreenBufferOffset;
-        size_t hybridScreenBufferOffset;
+        // Offset in pixels, not bytes
+        glm::uvec2 topScreenTranslation;
+        glm::uvec2 bottomScreenTranslation;
+        glm::uvec2 hybridScreenTranslation;
 
         glm::uvec2 bufferSize;
         PixelBuffer buffer;
+
+        // Used as a staging area for the hybrid screen to be scaled
+        PixelBuffer hybridBuffer;
+        struct scaler_ctx hybridScaler;
     };
 
 
@@ -255,7 +260,7 @@ namespace melonds {
             NDS_SCREEN_WIDTH * 2u,
 
             // Hybrid layout
-            (NDS_SCREEN_WIDTH * MAX_SOFTWARE_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (MAX_SOFTWARE_HYBRID_RATIO * 2),
+            (NDS_SCREEN_WIDTH * MAX_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (MAX_HYBRID_RATIO * 2),
 
             // Sideways layout
             NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP,

@@ -151,6 +151,19 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         ivec2 transformed_pointer = screen_layout_data.TransformPointerInput(pointer_x, pointer_y);
         ivec2 transformed_joystick = joystickMatrix * ivec3(joystick_x, joystick_y, 1);
 
+        char text[1024];
+        sprintf(text, "Pointer: (%d, %d) -> (%d, %d)", pointer_x, pointer_y, transformed_pointer.x, transformed_pointer.y);
+        retro_message_ext message {
+            .msg = text,
+            .duration = 60,
+            .priority = 0,
+            .level = RETRO_LOG_DEBUG,
+            .target = RETRO_MESSAGE_TARGET_OSD,
+            .type = RETRO_MESSAGE_TYPE_STATUS,
+            .progress = -1
+        };
+        retro::set_message(&message);
+
         touch = transformed_pointer;
     } else {
         touching = false;
