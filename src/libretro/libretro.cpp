@@ -319,7 +319,7 @@ PUBLIC_SYMBOL void retro_run(void) {
 
     if (retro::is_variable_updated()) {
         // If any settings have changed...
-        melonds::UpdateConfig(screenLayout);
+        melonds::UpdateConfig(screenLayout, input_state);
     }
 
     // Read the input from the frontend
@@ -612,7 +612,7 @@ static void melonds::load_games(
         // but the config can depend on the header.
         memcpy(&header, nds_info->data, sizeof(header));
     }
-    melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt, screenLayout);
+    melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt, screenLayout, input_state);
 
     Platform::Init(0, nullptr);
 

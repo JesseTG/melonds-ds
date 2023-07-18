@@ -20,6 +20,8 @@
 #include <libretro.h>
 #include <glm/vec2.hpp>
 
+#include "config.hpp"
+
 namespace melonds {
     class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
@@ -42,16 +44,31 @@ namespace melonds {
         [[nodiscard]] bool MicButtonReleased() const noexcept { return !micButton && previousMicButton; }
         [[nodiscard]] bool ToggleLidDown() const noexcept { return toggleLidButton; }
         [[nodiscard]] bool ToggleLidPressed() const noexcept { return toggleLidButton && !previousToggleLidButton; }
-        [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
+        [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }\
+        [[nodiscard]] unsigned MaxCursorTimeout() const noexcept { return maxCursorTimeout;}
+        void SetMaxCursorTimeout(unsigned timeout) noexcept {
+            if (timeout != maxCursorTimeout) dirty = true;
+            maxCursorTimeout = timeout;
+        }
+        [[nodiscard]] enum CursorMode CursorMode() const noexcept { return cursorMode; }
+        void SetCursorMode(melonds::CursorMode mode) noexcept {
+            if (mode != cursorMode) dirty = true;
+            cursorMode = mode;
+        }
         void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
+        bool dirty = true;
         bool touching;
         bool previousTouching;
+        glm::ivec2 previousTouch;
         glm::ivec2 touch;
         glm::ivec2 hybridTouch;
         glm::ivec2 joystickTouch;
+        enum CursorMode cursorMode;
 
+        unsigned cursorTimeout = 0;
+        unsigned maxCursorTimeout;
         bool toggleLidButton;
         bool previousToggleLidButton;
         bool previousMicButton;

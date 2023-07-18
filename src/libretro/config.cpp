@@ -15,6 +15,7 @@
 */
 
 #include "config.hpp"
+
 #include <charconv>
 #include <cstring>
 #include <initializer_list>
@@ -52,6 +53,7 @@ const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
+const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
 namespace Config {
     namespace Retro {
@@ -89,6 +91,8 @@ namespace Config {
                 SCREEN_LAYOUT8
             };
 
+            static const char* const SHOW_CURSOR = "melonds_show_cursor";
+            static const char* const CURSOR_TIMEOUT = "melonds_cursor_timeout";
             static const char* const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
             static const char* const HYBRID_RATIO = "melonds_hybrid_ratio";
             static const char* const JIT_ENABLE = "melonds_jit_enable";
@@ -164,10 +168,12 @@ namespace Config {
             static const char* const SILENCE = "silence";
             static const char* const SOFTWARE = "software";
             static const char* const SPANISH = "es";
+            static const char* const TIMEOUT = "timeout";
             static const char* const TOGGLE = "toggle";
             static const char* const TOP_BOTTOM = "top-bottom";
             static const char* const TOP = "top";
             static const char* const TOUCH = "touch";
+            static const char* const TOUCHING = "touching";
             static const char* const UPSIDE_DOWN = "rotate-180";
         }
     }
@@ -183,6 +189,7 @@ namespace melonds::config {
         static bool ShowSoftwareRenderOptions = true;
         static bool ShowHybridOptions = true;
         static bool ShowVerticalLayoutOptions = true;
+        static bool ShowCursorTimeout = true;
         static unsigned NumberOfShownScreenLayouts = screen::MAX_SCREEN_LAYOUTS;
 
 #ifdef JIT_ENABLED
@@ -191,6 +198,7 @@ namespace melonds::config {
     }
 
     static optional<Renderer> ParseRenderer(const char* value) noexcept;
+    static optional<CursorMode> ParseCursorMode(const char* value) noexcept;
 
     static void parse_jit_options() noexcept;
     static void parse_system_options() noexcept;
@@ -211,7 +219,7 @@ namespace melonds::config {
     static void apply_system_options(const optional<NDSHeader>& header);
     static void apply_audio_options() noexcept;
     static void apply_save_options(const optional<NDSHeader>& header);
-    static void apply_screen_options(ScreenLayoutData& screenLayout) noexcept;
+    static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
 
     namespace audio {
         melonds::MicButtonMode _micButtonMode = melonds::MicButtonMode::Hold;
@@ -340,6 +348,12 @@ namespace melonds::config {
 
         static unsigned _cursorSize = 2.0f;
         float CursorSize() noexcept { return _cursorSize; }
+
+        static enum CursorMode _cursorMode = CursorMode::Always;
+        enum CursorMode CursorMode() noexcept { return _cursorMode; }
+
+        static unsigned _cursorTimeout;
+        unsigned CursorTimeout() noexcept { return _cursorTimeout; }
     }
 
     namespace system {
@@ -390,6 +404,14 @@ namespace melonds::config {
 static optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
     if (string_is_equal(value, Config::Retro::Values::SOFTWARE)) return melonds::Renderer::Software;
     if (string_is_equal(value, Config::Retro::Values::OPENGL)) return melonds::Renderer::OpenGl;
+    return nullopt;
+}
+
+static optional<melonds::CursorMode> melonds::config::ParseCursorMode(const char* value) noexcept {
+    if (string_is_equal(value, Config::Retro::Values::DISABLED)) return melonds::CursorMode::Never;
+    if (string_is_equal(value, Config::Retro::Values::TOUCHING)) return melonds::CursorMode::Touching;
+    if (string_is_equal(value, Config::Retro::Values::TIMEOUT)) return melonds::CursorMode::Timeout;
+    if (string_is_equal(value, Config::Retro::Values::ALWAYS)) return melonds::CursorMode::Always;
     return nullopt;
 }
 
@@ -462,7 +484,7 @@ static optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(c
 }
 
 void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header,
-                         ScreenLayoutData& screenLayout) {
+                         ScreenLayoutData& screenLayout, InputState& inputState) {
     config::parse_system_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
@@ -475,7 +497,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::apply_system_options(header);
     config::apply_save_options(header);
     config::apply_audio_options();
-    config::apply_screen_options(screenLayout);
+    config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
@@ -493,13 +515,13 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     update_option_visibility();
 }
 
-void melonds::UpdateConfig(ScreenLayoutData& screenLayout) noexcept {
+void melonds::UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     config::parse_screen_options();
 
     config::apply_audio_options();
-    config::apply_screen_options(screenLayout);
+    config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
@@ -560,12 +582,34 @@ bool melonds::update_option_visibility() {
         updated = true;
     }
 
+    bool oldShowCursorTimeout = ShowCursorTimeout;
+    optional<melonds::CursorMode> cursorMode = ParseCursorMode(get_variable(Keys::SHOW_CURSOR));
+
+    ShowCursorTimeout = !cursorMode || *cursorMode == melonds::CursorMode::Timeout;
+    if (ShowCursorTimeout != oldShowCursorTimeout) {
+        set_option_visible(Keys::CURSOR_TIMEOUT, ShowCursorTimeout);
+
+        updated = true;
+    }
+
+    unsigned oldNumberOfShownScreenLayouts = NumberOfShownScreenLayouts;
+    optional<unsigned> numberOfScreenLayouts = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1u, screen::MAX_SCREEN_LAYOUTS);
+
+    NumberOfShownScreenLayouts = numberOfScreenLayouts ? *numberOfScreenLayouts : screen::MAX_SCREEN_LAYOUTS;
+    if (NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
+        for (unsigned i = 0; i < screen::MAX_SCREEN_LAYOUTS; ++i) {
+            set_option_visible(Keys::SCREEN_LAYOUTS[i], i < NumberOfShownScreenLayouts);
+        }
+
+        updated = true;
+    }
+
     // Show/hide Hybrid screen options
     bool oldShowHybridOptions = ShowHybridOptions;
     bool oldShowVerticalLayoutOptions = ShowVerticalLayoutOptions;
     bool anyHybridLayouts = false;
     bool anyVerticalLayouts = false;
-    for (unsigned i = 0; i < config::screen::MAX_SCREEN_LAYOUTS; i++) {
+    for (unsigned i = 0; i < NumberOfShownScreenLayouts; i++) {
         optional<melonds::ScreenLayout> parsedLayout = ParseScreenLayout(get_variable(Keys::SCREEN_LAYOUTS[i]));
 
         anyHybridLayouts |= !parsedLayout || IsHybridLayout(*parsedLayout);
@@ -605,17 +649,6 @@ bool melonds::update_option_visibility() {
     }
 #endif
 
-    unsigned oldNumberOfShownScreenLayouts = NumberOfShownScreenLayouts;
-    optional<unsigned> numberOfScreenLayouts = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1u, screen::MAX_SCREEN_LAYOUTS);
-
-    NumberOfShownScreenLayouts = numberOfScreenLayouts ? *numberOfScreenLayouts : screen::MAX_SCREEN_LAYOUTS;
-    if (NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
-        for (unsigned i = 0; i < screen::MAX_SCREEN_LAYOUTS; ++i) {
-            set_option_visible(Keys::SCREEN_LAYOUTS[i], i < NumberOfShownScreenLayouts);
-        }
-
-        updated = true;
-    }
 
     return updated;
 }
@@ -916,6 +949,20 @@ static void melonds::config::parse_screen_options() noexcept {
     } else {
         retro::warn("Failed to get value for %s; defaulting to %d", Keys::SCREEN_GAP, 0);
         _screenGap = 0;
+    }
+
+    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(Keys::CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
+        _cursorTimeout = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %d", Keys::CURSOR_TIMEOUT, 3);
+        _cursorTimeout = 3;
+    }
+
+    if (optional<melonds::CursorMode> value = ParseCursorMode(get_variable(Keys::SHOW_CURSOR))) {
+        _cursorMode = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::SHOW_CURSOR, Values::ALWAYS);
+        _cursorMode = CursorMode::Always;
     }
 
     if (optional<unsigned> value = ParseIntegerInRange(get_variable(Keys::HYBRID_RATIO), 2, 3)) {
@@ -1225,7 +1272,7 @@ static void melonds::config::apply_save_options(const optional<NDSHeader>& heade
     }
 }
 
-static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout) noexcept {
+static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
     using namespace config::video;
     using namespace render;
 
@@ -1235,6 +1282,9 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
     screenLayout.HybridSmallScreenLayout(screen::SmallScreenLayout());
     screenLayout.ScreenGap(screen::ScreenGap());
     screenLayout.HybridRatio(screen::HybridRatio());
+
+    inputState.SetCursorMode(screen::CursorMode());
+    inputState.SetMaxCursorTimeout(screen::CursorTimeout());
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
@@ -1621,6 +1671,46 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::DISABLED
+    },
+    {
+        Config::Retro::Keys::SHOW_CURSOR,
+        "Cursor Mode",
+        nullptr,
+        "Determines when a cursor should appear on the bottom screen. "
+        "Never is recommended for touch screens; "
+        "the other settings are best suited for mouse or joystick input.",
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {Config::Retro::Values::DISABLED, "Never"},
+            {Config::Retro::Values::TOUCHING, "While Touching"},
+            {Config::Retro::Values::TIMEOUT, "Until Timeout"},
+            {Config::Retro::Values::ALWAYS, "Always"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::ALWAYS
+    },
+    {
+        Config::Retro::Keys::CURSOR_TIMEOUT,
+        "Cursor Timeout",
+        nullptr,
+        "If Cursor Mode is set to \"Until Timeout\", "
+        "then the cursor will be hidden if the pointer hasn't moved for a certain time.",
+        nullptr,
+        Config::Retro::Category::SCREEN,
+        {
+            {"1", "1 second"},
+            {"2", "2 seconds"},
+            {"3", "3 seconds"},
+            {"5", "5 seconds"},
+            {"10", "10 seconds"},
+            {"15", "15 seconds"},
+            {"20", "20 seconds"},
+            {"30", "30 seconds"},
+            {"60", "60 seconds"},
+            {nullptr, nullptr},
+        },
+        "3"
     },
     {
         Config::Retro::Keys::HYBRID_RATIO,

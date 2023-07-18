@@ -29,16 +29,18 @@
 // TODO: Move everything into melonds::config
 namespace melonds {
     class ScreenLayoutData;
+    class InputState;
 
     /// Called when loading a game
     void InitConfig(
         const std::optional<retro_game_info>& nds_info,
         const std::optional<NDSHeader>& header,
-        ScreenLayoutData& screenLayout
+        ScreenLayoutData& screenLayout,
+        InputState& inputState
     );
 
     /// Called when settings have been updated mid-game
-    void UpdateConfig(ScreenLayoutData& screenLayout) noexcept;
+    void UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     bool update_option_visibility();
     extern struct retro_core_options_v2 options_us;
     extern struct retro_core_option_v2_definition option_defs_us[];
@@ -141,6 +143,13 @@ namespace melonds {
         Both
     };
 
+    enum class CursorMode {
+        Never,
+        Touching,
+        Timeout,
+        Always,
+    };
+
     using MacAddress = std::array<std::uint8_t, 6>;
 
     namespace config {
@@ -214,6 +223,8 @@ namespace melonds {
             [[nodiscard]] unsigned HybridRatio() noexcept;
             [[nodiscard]] HybridSideScreenDisplay SmallScreenLayout() noexcept;
             [[nodiscard]] float CursorSize() noexcept;
+            [[nodiscard]] CursorMode CursorMode() noexcept;
+            [[nodiscard]] unsigned CursorTimeout() noexcept;
         }
 
         namespace video {

@@ -96,6 +96,10 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     uint32_t retroInputBits; // Input bits from libretro
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 
+    if (dirty) {
+        cursorTimeout = maxCursorTimeout * 60;
+    }
+
     retro::input_poll();
 
     if (retro::supports_bitmasks()) {
@@ -131,6 +135,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     previousCycleLayoutButton = cycleLayoutButton;
     cycleLayoutButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R2);
 
+    previousTouch = touch;
     previousTouching = touching;
     // TODO: Touching should be disabled when the lid is closed
     // TODO: Get touch input from the joystick regardless of the screen layout
@@ -201,9 +206,30 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         NDS::SetLidClosed(!NDS::IsLidClosed());
         retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
     }
+
+    if (cursorMode == CursorMode::Timeout) {
+        if (touching != previousTouching || touch != previousTouch) {
+            // If the player moved, pressed, or released the pointer within the past frame...
+            cursorTimeout = maxCursorTimeout * 60;
+        } else if (cursorTimeout > 0) {
+            cursorTimeout--;
+        }
+    }
+
+    dirty = false;
 }
 
 bool melonds::InputState::CursorEnabled() const noexcept {
-    // TODO: Check the config
-    return true;
+    switch (config::screen::CursorMode()) {
+        case CursorMode::Always:
+            return true;
+        case CursorMode::Never:
+            return false;
+        case CursorMode::Touching:
+            return touching;
+        case CursorMode::Timeout:
+            return cursorTimeout > 0;
+        default:
+            return true;
+    }
 }
