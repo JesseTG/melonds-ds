@@ -98,17 +98,19 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     optional<ivec2> touch = input_state.CursorEnabled() ? optional<ivec2>(input_state.TouchPosition()) : nullopt;
     //screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer, touch);
     screen_layout_data.Clear();
-    if (IsHybridLayout(screen_layout_data.Layout())) {
-        unsigned primary = screen_layout_data.Layout() == ScreenLayout::HybridTop ? 0 : 1;
+    ScreenLayout layout = screen_layout_data.Layout();
+    if (IsHybridLayout(layout)) {
+        unsigned primary = layout == ScreenLayout::HybridTop ? 0 : 1;
+        unsigned secondary = layout == ScreenLayout::HybridTop ? 1 : 0;
 
         screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary, screen_layout_data.HybridScreenTranslation());
 
         switch (screen_layout_data.HybridSmallScreenLayout()) {
             case HybridSideScreenDisplay::Top:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][secondary], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
                 break;
             case HybridSideScreenDisplay::Bottom:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
+                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][secondary], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
                 break;
             case HybridSideScreenDisplay::Both:
                 screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
@@ -122,13 +124,13 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
         }
 
     } else {
-        if (screen_layout_data.TopScreenEnabled())
+        if (layout != ScreenLayout::BottomOnly)
             screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenTranslation());
 
-        if (screen_layout_data.BottomScreenEnabled())
+        if (layout != ScreenLayout::TopOnly)
             screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1], screen_layout_data.BottomScreenTranslation());
 
-        if (input_state.CursorEnabled() && screen_layout_data.Layout() != ScreenLayout::TopOnly)
+        if (input_state.CursorEnabled() && layout != ScreenLayout::TopOnly)
             screen_layout_data.DrawCursor(input_state.TouchPosition(), screen_layout_data.BottomScreenMatrix());
     }
 

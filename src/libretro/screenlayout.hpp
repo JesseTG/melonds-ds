@@ -153,9 +153,6 @@ namespace melonds {
             }
         }
 
-        bool TopScreenEnabled() const noexcept { return Layout() != ScreenLayout::BottomOnly; }
-        bool BottomScreenEnabled() const noexcept { return Layout() != ScreenLayout::TopOnly; }
-
         unsigned ScreenGap() const noexcept { return screenGap; }
         void ScreenGap(unsigned _screen_gap) noexcept {
             if (_screen_gap != screenGap) _dirty = true;
