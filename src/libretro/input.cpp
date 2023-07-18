@@ -204,5 +204,6 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 }
 
 bool melonds::InputState::CursorEnabled() const noexcept {
+    // TODO: Check the config
     return true;
 }
