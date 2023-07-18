@@ -206,7 +206,6 @@ namespace melonds {
 
         namespace screen {
             constexpr unsigned MAX_HYBRID_RATIO = 3;
-            constexpr unsigned MAX_SOFTWARE_HYBRID_RATIO = 2;
             constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
             constexpr unsigned MAX_SCREEN_GAP = 128;
             [[nodiscard]] unsigned NumberOfScreenLayouts() noexcept;
