@@ -332,12 +332,8 @@ namespace melonds::config {
         static unsigned _screenGap;
         unsigned ScreenGap() noexcept { return _screenGap; }
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static unsigned _hybridRatio;
         unsigned HybridRatio() noexcept { return _hybridRatio; }
-#else
-        unsigned HybridRatio() noexcept { return 2; }
-#endif
 
         static melonds::HybridSideScreenDisplay _smallScreenLayout;
         melonds::HybridSideScreenDisplay SmallScreenLayout() noexcept { return _smallScreenLayout; }
@@ -908,14 +904,12 @@ static void melonds::config::parse_screen_options() noexcept {
         _screenGap = 0;
     }
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (const char* value = get_variable(Keys::HYBRID_RATIO); !string_is_empty(value)) {
-        _hybridRatio = std::stoi(value); // TODO: Handle errors
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(Keys::HYBRID_RATIO), 2, 3)) {
+        _hybridRatio = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %d", Keys::HYBRID_RATIO, 2);
         _hybridRatio = 2;
     }
-#endif
 
     if (optional<HybridSideScreenDisplay> value = ParseHybridSideScreenDisplay(get_variable(Keys::HYBRID_SMALL_SCREEN))) {
         _smallScreenLayout = *value;
@@ -1636,7 +1630,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::HYBRID_RATIO,
         "Hybrid Ratio",
         nullptr,
-        nullptr,
+        "The size of the larger screen relative to the smaller ones when using a hybrid layout.",
         nullptr,
         Config::Retro::Category::SCREEN,
         {
@@ -1646,7 +1640,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         "2"
     },
-#endif
     {
         Config::Retro::Keys::HYBRID_SMALL_SCREEN,
         "Hybrid Small Screen Mode",
