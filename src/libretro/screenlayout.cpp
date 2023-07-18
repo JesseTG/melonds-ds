@@ -22,6 +22,7 @@
 #include <array>
 
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <retro_assert.h>
 
 #include "config.hpp"
 #include "math.hpp"
@@ -74,23 +75,6 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destT
     }
 }
 
-void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept {
-    // Only used for software rendering
-
-    switch (screen_id) {
-        case HybridScreenId::Primary: {
-            scaler_ctx_scale(&hybridScaler, hybridBuffer.Buffer(), src);
-            buffer.CopyRows(hybridBuffer.Buffer(), destTranslation, NDS_SCREEN_SIZE<unsigned> * hybridRatio);
-            break;
-        }
-        case HybridScreenId::Top:
-        case HybridScreenId::Bottom: {
-            buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
-            break;
-        }
-    }
-}
-
 void melonds::ScreenLayoutData::DrawCursor(glm::ivec2 touch) noexcept {
     switch (Layout()) {
         default:
@@ -135,20 +119,22 @@ void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const 
     Clear();
     ScreenLayout layout = Layout();
     if (IsHybridLayout(layout)) {
+        retro_assert(hybridBuffer);
         const uint32_t* primaryBuffer = layout == ScreenLayout::HybridTop ? topBuffer : bottomBuffer;
 
-        CopyHybridScreen(primaryBuffer, HybridScreenId::Primary, hybridScreenTranslation);
+        scaler_ctx_scale(&hybridScaler, hybridBuffer.Buffer(), primaryBuffer);
+        buffer.CopyRows(hybridBuffer.Buffer(), hybridScreenTranslation, NDS_SCREEN_SIZE<unsigned> * hybridRatio);
 
         HybridSideScreenDisplay smallScreenLayout = HybridSmallScreenLayout();
 
         if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom) {
             // If we should display both screens, or if the bottom one is the primary...
-            CopyHybridScreen(topBuffer, HybridScreenId::Top, topScreenTranslation);
+            buffer.CopyRows(topBuffer, topScreenTranslation, NDS_SCREEN_SIZE<unsigned>);
         }
 
         if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop) {
             // If we should display both screens, or if the top one is being focused...
-            CopyHybridScreen(bottomBuffer, HybridScreenId::Bottom, bottomScreenTranslation);
+            buffer.CopyRows(bottomBuffer, bottomScreenTranslation, NDS_SCREEN_SIZE<unsigned>);
         }
 
     } else {

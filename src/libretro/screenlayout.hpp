@@ -194,7 +194,6 @@ namespace melonds {
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
         void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
-        void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept;
         void DrawCursor(glm::ivec2 touch, const glm::mat3& matrix) noexcept;
 
         bool _dirty;
