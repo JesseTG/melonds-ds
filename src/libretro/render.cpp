@@ -95,7 +95,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     const uint32_t* bottomScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][1];
     screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer);
 
-    if (input_state.CursorEnabled()) {
+    if (input_state.CursorVisible()) {
         screen_layout_data.DrawCursor(input_state.TouchPosition());
     }
 

@@ -219,7 +219,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     dirty = false;
 }
 
-bool melonds::InputState::CursorEnabled() const noexcept {
+bool melonds::InputState::CursorVisible() const noexcept {
     switch (config::screen::CursorMode()) {
         case CursorMode::Always:
             return true;

@@ -29,7 +29,7 @@ namespace melonds {
     class InputState
     {
     public:
-        [[nodiscard]] bool CursorEnabled() const noexcept;
+        [[nodiscard]] bool CursorVisible() const noexcept;
         [[nodiscard]] bool IsTouchingScreen() const noexcept { return touching; }
         [[nodiscard]] bool ScreenTouched() const noexcept { return touching && !previousTouching; }
         [[nodiscard]] bool ScreenReleased() const noexcept { return !touching && previousTouching; }
