@@ -138,8 +138,6 @@ void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const 
     }
 }
 
-using melonds::ScreenLayoutData;
-
 /// For a screen in the top left corner
 mat3 NorthwestMatrix(unsigned resolutionScale) noexcept {
     return scale(mat3(1), vec2(resolutionScale));
