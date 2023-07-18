@@ -51,11 +51,6 @@ const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 namespace Config {
     namespace Retro {
-        // bool RandomizeMac = false;
-        //melonds::ScreenSwapMode ScreenSwapMode;
-        //melonds::Renderer CurrentRenderer;
-        //float CursorSize = 2.0;
-
         namespace Category {
             static const char* const VIDEO = "video";
             static const char* const AUDIO = "audio";
