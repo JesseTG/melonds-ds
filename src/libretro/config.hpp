@@ -213,12 +213,12 @@ namespace melonds {
             [[nodiscard]] unsigned ScreenGap() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
             [[nodiscard]] HybridSideScreenDisplay SmallScreenLayout() noexcept;
+            [[nodiscard]] float CursorSize() noexcept;
         }
 
         namespace video {
             constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
             constexpr unsigned MAX_OPENGL_SCALE = 8;
-            [[nodiscard]] float CursorSize() noexcept;
             [[nodiscard]] Renderer ConfiguredRenderer() noexcept;
             [[nodiscard]] GPU::RenderSettings RenderSettings() noexcept;
             [[nodiscard]] ScreenFilter ScreenFilter() noexcept;

@@ -95,7 +95,7 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noex
     ivec2 clampedTouch = glm::clamp(touch, ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
     ivec2 transformedTouch = matrix * vec3(clampedTouch, 1);
 
-    float cursorSize = melonds::config::video::CursorSize();
+    float cursorSize = melonds::config::screen::CursorSize();
     uint32_t start_y = std::clamp<uint32_t>(transformedTouch.y - cursorSize, 0, bufferSize.y - 1);
     uint32_t end_y = std::clamp<uint32_t>(transformedTouch.y + cursorSize, 0, bufferSize.y - 1);
 

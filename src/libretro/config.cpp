@@ -333,6 +333,9 @@ namespace melonds::config {
 
         static melonds::HybridSideScreenDisplay _smallScreenLayout;
         melonds::HybridSideScreenDisplay SmallScreenLayout() noexcept { return _smallScreenLayout; }
+
+        static unsigned _cursorSize = 2.0f;
+        float CursorSize() noexcept { return _cursorSize; }
     }
 
     namespace system {
@@ -363,9 +366,6 @@ namespace melonds::config {
 #else
         GPU::RenderSettings RenderSettings() noexcept { return {false, 1, false}; }
 #endif
-
-        // TODO: Make configurable
-        float CursorSize() noexcept { return 2.0; }
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static melonds::Renderer _configuredRenderer;
