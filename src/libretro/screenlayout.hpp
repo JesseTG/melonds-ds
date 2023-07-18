@@ -77,10 +77,8 @@ namespace melonds {
     public:
         ScreenLayoutData();
         ~ScreenLayoutData() noexcept;
-        [[deprecated("Use CombineScreens instead")]] void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
-        [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept;
-        [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch, const glm::mat3& matrix) noexcept;
-        void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, const InputState& input) noexcept;
+        void DrawCursor(glm::ivec2 touch) noexcept;
+        void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept;
 
         void Update(Renderer renderer) noexcept;
 
@@ -195,6 +193,9 @@ namespace melonds {
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
+        void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
+        void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept;
+        void DrawCursor(glm::ivec2 touch, const glm::mat3& matrix) noexcept;
 
         bool _dirty;
         unsigned resolutionScale;

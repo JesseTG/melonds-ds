@@ -20,8 +20,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstring>
-#include <functional>
 
 #include <glm/gtx/matrix_transform_2d.hpp>
 
@@ -74,7 +72,6 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destT
         // Not all of this screen's pixels will be contiguous in memory, so we have to copy them row by row
         buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
     }
-
 }
 
 void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept {
@@ -86,14 +83,21 @@ void melonds::ScreenLayoutData::CopyHybridScreen(const uint32_t* src, HybridScre
             buffer.CopyRows(hybridBuffer.Buffer(), destTranslation, NDS_SCREEN_SIZE<unsigned> * hybridRatio);
             break;
         }
-        case HybridScreenId::Top: {
-            buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
-            break;
-        }
+        case HybridScreenId::Top:
         case HybridScreenId::Bottom: {
             buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
             break;
         }
+    }
+}
+
+void melonds::ScreenLayoutData::DrawCursor(glm::ivec2 touch) noexcept {
+    switch (Layout()) {
+        default:
+            DrawCursor(touch, bottomScreenMatrix);
+            break;
+        case ScreenLayout::TopOnly:
+            return;
     }
 }
 
@@ -124,7 +128,7 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noex
     }
 }
 
-void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, const InputState& input) noexcept {
+void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept {
     if (!buffer)
         return;
 
@@ -147,20 +151,12 @@ void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const 
             CopyHybridScreen(bottomBuffer, HybridScreenId::Bottom, bottomScreenTranslation);
         }
 
-        if (input.CursorEnabled()) {
-            DrawCursor(input.TouchPosition(), bottomScreenMatrix);
-            DrawCursor(input.TouchPosition(), hybridScreenMatrix);
-        }
-
     } else {
         if (layout != ScreenLayout::BottomOnly)
             CopyScreen(topBuffer, topScreenTranslation);
 
         if (layout != ScreenLayout::TopOnly)
             CopyScreen(bottomBuffer, bottomScreenTranslation);
-
-        if (input.CursorEnabled() && layout != ScreenLayout::TopOnly)
-            DrawCursor(input.TouchPosition(), bottomScreenMatrix);
     }
 }
 

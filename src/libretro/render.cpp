@@ -93,7 +93,11 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
 
     const uint32_t* topScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][0];
     const uint32_t* bottomScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][1];
-    screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer, input_state);
+    screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer);
+
+    if (input_state.CursorEnabled()) {
+        screen_layout_data.DrawCursor(input_state.TouchPosition());
+    }
 
     retro::video_refresh(
         screen_layout_data.Buffer()[0],
