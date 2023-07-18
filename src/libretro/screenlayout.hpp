@@ -30,6 +30,7 @@
 
 #include "config.hpp"
 #include "environment.hpp"
+#include "input.hpp"
 #include "buffer.hpp"
 
 namespace melonds {
@@ -79,7 +80,7 @@ namespace melonds {
         [[deprecated("Use CombineScreens instead")]] void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
         [[deprecated("Use CombineScreens instead")]] void CopyHybridScreen(const uint32_t* src, HybridScreenId screen_id, glm::uvec2 destTranslation) noexcept;
         [[deprecated("Move to render.cpp")]] void DrawCursor(glm::ivec2 touch, const glm::mat3& matrix) noexcept;
-        void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, std::optional<glm::ivec2> touch) noexcept;
+        void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, const InputState& input) noexcept;
 
         void Update(Renderer renderer) noexcept;
 
@@ -97,13 +98,6 @@ namespace melonds {
 
         /// The size of the image necessary to hold this layout, in pixels
         glm::uvec2 BufferSize() const noexcept { return bufferSize; }
-
-        [[deprecated("Use CombineScreens instead")]] glm::uvec2 TopScreenTranslation() const noexcept { return topScreenTranslation; }
-        [[deprecated("Use CombineScreens instead")]] glm::uvec2 BottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
-        [[deprecated("Use CombineScreens instead")]] glm::uvec2 HybridScreenTranslation() const noexcept { return hybridScreenTranslation; }
-        const glm::mat3& TopScreenMatrix() const noexcept { return topScreenMatrix; }
-        const glm::mat3& BottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
-        const glm::mat3& HybridScreenMatrix() const noexcept { return hybridScreenMatrix; }
 
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {

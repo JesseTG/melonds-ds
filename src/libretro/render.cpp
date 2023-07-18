@@ -90,49 +90,13 @@ bool melonds::render::ReadyToRender() noexcept {
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
 void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
     retro_assert(_CurrentRenderer == Renderer::Software);
-    int frontbuf = GPU::FrontBuffer;
 
     const uint32_t* topScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][0];
     const uint32_t* bottomScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][1];
-    optional<ivec2> touch = input_state.CursorEnabled() ? optional<ivec2>(input_state.TouchPosition()) : nullopt;
-    //screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer, touch);
-    screen_layout_data.Clear();
-    ScreenLayout layout = screen_layout_data.Layout();
-    if (IsHybridLayout(layout)) {
-        unsigned primary = layout == ScreenLayout::HybridTop ? 0 : 1;
-
-        screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary, screen_layout_data.HybridScreenTranslation());
-
-        HybridSideScreenDisplay smallScreenLayout = screen_layout_data.HybridSmallScreenLayout();
-
-        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom) {
-            // If we should display both screens, or if the bottom one is the primary...
-            screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
-        }
-
-        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop) {
-            // If we should display both screens, or if the top one is being focused...
-            screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
-        }
-
-        if (input_state.CursorEnabled()) {
-            screen_layout_data.DrawCursor(input_state.TouchPosition(), screen_layout_data.BottomScreenMatrix());
-            screen_layout_data.DrawCursor(input_state.TouchPosition(), screen_layout_data.HybridScreenMatrix());
-        }
-
-    } else {
-        if (layout != ScreenLayout::BottomOnly)
-            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][0], screen_layout_data.TopScreenTranslation());
-
-        if (layout != ScreenLayout::TopOnly)
-            screen_layout_data.CopyScreen(GPU::Framebuffer[frontbuf][1], screen_layout_data.BottomScreenTranslation());
-
-        if (input_state.CursorEnabled() && layout != ScreenLayout::TopOnly)
-            screen_layout_data.DrawCursor(input_state.TouchPosition(), screen_layout_data.BottomScreenMatrix());
-    }
+    screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer, input_state);
 
     retro::video_refresh(
-        (const uint8_t *) screen_layout_data.Buffer()[0],
+        screen_layout_data.Buffer()[0],
         screen_layout_data.Buffer().Width(),
         screen_layout_data.Buffer().Height(),
         screen_layout_data.Buffer().Stride()

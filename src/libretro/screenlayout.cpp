@@ -124,17 +124,43 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noex
     }
 }
 
-
-void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, std::optional<glm::ivec2> touch) noexcept {
+void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer, const InputState& input) noexcept {
     if (!buffer)
         return;
 
-    switch (Layout()) {
-        case ScreenLayout::HybridBottom:
-        case ScreenLayout::HybridTop:
-            // TODO: Implement
-        default:
-            break;
+    Clear();
+    ScreenLayout layout = Layout();
+    if (IsHybridLayout(layout)) {
+        const uint32_t* primaryBuffer = layout == ScreenLayout::HybridTop ? topBuffer : bottomBuffer;
+
+        CopyHybridScreen(primaryBuffer, HybridScreenId::Primary, hybridScreenTranslation);
+
+        HybridSideScreenDisplay smallScreenLayout = HybridSmallScreenLayout();
+
+        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom) {
+            // If we should display both screens, or if the bottom one is the primary...
+            CopyHybridScreen(topBuffer, HybridScreenId::Top, topScreenTranslation);
+        }
+
+        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop) {
+            // If we should display both screens, or if the top one is being focused...
+            CopyHybridScreen(bottomBuffer, HybridScreenId::Bottom, bottomScreenTranslation);
+        }
+
+        if (input.CursorEnabled()) {
+            DrawCursor(input.TouchPosition(), bottomScreenMatrix);
+            DrawCursor(input.TouchPosition(), hybridScreenMatrix);
+        }
+
+    } else {
+        if (layout != ScreenLayout::BottomOnly)
+            CopyScreen(topBuffer, topScreenTranslation);
+
+        if (layout != ScreenLayout::TopOnly)
+            CopyScreen(bottomBuffer, bottomScreenTranslation);
+
+        if (input.CursorEnabled() && layout != ScreenLayout::TopOnly)
+            DrawCursor(input.TouchPosition(), bottomScreenMatrix);
     }
 }
 
