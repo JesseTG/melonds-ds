@@ -291,6 +291,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
 
     ScreenLayout layout = Layout();
+    pointerMatrix = glm::rotate(pointerMatrix, LayoutAngle(layout));
     if (!retro::set_screen_rotation(LayoutOrientation(layout))) {
         // TODO: Rotate the screen outside screenlayout, but _before_ update;
         // if it failed, handle it accordingly in update
