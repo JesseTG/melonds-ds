@@ -440,6 +440,16 @@ static optional<melonds::ScreenLayout> ParseScreenLayout(const char* value) noex
     return nullopt;
 }
 
+static optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(const char* value) noexcept {
+    using melonds::ScreenLayout;
+    using namespace Config::Retro;
+    if (string_is_equal(value, Values::TOP)) return melonds::HybridSideScreenDisplay::Top;
+    if (string_is_equal(value, Values::BOTTOM)) return melonds::HybridSideScreenDisplay::Bottom;
+    if (string_is_equal(value, Values::BOTH)) return melonds::HybridSideScreenDisplay::Both;
+
+    return nullopt;
+}
+
 void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header,
                          ScreenLayoutData& screenLayout) {
     config::parse_system_options();
@@ -906,13 +916,8 @@ static void melonds::config::parse_screen_options() noexcept {
     }
 #endif
 
-    if (const char* value = get_variable(Keys::HYBRID_SMALL_SCREEN); !string_is_empty(value)) {
-        if (string_is_equal(value, Values::TOP))
-            _smallScreenLayout = HybridSideScreenDisplay::Top;
-        else if (string_is_equal(value, Values::BOTTOM))
-            _smallScreenLayout = HybridSideScreenDisplay::Bottom;
-        else
-            _smallScreenLayout = HybridSideScreenDisplay::Both;
+    if (optional<HybridSideScreenDisplay> value = ParseHybridSideScreenDisplay(get_variable(Keys::HYBRID_SMALL_SCREEN))) {
+        _smallScreenLayout = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::HYBRID_SMALL_SCREEN, Values::BOTH);
         _smallScreenLayout = HybridSideScreenDisplay::Both;
