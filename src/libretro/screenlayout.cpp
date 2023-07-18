@@ -96,12 +96,12 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noex
     ivec2 transformedTouch = matrix * vec3(clampedTouch, 1);
 
     float cursorSize = melonds::config::screen::CursorSize();
-    uint32_t start_y = std::clamp<uint32_t>(transformedTouch.y - cursorSize, 0, bufferSize.y - 1);
-    uint32_t end_y = std::clamp<uint32_t>(transformedTouch.y + cursorSize, 0, bufferSize.y - 1);
+    uint32_t start_y = std::clamp<uint32_t>(transformedTouch.y - cursorSize, 0, bufferSize.y);
+    uint32_t end_y = std::clamp<uint32_t>(transformedTouch.y + cursorSize, 0, bufferSize.y);
 
     for (uint32_t y = start_y; y < end_y; y++) {
-        uint32_t start_x = std::clamp<uint32_t>(transformedTouch.x - cursorSize, 0, bufferSize.x - 1);
-        uint32_t end_x = std::clamp<uint32_t>(transformedTouch.x + cursorSize, 0, bufferSize.x - 1);
+        uint32_t start_x = std::clamp<uint32_t>(transformedTouch.x - cursorSize, 0, bufferSize.x);
+        uint32_t end_x = std::clamp<uint32_t>(transformedTouch.x + cursorSize, 0, bufferSize.x);
 
         for (uint32_t x = start_x; x < end_x; x++) {
             // TODO: Replace with SIMD (does GLM have a SIMD version of this?)
