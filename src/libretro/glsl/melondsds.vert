@@ -5,6 +5,7 @@ layout(std140) uniform uConfig
     uint u3DScale;
     uint uFilterMode;
     vec4 cursorPos;
+    bool cursorVisible;
 };
 in vec2 pos;
 in vec2 texcoord;

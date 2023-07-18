@@ -5,6 +5,7 @@ layout(std140) uniform uConfig
     uint u3DScale;
     uint uFilterMode;
     vec4 cursorPos;
+    bool cursorVisible;
 };
 uniform sampler2D ScreenTex;
 smooth in vec2 fTexcoord;
@@ -14,7 +15,7 @@ void main()
     vec4 pixel = texture(ScreenTex, fTexcoord);
     // virtual cursor so you can see where you touch
     if(fTexcoord.y >= 0.5 && fTexcoord.y <= 1.0) {
-        if(cursorPos.x <= fTexcoord.x && cursorPos.y <= fTexcoord.y && cursorPos.z >= fTexcoord.x && cursorPos.w >= fTexcoord.y) {
+        if(cursorVisible && cursorPos.x <= fTexcoord.x && cursorPos.y <= fTexcoord.y && cursorPos.z >= fTexcoord.x && cursorPos.w >= fTexcoord.y) {
             pixel = vec4(1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, pixel.a);
         }
     }

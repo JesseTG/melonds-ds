@@ -39,6 +39,7 @@
 
 using std::array;
 using glm::vec2;
+using glm::vec3;
 using glm::vec4;
 using melonds::ScreenLayout;
 // HACK: Defined in glsm.c, but we need to peek into it occasionally
@@ -86,6 +87,7 @@ namespace melonds::opengl {
         u32 u3DScale;
         u32 uFilterMode;
         vec4 cursorPos;
+        bool cursorVisible;
     } GL_ShaderConfig;
     static GLuint ubo;
 
@@ -178,12 +180,15 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
         GL_ShaderConfig.cursorPos[1] = (((float) (state.TouchY()) - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
         GL_ShaderConfig.cursorPos[2] = ((float) (state.TouchX()) + cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
         GL_ShaderConfig.cursorPos[3] = (((float) (state.TouchY()) + cursorSize) / ((float) NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
-
-        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-        void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-        if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-        glUnmapBuffer(GL_UNIFORM_BUFFER);
+        GL_ShaderConfig.cursorVisible = true;
+    } else {
+        GL_ShaderConfig.cursorVisible = false;
     }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
 
     OpenGL::UseShaderProgram(shader);
 
