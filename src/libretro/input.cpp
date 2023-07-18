@@ -135,7 +135,8 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     // TODO: Touching should be disabled when the lid is closed
     // TODO: Get touch input from the joystick regardless of the screen layout
     // TODO: If touching the screen, prioritize the pointer
-    if (screen_layout_data.Layout() != ScreenLayout::TopOnly) {
+    ScreenLayout layout = screen_layout_data.Layout();
+    if (layout != ScreenLayout::TopOnly) {
         touching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
         int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
         int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
@@ -171,10 +172,24 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     // TODO: Should the input object state modify global state?
     if (IsTouchingScreen()) {
         uvec2 clampedTouch;
-        if (screen_layout_data.Layout() == ScreenLayout::HybridBottom && !glm::all(glm::openBounded(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned>))) {
-            clampedTouch = glm::clamp(uvec2(hybridTouch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
-        } else {
-            clampedTouch = glm::clamp(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+        switch (layout) {
+            case ScreenLayout::HybridBottom:
+                if (screen_layout_data.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
+                    // If the touch screen is only shown in the hybrid-screen position...
+                    clampedTouch = glm::clamp(uvec2(hybridTouch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+                    // ...then that's the only transformation we'll use for input.
+                    break;
+                } else if (!glm::all(glm::openBounded(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned>))) {
+                    // The touch screen is shown in both the hybrid and secondary positions.
+                    // If the touch input is not within the secondary position's bounds...
+                    clampedTouch = glm::clamp(uvec2(hybridTouch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+                    break;
+                }
+                [[fallthrough]];
+            default:
+                clampedTouch = glm::clamp(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
+                break;
+
         }
 
         NDS::TouchScreen(clampedTouch.x, clampedTouch.y);

@@ -16,6 +16,7 @@
 
 #include "opengl.hpp"
 
+#include <array>
 #include <gfx/gl_capabilities.h>
 #include <libretro.h>
 #include <glsm/glsm.h>
@@ -36,15 +37,34 @@
 #include "config.hpp"
 #include "render.hpp"
 
+using std::array;
 using glm::vec2;
 using glm::vec4;
-
+using melonds::ScreenLayout;
 // HACK: Defined in glsm.c, but we need to peek into it occasionally
 extern struct retro_hw_render_callback hw_render;
 
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 
 namespace melonds::opengl {
+    constexpr float PIXEL_PAD = 1.0f / (NDS_SCREEN_HEIGHT * 2 + 2);
+    constexpr unsigned VERTEXES_PER_SCREEN = 6;
+    constexpr array<vec2, VERTEXES_PER_SCREEN> TOP_SCREEN_TEXCOORDS {
+        vec2(0), // northwest
+        vec2(0, 0.5f - PIXEL_PAD), // southwest
+        vec2(1, 0.5f - PIXEL_PAD), // southeast
+        vec2(0), //northwest
+        vec2(1, 0), // northeast
+        vec2(1, 0.5f - PIXEL_PAD), // southeast
+    };
+    constexpr array<vec2, VERTEXES_PER_SCREEN> BOTTOM_SCREEN_TEXCOORDS {
+        vec2(0, 0.5f + PIXEL_PAD), // northwest
+        vec2(0, 1), // southwest
+        vec2(1), // southeast
+        vec2(0, 0.5f + PIXEL_PAD), // northwest
+        vec2(1, 0.5f + PIXEL_PAD), // northeast
+        vec2(1), // southeast
+    };
     struct Vertex {
         vec2 position;
         vec2 texcoord;
@@ -58,6 +78,7 @@ namespace melonds::opengl {
     static GLuint shader[3];
     static GLuint screen_framebuffer_texture;
     static Vertex screen_vertices[18];
+    static unsigned vertexCount = 0;
     static GLuint vao, vbo;
 
     static struct {
@@ -75,6 +96,22 @@ namespace melonds::opengl {
     static void SetupOpenGl();
 
     static void InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept;
+    static void InitializeVertices(const ScreenLayoutData& screenLayout) noexcept;
+}
+
+constexpr unsigned GetVertexCount(ScreenLayout layout, melonds::HybridSideScreenDisplay hybridScreen) noexcept {
+    switch (layout) {
+        case ScreenLayout::TopOnly:
+        case ScreenLayout::BottomOnly:
+            return 6; // 1 screen, 2 triangles
+        case ScreenLayout::HybridTop:
+        case ScreenLayout::HybridBottom:
+            if (hybridScreen == melonds::HybridSideScreenDisplay::Both)
+                return 18; // 3 screens, 6 triangles
+            [[fallthrough]];
+        default:
+            return 12; // 2 screens, 4 triangles
+    }
 }
 
 bool melonds::opengl::ContextInitialized() {
@@ -126,9 +163,6 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
     retro_assert(melonds::render::CurrentRenderer() == melonds::Renderer::OpenGl);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
-    int frontbuf = GPU::FrontBuffer;
-    bool virtual_cursor = state.CursorEnabled();
-
     // Tell OpenGL that we want to draw to (and read from) the screen framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, glsm_get_current_framebuffer());
 
@@ -138,7 +172,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
         InitializeFrameState(screenLayout);
     }
 
-    if (virtual_cursor) {
+    if (state.CursorEnabled()) {
         float cursorSize = melonds::config::video::CursorSize();
         GL_ShaderConfig.cursorPos[0] = ((float) (state.TouchX()) - cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
         GL_ShaderConfig.cursorPos[1] = (((float) (state.TouchY()) - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
@@ -161,7 +195,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     glActiveTexture(GL_TEXTURE0);
 
-    GPU::CurGLCompositor->BindOutputTexture(frontbuf);
+    GPU::CurGLCompositor->BindOutputTexture(GPU::FrontBuffer);
 
     // Set the filtering mode for the active texture
     // For simplicity, we'll just use the same filter for both minification and magnification
@@ -171,8 +205,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0,
-                 screenLayout.HybridSmallScreenLayout() == HybridSideScreenDisplay::Both ? 18 : 12);
+    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
     glFlush();
 
@@ -186,7 +219,6 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
     );
 
 }
-
 
 void melonds::opengl::deinitialize() {
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::deinitialize()");
@@ -297,7 +329,7 @@ static void melonds::opengl::SetupOpenGl() {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     if (openGlDebugAvailable) {
-        glObjectLabel(GL_BUFFER, vbo, -1, "melonDS DS Screen VBO");
+        glObjectLabel(GL_BUFFER, vbo, -1, "melonDS DS Screen Vertex Buffer");
     }
     glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertices), nullptr, GL_STATIC_DRAW);
 
@@ -326,6 +358,171 @@ static void melonds::opengl::SetupOpenGl() {
     refresh_opengl = true;
 }
 
+constexpr array<unsigned, 18> GetPositionIndexes(melonds::ScreenLayout layout) noexcept {
+    using melonds::opengl::VERTEXES_PER_SCREEN;
+
+    array<unsigned, VERTEXES_PER_SCREEN> topPositionIndexes = {0, 3, 2, 0, 1, 2};
+    array<unsigned, VERTEXES_PER_SCREEN> bottomPositionIndexes = {4, 7, 6, 4, 5, 6};
+    array<unsigned, VERTEXES_PER_SCREEN> hybridPositionIndexes = {8, 11, 10, 8, 9, 10};
+    array<unsigned, VERTEXES_PER_SCREEN*3> indexes = {};
+
+    switch (layout) {
+        case ScreenLayout::TopBottom:
+        case ScreenLayout::TurnLeft:
+        case ScreenLayout::TurnRight:
+        case ScreenLayout::UpsideDown:
+        case ScreenLayout::LeftRight:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                indexes[i] = topPositionIndexes[i];
+                indexes[i + VERTEXES_PER_SCREEN] = bottomPositionIndexes[i];
+            }
+            break;
+        case ScreenLayout::RightLeft:
+        case ScreenLayout::BottomTop:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                indexes[i] = bottomPositionIndexes[i];
+                indexes[i + VERTEXES_PER_SCREEN] = topPositionIndexes[i];
+            }
+            break;
+        case ScreenLayout::TopOnly:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                indexes[i] = topPositionIndexes[i];
+            }
+            break;
+        case ScreenLayout::BottomOnly:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                indexes[i] = bottomPositionIndexes[i];
+            }
+            break;
+        case ScreenLayout::HybridTop:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                indexes[i] = hybridPositionIndexes[i];
+                indexes[i + VERTEXES_PER_SCREEN] = bottomPositionIndexes[i];
+                indexes[i + VERTEXES_PER_SCREEN*2] = topPositionIndexes[i];
+            }
+            break;
+        case ScreenLayout::HybridBottom:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                indexes[i] = hybridPositionIndexes[i];
+                indexes[i + VERTEXES_PER_SCREEN] = topPositionIndexes[i];
+                indexes[i + VERTEXES_PER_SCREEN*2] = bottomPositionIndexes[i];
+            }
+            break;
+    }
+
+    return indexes;
+}
+
+static void melonds::opengl::InitializeVertices(const ScreenLayoutData& screenLayout) noexcept {
+    ScreenLayout layout = screenLayout.Layout();
+    HybridSideScreenDisplay hybridSideScreenDisplay = screenLayout.HybridSmallScreenLayout();
+    vertexCount = GetVertexCount(layout, hybridSideScreenDisplay);
+
+    const array<vec2, 12>& transformedPoints = screenLayout.TransformedScreenPoints();
+    array<unsigned, 18> indexes = GetPositionIndexes(layout);
+
+    // melonDS's OpenGL renderer draws both screens into a single texture,
+    // the top being laid above the bottom without any gap.
+
+    switch (layout) {
+        case ScreenLayout::TurnRight:
+        case ScreenLayout::TurnLeft:
+        case ScreenLayout::UpsideDown:
+        case ScreenLayout::TopBottom:
+        case ScreenLayout::LeftRight:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                // Top screen
+                screen_vertices[i] = {
+                    .position = transformedPoints[indexes[i]],
+                    .texcoord = TOP_SCREEN_TEXCOORDS[i],
+                };
+
+                // Touch screen
+                screen_vertices[i + VERTEXES_PER_SCREEN] = {
+                    .position = transformedPoints[indexes[i + VERTEXES_PER_SCREEN]],
+                    .texcoord = BOTTOM_SCREEN_TEXCOORDS[i],
+                };
+            }
+            break;
+        case ScreenLayout::BottomTop:
+        case ScreenLayout::RightLeft:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                // Top screen
+                screen_vertices[i] = {
+                    .position = transformedPoints[indexes[i]],
+                    .texcoord = BOTTOM_SCREEN_TEXCOORDS[i],
+                };
+
+                // Touch screen
+                screen_vertices[i + VERTEXES_PER_SCREEN] = {
+                    .position = transformedPoints[indexes[i + VERTEXES_PER_SCREEN]],
+                    .texcoord = TOP_SCREEN_TEXCOORDS[i],
+                };
+            }
+            break;
+        case ScreenLayout::TopOnly:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                screen_vertices[i] = {
+                    .position = transformedPoints[indexes[i]],
+                    .texcoord = TOP_SCREEN_TEXCOORDS[i],
+                };
+            }
+            break;
+        case ScreenLayout::BottomOnly:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                screen_vertices[i] = {
+                    .position = transformedPoints[indexes[i]],
+                    .texcoord = BOTTOM_SCREEN_TEXCOORDS[i],
+                };
+            }
+            break;
+        case ScreenLayout::HybridTop:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                // Hybrid screen
+                screen_vertices[i] = {
+                    .position = transformedPoints[indexes[i]],
+                    .texcoord = TOP_SCREEN_TEXCOORDS[i],
+                };
+
+                // Bottom screen
+                screen_vertices[i + VERTEXES_PER_SCREEN] = {
+                    .position = transformedPoints[indexes[i + VERTEXES_PER_SCREEN]],
+                    .texcoord = BOTTOM_SCREEN_TEXCOORDS[i],
+                };
+
+                // Top screen
+                screen_vertices[i + 2*VERTEXES_PER_SCREEN] = {
+                    .position = transformedPoints[indexes[i + 2*VERTEXES_PER_SCREEN]],
+                    .texcoord = TOP_SCREEN_TEXCOORDS[i],
+                };
+                // (Won't be rendered if hybridSideScreenDisplay == HybridSideScreenDisplay::One)
+            }
+            break;
+        case ScreenLayout::HybridBottom:
+            for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
+                // Hybrid screen
+                screen_vertices[i] = {
+                    .position = transformedPoints[indexes[i]],
+                    .texcoord = BOTTOM_SCREEN_TEXCOORDS[i],
+                };
+
+                // Top screen
+                screen_vertices[i + VERTEXES_PER_SCREEN] = {
+                    .position = transformedPoints[indexes[i + VERTEXES_PER_SCREEN]],
+                    .texcoord = TOP_SCREEN_TEXCOORDS[i],
+                };
+
+                // Bottom screen
+                screen_vertices[i + 2*VERTEXES_PER_SCREEN] = {
+                    .position = transformedPoints[indexes[i + 2*VERTEXES_PER_SCREEN]],
+                    .texcoord = BOTTOM_SCREEN_TEXCOORDS[i],
+                };
+                // (Won't be rendered if hybridSideScreenDisplay == HybridSideScreenDisplay::One)
+            }
+            break;
+    }
+}
+
 void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept {
 
     refresh_opengl = false;
@@ -333,7 +530,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
 
     GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();
-    GL_ShaderConfig.u3DScale = config::video::ScaleFactor();
+    GL_ShaderConfig.u3DScale = screenLayout.Scale();
     GL_ShaderConfig.cursorPos = vec4(-1);
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
@@ -341,229 +538,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    vec2 screenSize = NDS_SCREEN_SIZE<unsigned> * screenLayout.Scale();
-    float screen_gap = (float) screenLayout.ScreenGap() * screenLayout.Scale();
-
-    vec2 topScreen = vec2(0, 0);
-    vec2 bottomScreen = vec2(0, 0);
-
-    vec2 primary = vec2(0, 0);
-    vec2 primaryTexV0 = vec2(0, 0);
-    vec2 primaryTexV1 = vec2(0, 0);
-    vec2 primaryTexV2 = vec2(0, 0);
-    vec2 primaryTexV3 = vec2(0, 0);
-    vec2 primaryTexV4 = vec2(0, 0);
-    vec2 primaryTexV5 = vec2(0, 0);
-
-    const float pixel_pad = 1.0f / (192 * 2 + 2);
-
-    switch (screenLayout.Layout()) {
-        case ScreenLayout::TurnRight:
-        case ScreenLayout::TurnLeft:
-        case ScreenLayout::UpsideDown:
-        case ScreenLayout::TopBottom:
-            bottomScreen.y = screenSize.y + screen_gap;
-            break;
-        case ScreenLayout::BottomTop:
-            topScreen.y = screenSize.y + screen_gap;
-            break;
-        case ScreenLayout::LeftRight:
-            bottomScreen.x = screenSize.x;
-            break;
-        case ScreenLayout::RightLeft:
-            topScreen.x = screenSize.x;
-            break;
-        case ScreenLayout::TopOnly:
-            bottomScreen.y = screenSize.y; // Meh, let's just hide it
-            break;
-        case ScreenLayout::BottomOnly:
-            topScreen.y = screenSize.y; // ditto
-            break;
-        case ScreenLayout::HybridTop:
-            primary = screenSize * static_cast<float>(screenLayout.HybridRatio());
-
-            primaryTexV0 = vec2(0);
-            primaryTexV1 = vec2(0, 0.5f - pixel_pad);
-            primaryTexV2 = vec2(1, 0.5f - pixel_pad);
-            primaryTexV3 = vec2(0);
-            primaryTexV4 = vec2(1, 0);
-            primaryTexV5 = vec2(1, 0.5f - pixel_pad);
-
-            break;
-        case ScreenLayout::HybridBottom:
-            primary = screenSize * static_cast<float>(screenLayout.HybridRatio());
-
-            primaryTexV0 = vec2(0, 0.5f + pixel_pad);
-            primaryTexV1 = vec2(0, 1);
-            primaryTexV2 = vec2(1, 1);
-            primaryTexV3 = vec2(0.0f, 0.5f + pixel_pad);
-            primaryTexV4 = vec2(1.0f, 0.5f + pixel_pad);
-            primaryTexV5 = vec2(1, 1);
-
-            break;
-    }
-
-    ScreenLayout layout = screenLayout.Layout();
-    HybridSideScreenDisplay smallScreenLayout = screenLayout.HybridSmallScreenLayout();
-    if (IsHybridLayout(layout)) {
-        //Primary Screen
-        screen_vertices[0].position = vec2(0);
-        screen_vertices[0].texcoord = primaryTexV0; // top left
-
-        screen_vertices[1].position = vec2(0, primary.y);
-        screen_vertices[1].texcoord = primaryTexV1; // bottom left
-
-        screen_vertices[2].position = primary;
-        screen_vertices[2].texcoord = primaryTexV2; // bottom right
-
-        screen_vertices[3].position = vec2(0);
-        screen_vertices[3].texcoord = primaryTexV3; // top left
-
-        screen_vertices[4].position = vec2(primary.x, 0);
-        screen_vertices[4].texcoord = primaryTexV4; // top right
-
-        screen_vertices[5].position = primary;
-        screen_vertices[5].texcoord = primaryTexV5; // bottom right
-
-        //Top screen
-        if (smallScreenLayout == HybridSideScreenDisplay::Top && layout == ScreenLayout::HybridTop) {
-            screen_vertices[6].position = vec2(primary.x, 0);
-            screen_vertices[6].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-            screen_vertices[7].position = vec2(primary.x, screenSize.y);
-            screen_vertices[7].texcoord = vec2(0, 1); // bottom left
-
-            screen_vertices[8].position = vec2(primary.x, 0) + screenSize;
-            screen_vertices[8].texcoord = vec2(1); // bottom right
-
-            screen_vertices[9].position = vec2(primary.x, 0);
-            screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-            screen_vertices[10].position = vec2(primary.x + screenSize.x, 0);
-            screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
-
-            screen_vertices[11].position = vec2(primary.x, 0) + screenSize;
-            screen_vertices[11].texcoord = vec2(1); // bottom right
-        } else if (smallScreenLayout == HybridSideScreenDisplay::Both
-                   || (layout == ScreenLayout::HybridBottom && smallScreenLayout == HybridSideScreenDisplay::Top)) {
-            screen_vertices[6].position = vec2(primary.x, 0);
-            screen_vertices[6].texcoord = vec2(0); // top left
-
-            screen_vertices[7].position = vec2(primary.x, screenSize.y);
-            screen_vertices[7].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
-
-            screen_vertices[8].position = vec2(primary.x, 0) + screenSize;
-            screen_vertices[8].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
-
-            screen_vertices[9].position = vec2(primary.x, 0);
-            screen_vertices[9].texcoord = vec2(0); // top left
-
-            screen_vertices[10].position = vec2(primary.x + screenSize.x, 0);
-            screen_vertices[10].texcoord = vec2(1, 0); // top right
-
-            screen_vertices[11].position = vec2(primary.x, 0) + screenSize;
-            screen_vertices[11].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
-        }
-
-        //Bottom Screen
-        if (smallScreenLayout == HybridSideScreenDisplay::Bottom && layout == ScreenLayout::HybridTop) {
-            screen_vertices[6].position = vec2(primary.x, primary.y - screenSize.y);
-            screen_vertices[6].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-            screen_vertices[7].position = primary;
-            screen_vertices[7].texcoord = vec2(0, 1); // bottom left
-
-            screen_vertices[8].position = vec2(primary.x + screenSize.x, primary.y);
-            screen_vertices[8].texcoord = vec2(1); // bottom right
-
-            screen_vertices[9].position = vec2(primary.x, primary.y - screenSize.y);
-            screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-            screen_vertices[10].position = vec2(primary.x + screenSize.x, primary.y - screenSize.y);
-            screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
-
-            screen_vertices[11].position = vec2(primary.x + screenSize.x, primary.y);
-            screen_vertices[11].texcoord = vec2(1); // bottom right
-
-        } else if (smallScreenLayout == HybridSideScreenDisplay::Bottom && layout == ScreenLayout::HybridBottom) {
-            screen_vertices[6].position = vec2(primary.x, primary.y - screenSize.y);
-            screen_vertices[6].texcoord = vec2(0); // top left
-
-            screen_vertices[7].position = primary;
-            screen_vertices[7].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
-
-            screen_vertices[8].position = vec2(primary.x + screenSize.x, primary.y);
-            screen_vertices[8].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
-
-            screen_vertices[9].position = vec2(primary.x, primary.y - screenSize.y);
-            screen_vertices[9].texcoord = vec2(0); // top left
-
-            screen_vertices[10].position = vec2(primary.x + screenSize.x, primary.y - screenSize.y);
-            screen_vertices[10].texcoord = vec2(1, 0); // top right
-
-            screen_vertices[11].position = vec2(primary.x + screenSize.x, primary.y);
-            screen_vertices[11].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
-        } else if (smallScreenLayout == HybridSideScreenDisplay::Both) {
-            screen_vertices[12].position = vec2(primary.x, primary.y - screenSize.y);
-            screen_vertices[12].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-            screen_vertices[13].position = primary;
-            screen_vertices[13].texcoord = vec2(0, 1); // bottom left
-
-            screen_vertices[14].position = vec2(primary.x + screenSize.x, primary.y);
-            screen_vertices[14].texcoord = vec2(1); // bottom right
-
-            screen_vertices[15].position = vec2(primary.x, primary.y - screenSize.y);
-            screen_vertices[15].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-            screen_vertices[16].position = vec2(primary.x + screenSize.x, primary.y - screenSize.y);
-            screen_vertices[16].texcoord = vec2(1, 0.5f + pixel_pad); // top right
-
-            screen_vertices[17].position = vec2(primary.x + screenSize.x, primary.y);
-            screen_vertices[17].texcoord = vec2(1); // bottom right
-        }
-    } else {
-        // top screen
-        screen_vertices[0].position = topScreen;
-        screen_vertices[0].texcoord = vec2(0); // top left
-
-        screen_vertices[1].position = vec2(topScreen.x, topScreen.y + screenSize.y);
-        screen_vertices[1].texcoord = vec2(0, 0.5f - pixel_pad); // bottom left
-
-        screen_vertices[2].position = topScreen + screenSize;
-        screen_vertices[2].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
-
-        screen_vertices[3].position = topScreen;
-        screen_vertices[3].texcoord = vec2(0); // top left
-
-        screen_vertices[4].position = vec2(topScreen.x + screenSize.x, topScreen.y);
-        screen_vertices[4].texcoord = vec2(1, 0); // top right
-
-        screen_vertices[5].position = topScreen + screenSize;
-        screen_vertices[5].texcoord = vec2(1, 0.5f - pixel_pad); // bottom right
-
-        // bottom screen
-        screen_vertices[6].position = bottomScreen;
-        screen_vertices[6].texcoord = vec2(0., 0.5f + pixel_pad); // top left
-
-        screen_vertices[7].position = vec2(bottomScreen.x, bottomScreen.y + screenSize.y);
-        screen_vertices[7].texcoord = vec2(0, 1); // bottom left
-
-        screen_vertices[8].position = bottomScreen + screenSize;
-        screen_vertices[8].texcoord = vec2(1); // bottom right
-
-        screen_vertices[9].position = bottomScreen;
-        screen_vertices[9].texcoord = vec2(0, 0.5f + pixel_pad); // top left
-
-        screen_vertices[10].position = vec2(bottomScreen.x + screenSize.x, bottomScreen.y);
-        screen_vertices[10].texcoord = vec2(1, 0.5f + pixel_pad); // top right
-
-        screen_vertices[11].position = bottomScreen + screenSize;
-        screen_vertices[11].texcoord = vec2(1.0f, 1.0f); // bottom right
-    }
-
-    // top screen
-
+    InitializeVertices(screenLayout);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(screen_vertices), screen_vertices);

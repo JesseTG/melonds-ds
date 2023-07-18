@@ -101,8 +101,9 @@ namespace melonds {
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 TopScreenTranslation() const noexcept { return topScreenTranslation; }
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 BottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 HybridScreenTranslation() const noexcept { return hybridScreenTranslation; }
-        [[deprecated("Use CombineScreens instead")]] const glm::mat3& BottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
-        [[deprecated("Use CombineScreens instead")]] const glm::mat3& HybridScreenMatrix() const noexcept { return hybridScreenMatrix; }
+        const glm::mat3& TopScreenMatrix() const noexcept { return topScreenMatrix; }
+        const glm::mat3& BottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
+        const glm::mat3& HybridScreenMatrix() const noexcept { return hybridScreenMatrix; }
 
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {
@@ -191,7 +192,11 @@ namespace melonds {
             return TransformPointerInputToHybridScreen(glm::i16vec2(x, y));
         }
 
-        retro_game_geometry Geometry(Renderer renderer) const noexcept;
+        [[nodiscard]] const std::array<glm::vec2, 12>& TransformedScreenPoints() const noexcept {
+            return transformedScreenPoints;
+        }
+
+        [[nodiscard]] retro_game_geometry Geometry(Renderer renderer) const noexcept;
     private:
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
@@ -199,6 +204,7 @@ namespace melonds {
 
         bool _dirty;
         unsigned resolutionScale;
+        std::array<glm::vec2, 12> transformedScreenPoints;
 
         glm::mat3 joystickMatrix;
         glm::mat3 topScreenMatrix;

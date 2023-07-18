@@ -137,8 +137,7 @@ namespace melonds {
     };
 
     enum class HybridSideScreenDisplay {
-        Top,
-        Bottom,
+        One,
         Both
     };
 

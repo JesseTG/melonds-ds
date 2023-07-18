@@ -101,21 +101,19 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     ScreenLayout layout = screen_layout_data.Layout();
     if (IsHybridLayout(layout)) {
         unsigned primary = layout == ScreenLayout::HybridTop ? 0 : 1;
-        unsigned secondary = layout == ScreenLayout::HybridTop ? 1 : 0;
 
         screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][primary], HybridScreenId::Primary, screen_layout_data.HybridScreenTranslation());
 
-        switch (screen_layout_data.HybridSmallScreenLayout()) {
-            case HybridSideScreenDisplay::Top:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][secondary], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
-                break;
-            case HybridSideScreenDisplay::Bottom:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][secondary], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
-                break;
-            case HybridSideScreenDisplay::Both:
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
-                screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
-                break;
+        HybridSideScreenDisplay smallScreenLayout = screen_layout_data.HybridSmallScreenLayout();
+
+        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom) {
+            // If we should display both screens, or if the bottom one is the primary...
+            screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][0], HybridScreenId::Top, screen_layout_data.TopScreenTranslation());
+        }
+
+        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop) {
+            // If we should display both screens, or if the top one is being focused...
+            screen_layout_data.CopyHybridScreen(GPU::Framebuffer[frontbuf][1], HybridScreenId::Bottom, screen_layout_data.BottomScreenTranslation());
         }
 
         if (input_state.CursorEnabled()) {

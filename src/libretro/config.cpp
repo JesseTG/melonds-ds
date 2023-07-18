@@ -150,6 +150,7 @@ namespace Config {
             static const char* const MICROPHONE = "microphone";
             static const char* const MOUSE = "mouse";
             static const char* const NOISE = "noise";
+            static const char* const ONE = "one";
             static const char* const OPENGL = "opengl";
             static const char* const RIGHT_LEFT = "right-left";
             static const char* const ROTATE_LEFT = "rotate-left";
@@ -440,8 +441,7 @@ static optional<melonds::ScreenLayout> ParseScreenLayout(const char* value) noex
 static optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(const char* value) noexcept {
     using melonds::ScreenLayout;
     using namespace Config::Retro;
-    if (string_is_equal(value, Values::TOP)) return melonds::HybridSideScreenDisplay::Top;
-    if (string_is_equal(value, Values::BOTTOM)) return melonds::HybridSideScreenDisplay::Bottom;
+    if (string_is_equal(value, Values::ONE)) return melonds::HybridSideScreenDisplay::One;
     if (string_is_equal(value, Values::BOTH)) return melonds::HybridSideScreenDisplay::Both;
 
     return nullopt;
@@ -1626,16 +1626,14 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::HYBRID_SMALL_SCREEN,
         "Hybrid Small Screen Mode",
         nullptr,
-        "Choose the position of the small screen when using a hybrid layout.\n"
+        "Choose which screens will be shown when using a hybrid layout.\n"
         "\n"
-        "Bottom: The smaller screen is on the bottom.\n"
-        "Top: The smaller screen is on the top.\n"
+        "One: The smaller screen is on the bottom.\n"
         "Both: Both of the DS screens are shown on the side.",
         nullptr,
         Config::Retro::Category::SCREEN,
         {
-            {Config::Retro::Values::BOTTOM, "Bottom"},
-            {Config::Retro::Values::TOP, "Top"},
+            {Config::Retro::Values::ONE, "One"},
             {Config::Retro::Values::BOTH, "Both"},
             {nullptr, nullptr},
         },

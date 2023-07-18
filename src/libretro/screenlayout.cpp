@@ -263,7 +263,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     bottomScreenMatrixInverse = inverse(bottomScreenMatrix);
 
     // Transform the base screen points
-    array<vec2, 12> transformedScreenPoints = {
+    transformedScreenPoints = {
         topScreenMatrix * vec3(baseScreenPoints[0], 1),
         topScreenMatrix * vec3(baseScreenPoints[1], 1),
         topScreenMatrix * vec3(baseScreenPoints[2], 1),
