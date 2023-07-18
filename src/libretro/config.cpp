@@ -409,11 +409,12 @@ static optional<bool> ParseBoolean(const char* value) noexcept {
     return nullopt;
 }
 
-static optional<int> ParseIntegerInRange(const char* value, int min, int max) noexcept {
+template<typename T>
+static optional<T> ParseIntegerInRange(const char* value, T min, T max) noexcept {
     if (min > max) return nullopt;
     if (!value) return nullopt;
 
-    int parsed_number = 0;
+    T parsed_number = 0;
     from_chars_result result = from_chars(value, value + strlen(value), parsed_number);
 
     if (result.ec != std::errc()) return nullopt;
@@ -595,7 +596,7 @@ bool melonds::update_option_visibility() {
 #endif
 
     unsigned oldNumberOfShownScreenLayouts = NumberOfShownScreenLayouts;
-    optional<int> numberOfScreenLayouts = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, screen::MAX_SCREEN_LAYOUTS);
+    optional<unsigned> numberOfScreenLayouts = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1u, screen::MAX_SCREEN_LAYOUTS);
 
     NumberOfShownScreenLayouts = numberOfScreenLayouts ? *numberOfScreenLayouts : screen::MAX_SCREEN_LAYOUTS;
     if (NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
@@ -923,7 +924,7 @@ static void melonds::config::parse_screen_options() noexcept {
         _smallScreenLayout = HybridSideScreenDisplay::Both;
     }
 
-    if (optional<int> value = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1, MAX_SCREEN_LAYOUTS)) {
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(Keys::NUMBER_OF_SCREEN_LAYOUTS), 1u, MAX_SCREEN_LAYOUTS)) {
         _numberOfScreenLayouts = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %d", Keys::NUMBER_OF_SCREEN_LAYOUTS, 2);
