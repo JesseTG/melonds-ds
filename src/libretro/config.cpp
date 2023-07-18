@@ -1608,24 +1608,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         Config::Retro::Values::DISABLED
     },
-
-    {
-        Config::Retro::Keys::TOUCH_MODE,
-        "Touch Mode",
-        nullptr,
-        "Choose mode for interactions with the touch screen.",
-        nullptr,
-        Config::Retro::Category::SCREEN,
-        {
-            {Config::Retro::Values::MOUSE, "Mouse"},
-            {Config::Retro::Values::TOUCH, "Touch"},
-            {Config::Retro::Values::JOYSTICK, "Joystick"},
-            {Config::Retro::Values::DISABLED, nullptr},
-            {nullptr, nullptr},
-        },
-        Config::Retro::Values::MOUSE
-    },
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     {
         Config::Retro::Keys::HYBRID_RATIO,
         "Hybrid Ratio",
