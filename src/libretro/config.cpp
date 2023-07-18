@@ -17,6 +17,7 @@
 #include "config.hpp"
 #include <charconv>
 #include <cstring>
+#include <initializer_list>
 #include <system_error>
 #include <GPU.h>
 #include <string/stdstring.h>
@@ -37,6 +38,7 @@
 
 using std::from_chars;
 using std::from_chars_result;
+using std::initializer_list;
 using std::string;
 using std::nullopt;
 using std::optional;
@@ -48,6 +50,8 @@ const char* const DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME = "dldi_sd_card.bin";
 const char* const DEFAULT_HOMEBREW_SDCARD_DIR_NAME = "dldi_sd_card";
 const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
+
+const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
 
 namespace Config {
     namespace Retro {
@@ -413,6 +417,21 @@ static optional<T> ParseIntegerInRange(const char* value, T min, T max) noexcept
     if (parsed_number < min || parsed_number > max) return nullopt;
 
     return parsed_number;
+}
+
+template<typename T>
+static optional<T> ParseIntegerInList(const char* value, const initializer_list<T>& list) noexcept {
+    if (!value) return nullopt;
+
+    T parsed_number = 0;
+    from_chars_result result = from_chars(value, value + strlen(value), parsed_number);
+
+    if (result.ec != std::errc()) return nullopt;
+    for (T t : list) {
+        if (parsed_number == t) return parsed_number;
+    }
+
+    return nullopt;
 }
 
 static optional<melonds::ScreenLayout> ParseScreenLayout(const char* value) noexcept {
@@ -892,8 +911,8 @@ static void melonds::config::parse_screen_options() noexcept {
     using namespace melonds::config::screen;
     using retro::get_variable;
 
-    if (const char* value = get_variable(Keys::SCREEN_GAP); !string_is_empty(value)) {
-        _screenGap = std::stoi(value); // TODO: Handle errors
+    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(Keys::SCREEN_GAP), SCREEN_GAP_LENGTHS)) {
+        _screenGap = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %d", Keys::SCREEN_GAP, 0);
         _screenGap = 0;
