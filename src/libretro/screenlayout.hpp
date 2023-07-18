@@ -90,13 +90,13 @@ namespace melonds {
         const PixelBuffer& Buffer() const noexcept { return buffer; }
 
         /// The width of the image necessary to hold this layout, in pixels
-        unsigned BufferWidth() const noexcept { return buffer ? buffer.Width() : bufferSize.x; }
+        unsigned BufferWidth() const noexcept { return bufferSize.x; }
 
         /// The height of the image necessary to hold this layout, in pixels
-        unsigned BufferHeight() const noexcept { return buffer ? buffer.Height() : bufferSize.y; }
+        unsigned BufferHeight() const noexcept { return bufferSize.y; }
 
         /// The size of the image necessary to hold this layout, in pixels
-        glm::uvec2 BufferSize() const noexcept { return buffer ? buffer.Size() : bufferSize; }
+        glm::uvec2 BufferSize() const noexcept { return bufferSize; }
 
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 TopScreenTranslation() const noexcept { return topScreenTranslation; }
         [[deprecated("Use CombineScreens instead")]] glm::uvec2 BottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
