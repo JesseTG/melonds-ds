@@ -1621,15 +1621,12 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         Config::Retro::Keys::HYBRID_SMALL_SCREEN,
         "Hybrid Small Screen Mode",
         nullptr,
-        "Choose which screens will be shown when using a hybrid layout.\n"
-        "\n"
-        "One: The smaller screen is on the bottom.\n"
-        "Both: Both of the DS screens are shown on the side.",
+        "Choose which screens will be shown when using a hybrid layout.",
         nullptr,
         Config::Retro::Category::SCREEN,
         {
-            {Config::Retro::Values::ONE, "One"},
-            {Config::Retro::Values::BOTH, "Both"},
+            {Config::Retro::Values::ONE, "Show Opposite Screen"},
+            {Config::Retro::Values::BOTH, "Show Both Screens"},
             {nullptr, nullptr},
         },
         Config::Retro::Values::BOTH
