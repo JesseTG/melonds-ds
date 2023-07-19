@@ -322,17 +322,11 @@ PUBLIC_SYMBOL void retro_run(void) {
         melonds::UpdateConfig(screenLayout, input_state);
     }
 
-    // Read the input from the frontend
-    input_state.Update(screenLayout);
-
     if (melonds::render::ReadyToRender()) {
         // If the global state needed for rendering is ready...
 
-        if (melonds::input_state.CycleLayoutPressed()) {
-            // If the user wants to change the active screen layout...
-            screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
-            retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
-        }
+        HandleInput(input_state, screenLayout);
+        read_microphone(input_state);
 
         if (screenLayout.Dirty()) {
             // If the active screen layout has changed (either by settings or by hotkey)...
@@ -350,8 +344,6 @@ PUBLIC_SYMBOL void retro_run(void) {
 
             melonds::opengl::RequestOpenGlRefresh();
         }
-
-        read_microphone(input_state);
 
         // NDS::RunFrame invokes rendering-related code
         NDS::RunFrame();

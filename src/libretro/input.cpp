@@ -31,7 +31,10 @@ using glm::ivec3;
 using glm::i16vec2;
 using glm::mat3;
 using glm::vec2;
+using glm::vec3;
 using glm::uvec2;
+using melonds::NDS_SCREEN_SIZE;
+using melonds::NDS_SCREEN_HEIGHT;
 
 const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -54,6 +57,10 @@ const struct retro_input_descriptor melonds::input_descriptors[] = {
         {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,      "Touch joystick Y"},
         {},
 };
+
+static bool IsInNdsScreenBounds(ivec2 position) noexcept {
+    return glm::all(glm::openBounded(position, ivec2(0), NDS_SCREEN_SIZE<int>));
+}
 
 static const char *device_name(unsigned device) {
     switch (device) {
@@ -81,6 +88,52 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
     retro::log(RETRO_LOG_DEBUG, "retro_set_controller_port_device(%d, %s)", port, device_name(device));
 }
 
+void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
+    using glm::clamp;
+    using glm::all;
+
+    // Read the input from the frontend
+    inputState.Update(screenLayout);
+
+    if (inputState.ToggleLidPressed()) {
+        NDS::SetLidClosed(!NDS::IsLidClosed());
+        retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
+    }
+
+    if (inputState.CycleLayoutPressed()) {
+        // If the user wants to change the active screen layout...
+        screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
+        retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
+    }
+
+    if (inputState.IsTouchingScreen()) {
+        uvec2 clampedTouch;
+        switch (screenLayout.Layout()) {
+            case ScreenLayout::HybridBottom:
+                if (screenLayout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
+                    // If the touch screen is only shown in the hybrid-screen position...
+                    clampedTouch = clamp(inputState.HybridTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+                    // ...then that's the only transformation we'll use for input.
+                    break;
+                } else if (!all(glm::openBounded(inputState.TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int>))) {
+                    // The touch screen is shown in both the hybrid and secondary positions.
+                    // If the touch input is not within the secondary position's bounds...
+                    clampedTouch = clamp(inputState.HybridTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+                    break;
+                }
+                [[fallthrough]];
+            default:
+                clampedTouch = clamp(inputState.TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+                break;
+
+        }
+
+        NDS::TouchScreen(clampedTouch.x, clampedTouch.y);
+    } else if (inputState.ScreenReleased()) {
+        NDS::ReleaseScreen();
+    }
+}
+
 #define ADD_KEY_TO_MASK(key, i, bits) \
     do { \
         if (bits & (1 << (key))) {               \
@@ -91,8 +144,6 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
         }                                      \
     } while (false)
 
-// TODO: Refactor Update to only read global state;
-// apply it in a separate function
 void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
     uint32_t retroInputBits; // Input bits from libretro
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
@@ -139,26 +190,20 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     previousTouch = touch;
     previousTouching = touching;
 
-    // TODO: Get touch input from the joystick regardless of the screen layout
-    // TODO: If touching the screen, prioritize the pointer
     ScreenLayout layout = screen_layout_data.Layout();
-    if (layout != ScreenLayout::TopOnly) {
+    if (layout == ScreenLayout::TopOnly) {
+        touching = false;
+    } else {
         touching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
         pointerInput.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
         pointerInput.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-        int16_t joystick_x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
-        int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
-        // TODO: Provide an option to allow the joystick input to stay relative to the screen
-
-        mat3 joystickMatrix = melonds::math::ts(NDS_SCREEN_SIZE<float> / 2.0f, NDS_SCREEN_SIZE<float> / 65535.0f);
-        ivec2 transformed_pointer = screen_layout_data.TransformPointerInput(pointerInput);
-        ivec2 transformedHybridPointer = screen_layout_data.TransformPointerInputToHybridScreen(pointerInput);
-        ivec2 transformed_joystick = joystickMatrix * ivec3(joystick_x, joystick_y, 1);
+        touch = screen_layout_data.TransformPointerInput(pointerInput);
+        hybridTouch = screen_layout_data.TransformPointerInputToHybridScreen(pointerInput);
 
         char text[1024];
-        sprintf(text, "Pointer: (%d, %d) -> (%d, %d)", pointerInput.x, pointerInput.y, transformed_pointer.x, transformed_pointer.y);
-        retro_message_ext message {
+        sprintf(text, "Pointer: (%d, %d) -> (%d, %d)", pointerInput.x, pointerInput.y, touch.x, touch.y);
+        retro_message_ext message{
             .msg = text,
             .duration = 60,
             .priority = 0,
@@ -168,44 +213,6 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
             .progress = -1
         };
         retro::set_message(&message);
-
-        touch = transformed_pointer;
-        hybridTouch = transformedHybridPointer;
-    } else {
-        touching = false;
-    }
-
-    // TODO: Should the input object state modify global state?
-    if (IsTouchingScreen()) {
-        uvec2 clampedTouch;
-        switch (layout) {
-            case ScreenLayout::HybridBottom:
-                if (screen_layout_data.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
-                    // If the touch screen is only shown in the hybrid-screen position...
-                    clampedTouch = glm::clamp(uvec2(hybridTouch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
-                    // ...then that's the only transformation we'll use for input.
-                    break;
-                } else if (!glm::all(glm::openBounded(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned>))) {
-                    // The touch screen is shown in both the hybrid and secondary positions.
-                    // If the touch input is not within the secondary position's bounds...
-                    clampedTouch = glm::clamp(uvec2(hybridTouch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
-                    break;
-                }
-                [[fallthrough]];
-            default:
-                clampedTouch = glm::clamp(uvec2(touch), uvec2(0), NDS_SCREEN_SIZE<unsigned> - 1u);
-                break;
-
-        }
-
-        NDS::TouchScreen(clampedTouch.x, clampedTouch.y);
-    } else if (ScreenReleased()) {
-        NDS::ReleaseScreen();
-    }
-
-    if (ToggleLidPressed()) {
-        NDS::SetLidClosed(!NDS::IsLidClosed());
-        retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
     }
 
     if (cursorMode == CursorMode::Timeout) {
