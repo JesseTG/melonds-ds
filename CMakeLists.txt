@@ -22,6 +22,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 
 find_package(Git)
 
+option(TRACY_ENABLE "Build with Tracy support." OFF)
+
 include(cmake/utils.cmake)
 include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)

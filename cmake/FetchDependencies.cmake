@@ -38,8 +38,18 @@ fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm.git" "5c46b9c")
 
+if (TRACY_ENABLE)
+    fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.9.1")
+endif()
+
 set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTENT_BASE_DIR}/embed-binaries-src/cmake" "${CMAKE_MODULE_PATH}")
 set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm)
+
+if (TRACY_ENABLE)
+    FetchContent_MakeAvailable(tracy)
+    set(BUILD_SHARED_LIBS OFF)
+    set(TRACY_STATIC ON)
+endif()
