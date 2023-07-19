@@ -63,6 +63,7 @@ namespace melonds {
         bool previousTouching;
         glm::ivec2 previousTouch;
         glm::ivec2 touch;
+        glm::i16vec2 pointerInput;
         glm::ivec2 hybridTouch;
         glm::ivec2 joystickTouch;
         enum CursorMode cursorMode;

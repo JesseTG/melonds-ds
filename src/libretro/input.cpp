@@ -28,6 +28,7 @@
 
 using glm::ivec2;
 using glm::ivec3;
+using glm::i16vec2;
 using glm::mat3;
 using glm::vec2;
 using glm::uvec2;
@@ -137,26 +138,26 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
     previousTouch = touch;
     previousTouching = touching;
-    // TODO: Touching should be disabled when the lid is closed
+
     // TODO: Get touch input from the joystick regardless of the screen layout
     // TODO: If touching the screen, prioritize the pointer
     ScreenLayout layout = screen_layout_data.Layout();
     if (layout != ScreenLayout::TopOnly) {
         touching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-        int16_t pointer_x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-        int16_t pointer_y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+        pointerInput.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+        pointerInput.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
         int16_t joystick_x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
         int16_t joystick_y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
         // TODO: Provide an option to allow the joystick input to stay relative to the screen
 
         mat3 joystickMatrix = melonds::math::ts(NDS_SCREEN_SIZE<float> / 2.0f, NDS_SCREEN_SIZE<float> / 65535.0f);
-        ivec2 transformed_pointer = screen_layout_data.TransformPointerInput(pointer_x, pointer_y);
-        ivec2 transformedHybridPointer = screen_layout_data.TransformPointerInputToHybridScreen(pointer_x, pointer_y);
+        ivec2 transformed_pointer = screen_layout_data.TransformPointerInput(pointerInput);
+        ivec2 transformedHybridPointer = screen_layout_data.TransformPointerInputToHybridScreen(pointerInput);
         ivec2 transformed_joystick = joystickMatrix * ivec3(joystick_x, joystick_y, 1);
 
         char text[1024];
-        sprintf(text, "Pointer: (%d, %d) -> (%d, %d)", pointer_x, pointer_y, transformed_pointer.x, transformed_pointer.y);
+        sprintf(text, "Pointer: (%d, %d) -> (%d, %d)", pointerInput.x, pointerInput.y, transformed_pointer.x, transformed_pointer.y);
         retro_message_ext message {
             .msg = text,
             .duration = 60,
@@ -220,16 +221,24 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 }
 
 bool melonds::InputState::CursorVisible() const noexcept {
+    bool modeAllowsCursor = false;
     switch (config::screen::CursorMode()) {
         case CursorMode::Always:
-            return true;
+            modeAllowsCursor = true;
+            break;
         case CursorMode::Never:
-            return false;
+            modeAllowsCursor =false;
+            break;
         case CursorMode::Touching:
-            return touching;
+            modeAllowsCursor = touching;
+            break;
         case CursorMode::Timeout:
-            return cursorTimeout > 0;
-        default:
-            return true;
+            modeAllowsCursor = cursorTimeout > 0;
+            break;
     }
+
+    return modeAllowsCursor && !NDS::IsLidClosed() && pointerInput != i16vec2(0);
+    // libretro's pointer API returns (0, 0) if the pointer is not over the play area (even if it's still over the window).
+    // Theoretically means that the cursor is hidden if the player moves the pointer to the dead center of the screen,
+    // but the screen's resolution probably isn't big enough for that to happen in practice.
 }
