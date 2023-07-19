@@ -227,7 +227,7 @@ bool melonds::InputState::CursorVisible() const noexcept {
             modeAllowsCursor = true;
             break;
         case CursorMode::Never:
-            modeAllowsCursor =false;
+            modeAllowsCursor = false;
             break;
         case CursorMode::Touching:
             modeAllowsCursor = touching;
