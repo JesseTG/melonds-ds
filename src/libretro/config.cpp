@@ -54,7 +54,6 @@ const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
-const initializer_list<unsigned> TOUCH_JOYSTICK_RADII = {32, 48, 56, 72, 80, 90, 96};
 
 namespace Config {
     namespace Retro {
@@ -92,7 +91,6 @@ namespace Config {
                 SCREEN_LAYOUT8
             };
 
-            static const char* const TOUCH_JOYSTICK_RADIUS = "melonds_touch_joystick_radius";
             static const char* const SHOW_CURSOR = "melonds_show_cursor";
             static const char* const CURSOR_TIMEOUT = "melonds_cursor_timeout";
             static const char* const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
@@ -341,9 +339,6 @@ namespace melonds::config {
 
         static unsigned _screenGap;
         unsigned ScreenGap() noexcept { return _screenGap; }
-
-        static unsigned _touchJoystickRadius;
-        unsigned TouchJoystickRadius() noexcept { return _touchJoystickRadius; }
 
         static unsigned _hybridRatio;
         unsigned HybridRatio() noexcept { return _hybridRatio; }
@@ -956,13 +951,6 @@ static void melonds::config::parse_screen_options() noexcept {
         _screenGap = 0;
     }
 
-    if (optional<unsigned> value = ParseIntegerInList(get_variable(Keys::TOUCH_JOYSTICK_RADIUS), TOUCH_JOYSTICK_RADII)) {
-        _touchJoystickRadius = *value;
-    } else {
-        retro::warn("Failed to get value for %s; defaulting to %d", Keys::TOUCH_JOYSTICK_RADIUS, 96);
-        _touchJoystickRadius = 96;
-    }
-
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(Keys::CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
         _cursorTimeout = *value;
     } else {
@@ -1297,7 +1285,6 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
 
     inputState.SetCursorMode(screen::CursorMode());
     inputState.SetMaxCursorTimeout(screen::CursorTimeout());
-    inputState.SetTouchJoystickRadius(screen::TouchJoystickRadius());
 }
 
 struct retro_core_option_v2_category option_cats_us[] = {
@@ -1702,25 +1689,6 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::ALWAYS
-    },
-    {
-        Config::Retro::Keys::TOUCH_JOYSTICK_RADIUS,
-        "Touch Joystick Radius",
-        nullptr,
-        nullptr, // TODO
-        nullptr,
-        Config::Retro::Category::SCREEN,
-        {
-            {"32", "32px"},
-            {"48", "48px"},
-            {"56", "56px"},
-            {"72", "72px"},
-            {"80", "80px"},
-            {"90", "90px"},
-            {"96", "96px (Full Height)"},
-            {nullptr, nullptr},
-        },
-        "96"
     },
     {
         Config::Retro::Keys::CURSOR_TIMEOUT,
