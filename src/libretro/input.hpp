@@ -44,7 +44,7 @@ namespace melonds {
         [[nodiscard]] bool MicButtonReleased() const noexcept { return !micButton && previousMicButton; }
         [[nodiscard]] bool ToggleLidDown() const noexcept { return toggleLidButton; }
         [[nodiscard]] bool ToggleLidPressed() const noexcept { return toggleLidButton && !previousToggleLidButton; }
-        [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }\
+        [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
         [[nodiscard]] unsigned MaxCursorTimeout() const noexcept { return maxCursorTimeout;}
         void SetMaxCursorTimeout(unsigned timeout) noexcept {
             if (timeout != maxCursorTimeout) dirty = true;
