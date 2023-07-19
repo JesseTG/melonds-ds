@@ -220,6 +220,7 @@ namespace melonds {
             [[nodiscard]] unsigned NumberOfScreenLayouts() noexcept;
             [[nodiscard]] std::array<ScreenLayout, MAX_SCREEN_LAYOUTS> ScreenLayouts() noexcept;
             [[nodiscard]] unsigned ScreenGap() noexcept;
+            [[nodiscard]] unsigned TouchJoystickRadius() noexcept;
             [[nodiscard]] unsigned HybridRatio() noexcept;
             [[nodiscard]] HybridSideScreenDisplay SmallScreenLayout() noexcept;
             [[nodiscard]] float CursorSize() noexcept;
