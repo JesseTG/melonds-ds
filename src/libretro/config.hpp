@@ -184,6 +184,8 @@ namespace melonds {
             [[nodiscard]] ConsoleType ConsoleType() noexcept;
             [[nodiscard]] bool DirectBoot() noexcept;
             [[nodiscard]] bool ExternalBiosEnable() noexcept;
+            [[nodiscard]] unsigned DsPowerOkayThreshold() noexcept;
+            [[nodiscard]] unsigned PowerUpdateInterval() noexcept;
             [[nodiscard]] std::string Bios9Path() noexcept;
             [[nodiscard]] std::string Bios7Path() noexcept;
             [[nodiscard]] std::string FirmwarePath() noexcept;

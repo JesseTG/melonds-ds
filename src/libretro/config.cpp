@@ -54,6 +54,8 @@ const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
+const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
 namespace Config {
     namespace Retro {
@@ -91,6 +93,8 @@ namespace Config {
                 SCREEN_LAYOUT8
             };
 
+            static const char* const BATTERY_UPDATE_INTERVAL = "melonds_battery_update_interval";
+            static const char* const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
             static const char* const SHOW_CURSOR = "melonds_show_cursor";
             static const char* const CURSOR_TIMEOUT = "melonds_cursor_timeout";
             static const char* const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
@@ -366,6 +370,12 @@ namespace melonds::config {
         static bool _externalBiosFound;
         static bool _externalBiosEnable;
         bool ExternalBiosEnable() noexcept { return _externalBiosEnable && _externalBiosFound; }
+
+        static unsigned _dsPowerOkayThreshold = 20;
+        unsigned DsPowerOkayThreshold() noexcept { return _dsPowerOkayThreshold; }
+
+        static unsigned _powerUpdateInterval;
+        unsigned PowerUpdateInterval() noexcept { return _powerUpdateInterval; }
 
         // TODO: Allow these paths to be customized
         string Bios9Path() noexcept { return "bios9.bin"; }
@@ -749,6 +759,22 @@ static void melonds::config::parse_system_options() noexcept {
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::USE_EXTERNAL_BIOS, Values::ENABLED);
         _externalBiosEnable = true;
+    }
+
+    if (const optional<unsigned> value = ParseIntegerInList(get_variable(Keys::DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
+        _dsPowerOkayThreshold = *value;
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to 20%%", Keys::DS_POWER_OK);
+        _dsPowerOkayThreshold = 20;
+    }
+
+    if (const optional<unsigned> value = ParseIntegerInList(get_variable(Keys::BATTERY_UPDATE_INTERVAL), POWER_UPDATE_INTERVALS)) {
+        _powerUpdateInterval = *value;
+    }
+    else {
+        retro::warn("Failed to get value for %s; defaulting to 15 seconds", Keys::BATTERY_UPDATE_INTERVAL);
+        _powerUpdateInterval = 15;
     }
 }
 
@@ -1440,6 +1466,54 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
             {nullptr, nullptr},
         },
         Config::Retro::Values::ENABLED
+    },
+    {
+        Config::Retro::Keys::BATTERY_UPDATE_INTERVAL,
+        "Battery Update Interval",
+        nullptr,
+        "How often the emulated console's battery should be updated.",
+        nullptr,
+        Config::Retro::Category::SYSTEM,
+        {
+            {"1", "1 second"},
+            {"2", "2 seconds"},
+            {"3", "3 seconds"},
+            {"5", "5 seconds"},
+            {"10", "10 seconds"},
+            {"15", "15 seconds"},
+            {"20", "20 seconds"},
+            {"30", "30 seconds"},
+            {"60", "60 seconds"},
+            {nullptr, nullptr}
+        },
+        "15"
+    },
+    {
+        Config::Retro::Keys::DS_POWER_OK,
+        "DS Low Battery Threshold",
+        nullptr,
+        "If the host's battery level falls below this percentage, "
+        "the emulated DS will report that its battery level is low. "
+        "Ignored if running in DSi mode, "
+        "no battery is available, "
+        "or the frontend can't query the power status.",
+        nullptr,
+        Config::Retro::Category::SYSTEM,
+        {
+            {"0", "Always OK"},
+            {"10", "10%"},
+            {"20", "20%"},
+            {"30", "30%"},
+            {"40", "40%"},
+            {"50", "50%"},
+            {"60", "60%"},
+            {"70", "70%"},
+            {"80", "80%"},
+            {"90", "90%"},
+            {"100", "Always Low"},
+            {nullptr, nullptr},
+        },
+        "20"
     },
 
     // DSi
