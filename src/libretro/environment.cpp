@@ -29,6 +29,7 @@
 #include "libretro.hpp"
 #include "config.hpp"
 
+
 using std::string;
 using std::optional;
 using std::nullopt;
@@ -42,6 +43,7 @@ namespace retro {
     static retro_input_state_t _input_state;
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
+    static bool _supportsPowerStatus;
     static bool _config_categories_supported;
     static unsigned _message_interface_version;
 
@@ -313,6 +315,20 @@ void retro::set_option_visible(const char* key, bool visible) noexcept
     }
 }
 
+bool retro::supports_power_status() noexcept {
+    return _supportsPowerStatus;
+}
+
+optional<retro_device_power> retro::get_device_power() noexcept
+{
+    struct retro_device_power power;
+    if (!environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, &power)) {
+        return nullopt;
+    }
+
+    return power;
+}
+
 const optional<string>& retro::get_save_directory() {
     return _save_directory;
 }
@@ -354,7 +370,15 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::log(RETRO_LOG_DEBUG, "retro_set_environment(%p)", cb);
     }
 
-    retro::_supports_bitmasks = environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
+    retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
+    retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
+
+    if (retro::_supportsPowerStatus) {
+        retro::debug("Power state available");
+    } else {
+        retro::debug("Power state not available");
+    }
+
     environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version);
 
     const char* save_dir = nullptr;
