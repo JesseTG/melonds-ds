@@ -99,10 +99,8 @@ std::string Platform::InstanceFileSuffix() {
     return "";
 }
 
-static retro_log_level to_retro_log_level(Platform::LogLevel level)
-{
-    switch (level)
-    {
+static retro_log_level to_retro_log_level(Platform::LogLevel level) {
+    switch (level) {
         case Platform::LogLevel::Debug:
             return RETRO_LOG_DEBUG;
         case Platform::LogLevel::Info:
@@ -116,8 +114,7 @@ static retro_log_level to_retro_log_level(Platform::LogLevel level)
     }
 }
 
-void Platform::Log(Platform::LogLevel level, const char* fmt...)
-{
+void Platform::Log(Platform::LogLevel level, const char *fmt...) {
     retro_log_level retro_level = to_retro_log_level(level);
     va_list va;
     va_start(va, fmt);
@@ -138,8 +135,7 @@ void Platform::Sleep(u64 usecs) {
     sleep_impl(usecs);
 }
 
-void Platform::WriteNDSSave(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
-{
+void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
     if (melonds::NdsSaveManager) {
         melonds::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
@@ -149,8 +145,7 @@ void Platform::WriteNDSSave(const u8* savedata, u32 savelen, u32 writeoffset, u3
     }
 }
 
-void Platform::WriteGBASave(const u8* savedata, u32 savelen, u32 writeoffset, u32 writelen)
-{
+void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     if (melonds::GbaSaveManager) {
         melonds::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
