@@ -41,6 +41,8 @@ add_library(libretro MODULE
     PlatformOGLPrivate.h
     render.cpp
     render.hpp
+    retro/task_queue.cpp
+    retro/task_queue.hpp
     screenlayout.cpp
     screenlayout.hpp
     utils.cpp
