@@ -348,6 +348,8 @@ void retro::clear_environment() {
     microphone::clear_interface();
 }
 
+// This function might be called multiple times by the frontend,
+// and not always with the same value of cb.
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     using retro::environment;
     retro::_environment = cb;
