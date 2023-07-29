@@ -322,7 +322,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             hybridScaler.out_stride = NDS_SCREEN_WIDTH * hybridRatio * sizeof(uint32_t);
             hybridScaler.in_fmt = SCALER_FMT_ARGB8888;
             hybridScaler.out_fmt = SCALER_FMT_ARGB8888;
-            hybridScaler.scaler_type = SCALER_TYPE_POINT;
+            hybridScaler.scaler_type = config::video::ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
             scaler_ctx_gen_filter(&hybridScaler);
         } else {
             hybridBuffer = nullptr;
