@@ -38,10 +38,12 @@
 #include "render.hpp"
 
 using std::array;
+using glm::ivec2;
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 using melonds::ScreenLayout;
+
 // HACK: Defined in glsm.c, but we need to peek into it occasionally
 extern struct retro_hw_render_callback hw_render;
 
@@ -176,10 +178,11 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     if (state.CursorVisible()) {
         float cursorSize = melonds::config::screen::CursorSize();
-        GL_ShaderConfig.cursorPos[0] = ((float) (state.TouchX()) - cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
-        GL_ShaderConfig.cursorPos[1] = (((float) (state.TouchY()) - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
-        GL_ShaderConfig.cursorPos[2] = ((float) (state.TouchX()) + cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
-        GL_ShaderConfig.cursorPos[3] = (((float) (state.TouchY()) + cursorSize) / ((float) NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
+        ivec2 touch = state.TouchPosition();
+        GL_ShaderConfig.cursorPos[0] = ((float) touch.x - cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
+        GL_ShaderConfig.cursorPos[1] = (((float) touch.y - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
+        GL_ShaderConfig.cursorPos[2] = ((float) touch.x + cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
+        GL_ShaderConfig.cursorPos[3] = (((float) touch.y + cursorSize) / ((float) NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
         GL_ShaderConfig.cursorVisible = true;
     } else {
         GL_ShaderConfig.cursorVisible = false;
