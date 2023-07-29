@@ -53,10 +53,12 @@
 #include "exceptions.hpp"
 #include "microphone.hpp"
 #include "dsi.hpp"
+#include "retro/task_queue.hpp"
 
 using std::make_optional;
 using std::optional;
 using std::nullopt;
+using retro::task::TaskSpec;
 
 namespace melonds {
     static InputState input_state;
@@ -115,6 +117,8 @@ PUBLIC_SYMBOL void retro_init(void) {
     srand(time(nullptr));
 
     melonds::first_frame_run = false;
+    retro::task::init(false, nullptr);
+
     // ScreenLayoutData is initialized in its constructor
 }
 
@@ -315,6 +319,8 @@ PUBLIC_SYMBOL void retro_run(void) {
         melonds::render_audio();
 
         melonds::gba::FlushSaveData();
+
+        retro::task::check();
     }
 }
 
@@ -489,6 +495,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 
 PUBLIC_SYMBOL void retro_deinit(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
+    retro::task::deinit();
     retro::clear_environment();
     retro::content::clear();
     melonds::clear_memory_config();
