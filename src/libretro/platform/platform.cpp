@@ -24,6 +24,8 @@
 #include <compat/strl.h>
 #include <retro_assert.h>
 #include <retro_endianness.h>
+
+#include "../gba.hpp"
 #include "../memory.hpp"
 #include "../environment.hpp"
 #include "../config.hpp"
@@ -149,7 +151,7 @@ void Platform::Init(int, char **) {
 void Platform::DeInit() {
     retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
     melonds::NdsSaveManager.reset();
-    melonds::GbaSaveManager.reset();
+    melonds::gba::GbaSaveManager.reset();
 
     if (_camera.stop) {
         _camera.stop();
@@ -218,17 +220,7 @@ void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
     }
 }
 
-void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
-    if (melonds::GbaSaveManager) {
-        melonds::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
-        // Start the countdown until we flush the SRAM back to disk.
-        // The timer resets every time we write to SRAM,
-        // so that a sequence of SRAM writes doesn't result in
-        // a sequence of disk writes.
-        melonds::TimeToGbaFlush = melonds::config::save::FlushDelay();
-    }
-}
 
 void Platform::Camera_Start(int num) {
     if (_camera.start) {

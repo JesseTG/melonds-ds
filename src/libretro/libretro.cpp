@@ -40,6 +40,7 @@
 #include <SPI.h>
 
 #include "opengl.hpp"
+#include "gba.hpp"
 #include "content.hpp"
 #include "environment.hpp"
 #include "config.hpp"
@@ -102,8 +103,6 @@ namespace melonds {
     static void update_power_status() noexcept;
     static void read_microphone(melonds::InputState& inputState) noexcept;
     static void render_audio();
-    static void flush_save_data() noexcept;
-    static void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -208,57 +207,17 @@ static void melonds::install_sram(
 
     // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
     // but is not processed by retro_get_memory (again due to libretro limits).
-    if (gba_info && melonds::GbaSaveManager->SramLength() > 0) {
+    if (gba_info && gba::GbaSaveManager->SramLength() > 0) {
         // If we're loading a GBA game that has existing SRAM...
         // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
-        GBACart::LoadSave(melonds::GbaSaveManager->Sram(), melonds::GbaSaveManager->SramLength());
+        GBACart::LoadSave(gba::GbaSaveManager->Sram(), gba::GbaSaveManager->SramLength());
     }
 
     // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
     // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
 }
 
-static void melonds::flush_save_data() noexcept {
-    if (TimeToGbaFlush != std::nullopt) {
-        if (*TimeToGbaFlush > 0) { // std::optional::operator> checks the optional's validity for us
-            // If we have a GBA SRAM flush coming up...
-            *TimeToGbaFlush -= 1;
-        }
 
-        if (*TimeToGbaFlush <= 0) {
-            // If it's time to flush the GBA's SRAM...
-            const optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
-            if (gba_save_info) {
-                // If we actually have GBA save data loaded...
-                flush_gba_sram(*gba_save_info);
-            }
-            TimeToGbaFlush = std::nullopt; // Reset the timer
-        }
-    }
-}
-
-static void melonds::flush_gba_sram(const retro_game_info& gba_save_info) noexcept {
-
-    const char* save_data_path = gba_save_info.path;
-    if (save_data_path == nullptr || GbaSaveManager == nullptr) {
-        // No save data path was provided, or the GBA save manager isn't initialized
-        return; // TODO: Report this error
-    }
-    const u8* gba_sram = GbaSaveManager->Sram();
-    u32 gba_sram_length = GbaSaveManager->SramLength();
-
-    if (gba_sram == nullptr || gba_sram_length == 0) {
-        return; // TODO: Report this error
-    }
-
-    if (!filestream_write_file(save_data_path, gba_sram, gba_sram_length)) {
-        retro::error("Failed to write %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
-        // TODO: Report this to the user
-    }
-    else {
-        retro::debug("Flushed %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
-    }
-}
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     using melonds::screenLayout;
@@ -354,7 +313,8 @@ PUBLIC_SYMBOL void retro_run(void) {
 
         render::Render(input_state, screenLayout);
         melonds::render_audio();
-        melonds::flush_save_data();
+
+        melonds::gba::flush_save_data();
     }
 }
 
@@ -503,7 +463,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
     const optional<struct retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
     if (gba_save_info) {
-        melonds::flush_gba_sram(*gba_save_info);
+        melonds::gba::flush_gba_sram(*gba_save_info);
     }
     NDS::Stop();
     NDS::DeInit();
@@ -642,7 +602,7 @@ static void melonds::init_gba_save(GbaCart& gba_cart, const struct retro_game_in
         throw std::runtime_error("Failed to read GBA save file");
     }
 
-    melonds::GbaSaveManager->SetSaveSize(gba_save_file_size);
+    gba::GbaSaveManager->SetSaveSize(gba_save_file_size);
     gba_cart.SetupSave(gba_save_file_size);
     gba_cart.LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
     retro::debug("Allocated %u-byte GBA SRAM", gba_cart.GetSaveMemoryLength());

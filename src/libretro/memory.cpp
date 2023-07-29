@@ -39,10 +39,7 @@ namespace melonds {
     static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
 
     std::unique_ptr<SaveManager> NdsSaveManager = std::make_unique<SaveManager>();
-    std::unique_ptr<SaveManager> GbaSaveManager = std::make_unique<SaveManager>();
 }
-
-std::optional<int> melonds::TimeToGbaFlush = std::nullopt;
 
 melonds::SaveManager::SaveManager() :
     _sram(nullptr),
