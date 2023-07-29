@@ -314,7 +314,7 @@ PUBLIC_SYMBOL void retro_run(void) {
         render::Render(input_state, screenLayout);
         melonds::render_audio();
 
-        melonds::gba::flush_save_data();
+        melonds::gba::FlushSaveData();
     }
 }
 
@@ -463,7 +463,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
     const optional<struct retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
     if (gba_save_info) {
-        melonds::gba::flush_gba_sram(*gba_save_info);
+        melonds::gba::FlushSram(*gba_save_info);
     }
     NDS::Stop();
     NDS::DeInit();

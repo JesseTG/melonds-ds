@@ -45,7 +45,7 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
     }
 }
 
-void melonds::gba::flush_save_data() noexcept {
+void melonds::gba::FlushSaveData() noexcept {
     if (TimeToGbaFlush != std::nullopt) {
         if (*TimeToGbaFlush > 0) { // std::optional::operator> checks the optional's validity for us
             // If we have a GBA SRAM flush coming up...
@@ -57,14 +57,14 @@ void melonds::gba::flush_save_data() noexcept {
             const std::optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
             if (gba_save_info) {
                 // If we actually have GBA save data loaded...
-                flush_gba_sram(*gba_save_info);
+                FlushSram(*gba_save_info);
             }
             TimeToGbaFlush = std::nullopt; // Reset the timer
         }
     }
 }
 
-void melonds::gba::flush_gba_sram(const retro_game_info& gba_save_info) noexcept {
+void melonds::gba::FlushSram(const retro_game_info& gba_save_info) noexcept {
 
     const char* save_data_path = gba_save_info.path;
     if (save_data_path == nullptr || GbaSaveManager == nullptr) {

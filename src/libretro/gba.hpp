@@ -38,8 +38,8 @@ namespace melonds {
         // Time until GBA save data is flushed, in frames
         extern std::optional<int> TimeToGbaFlush;
 
-        void flush_save_data() noexcept;
-        void flush_gba_sram(const retro_game_info& gba_save_info) noexcept;
+        void FlushSaveData() noexcept;
+        void FlushSram(const retro_game_info& gba_save_info) noexcept;
     }
 
 }
