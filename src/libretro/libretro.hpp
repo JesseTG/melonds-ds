@@ -19,8 +19,8 @@
 
 #include <libretro.h>
 
-#include <NDSCart.h>
 #include <GBACart.h>
+#include <NDSCart.h>
 
 /**!
  * Contains global state that's accessible to the entire core.

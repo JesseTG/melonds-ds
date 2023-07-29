@@ -15,34 +15,37 @@
 */
 
 #include "config.hpp"
+// NOT UNUSED; GPU.h doesn't #include OpenGL, so I do it here.
+// This must come before <GPU.h>!
+#include "PlatformOGLPrivate.h"
 
 #include <charconv>
 #include <cstring>
 #include <initializer_list>
-#include <system_error>
-#include <GPU.h>
-#include <string/stdstring.h>
-#include <file/file_path.h>
-#include <SPU.h>
-#include <retro_assert.h>
 
-#include "content.hpp"
-#include "libretro.hpp"
+#include <file/file_path.h>
+#include <libretro.h>
+#include <retro_assert.h>
+#include <string/stdstring.h>
+
+#include <GPU.h>
+#include <SPU.h>
+
 #include "environment.hpp"
-#include "screenlayout.hpp"
-#include "input.hpp"
-#include "opengl.hpp"
-#include "microphone.hpp"
-#include "utils.hpp"
-#include "render.hpp"
 #include "exceptions.hpp"
+#include "input.hpp"
+#include "libretro.hpp"
+#include "microphone.hpp"
+#include "opengl.hpp"
+#include "render.hpp"
+#include "screenlayout.hpp"
 
 using std::from_chars;
 using std::from_chars_result;
 using std::initializer_list;
-using std::string;
 using std::nullopt;
 using std::optional;
+using std::string;
 
 constexpr unsigned DS_NAME_LIMIT = 10;
 constexpr unsigned AUTO_SDCARD_SIZE = 0;

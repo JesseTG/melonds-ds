@@ -17,6 +17,7 @@
 #ifndef MELONDS_DS_SCREENLAYOUT_HPP
 #define MELONDS_DS_SCREENLAYOUT_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>

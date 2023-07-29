@@ -17,14 +17,18 @@
 #ifndef MELONDS_DS_CONFIG_HPP
 #define MELONDS_DS_CONFIG_HPP
 
+#include <array>
+#include <cstdint>
 #include <optional>
+#include <string>
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-#include <glsym/glsym.h>
-#endif
-#include <GPU.h>
-#include <libretro.h>
-#include <NDS_Header.h>
+namespace GPU {
+    struct RenderSettings;
+}
+struct NDSHeader;
+struct retro_core_options_v2;
+struct retro_core_option_v2_definition;
+struct retro_game_info;
 
 // TODO: Move everything into melonds::config
 namespace melonds {

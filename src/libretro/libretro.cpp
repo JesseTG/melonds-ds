@@ -16,44 +16,47 @@
 
 #include "libretro.hpp"
 
-#include <ctime>
+// NOT UNUSED; GPU.h doesn't #include OpenGL, so I do it here.
+// This must come before <GPU.h>!
+#include "PlatformOGLPrivate.h"
+
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <memory>
 
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <libretro.h>
-#include <streams/rzip_stream.h>
-#include <streams/file_stream.h>
-
-#include <DSi.h>
-#include <NDS.h>
-#include <NDSCart.h>
-#include <frontend/FrontendUtil.h>
-#include <Platform.h>
-#include <SPU.h>
-#include <GBACart.h>
 #include <retro_assert.h>
 #include <retro_miscellaneous.h>
-#include <DSi_I2C.h>
-#include <SPI.h>
+#include <streams/rzip_stream.h>
 
-#include "opengl.hpp"
-#include "gba.hpp"
-#include "content.hpp"
-#include "environment.hpp"
+#include <DSi.h>
+#include <DSi_I2C.h>
+#include <frontend/FrontendUtil.h>
+#include <GBACart.h>
+#include <GPU.h>
+#include <NDS.h>
+#include <NDSCart.h>
+#include <Platform.h>
+#include <SPI.h>
+#include <SPU.h>
+
 #include "config.hpp"
-#include "input.hpp"
-#include "utils.hpp"
-#include "info.hpp"
-#include "screenlayout.hpp"
-#include "memory.hpp"
-#include "render.hpp"
-#include "exceptions.hpp"
-#include "microphone.hpp"
+#include "content.hpp"
 #include "dsi.hpp"
+#include "environment.hpp"
+#include "exceptions.hpp"
+#include "gba.hpp"
+#include "info.hpp"
+#include "input.hpp"
+#include "memory.hpp"
+#include "microphone.hpp"
+#include "opengl.hpp"
+#include "render.hpp"
 #include "retro/task_queue.hpp"
+#include "screenlayout.hpp"
 
 using std::make_optional;
 using std::optional;

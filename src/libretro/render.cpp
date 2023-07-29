@@ -15,10 +15,12 @@
 */
 
 #include "render.hpp"
+// NOT UNUSED; GPU3D.h doesn't #include OpenGL, so I do it here.
+// This must come before <GPU3D.h>!
+#include "PlatformOGLPrivate.h"
 
 #include <optional>
 
-#include <glm/vec2.hpp>
 #include <retro_assert.h>
 #include <GPU3D.h>
 

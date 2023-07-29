@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <cstdint>
+
 #include <glm/vec2.hpp>
 
 namespace melonds {
