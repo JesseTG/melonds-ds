@@ -17,15 +17,12 @@
 #ifndef MELONDS_DS_GBA_HPP
 #define MELONDS_DS_GBA_HPP
 
-#include "memory.hpp"
-#include "environment.hpp"
-#include "content.hpp"
-#include "config.hpp"
-#include <streams/file_stream.h>
-#include <libretro.h>
-#include <Platform.h>
 #include <memory>
 #include <optional>
+
+#include <libretro.h>
+#include <streams/file_stream.h>
+#include <Platform.h>
 
 struct retro_game_info;
 
