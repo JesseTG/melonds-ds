@@ -48,6 +48,7 @@
 #include "dsi.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "fat.hpp"
 #include "gba.hpp"
 #include "info.hpp"
 #include "input.hpp"
@@ -440,6 +441,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 PUBLIC_SYMBOL void retro_deinit(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
     retro::task::deinit();
+    melonds::fat::deinit();
     retro::clear_environment();
     retro::content::clear();
     melonds::clear_memory_config();
@@ -621,6 +623,11 @@ static void melonds::load_games(
                 retro::info("No GBA SRAM was provided.");
             }
         }
+    }
+
+    if (config::system::ConsoleType() == ConsoleType::DSi || (_loaded_nds_cart && _loaded_nds_cart->GetHeader().IsHomebrew() && config::save::DldiEnable() && !config::save::DldiReadOnly())) {
+        // If we're dealing with any FAT filesystem (because of the DSi or because of homebrew)...
+        retro::task::push(fat::FlushTask());
     }
 
     if (!config::system::ExternalBiosEnable() && _loaded_gba_cart) {
