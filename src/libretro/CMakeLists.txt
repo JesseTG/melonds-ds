@@ -41,6 +41,8 @@ add_library(libretro MODULE
     platform/semaphore.cpp
     platform/thread.cpp
     PlatformOGLPrivate.h
+    power.cpp
+    power.hpp
     render.cpp
     render.hpp
     retro/task_queue.cpp
