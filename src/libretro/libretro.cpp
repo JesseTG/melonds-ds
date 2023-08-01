@@ -319,8 +319,6 @@ PUBLIC_SYMBOL void retro_run(void) {
         render::Render(input_state, screenLayout);
         melonds::render_audio();
 
-        melonds::gba::FlushSaveData();
-
         retro::task::check();
     }
 }
@@ -615,6 +613,7 @@ static void melonds::load_games(
 
             if (gba_save_info) {
                 init_gba_save(*_loaded_gba_cart, *gba_save_info);
+                retro::task::push(gba::FlushTask());
             }
             else {
                 retro::info("No GBA SRAM was provided.");

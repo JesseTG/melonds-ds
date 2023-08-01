@@ -25,10 +25,14 @@
 #include "environment.hpp"
 #include "memory.hpp"
 
+using std::nullopt;
 using std::optional;
+using retro::task::TaskSpec;
 
-std::unique_ptr<melonds::SaveManager> melonds::gba::GbaSaveManager = std::make_unique<melonds::SaveManager>();
-std::optional<int> melonds::gba::TimeToGbaFlush = std::nullopt;
+namespace melonds::gba {
+    std::unique_ptr<melonds::SaveManager> GbaSaveManager = std::make_unique<melonds::SaveManager>();
+    static optional<int> TimeToGbaFlush = nullopt;
+}
 
 void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     if (melonds::gba::GbaSaveManager) {
@@ -39,28 +43,6 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
         // so that a sequence of SRAM writes doesn't result in
         // a sequence of disk writes.
         melonds::gba::TimeToGbaFlush = melonds::config::save::FlushDelay();
-        // TODO: Take a timestamp of when this function is called,
-        // and have the flush task query it;
-        // TODO: Schedule a task to flush the SRAM to disk
-    }
-}
-
-void melonds::gba::FlushSaveData() noexcept {
-    if (TimeToGbaFlush != std::nullopt) {
-        if (*TimeToGbaFlush > 0) { // std::optional::operator> checks the optional's validity for us
-            // If we have a GBA SRAM flush coming up...
-            *TimeToGbaFlush -= 1;
-        }
-
-        if (*TimeToGbaFlush <= 0) {
-            // If it's time to flush the GBA's SRAM...
-            const std::optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
-            if (gba_save_info) {
-                // If we actually have GBA save data loaded...
-                FlushSram(*gba_save_info);
-            }
-            TimeToGbaFlush = std::nullopt; // Reset the timer
-        }
     }
 }
 
@@ -81,8 +63,37 @@ void melonds::gba::FlushSram(const retro_game_info& gba_save_info) noexcept {
     if (!filestream_write_file(save_data_path, gba_sram, gba_sram_length)) {
         retro::error("Failed to write %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
         // TODO: Report this to the user
-    }
-    else {
+    } else {
         retro::debug("Flushed %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
     }
+}
+
+// This task keeps running for the lifetime of the task queue.
+TaskSpec melonds::gba::FlushTask() noexcept {
+    TaskSpec task([](retro::task::TaskHandle &task) {
+        using namespace melonds::gba;
+        if (task.IsCancelled()) {
+            // If it's time to stop...
+            task.Finish();
+            return;
+        }
+
+        if (TimeToGbaFlush == nullopt) {
+            // If we don't have a GBA SRAM flush coming up...
+            return; // ...then there's nothing to do.
+        }
+
+        if ((*TimeToGbaFlush)-- <= 0) {
+            // If it's time to flush the GBA's SRAM...
+            if (const optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info()) {
+                // If we actually have GBA save data loaded...
+                retro::debug("GBA SRAM flush timer expired, flushing save data now");
+                FlushSram(*gba_save_info);
+            }
+            TimeToGbaFlush = nullopt; // Reset the timer
+        }
+
+    });
+
+    return task;
 }

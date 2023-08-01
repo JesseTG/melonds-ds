@@ -24,6 +24,8 @@
 #include <streams/file_stream.h>
 #include <Platform.h>
 
+#include "retro/task_queue.hpp"
+
 struct retro_game_info;
 
 namespace melonds {
@@ -32,11 +34,10 @@ namespace melonds {
     namespace gba {
 
         extern std::unique_ptr<SaveManager> GbaSaveManager;
-        // Time until GBA save data is flushed, in frames
-        extern std::optional<int> TimeToGbaFlush;
 
-        void FlushSaveData() noexcept;
         void FlushSram(const retro_game_info& gba_save_info) noexcept;
+
+        retro::task::TaskSpec FlushTask() noexcept;
     }
 
 }
