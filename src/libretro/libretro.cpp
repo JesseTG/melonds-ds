@@ -313,7 +313,8 @@ PUBLIC_SYMBOL void retro_run(void) {
             melonds::opengl::RequestOpenGlRefresh();
         }
 
-        // NDS::RunFrame invokes rendering-related code
+        // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
+        // which is then drawn to the screen by melonds::render::Render
         NDS::RunFrame();
 
         render::Render(input_state, screenLayout);
@@ -607,6 +608,7 @@ static void melonds::load_games(
 
     if (gba_info) {
         if (config::system::ConsoleType() == ConsoleType::DSi) {
+            // TODO: What if I force DS mode when using GBA SRAM?
             retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
         } else {
             parse_gba_rom(*gba_info);
@@ -793,7 +795,7 @@ static void melonds::ValidateFirmware() {
     }
 
     // I don't really know how this works, it just came from upstream
-    // TODO: Peek at the firmware buffer in SPI directly (need to send a PR to expose it)
+    // TODO: Peek at the firmware buffer directly by forward-declaring SPI_Firmware::Firmware and SPI_Firmware::FirmwareLength
     FILE* f = Platform::OpenLocalFile(config::system::FirmwarePath(), "rb");
     if (!f) return;
     u8 chk1[0x180], chk2[0x180];
