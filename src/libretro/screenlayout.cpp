@@ -292,6 +292,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
 
     ScreenLayout layout = Layout();
     retro::ScreenOrientation orientation = LayoutOrientation(layout);
+
     if (retro::set_screen_rotation(orientation)) {
         // Try to rotate the screen. If that failed...
         pointerMatrix = glm::rotate(pointerMatrix, LayoutAngle(layout));
