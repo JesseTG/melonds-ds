@@ -14,9 +14,11 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#include <Platform.h>
-
 #include "../config.hpp"
+
+#include <cstring>
+
+#include <Platform.h>
 
 using namespace melonds::config;
 
