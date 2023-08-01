@@ -50,7 +50,8 @@ add_library(libretro MODULE
     screenlayout.cpp
     screenlayout.hpp
     utils.cpp
-    utils.hpp)
+    utils.hpp
+)
 
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"

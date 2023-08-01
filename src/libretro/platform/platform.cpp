@@ -220,8 +220,6 @@ void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
     }
 }
 
-
-
 void Platform::Camera_Start(int num) {
     if (_camera.start) {
         if (_camera.start()) {
