@@ -61,6 +61,7 @@ const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
 namespace Config {
+    std::string LANDevice;
     namespace Retro {
         namespace Category {
             static const char* const VIDEO = "video";
@@ -304,7 +305,7 @@ namespace melonds::config {
     namespace net {
 #ifdef HAVE_NETWORKING
         static enum NetworkMode _networkMode;
-        enum NetworkMode Mode() noexcept { return _networkMode; }
+        enum NetworkMode NetworkMode() noexcept { return _networkMode; }
 #endif
     }
 
