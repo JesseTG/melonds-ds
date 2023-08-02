@@ -67,6 +67,7 @@ namespace Config {
             static const char* const AUDIO = "audio";
             static const char* const SYSTEM = "system";
             static const char* const SCREEN = "screen";
+            static const char* const NETWORK = "network";
         }
 
         namespace Keys {
@@ -112,6 +113,7 @@ namespace Config {
             static const char* const BOOT_DIRECTLY = "melonds_boot_directly";
             static const char* const SCREEN_GAP = "melonds_screen_gap";
             static const char* const RANDOMIZE_MAC_ADDRESS = "melonds_randomize_mac_address";
+            static const char* const NETWORK_MODE = "melonds_network_mode";
             static const char* const TOUCH_MODE = "melonds_touch_mode";
             static const char* const MIC_INPUT_BUTTON = "melonds_mic_input_active";
             static const char* const MIC_INPUT = "melonds_mic_input";
@@ -141,6 +143,7 @@ namespace Config {
             static const char* const CUBIC = "cubic";
             static const char* const DEDICATED = "dedicated";
             static const char* const DEFAULT = "default";
+            static const char* const DIRECT = "direct";
             static const char* const DISABLED = "disabled";
             static const char* const DS = "ds";
             static const char* const DSI = "dsi";
@@ -151,6 +154,7 @@ namespace Config {
             static const char* const HOLD = "hold";
             static const char* const HYBRID_BOTTOM = "hybrid-bottom";
             static const char* const HYBRID_TOP = "hybrid-top";
+            static const char* const INDIRECT = "indirect";
             static const char* const ITALIAN = "it";
             static const char* const JAPANESE = "ja";
             static const char* const JOYSTICK = "joystick";
@@ -211,6 +215,7 @@ namespace melonds::config {
     static void parse_system_options() noexcept;
     static void parse_firmware_options() noexcept;
     static void parse_audio_options() noexcept;
+    static void parse_network_options() noexcept;
 
     /// @returns true if the OpenGL state needs to be rebuilt
     static bool parse_video_options(bool initializing) noexcept;
@@ -293,6 +298,13 @@ namespace melonds::config {
         bool FastMemory() noexcept { return _fastMemory; }
 #else
         bool FastMemory() noexcept { return false; }
+#endif
+    }
+
+    namespace net {
+#ifdef HAVE_NETWORKING
+        static enum NetworkMode _networkMode;
+        enum NetworkMode Mode() noexcept { return _networkMode; }
 #endif
     }
 
@@ -434,6 +446,13 @@ static optional<melonds::ConsoleType> ParseConsoleType(const char* value) noexce
     return nullopt;
 }
 
+static optional<melonds::NetworkMode> ParseNetworkMode(const char* value) noexcept {
+    if (string_is_equal(value, Config::Retro::Values::DISABLED)) return melonds::NetworkMode::None;
+    if (string_is_equal(value, Config::Retro::Values::DIRECT)) return melonds::NetworkMode::Direct;
+    if (string_is_equal(value, Config::Retro::Values::INDIRECT)) return melonds::NetworkMode::Indirect;
+    return nullopt;
+}
+
 static optional<bool> ParseBoolean(const char* value) noexcept {
     if (string_is_equal(value, Config::Retro::Values::ENABLED)) return true;
     if (string_is_equal(value, Config::Retro::Values::DISABLED)) return false;
@@ -504,6 +523,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::parse_dsi_sd_options();
     config::parse_firmware_options();
     config::parse_audio_options();
+    config::parse_network_options();
     bool openGlNeedsRefresh = config::parse_video_options(true);
     config::parse_screen_options();
 
@@ -899,6 +919,19 @@ static void melonds::config::parse_audio_options() noexcept {
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", Keys::AUDIO_INTERPOLATION, Values::DISABLED);
         _interpolation = AudioInterpolation::None;
+    }
+}
+
+
+static void melonds::config::parse_network_options() noexcept {
+    using namespace Config::Retro;
+    using retro::get_variable;
+
+    if (optional<NetworkMode> networkMode = ParseNetworkMode(get_variable(Keys::NETWORK_MODE))) {
+        net::_networkMode = *networkMode;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", Keys::NETWORK_MODE, Values::INDIRECT);
+        net::_networkMode = NetworkMode::Indirect;
     }
 }
 
@@ -1337,6 +1370,11 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "Screen",
         "Change screen settings."
     },
+    {
+        Config::Retro::Category::NETWORK,
+        "Wi-fi",
+        "Change Nintendo Wi-Fi emulation settings."
+    },
 #ifdef JIT_ENABLED
     {
         "cpu",
@@ -1749,6 +1787,38 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
         Config::Retro::Values::DISABLED
     },
+
+    {
+        Config::Retro::Keys::NETWORK_MODE,
+        "Networking Mode",
+        nullptr,
+        "Configures how melonDS DS emulates Nintendo WFC. If unsure, use Indirect mode.\n"
+        "\n"
+        "Indirect: Use libslirp to emulate the DS's network stack. Simple and needs no setup.\n"
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        "Direct: Routes emulated Wi-fi packets to the host's network interface. "
+        "Faster and more reliable, but requires an ethernet connection and "
+#ifdef _WIN32
+        "that WinPcap or Npcap is installed. "
+#else
+        "that libpcap is installed. "
+#endif
+        "If unavailable, falls back to Indirect mode.\n"
+#endif
+        "\n"
+        "Changes take effect at next restart. "
+        "Not related to local multiplayer.",
+        nullptr,
+        Config::Retro::Category::NETWORK,
+        {
+            {Config::Retro::Values::DISABLED, nullptr},
+            {Config::Retro::Values::INDIRECT, "Indirect"},
+            {Config::Retro::Values::DIRECT, "Direct"},
+            {nullptr, nullptr},
+        },
+        Config::Retro::Values::INDIRECT
+    },
+
     {
         Config::Retro::Keys::SHOW_CURSOR,
         "Cursor Mode",

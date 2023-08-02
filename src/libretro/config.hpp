@@ -154,6 +154,12 @@ namespace melonds {
         Always,
     };
 
+    enum class NetworkMode {
+        None,
+        Direct,
+        Indirect,
+    };
+
     using MacAddress = std::array<std::uint8_t, 6>;
 
     namespace config {
@@ -182,6 +188,14 @@ namespace melonds {
             [[nodiscard]] bool LiteralOptimizations() noexcept;
             [[nodiscard]] bool BranchOptimizations() noexcept;
             [[nodiscard]] bool FastMemory() noexcept;
+        }
+
+        namespace net {
+#ifdef HAVE_NETWORKING
+            [[nodiscard]] NetworkMode NetworkMode() noexcept;
+#else
+            [[nodiscard]] NetworkMode NetworkMode() noexcept { return NetworkMode::None; }
+#endif
         }
 
         namespace system {

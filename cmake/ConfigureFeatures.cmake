@@ -133,6 +133,11 @@ if (IOS)
     set(HAVE_COCOATOUCH ON)
 endif ()
 
+if (ENABLE_NETWORKING AND (WIN32 OR UNIX))
+    set(HAVE_NETWORKING_DIRECT_MODE ON)
+endif()
+
+
 function(add_common_definitions TARGET)
     if (APPLE)
         target_compile_definitions(${TARGET} PUBLIC GL_SILENCE_DEPRECATION)
@@ -141,6 +146,10 @@ function(add_common_definitions TARGET)
 
     if (HAVE_COCOATOUCH)
         target_compile_definitions(${TARGET} PUBLIC HAVE_COCOATOUCH)
+    endif ()
+
+    if (HAVE_NETWORKING_DIRECT_MODE AND HAVE_DYNAMIC)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_NETWORKING_DIRECT_MODE)
     endif ()
 
     if (HAVE_DYNAMIC)
