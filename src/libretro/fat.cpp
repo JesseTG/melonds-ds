@@ -67,6 +67,9 @@ retro::task::TaskSpec melonds::fat::FlushTask() noexcept {
                         int error = errno;
                         retro::error("Failed to flush emulated FAT filesystem to host disk: %s (%x)\n", strerror(error), error);
                     }
+                    else {
+                        retro::debug("Flushed emulated FAT filesystem to host disk\n");
+                    }
                 }
                 // If the file is not open, then it was closed before the flush timer reached 0.
                 // In that case it will have been flushed to disk anyway, so we don't need to do anything.
