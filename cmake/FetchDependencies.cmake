@@ -37,6 +37,7 @@ fetch_dependency("melonDS" "https://github.com/melonDS-emu/melonDS.git" "0947e94
 fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "10995d5")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm.git" "5c46b9c")
+fetch_dependency(libslirp "https://gitlab.freedesktop.org/slirp/libslirp" "44e7877")
 
 if (TRACY_ENABLE)
     fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.9.1")
