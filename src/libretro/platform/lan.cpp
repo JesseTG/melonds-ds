@@ -15,27 +15,78 @@
 */
 
 #include <Platform.h>
-#include <net/net_socket.h>
+#include <dynamic/dylib.h>
+#include <frontend/qt_sdl/LAN_PCap.h>
+#include <frontend/qt_sdl/LAN_Socket.h>
+#include <environment.hpp>
 
-bool Platform::LAN_Init()
-{
-    // TODO: Implement
-    return false;
+#include "config.hpp"
+
+static melonds::NetworkMode _activeNetworkMode;
+
+bool Platform::LAN_Init() {
+    using namespace melonds::config::net;
+    switch (NetworkMode()) {
+        case melonds::NetworkMode::Direct:
+            if (LAN_PCap::Init(true)) {
+                retro::debug("Initialized direct-mode Wi-fi support");
+                _activeNetworkMode = melonds::NetworkMode::Direct;
+                return true;
+            } else {
+                retro::warn("Failed to initialize direct-mode Wi-fi support; falling back to indirect mode");
+            }
+            [[fallthrough]];
+        case melonds::NetworkMode::Indirect:
+            if (LAN_Socket::Init()) {
+                retro::debug("Initialized indirect-mode Wi-fi support\n");
+                _activeNetworkMode = melonds::NetworkMode::Indirect;
+                return true;
+            }
+
+            retro::set_error_message("Failed to initialize indirect-mode Wi-fi support. Wi-fi will not be emulated.");
+            [[fallthrough]];
+        default:
+            _activeNetworkMode = melonds::NetworkMode::None;
+            return false;
+    }
 }
 
-void Platform::LAN_DeInit()
-{
-    // TODO: Implement
+void Platform::LAN_DeInit() {
+    LAN_PCap::DeInit();
+    LAN_Socket::DeInit();
+    _activeNetworkMode = melonds::NetworkMode::None;
 }
 
-int Platform::LAN_SendPacket(u8* data, int len)
-{
-    // TODO: Implement
-    return 0;
+int Platform::LAN_SendPacket(u8 *data, int len) {
+    switch (_activeNetworkMode) {
+        case melonds::NetworkMode::Direct:
+            return LAN_PCap::SendPacket(data, len);
+        case melonds::NetworkMode::Indirect:
+            return LAN_Socket::SendPacket(data, len);
+        default:
+            return 0;
+    }
 }
 
-int Platform::LAN_RecvPacket(u8* data)
-{
-    // TODO: Implement
-    return 0;
+int Platform::LAN_RecvPacket(u8 *data) {
+    switch (_activeNetworkMode) {
+        case melonds::NetworkMode::Direct:
+            return LAN_PCap::RecvPacket(data);
+        case melonds::NetworkMode::Indirect:
+            return LAN_Socket::RecvPacket(data);
+        default:
+            return 0;
+    }
+}
+
+Platform::DynamicLibrary *Platform::DynamicLibrary_Load(const char *lib) {
+    return static_cast<DynamicLibrary *>(dylib_load(lib));
+}
+
+void Platform::DynamicLibrary_Unload(Platform::DynamicLibrary *lib) {
+    dylib_close(lib);
+}
+
+void *Platform::DynamicLibrary_LoadFunction(Platform::DynamicLibrary *lib, const char *name) {
+    return reinterpret_cast<void *>(dylib_proc(lib, name));
 }

@@ -76,6 +76,16 @@ embed_binaries(libretro-assets
 
 add_common_definitions(libretro)
 
+if (HAVE_NETWORKING)
+    target_sources(libretro PRIVATE
+        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_PCap.cpp
+        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_Socket.cpp
+        platform/lan.cpp
+    )
+
+    target_include_directories(libretro SYSTEM PRIVATE "${melonDS_SOURCE_DIR}/src/frontend/qt_sdl")
+endif ()
+
 if (HAVE_OPENGL OR HAVE_OPENGLES)
     target_sources(libretro PRIVATE opengl.cpp)
 endif()
