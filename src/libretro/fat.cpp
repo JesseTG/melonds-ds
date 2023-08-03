@@ -16,6 +16,7 @@
 
 #include "fat.hpp"
 
+#include <cstring>
 #include <unistd.h>
 
 #include <Platform.h>

@@ -18,9 +18,9 @@
 #include <dynamic/dylib.h>
 #include <frontend/qt_sdl/LAN_PCap.h>
 #include <frontend/qt_sdl/LAN_Socket.h>
-#include <environment.hpp>
 
-#include "config.hpp"
+#include "../config.hpp"
+#include "../environment.hpp"
 
 static melonds::NetworkMode _activeNetworkMode;
 

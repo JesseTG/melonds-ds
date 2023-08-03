@@ -23,14 +23,16 @@
  */
 
 #include <assert.h>
-#include <stdlib.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdlib.h>
 
+#include <compat/strl.h>
 #include <libretro.h>
-#include <retro_miscellaneous.h>
 #include <retro_common_api.h>
+#include <retro_miscellaneous.h>
 
 RETRO_BEGIN_DECLS
 #define G_STATIC_ASSERT static_assert
@@ -79,6 +81,7 @@ void g_warning(const char *msg, ...);
 #define g_vsnprintf vsnprintf
 #define g_strerror strerror
 #define g_snprintf(string, n, format, ...) snprintf(string, n, format, ##__VA_ARGS__)
+#define g_strlcpy(dst, src, size) strlcpy(dst, src, size)
 gchar *g_strstr_len(const gchar *haystack, gssize haystack_len, const gchar *needle);
 gboolean g_str_has_prefix(const gchar* str,const gchar* prefix);
 gint g_ascii_strcasecmp(const gchar *s1, const gchar *s2);
