@@ -18,6 +18,8 @@
 
 #include <cstring>
 #include <unistd.h>
+#include <unordered_map>
+#include <vector>
 
 #include <Platform.h>
 
