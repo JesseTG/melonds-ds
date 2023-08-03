@@ -1,15 +1,17 @@
 # melonDS DS
 
-An enhanced remake of the [melonDS][melonds-libretro] core for [libretro][libretro] that prioritizes upstream compatibility.
+An enhanced remake of the [melonDS][melonds] [core][melonds-libretro] for [libretro][libretro]
+that prioritizes standalone parity, reliability, and a smooth user experience.
 
 # Getting melonDS DS
 
 At the moment, melonDS DS does not have a stable release.
-Once it attains feature parity with the original core,
-I will set up a process for stable releases
-and submit it for inclusion in the official RetroArch distribution.
+I intend to set up a process for those soon.
+Once melonDS DS matches all the features provided by the legacy melonDS core,
+I will submit it for inclusion in the official RetroArch distribution.
 
-In the meantime, I suggest [building melonDS DS from source](#building).
+In the meantime, I suggest [building melonDS DS from source](#building)
+or [downloading one of the raw build artifacts][workflows].
 
 # Installation
 
@@ -32,13 +34,16 @@ Usage instructions may vary depending on your chosen libretro frontend.
 ### Playing Nintendo DS Games
 
 1. Start RetroArch.
-2. Scan your Nintendo DS game library with the <kbd>Import Content</kbd> menu to build a playlist if you haven't already.
-   If you have ROM hacks or homebrew, 
-   you may need to manually add them to the playlist
-   with the <kbd>Manual Scan</kbd> submenu.
+2. Scan your Nintendo DS game library with the <kbd>Import Content</kbd> menu 
+   to build a playlist if you haven't already.
 3. Load a Nintendo DS game from the playlist.
    If you have the existing melonDS core installed,
    you may need to select melonDS DS explicitly.
+
+> [!IMPORTANT]
+> If you have ROM hacks or homebrew,
+> you may need to manually add them to the playlist
+> with the <kbd>Manual Scan</kbd> submenu.
 
 ### Installing Nintendo DS BIOS
 
@@ -50,26 +55,21 @@ However, some functionality requires original Nintendo DS or DSi BIOS files:
 
 You can place your BIOS files in RetroArch's `system` directory, named as follows:
 
-- Nintendo DS ARM7 BIOS: `bios7.bin`
-- Nintendo DS ARM9 BIOS: `bios9.bin`
-- Nintendo DS Firmware: `firmware.bin`
-- Nintendo DSi ARM7 BIOS: `dsi_bios7.bin`
-- Nintendo DSi ARM9 BIOS: `dsi_bios9.bin`
-- Nintendo DSi Firmware: `dsi_firmware.bin`
-- Nintendo DSi System NAND: `dsi_nand.bin`
+- DS ARM7 BIOS: `bios7.bin`
+- DS ARM9 BIOS: `bios9.bin`
+- DS Firmware: `firmware.bin`
+- DSi ARM7 BIOS: `dsi_bios7.bin`
+- DSi ARM9 BIOS: `dsi_bios9.bin`
+- DSi Firmware: `dsi_firmware.bin`
+- DSi System NAND: `dsi_nand.bin`
 
 ### Game Boy Advance Connectivity
 
-**NOTE:** melonDS and melonDS DS do not support emulating Game Boy Advance games.
-They _do_ support loading Game Boy Advance ROMs
-and save data from most major emulators.
-
-If you want to load a Game Boy Advance ROM,
-the steps are a little more involved.
-melonDS (and therefore melonDS DS) only supports Game Boy Advance connectivity
+The steps for loading a Game Boy Advance ROM are a little more involved.
+melonDS (and therefore melonDS DS) only supports GBA connectivity
 with a native Nintendo DS BIOS.
 
-1. Install the Nintendo DS BIOS and firmware as described above.
+1. Install the Nintendo DS BIOS and firmware [as described above](#installing-nintendo-ds-bios).
 2. Load the melonDS DS core using the <kbd>Load Core</kbd> menu.
 3. Enter the <kbd>Subsystems</kbd> menu and select <kbd>Load Slot 1 & 2 Boot</kbd>.
 4. Select a Nintendo DS ROM, a Game Boy Advance ROM, and optionally a Game Boy Advance save file (in that order).
@@ -78,38 +78,48 @@ with a native Nintendo DS BIOS.
 This combination of ROMs will appear in your History playlist,
 so you won't have to repeat this process every time you want to play.
 
+> [!NOTE]
+> melonDS can load Game Boy Advance ROMs and save data
+> for the purpose of Slot-2 connectivity,
+> but it cannot actually play GBA games.
+> Use a GBA core instead.
+
 # New Features
 
-Enhancements over the original [melonDS][melonds-libretro] core include:
+Enhancements over the legacy [melonDS core][melonds-libretro] include:
 
-## Upstream Parity
+## Standalone Parity
 
-melonDS DS is not a fork of an existing code base;
-instead, it uses standalone melonDS as a statically-linked dependency.
-This means melonDS DS is less sensitive to large changes and merge conflicts.
-As a result, it can take advantage of improvements to standalone melonDS
+Unlike most other libretro cores,
+melonDS DS is not a fork of an existing code base.
+It uses standalone melonDS as a statically-linked dependency,
+which means that large changes and merge conflicts are less of an issue.
+As a result, improvements to standalone melonDS can be integrated
 almost as quickly as they're released!
 
 ## Homebrew Save Data
 
-The existing melonDS core does not support save data for homebrew games.
+The legacy melonDS core does not support save data for homebrew games.
 However, melonDS DS does!
 
-You can keep homebrew save data on its own virtual SD card,
-or use one of five shared virtual cards.
-No extra setup is required;
-the options menu will tell you everything you need to know.
+melonDS DS looks in the `system` directory (i.e. alongside the BIOS files)
+for a homebrew SD card image named `dldi_sd_card.bin`.
+If one doesn't exist, a virtual 4GB SD card will be created if necessary.
+See the core options for more information.
 
-**NOTE:** melonDS DS does not support savestates for homebrew games.
+> [!NOTE]
+> melonDS DS does not support savestates for homebrew games.
 
 ## Microphone Support
 
 melonDS DS supports libretro's new microphone API,
-allowing you to use your computer's microphone as a DS microphone!
+allowing you to use your device's microphone for Nintendo DS games!
 
-**NOTE:** The most recent stable release of RetroArch (as of this writing)
-does not yet include microphone support.
-You will need to use a nightly build.
+> [!NOTE]
+> The most recent stable release of RetroArch (as of this writing)
+> does not include microphone support.
+> You will need to use [a nightly build][retroarch-nightly].
+> Additionally, some platforms may not have microphone support enabled yet.
 
 # Missing Features
 
@@ -126,16 +136,17 @@ If you want to see them, you should contribute to the upstream project!
   melonDS does not currently support emulating local wireless multiplayer over the Internet.
 - **Homebrew Savestates:**
   melonDS has limited support for taking savestates of homebrew games,
-  as the (virtual) SD card is not included in savestate data.
+  as the virtual SD card is not included in savestate data.
 - **DSi Savestates:**
   Nintendo DSi mode does not support savestates.
-  This implies that rewinding is not supported in DSi mode.
+  This also implies that rewinding is not supported in DSi mode.
 - **DSi Direct Boot:**
   Direct Boot does not support DSiWare games at this time.
   They must be installed on a NAND image,
   and they must be started from the DSi menu.
 - **Game Boy Advance Emulation:**
-  melonDS can load Game Boy Advance ROMs and save data for use by compatible Nintendo DS games,
+  melonDS can load Game Boy Advance ROMs and save data
+  for use by compatible Nintendo DS games,
   but it cannot actually emulate the GBA.
   GBA emulation is not within the scope of melonDS;
   use a GBA emulator instead.
@@ -143,6 +154,7 @@ If you want to see them, you should contribute to the upstream project!
   Except for the [solar sensor][solar-sensor] and
   [Memory Expansion Pak][memory-pak],
   melonDS does not support emulating Slot-2 accessories.
+  However, melonDS DS does not yet support these devices.
 
 # Compatibility
 
@@ -161,20 +173,15 @@ Support is not guaranteed, but I'll do the best I can.
 
 # Roadmap
 
-The ultimate goal is for melonDS DS to supersede the [existing melonDS core][melonds-libretro].
+The ultimate goal is for melonDS DS to supersede the [legacy melonDS core][melonds-libretro].
 This is a rough roadmap for achieving that goal:
 
-1. Attain feature parity with the [existing libretro core][melonds-libretro].
-2. Implement support for Nintendo Wi-Fi Connection.
+1. Implement support for Nintendo Wi-Fi Connection.
+2. Support Action Replay cheat codes.
 3. Implement support for migrating configuration from the existing core.
 4. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
-5. Get melonDS DS included in the official RetroArch distribution.
-6. Improve screen layout selection (e.g. toggling between multiple layouts, rotation).
-7. Produce builds for platforms other than Windows, macOS, and Linux.
-8. Add support for DSi mode (including DSiWare),
-   subject to the limitations described in [the Missing Features section](#missing-features).
-9. Add support for the DSi camera using `retro_camera_callback`.
-10. Support Action Replay cheat codes.
+5. Add support for the DSi camera using `retro_camera_callback`.
+6. Get melonDS DS included in the official RetroArch distribution.
 
 # Building
 
@@ -263,7 +270,7 @@ I figured I'd get in on the fun.
 
 # Special Thanks
 
-- The [melonDS team](https://github.com/melonDS-emu) for making a great emulator
+- The [melonDS team][melonds-github] for making a great emulator
   and for being very helpful on Discord.
 - Nintendo, for all the memories.
 
@@ -274,9 +281,12 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [libretro]: https://www.libretro.com
 [retroarch]: https://www.retroarch.com
 [melonds]: https://melonds.kuribo64.net
+[melonds-github]: https://github.com/melonDS-emu
 [melonds-libretro]: https://github.com/libretro/melonDS
 [issue-tracker]: https://github.com/JesseTG/melonds-ds/issues
 [memory-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Memory_Expansion_Pak
 [solar-sensor]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Solar_Sensors
 [retroachievements]: https://retroachievements.org
+[retroarch-nightly]: https://buildbot.libretro.com/nightly
 [wiimfi]: https://wiimmfi.de
+[workflows]: https://github.com/JesseTG/melonds-ds/actions
