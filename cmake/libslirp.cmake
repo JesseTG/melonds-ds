@@ -49,14 +49,11 @@ target_sources(slirp PRIVATE
 
 target_compile_definitions(slirp PRIVATE BUILDING_LIBSLIRP)
 
-if (WIN32)
-    target_link_libraries(slirp PRIVATE ws2_32 iphlpapi)
-endif()
-
 if (UNIX)
     target_compile_definitions(slirp PRIVATE UNIX)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(slirp PRIVATE -fPIC)
+    target_link_options(slirp PRIVATE -fPIC)
 endif ()

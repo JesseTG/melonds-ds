@@ -53,3 +53,8 @@ if (HAVE_OPENGL OR HAVE_OPENGLES)
         COMPILE_OPTIONS "-include;PlatformOGLPrivate.h")
     # TODO: Adapt for GLES2 and GLES3
 endif ()
+
+if (HAVE_NETWORKING)
+    # Ensure that the visibility attributes are defined
+    target_compile_definitions(core PUBLIC BUILDING_LIBSLIRP)
+endif()
