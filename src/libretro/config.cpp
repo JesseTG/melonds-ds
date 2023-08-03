@@ -418,10 +418,8 @@ namespace melonds::config {
         melonds::Renderer ConfiguredRenderer() noexcept { return melonds::Renderer::Software; }
 #endif
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         static melonds::ScreenFilter _screenFilter;
         melonds::ScreenFilter ScreenFilter() noexcept { return _screenFilter; }
-#endif
 
         int ScaleFactor() noexcept { return RenderSettings().GL_ScaleFactor; }
     }

@@ -53,6 +53,10 @@ if (UNIX)
     target_compile_definitions(slirp PRIVATE UNIX)
 endif()
 
+if (APPLE)
+    target_link_libraries(slirp PRIVATE resolv)
+endif()
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(slirp PRIVATE -fPIC)
     target_link_options(slirp PRIVATE -fPIC)
