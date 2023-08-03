@@ -202,7 +202,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         hybridTouch = screen_layout_data.TransformPointerInputToHybridScreen(pointerInput);
 
         char text[1024];
-        sprintf(text, "Pointer: (%d, %d) -> (%d, %d)", pointerInput.x, pointerInput.y, touch.x, touch.y);
+        snprintf(text, sizeof(text), "Pointer: (%d, %d) -> (%d, %d)", pointerInput.x, pointerInput.y, touch.x, touch.y);
         retro_message_ext message{
             .msg = text,
             .duration = 60,
