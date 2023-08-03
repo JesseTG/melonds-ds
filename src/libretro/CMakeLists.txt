@@ -159,11 +159,11 @@ endif()
 target_compile_definitions(libretro PUBLIC MELONDSDS_VERSION="${CMAKE_PROJECT_VERSION}")
 target_compile_definitions(libretro PUBLIC MELONDSDS_NAME="${CMAKE_PROJECT_NAME}")
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static)
-
 if (HAVE_NETWORKING)
     target_link_libraries(libretro PUBLIC slirp)
 endif()
+
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static)
 
 if (TRACY_ENABLE)
     target_link_libraries(libretro PUBLIC TracyClient)
