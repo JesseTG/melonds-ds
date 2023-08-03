@@ -2,9 +2,11 @@ add_library(slirp STATIC
         ../src/glib-stub/glib.c
 )
 
-# Create a symlink to libslirp so that we can include it as <slirp/libslirp.h>
+# Copy libslirp's files to another directory so that we can include it as <slirp/libslirp.h>
 file(MAKE_DIRECTORY "${libslirp_BINARY_DIR}/include")
-file(CREATE_LINK "${libslirp_SOURCE_DIR}/src" "${libslirp_BINARY_DIR}/include/slirp" COPY_ON_ERROR SYMBOLIC)
+file(REMOVE_RECURSE "${libslirp_BINARY_DIR}/include/slirp")
+file(COPY "${libslirp_SOURCE_DIR}/src" DESTINATION "${libslirp_BINARY_DIR}/include")
+file(RENAME "${libslirp_BINARY_DIR}/include/src" "${libslirp_BINARY_DIR}/include/slirp")
 
 target_include_directories(slirp PUBLIC
     "${libslirp_BINARY_DIR}/include"
