@@ -1,7 +1,13 @@
 add_library(slirp STATIC
         ../src/glib-stub/glib.c
 )
+
+# Create a symlink to libslirp so that we can include it as <slirp/libslirp.h>
+file(MAKE_DIRECTORY "${libslirp_BINARY_DIR}/include")
+file(CREATE_LINK "${libslirp_SOURCE_DIR}/src" "${libslirp_BINARY_DIR}/include/libslirp" COPY_ON_ERROR SYMBOLIC)
+
 target_include_directories(slirp PUBLIC
+    "${libslirp_BINARY_DIR}/include"
     "${libslirp_SOURCE_DIR}/src"
     "${CMAKE_SOURCE_DIR}/src/glib-stub"
 )
@@ -52,8 +58,3 @@ endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(slirp PRIVATE -fPIC)
 endif ()
-
-# Create a symlink to libslirp so that we can include it as <slirp/libslirp.h>
-file(MAKE_DIRECTORY "${libslirp_BINARY_DIR}/include")
-file(CREATE_LINK "${libslirp_SOURCE_DIR}/src" "${libslirp_BINARY_DIR}/include/libslirp" COPY_ON_ERROR SYMBOLIC)
-target_include_directories(slirp PUBLIC "${libslirp_BINARY_DIR}/include")
