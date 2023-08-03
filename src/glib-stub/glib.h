@@ -35,7 +35,7 @@
 #include <retro_miscellaneous.h>
 
 RETRO_BEGIN_DECLS
-#define G_STATIC_ASSERT static_assert
+#define G_STATIC_ASSERT(expr) static_assert(expr, #expr " failed")
 
 #define G_N_ELEMENTS(arr) ARRAY_SIZE(arr)
 
