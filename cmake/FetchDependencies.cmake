@@ -62,3 +62,8 @@ if (TRACY_ENABLE)
     set(BUILD_SHARED_LIBS OFF)
     set(TRACY_STATIC ON)
 endif()
+
+set_target_properties(example minigzip PROPERTIES EXCLUDE_FROM_ALL TRUE)
+if(HAVE_OFF64_T)
+    set_target_properties(example64 minigzip64 PROPERTIES EXCLUDE_FROM_ALL TRUE)
+endif()
