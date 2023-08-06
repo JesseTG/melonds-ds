@@ -14,6 +14,7 @@ project("${MELONDSDS_INFO_corename}"
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CheckIncludeFiles)

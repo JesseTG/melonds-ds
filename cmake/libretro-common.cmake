@@ -130,7 +130,3 @@ if (HAVE_ZLIB)
 endif ()
 
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(libretro-common PRIVATE -fPIC)
-    target_link_options(libretro-common PRIVATE -fPIC)
-endif ()
