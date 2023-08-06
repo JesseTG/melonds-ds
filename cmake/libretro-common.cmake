@@ -126,7 +126,7 @@ if (HAVE_ZLIB)
         ${libretro-common_SOURCE_DIR}/file/archive_file_zlib.c
         ${libretro-common_SOURCE_DIR}/streams/trans_stream_zlib.c
     )
-    target_link_libraries(libretro-common PUBLIC ZLIB::ZLIB)
+    target_link_libraries(libretro-common PUBLIC zlibstatic)
 endif ()
 
 set_target_properties(libretro-common PROPERTIES PREFIX "" OUTPUT_NAME "libretro-common")

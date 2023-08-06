@@ -32,12 +32,7 @@ if (Threads_FOUND)
 endif ()
 
 if (ENABLE_ZLIB)
-    # TODO: Link ZLIB statically
-    find_package(ZLIB)
-
-    if (ZLIB_FOUND)
-        set(HAVE_ZLIB ON)
-    endif ()
+    set(HAVE_ZLIB ON)
 endif ()
 
 if (ENABLE_GLSM_DEBUG)

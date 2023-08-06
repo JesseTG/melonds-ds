@@ -43,6 +43,10 @@ fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.gi
 fetch_dependency(glm "https://github.com/g-truc/glm.git" "5c46b9c")
 fetch_dependency(libslirp "https://gitlab.freedesktop.org/slirp/libslirp.git" "44e7877")
 
+# We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
+# that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
+fetch_dependency(zlib "https://github.com/madler/zlib.git" "v1.2.13")
+
 if (TRACY_ENABLE)
     fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.9.1")
 endif()
@@ -51,7 +55,7 @@ set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTE
 set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
-FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm libslirp)
+FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp)
 
 if (TRACY_ENABLE)
     FetchContent_MakeAvailable(tracy)
