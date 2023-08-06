@@ -1,4 +1,6 @@
 #include "./glib.h"
+
+#include "../libretro/environment.h"
 #include <compat/strl.h>
 #include <slirp.h>
 #include <socket.h>
@@ -42,7 +44,17 @@ void g_error(const char *msg, ...)
     va_start(va, msg);
     char text[1024] = "[libslirp] ";
     strlcat(text, msg, sizeof(text));
-    //retro::vlog(RETRO_LOG_ERROR, text, va);
+    retro_vlog(RETRO_LOG_ERROR, text, va);
+    va_end(va);
+}
+
+void g_critical(const char *msg, ...)
+{
+    va_list va;
+    va_start(va, msg);
+    char text[1024] = "[libslirp CRITICAL] ";
+    strlcat(text, msg, sizeof(text));
+    retro_vlog(RETRO_LOG_ERROR, text, va);
     va_end(va);
 }
 
@@ -52,7 +64,7 @@ void g_warning(const char *msg, ...)
     va_start(va, msg);
     char text[1024] = "[libslirp] ";
     strlcat(text, msg, sizeof(text));
-    //retro::vlog(RETRO_LOG_WARN, text, va);
+    retro_vlog(RETRO_LOG_WARN, text, va);
     va_end(va);
 }
 
@@ -62,7 +74,7 @@ void g_debug(const char *msg, ...)
     va_start(va, msg);
     char text[1024] = "[libslirp] ";
     strlcat(text, msg, sizeof(text));
-    //retro::vlog(RETRO_LOG_DEBUG, text, va);
+    retro_vlog(RETRO_LOG_DEBUG, text, va);
     va_end(va);
 }
 

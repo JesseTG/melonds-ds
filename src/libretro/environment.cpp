@@ -14,6 +14,9 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include "environment.hpp"
+#include "environment.h"
+
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -23,7 +26,6 @@
 #include <streams/file_stream.h>
 #include <compat/strl.h>
 
-#include "environment.hpp"
 #include "microphone.hpp"
 #include "info.hpp"
 #include "libretro.hpp"
@@ -155,6 +157,10 @@ void retro::error(const char* fmt, ...) noexcept {
     va_start(va, fmt);
     vlog(RETRO_LOG_ERROR, fmt, va);
     va_end(va);
+}
+
+void retro_vlog(enum retro_log_level level, const char* fmt, va_list va) {
+    retro::vlog(level, fmt, va);
 }
 
 void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept {

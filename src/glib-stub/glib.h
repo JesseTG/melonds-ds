@@ -71,7 +71,7 @@ int g_strv_length(char **str_array);
 void g_debug(const char *msg, ...);
 void g_error(const char *msg, ...);
 void g_warning(const char *msg, ...);
-#define g_critical g_error
+void g_critical(const char *msg, ...);
 
 #define g_malloc malloc
 #define g_free free
