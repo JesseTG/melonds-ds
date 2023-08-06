@@ -20,7 +20,7 @@ include(CheckIncludeFiles)
 include(FetchContent)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 
-find_package(Git)
+find_package(Git REQUIRED)
 
 option(TRACY_ENABLE "Build with Tracy support." OFF)
 
