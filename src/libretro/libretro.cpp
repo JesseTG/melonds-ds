@@ -59,6 +59,7 @@
 #include "render.hpp"
 #include "retro/task_queue.hpp"
 #include "screenlayout.hpp"
+#include "tracy.hpp"
 
 using std::make_optional;
 using std::optional;
@@ -111,6 +112,7 @@ namespace melonds {
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
+    ZoneScopedN("retro_init");
     retro::log(RETRO_LOG_DEBUG, "retro_init");
     retro_assert(melonds::_loaded_nds_cart == nullptr);
     retro_assert(melonds::_loaded_gba_cart == nullptr);
@@ -126,6 +128,7 @@ PUBLIC_SYMBOL void retro_init(void) {
 }
 
 static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
+    ZoneScopedN("melonds::handle_load_game");
     retro_assert(_loaded_nds_cart == nullptr);
     retro_assert(_loaded_gba_cart == nullptr);
     retro_assert(retro::content::get_loaded_nds_info() == nullopt);
@@ -190,6 +193,7 @@ catch (...) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
+    ZoneScopedN("retro_load_game");
     if (info) {
         retro::debug("retro_load_game(\"%s\", %d)", info->path, info->size);
     }
@@ -204,6 +208,7 @@ static void melonds::install_sram(
     const optional<retro_game_info>& nds_info,
     const optional<retro_game_info>& gba_info
 ) {
+    ZoneScopedN("melonds::install_sram");
     // Nintendo DS SRAM is loaded by the frontend
     // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
     // This is where we install the SRAM data into the emulated DS.
@@ -227,6 +232,7 @@ static void melonds::install_sram(
 
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
+    ZoneScopedN("retro_get_system_av_info");
     using melonds::screenLayout;
 
     retro_assert(melonds::render::CurrentRenderer() != melonds::Renderer::None);
@@ -237,95 +243,103 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
 }
 
 PUBLIC_SYMBOL void retro_run(void) {
-    using namespace melonds;
-    using retro::log;
+    {
+        ZoneScopedN("retro_run");
+        using namespace melonds;
+        using retro::log;
 
-    if (deferred_initialization_pending) {
-        try {
-            log(RETRO_LOG_DEBUG, "Starting deferred initialization");
-            melonds::load_games_deferred(
-                retro::content::get_loaded_nds_info(),
-                retro::content::get_loaded_gba_info()
+        if (deferred_initialization_pending) {
+            try {
+                log(RETRO_LOG_DEBUG, "Starting deferred initialization");
+                melonds::load_games_deferred(
+                        retro::content::get_loaded_nds_info(),
+                        retro::content::get_loaded_gba_info()
+                );
+                deferred_initialization_pending = false;
+
+                log(RETRO_LOG_DEBUG, "Completed deferred initialization");
+            }
+            catch (const melonds::emulator_exception &e) {
+                log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
+                retro::error(e.what());
+                retro::set_error_message(e.user_message());
+                retro::shutdown();
+                return;
+            }
+            catch (const std::exception &e) {
+                log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
+                retro::set_error_message(e.what());
+                retro::shutdown();
+                return;
+            }
+            catch (...) {
+                log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
+                retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
+                retro::shutdown();
+                return;
+            }
+        }
+
+        if (!first_frame_run) {
+            // Apply the save data from the core's SRAM buffer to the cart's SRAM;
+            // we need to do this in the first frame of retro_run because
+            // retro_get_memory_data is used to copy the loaded SRAM
+            // in between retro_load and the first retro_run call.
+            install_sram(
+                    retro::content::get_loaded_nds_info(),
+                    retro::content::get_loaded_gba_info()
             );
-            deferred_initialization_pending = false;
 
-            log(RETRO_LOG_DEBUG, "Completed deferred initialization");
+            // This has to be deferred even if we're not using OpenGL,
+            // because libretro doesn't set the SRAM until after retro_load_game
+            first_frame_run = true;
         }
-        catch (const melonds::emulator_exception& e) {
-            log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
-            retro::error(e.what());
-            retro::set_error_message(e.user_message());
-            retro::shutdown();
-            return;
+
+        if (retro::is_variable_updated()) {
+            // If any settings have changed...
+            melonds::UpdateConfig(screenLayout, input_state);
         }
-        catch (const std::exception& e) {
-            log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
-            retro::set_error_message(e.what());
-            retro::shutdown();
-            return;
-        }
-        catch (...) {
-            log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
-            retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
-            retro::shutdown();
-            return;
-        }
-    }
 
-    if (!first_frame_run) {
-        // Apply the save data from the core's SRAM buffer to the cart's SRAM;
-        // we need to do this in the first frame of retro_run because
-        // retro_get_memory_data is used to copy the loaded SRAM
-        // in between retro_load and the first retro_run call.
-        install_sram(
-            retro::content::get_loaded_nds_info(),
-            retro::content::get_loaded_gba_info()
-        );
+        if (melonds::render::ReadyToRender()) {
+            // If the global state needed for rendering is ready...
+            HandleInput(input_state, screenLayout);
+            read_microphone(input_state);
 
-        // This has to be deferred even if we're not using OpenGL,
-        // because libretro doesn't set the SRAM until after retro_load_game
-        first_frame_run = true;
-    }
+            if (screenLayout.Dirty()) {
+                // If the active screen layout has changed (either by settings or by hotkey)...
+                Renderer renderer = melonds::render::CurrentRenderer();
+                retro_assert(renderer != Renderer::None);
 
-    if (retro::is_variable_updated()) {
-        // If any settings have changed...
-        melonds::UpdateConfig(screenLayout, input_state);
-    }
+                // Apply the new screen layout
+                screenLayout.Update(renderer);
 
-    if (melonds::render::ReadyToRender()) {
-        // If the global state needed for rendering is ready...
-        HandleInput(input_state, screenLayout);
-        read_microphone(input_state);
+                // And update the geometry
+                retro_game_geometry geometry = screenLayout.Geometry(renderer);
+                if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry)) {
+                    retro::warn("Failed to update geometry after screen layout change");
+                }
 
-        if (screenLayout.Dirty()) {
-            // If the active screen layout has changed (either by settings or by hotkey)...
-            Renderer renderer = melonds::render::CurrentRenderer();
-            retro_assert(renderer != Renderer::None);
-
-            // Apply the new screen layout
-            screenLayout.Update(renderer);
-
-            // And update the geometry
-            retro_game_geometry geometry = screenLayout.Geometry(renderer);
-            if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry)) {
-                retro::warn("Failed to update geometry after screen layout change");
+                melonds::opengl::RequestOpenGlRefresh();
             }
 
-            melonds::opengl::RequestOpenGlRefresh();
+            // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
+            // which is then drawn to the screen by melonds::render::Render
+            {
+                ZoneScopedN("NDS::RunFrame");
+                NDS::RunFrame();
+            }
+
+            render::Render(input_state, screenLayout);
+            melonds::render_audio();
+
+            retro::task::check();
         }
-
-        // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
-        // which is then drawn to the screen by melonds::render::Render
-        NDS::RunFrame();
-
-        render::Render(input_state, screenLayout);
-        melonds::render_audio();
-
-        retro::task::check();
     }
+    FrameMark;
 }
 
 static void melonds::read_microphone(melonds::InputState& inputState) noexcept {
+    ZoneScopedN("melonds::read_microphone");
     MicInputMode mic_input_mode = config::audio::MicInputMode();
     MicButtonMode mic_button_mode = config::audio::MicButtonMode();
     bool should_mic_be_on = false;
@@ -400,6 +414,7 @@ static void melonds::read_microphone(melonds::InputState& inputState) noexcept {
 }
 
 static void melonds::render_audio() {
+    ZoneScopedN("melonds::render_audio");
     static int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
     u32 size = std::min(SPU::GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
     // Ensure that we don't overrun the buffer
@@ -409,6 +424,7 @@ static void melonds::render_audio() {
 }
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
+    ZoneScopedN("retro_unload_game");
     retro::log(RETRO_LOG_DEBUG, "retro_unload_game()");
     // No need to flush SRAM to the buffer, Platform::WriteNDSSave has been doing that for us this whole time
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
@@ -416,8 +432,15 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     if (gba_save_info) {
         melonds::gba::FlushSram(*gba_save_info);
     }
-    NDS::Stop();
-    NDS::DeInit();
+
+    {
+        ZoneScopedN("NDS::Stop");
+        NDS::Stop();
+    }
+    {
+        ZoneScopedN("NDS::DeInit");
+        NDS::DeInit();
+    }
 
     const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
     if (nds_info && melonds::_loaded_nds_cart && melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
@@ -433,12 +456,14 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
+    ZoneScopedN("retro_load_game_special");
     retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
 
     return melonds::handle_load_game(type, info, num);
 }
 
 PUBLIC_SYMBOL void retro_deinit(void) {
+    ZoneScopedN("retro_deinit");
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
     retro::task::deinit();
     melonds::fat::deinit();
@@ -463,8 +488,13 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
 }
 
 PUBLIC_SYMBOL void retro_reset(void) {
+    ZoneScopedN("retro_reset");
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
-    NDS::Reset();
+
+    {
+        ZoneScopedN("NDS::Reset");
+        NDS::Reset();
+    }
 
     melonds::first_frame_run = false;
 
@@ -475,6 +505,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
 }
 
 static void melonds::parse_nds_rom(const struct retro_game_info &info) {
+    ZoneScopedN("melonds::parse_nds_rom");
     _loaded_nds_cart = NDSCart::ParseROM(static_cast<const u8 *>(info.data), static_cast<u32>(info.size));
 
     if (!_loaded_nds_cart) {
@@ -485,6 +516,7 @@ static void melonds::parse_nds_rom(const struct retro_game_info &info) {
 }
 
 static void melonds::parse_gba_rom(const struct retro_game_info &info) {
+    ZoneScopedN("melonds::parse_gba_rom");
     _loaded_gba_cart = GBACart::ParseROM(static_cast<const u8 *>(info.data), static_cast<u32>(info.size));
 
     if (!_loaded_gba_cart) {
@@ -496,6 +528,7 @@ static void melonds::parse_gba_rom(const struct retro_game_info &info) {
 
 // Loads the GBA SRAM
 static void melonds::init_gba_save(GbaCart& gba_cart, const struct retro_game_info& gba_save_info) {
+    ZoneScopedN("melonds::init_gba_save");
     // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
     // because we'll overwrite it later and don't want the frontend to hold open any file handles.
 
@@ -570,6 +603,7 @@ static void melonds::load_games(
     const optional<struct retro_game_info> &gba_info,
     const optional<struct retro_game_info> &gba_save_info
 ) {
+    ZoneScopedN("melonds::load_games");
     melonds::clear_memory_config();
     NDSHeader header;
     if (nds_info) {
@@ -642,7 +676,12 @@ static void melonds::load_games(
 
     init_rendering();
 
-    if (!NDS::Init()) {
+    bool ok;
+    {
+        ZoneScopedN("NDS::Init");
+        ok = NDS::Init();
+    }
+    if (!ok) {
         retro::log(RETRO_LOG_ERROR, "Failed to initialize melonDS DS.");
         throw std::runtime_error("Failed to initialize NDS emulator.");
     }
@@ -662,6 +701,7 @@ static void melonds::load_games(
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
 // But it will allocate the SRAM buffer
 static void melonds::init_nds_save(const NdsCart &nds_cart) {
+    ZoneScopedN("melonds::init_nds_save");
     using std::runtime_error;
      if (nds_cart.GetHeader().IsHomebrew()) {
          // If this is a homebrew ROM...
@@ -699,18 +739,28 @@ static void melonds::load_games_deferred(
     const optional<retro_game_info>& nds_info,
     const optional<retro_game_info>& gba_info
 ) {
+    ZoneScopedN("melonds::load_games_deferred");
     using retro::log;
 
     // GPU config must be initialized before NDS::Reset is called.
     // Ensure that there's a renderer, even if we're about to throw it out.
     // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
     bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
-    GPU::InitRenderer(isOpenGl);
-    GPU::RenderSettings render_settings = config::video::RenderSettings();
-    GPU::SetRenderSettings(isOpenGl, render_settings);
+    {
+        ZoneScopedN("GPU::InitRenderer");
+        GPU::InitRenderer(isOpenGl);
+    }
+    {
+        GPU::RenderSettings render_settings = config::video::RenderSettings();
+        ZoneScopedN("GPU::SetRenderSettings");
+        GPU::SetRenderSettings(isOpenGl, render_settings);
+    }
 
     // Loads the BIOS, too
-    NDS::Reset();
+    {
+        ZoneScopedN("NDS::Reset");
+        NDS::Reset();
+    }
 
     ValidateFirmware();
 
@@ -724,7 +774,12 @@ static void melonds::load_games_deferred(
         if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
             // If we're running a physical cartridge...
 
-            if (!NDSCart::InsertROM(std::move(_loaded_nds_cart))) {
+            bool ok;
+            {
+                ZoneScopedN("NDSCart::InsertROM");
+                ok = NDSCart::InsertROM(std::move(_loaded_nds_cart));
+            }
+            if (!ok) {
                 // If we failed to insert the ROM, we can't continue
                 retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", nds_info->path);
                 throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
@@ -736,7 +791,12 @@ static void melonds::load_games_deferred(
         }
         else {
             // We're running a DSiWare game, then
-            if (!DSi::LoadNAND()) {
+            bool ok;
+            {
+                ZoneScopedN("DSi::LoadNAND");
+                ok = DSi::LoadNAND();
+            }
+            if (!ok) {
                 throw std::runtime_error("Failed to load NAND. Please report this issue.");
             }
             melonds::dsi::install_dsiware(*nds_info, *_loaded_nds_cart);
@@ -747,7 +807,11 @@ static void melonds::load_games_deferred(
 
     if (gba_info && _loaded_gba_cart) {
         // If we want to insert a GBA ROM that was previously loaded...
-        bool inserted = GBACart::InsertROM(std::move(_loaded_gba_cart));
+        bool inserted;
+        {
+            ZoneScopedN("GBACart::InsertROM");
+            inserted = GBACart::InsertROM(std::move(_loaded_gba_cart));
+        }
         if (!inserted) {
             // If we failed to insert the ROM, we can't continue
             retro::log(RETRO_LOG_ERROR, "Failed to insert \"%s\" into the emulator. Exiting.", gba_info->path);
@@ -767,6 +831,7 @@ static void melonds::load_games_deferred(
 }
 
 static void melonds::init_rendering() {
+    ZoneScopedN("melonds::init_rendering");
     using retro::environment;
     using retro::log;
 
@@ -781,6 +846,7 @@ static void melonds::init_rendering() {
 
 // Decrypts the ROM's secure area
 static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
+    ZoneScopedN("melonds::set_up_direct_boot");
     if (config::system::DirectBoot() || NDS::NeedsDirectBoot()) {
         char game_name[256];
         const char *ptr = path_basename(nds_info.path);
@@ -789,12 +855,16 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
         else
             strlcpy(game_name, nds_info.path, sizeof(game_name));
 
-        NDS::SetupDirectBoot(game_name);
+        {
+            ZoneScopedN("NDS::SetupDirectBoot");
+            NDS::SetupDirectBoot(game_name);
+        }
         retro::log(RETRO_LOG_DEBUG, "Initialized direct boot for \"%s\"", game_name);
     }
 }
 
 static void melonds::ValidateFirmware() {
+    ZoneScopedN("melonds::ValidateFirmware");
     using namespace config::system;
     if (!ExternalBiosEnable() || config::system::ConsoleType() != ConsoleType::DS) {
         // If we're not using an external BIOS, or we're not emulating a DS...

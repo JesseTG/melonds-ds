@@ -24,6 +24,7 @@
 #include "libretro.hpp"
 #include "math.hpp"
 #include "screenlayout.hpp"
+#include "tracy.hpp"
 #include "utils.hpp"
 
 using glm::ivec2;
@@ -89,6 +90,7 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
 }
 
 void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
+    ZoneScopedN("melonds::HandleInput");
     using glm::clamp;
     using glm::all;
 
@@ -145,6 +147,7 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
     } while (false)
 
 void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
+    ZoneScopedN("melonds::InputState::Update");
     uint32_t retroInputBits; // Input bits from libretro
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 

@@ -51,6 +51,7 @@ add_library(libretro MODULE
     retro/task_queue.hpp
     screenlayout.cpp
     screenlayout.hpp
+    tracy.hpp
     utils.cpp
     utils.hpp
 )
@@ -172,5 +173,6 @@ endif()
 
 if (TRACY_ENABLE)
     target_link_libraries(libretro PUBLIC TracyClient)
+    target_include_directories(libretro SYSTEM PUBLIC TracyClient)
     target_compile_definitions(libretro PUBLIC HAVE_TRACY)
 endif()

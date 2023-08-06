@@ -30,7 +30,7 @@
 #include "info.hpp"
 #include "libretro.hpp"
 #include "config.hpp"
-
+#include "tracy.hpp"
 
 using std::string;
 using std::optional;
@@ -66,6 +66,7 @@ bool retro::environment(unsigned cmd, void* data) noexcept {
 }
 
 int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
+    ZoneScopedN("retro::input_state");
     if (_input_state) {
         return _input_state(port, device, index, id);
     } else {
@@ -74,12 +75,14 @@ int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsig
 }
 
 void retro::input_poll() {
+    ZoneScopedN("retro::input_poll");
     if (_input_poll) {
         _input_poll();
     }
 }
 
 size_t retro::audio_sample_batch(const int16_t* data, size_t frames) {
+    ZoneScopedN("retro::audio_sample_batch");
     if (_audio_sample_batch) {
         return _audio_sample_batch(data, frames);
     } else {
@@ -88,6 +91,7 @@ size_t retro::audio_sample_batch(const int16_t* data, size_t frames) {
 }
 
 void retro::video_refresh(const void* data, unsigned width, unsigned height, size_t pitch) {
+    ZoneScopedN("retro::video_refresh");
     if (_video_refresh) {
         _video_refresh(data, width, height, pitch);
     }
@@ -357,6 +361,7 @@ void retro::clear_environment() {
 // This function might be called multiple times by the frontend,
 // and not always with the same value of cb.
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
+    ZoneScopedN("retro_set_environment");
     using retro::environment;
     retro::_environment = cb;
 
@@ -452,6 +457,7 @@ PUBLIC_SYMBOL void retro_set_input_state(retro_input_state_t input_state) {
 
 // TODO: Move to config.cpp
 static void retro::set_core_options() {
+    ZoneScopedN("retro::set_core_options");
     unsigned version = 0;
 
     if (!_environment)

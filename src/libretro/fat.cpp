@@ -25,6 +25,7 @@
 
 #include "config.hpp"
 #include "environment.hpp"
+#include "tracy.hpp"
 
 static std::unordered_map<FILE*, int> flushTimers;
 
@@ -43,6 +44,7 @@ void melonds::fat::deinit() {
 
 retro::task::TaskSpec melonds::fat::FlushTask() noexcept {
     retro::task::TaskSpec task([](retro::task::TaskHandle &task) {
+        ZoneScopedN("melonds::fat::FlushTask");
         using namespace melonds::fat;
         if (task.IsCancelled()) {
             // If it's time to stop...

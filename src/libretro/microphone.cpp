@@ -17,6 +17,7 @@
 #include "microphone.hpp"
 
 #include "environment.hpp"
+#include "tracy.hpp"
 
 #include <optional>
 
@@ -32,6 +33,7 @@ namespace retro::microphone {
 }
 
 void retro::microphone::init_interface() noexcept {
+    ZoneScopedN("retro::microphone::init_interface");
     if (!_microphone_interface) {
         // If we haven't yet initialized a microphone interface...
         // (retro_environment can be called multiple times)
@@ -58,6 +60,7 @@ bool retro::microphone::is_interface_available() noexcept
 }
 
 void retro::microphone::clear_interface() noexcept {
+    ZoneScopedN("retro::microphone::clear_interface");
     if (_microphone_interface && _microphone_handle) {
         _microphone_interface->close_mic(_microphone_handle);
     }
@@ -66,6 +69,7 @@ void retro::microphone::clear_interface() noexcept {
 }
 
 bool retro::microphone::set_open(bool open) noexcept {
+    ZoneScopedN("retro::microphone::set_open");
     if (!_microphone_interface) {
         // If we don't have microphone support available...
         return false;
@@ -127,6 +131,7 @@ optional<bool> retro::microphone::get_state() noexcept
 
 optional<int> retro::microphone::read(int16_t* samples, size_t num_samples) noexcept
 {
+    ZoneScopedN("retro::microphone::read");
     if (!_microphone_interface || !_microphone_handle) {
         // If we don't have microphone support available...
         return nullopt; // Can't read

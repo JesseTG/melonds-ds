@@ -39,6 +39,7 @@
 #include "opengl.hpp"
 #include "render.hpp"
 #include "screenlayout.hpp"
+#include "tracy.hpp"
 
 using std::from_chars;
 using std::from_chars_result;
@@ -516,6 +517,7 @@ static optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(c
 
 void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header,
                          ScreenLayoutData& screenLayout, InputState& inputState) {
+    ZoneScopedN("melonds::InitConfig");
     config::parse_system_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
@@ -711,6 +713,7 @@ static melonds::FirmwareLanguage get_firmware_language(const optional<retro_lang
 }
 
 static void melonds::config::parse_jit_options() noexcept {
+    ZoneScopedN("melonds::config::parse_jit_options");
 #ifdef HAVE_JIT
     using namespace Config::Retro;
     using namespace melonds::config::jit;
@@ -756,6 +759,7 @@ static void melonds::config::parse_jit_options() noexcept {
 }
 
 static void melonds::config::parse_system_options() noexcept {
+    ZoneScopedN("melonds::config::parse_system_options");
     using namespace Config::Retro;
     using namespace melonds::config::system;
     using retro::get_variable;
@@ -801,6 +805,7 @@ static void melonds::config::parse_system_options() noexcept {
 }
 
 static void melonds::config::parse_firmware_options() noexcept {
+    ZoneScopedN("melonds::config::parse_firmware_options");
     using namespace Config::Retro;
     using namespace melonds::config::firmware;
     using retro::get_variable;
@@ -861,6 +866,7 @@ static void melonds::config::parse_firmware_options() noexcept {
 }
 
 static void melonds::config::parse_audio_options() noexcept {
+    ZoneScopedN("melonds::config::parse_audio_options");
     using namespace Config::Retro;
     using namespace melonds::config::audio;
     using retro::get_variable;
@@ -923,6 +929,7 @@ static void melonds::config::parse_audio_options() noexcept {
 
 
 static void melonds::config::parse_network_options() noexcept {
+    ZoneScopedN("melonds::config::parse_network_options");
     using namespace Config::Retro;
     using retro::get_variable;
 
@@ -935,6 +942,7 @@ static void melonds::config::parse_network_options() noexcept {
 }
 
 static bool melonds::config::parse_video_options(bool initializing) noexcept {
+    ZoneScopedN("melonds::config::parse_video_options");
     using namespace Config::Retro;
     using namespace melonds::config::video;
     using retro::get_variable;
@@ -1001,6 +1009,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
 }
 
 static void melonds::config::parse_screen_options() noexcept {
+    ZoneScopedN("melonds::config::parse_screen_options");
     using namespace Config::Retro;
     using namespace melonds::config::screen;
     using retro::get_variable;
@@ -1064,6 +1073,7 @@ static void melonds::config::parse_homebrew_save_options(
     const optional<struct retro_game_info>& nds_info,
     const optional<NDSHeader>& header
 ) {
+    ZoneScopedN("melonds::config::parse_homebrew_save_options");
     using namespace Config::Retro;
     using namespace melonds::config::save;
     using retro::get_variable;
@@ -1108,6 +1118,7 @@ static void melonds::config::parse_homebrew_save_options(
  * Reads the frontend's saved DSi save data options and applies them to the emulator.
  */
 static void melonds::config::parse_dsi_sd_options() noexcept {
+    ZoneScopedN("melonds::config::parse_dsi_sd_options");
     using namespace Config::Retro;
     using namespace melonds::config::save;
     using retro::get_variable;
@@ -1135,6 +1146,7 @@ static void melonds::config::parse_dsi_sd_options() noexcept {
 }
 
 static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
+    ZoneScopedN("melonds::config::verify_nds_bios");
     using retro::log;
     using namespace melonds::config::system;
     retro_assert(config::system::ConsoleType() == ConsoleType::DS);
@@ -1182,6 +1194,7 @@ static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
 }
 
 static void melonds::config::verify_dsi_bios() {
+    ZoneScopedN("melonds::config::verify_dsi_bios");
     using retro::info;
     using retro::warn;
     using namespace melonds::config::system;
@@ -1220,6 +1233,7 @@ static void melonds::config::verify_dsi_bios() {
 }
 
 static void melonds::config::apply_system_options(const optional<NDSHeader>& header) {
+    ZoneScopedN("melonds::config::apply_system_options");
     using namespace melonds::config::system;
     if (header && header->IsDSiWare()) {
         // If we're loading a DSiWare game...
@@ -1238,6 +1252,7 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
 }
 
 static void melonds::config::apply_audio_options() noexcept {
+    ZoneScopedN("melonds::config::apply_audio_options");
     bool is_using_host_mic = audio::MicInputMode() == MicInputMode::HostMic;
     if (retro::microphone::is_interface_available()) {
         // Open the mic if the user wants it (and it isn't already open)
@@ -1257,6 +1272,7 @@ static void melonds::config::apply_audio_options() noexcept {
 }
 
 static void melonds::config::apply_save_options(const optional<NDSHeader>& header) {
+    ZoneScopedN("melonds::config::apply_save_options");
     using namespace config::save;
 
     const optional<string> save_directory = retro::get_save_directory();
@@ -1334,6 +1350,7 @@ static void melonds::config::apply_save_options(const optional<NDSHeader>& heade
 }
 
 static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
+    ZoneScopedN("melonds::config::apply_screen_options");
     using namespace config::video;
     using namespace render;
 

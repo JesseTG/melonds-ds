@@ -23,6 +23,7 @@
 
 #include "config.hpp"
 #include "environment.hpp"
+#include "tracy.hpp"
 
 using std::optional;
 
@@ -48,6 +49,7 @@ static u8 GetDsiBatteryLevel(u8 percent) noexcept {
 retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
 {
     retro::task::TaskSpec updatePowerStatus([timeToPowerStatusUpdate=0](retro::task::TaskHandle& task) mutable noexcept {
+        ZoneScopedN("melonds::power::PowerStatusUpdateTask");
         if (task.IsCancelled()) {
             task.Finish();
             return;

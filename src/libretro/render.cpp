@@ -29,6 +29,7 @@
 #include "opengl.hpp"
 #include "screenlayout.hpp"
 #include "environment.hpp"
+#include "tracy.hpp"
 
 using std::nullopt;
 using std::optional;
@@ -41,6 +42,7 @@ namespace melonds::render {
 }
 
 void melonds::render::Initialize(Renderer renderer) {
+    ZoneScopedN("melonds::render::Initialize");
     using retro::log;
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -91,6 +93,7 @@ bool melonds::render::ReadyToRender() noexcept {
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
 void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
+    ZoneScopedN("melonds::render::RenderSoftware");
     retro_assert(_CurrentRenderer == Renderer::Software);
 
     const uint32_t* topScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][0];

@@ -26,6 +26,7 @@
 
 #include "config.hpp"
 #include "math.hpp"
+#include "tracy.hpp"
 
 using std::array;
 using std::max;
@@ -57,6 +58,7 @@ melonds::ScreenLayoutData::~ScreenLayoutData() noexcept {
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::CopyScreen");
     // Only used for software rendering
 
     // melonDS's software renderer draws each emulated screen to its own buffer,
@@ -86,6 +88,7 @@ void melonds::ScreenLayoutData::DrawCursor(glm::ivec2 touch) noexcept {
 }
 
 void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::DrawCursor");
     // Only used for software rendering
     if (!buffer)
         return;
@@ -107,6 +110,7 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noex
 }
 
 void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::CombineScreens");
     if (!buffer)
         return;
 
@@ -191,6 +195,7 @@ constexpr mat3 HybridSoutheastMatrix(unsigned resolutionScale, unsigned hybridRa
 }
 
 mat3 melonds::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::GetTopScreenMatrix");
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TopOnly:
@@ -212,6 +217,7 @@ mat3 melonds::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcep
 }
 
 mat3 melonds::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::GetBottomScreenMatrix");
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TurnLeft:
@@ -233,6 +239,7 @@ mat3 melonds::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noex
 }
 
 glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::GetHybridScreenMatrix");
     switch (Layout()) {
         case ScreenLayout::HybridBottom:
         case ScreenLayout::HybridTop:
@@ -243,6 +250,7 @@ glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const
 }
 
 void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
+    ZoneScopedN("melonds::ScreenLayoutData::Update");
     unsigned scale = (renderer == Renderer::Software) ? 1 : resolutionScale;
     uvec2 oldBufferSize = bufferSize;
 

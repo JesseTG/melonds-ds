@@ -27,6 +27,8 @@
 #include "info.hpp"
 #include <retro_assert.h>
 
+#include "tracy.hpp"
+
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 constexpr ssize_t SAVESTATE_SIZE_UNKNOWN = -1;
@@ -52,7 +54,7 @@ melonds::SaveManager::~SaveManager() {
 }
 
 void melonds::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
-
+    ZoneScopedN("melonds::SaveManager::Flush");
     if (_sram_length != savelen) {
         // If we loaded a game with a different SRAM length...
 
@@ -77,6 +79,7 @@ void melonds::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffse
 }
 
 void melonds::SaveManager::SetSaveSize(u32 savelen) {
+    ZoneScopedN("melonds::SaveManager::SetSaveSize");
     if (_sram_length != savelen) {
         delete[] _sram;
 
@@ -106,6 +109,7 @@ static const char *memory_type_name(unsigned type)
 /// Savestates in melonDS can vary in size depending on the game,
 /// so we have to try saving the state first before we can know how big it'll be.
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
+    ZoneScopedN("retro_serialize_size");
     using namespace melonds;
     if (melonds::_savestate_size < 0) {
         // If we haven't yet figured out how big the savestate should be...
@@ -133,6 +137,7 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
 }
 
 PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
+    ZoneScopedN("retro_serialize");
     memset(data, 0, size);
 
     Savestate state(data, size, true);
@@ -141,6 +146,7 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
 }
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
+    ZoneScopedN("retro_unserialize");
     retro::log(RETRO_LOG_DEBUG, "retro_unserialize(%p, %d)", data, size);
 
     Savestate savestate((u8 *) data, size, false);
@@ -186,6 +192,7 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
 PUBLIC_SYMBOL void retro_cheat_reset(void) {}
 
 PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *code) {
+    ZoneScopedN("retro_cheat_set");
     if (!enabled)
         return;
     ARCode curcode;

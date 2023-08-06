@@ -34,6 +34,7 @@
 
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "tracy.hpp"
 
 using std::nullopt;
 using std::optional;
@@ -68,6 +69,7 @@ namespace melonds::dsi {
 }
 
 void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCart &cart) try {
+    ZoneScopedN("melonds::dsi::install_dsiware");
     info("Temporarily installing DSiWare title \"%s\" onto DSi NAND image", nds_info.path);
     const NDSHeader &header = cart.GetHeader();
     retro_assert(header.IsDSiWare());
@@ -148,6 +150,7 @@ static void melonds::dsi::get_tmd_path(const retro_game_info &nds_info, char *bu
 }
 
 bool melonds::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept {
+    ZoneScopedN("melonds::dsi::get_cached_tmd");
     RFILE *tmd_file = filestream_open(tmd_path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!tmd_file) {
         info("Could not find local copy of title metadata at \"%s\"", tmd_path);
@@ -193,6 +196,7 @@ bool melonds::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
 
 #ifdef HAVE_NETWORKING
 bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noexcept {
+    ZoneScopedN("melonds::dsi::download_tmd");
     char url[256];
     snprintf(url, sizeof(url), "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd",
              header.DSiTitleIDHigh, header.DSiTitleIDLow);
@@ -287,6 +291,7 @@ done:
 
 // TODO: Cache the whole file, not just the TitleMetadata object
 void melonds::dsi::cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noexcept {
+    ZoneScopedN("melonds::dsi::cache_tmd");
     char tmd_dir[PATH_MAX];
     strlcpy(tmd_dir, tmd_path, sizeof(tmd_dir));
     path_basedir(tmd_dir);
@@ -340,6 +345,7 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
 }
 
 void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+    ZoneScopedN("melonds::dsi::import_savedata");
     retro_assert(DSi_NAND::GetFile() != nullptr);
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
@@ -374,6 +380,7 @@ void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHea
 
 
 void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+    ZoneScopedN("melonds::dsi::export_savedata");
     retro_assert(DSi_NAND::GetFile() != nullptr);
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
@@ -404,6 +411,7 @@ void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHea
 
 // Reset for the next time
 void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsCart &cart) noexcept {
+    ZoneScopedN("melonds::dsi::uninstall_dsiware");
     info("Removing temporarily-installed DSiWare title \"%s\" from NAND image", nds_info.path);
     const NDSHeader &header = cart.GetHeader();
     retro_assert(header.IsDSiWare());

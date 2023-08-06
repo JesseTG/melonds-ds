@@ -24,6 +24,7 @@
 #include "content.hpp"
 #include "environment.hpp"
 #include "memory.hpp"
+#include "tracy.hpp"
 
 using std::nullopt;
 using std::optional;
@@ -35,6 +36,7 @@ namespace melonds::gba {
 }
 
 void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    ZoneScopedN("Platform::WriteGBASave");
     if (melonds::gba::GbaSaveManager) {
         melonds::gba::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
@@ -47,7 +49,7 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
 }
 
 void melonds::gba::FlushSram(const retro_game_info& gba_save_info) noexcept {
-
+    ZoneScopedN("melonds::gba::FlushSram");
     const char* save_data_path = gba_save_info.path;
     if (save_data_path == nullptr || GbaSaveManager == nullptr) {
         // No save data path was provided, or the GBA save manager isn't initialized
@@ -71,6 +73,7 @@ void melonds::gba::FlushSram(const retro_game_info& gba_save_info) noexcept {
 // This task keeps running for the lifetime of the task queue.
 TaskSpec melonds::gba::FlushTask() noexcept {
     TaskSpec task([](retro::task::TaskHandle &task) {
+        ZoneScopedN("melonds::gba::FlushTask");
         using namespace melonds::gba;
         if (task.IsCancelled()) {
             // If it's time to stop...

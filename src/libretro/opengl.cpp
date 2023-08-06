@@ -36,6 +36,7 @@
 #include "environment.hpp"
 #include "config.hpp"
 #include "render.hpp"
+#include "tracy.hpp"
 
 using std::array;
 using glm::ivec2;
@@ -135,6 +136,7 @@ void melonds::opengl::RequestOpenGlRefresh() {
 }
 
 bool melonds::opengl::Initialize() noexcept {
+    ZoneScopedN("melonds::opengl::Initialize");
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::Initialize()");
     glsm_ctx_params_t params = {};
 
@@ -164,6 +166,7 @@ bool melonds::opengl::Initialize() noexcept {
 }
 
 void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
+    ZoneScopedN("melonds::opengl::Render");
     retro_assert(melonds::render::CurrentRenderer() == melonds::Renderer::OpenGl);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
@@ -235,6 +238,7 @@ void melonds::opengl::deinitialize() {
 }
 
 static void melonds::opengl::ContextReset() noexcept try {
+    ZoneScopedN("melonds::opengl::ContextReset");
     retro::debug("melonds::opengl::ContextReset()");
     if (UsingOpenGl() && GPU3D::CurrentRenderer) { // If we're using OpenGL, but there's already a renderer in place...
         retro::debug("GPU3D renderer is assigned; deinitializing it before resetting the context.");
@@ -281,6 +285,7 @@ catch (...) {
 }
 
 static void melonds::opengl::context_destroy() {
+    ZoneScopedN("melonds::opengl::context_destroy");
     retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_destroy()");
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     glDeleteTextures(1, &screen_framebuffer_texture);
@@ -294,6 +299,7 @@ static void melonds::opengl::context_destroy() {
 
 // Sets up OpenGL resources specific to melonDS
 static void melonds::opengl::SetupOpenGl() {
+    ZoneScopedN("melonds::opengl::SetupOpenGl");
     retro::debug("melonds::opengl::SetupOpenGl()");
 
     openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
@@ -422,6 +428,7 @@ constexpr array<unsigned, 18> GetPositionIndexes(melonds::ScreenLayout layout) n
 }
 
 static void melonds::opengl::InitializeVertices(const ScreenLayoutData& screenLayout) noexcept {
+    ZoneScopedN("melonds::opengl::InitializeVertices");
     ScreenLayout layout = screenLayout.Layout();
     HybridSideScreenDisplay hybridSideScreenDisplay = screenLayout.HybridSmallScreenLayout();
     vertexCount = GetVertexCount(layout, hybridSideScreenDisplay);
@@ -532,7 +539,7 @@ static void melonds::opengl::InitializeVertices(const ScreenLayoutData& screenLa
 }
 
 void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept {
-
+    ZoneScopedN("melonds::opengl::InitializeFrameState");
     refresh_opengl = false;
     GPU::RenderSettings render_settings = melonds::config::video::RenderSettings();
     GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);

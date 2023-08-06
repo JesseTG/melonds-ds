@@ -21,10 +21,12 @@
 
 #include "../config.hpp"
 #include "../environment.hpp"
+#include "tracy.hpp"
 
 static melonds::NetworkMode _activeNetworkMode;
 
 bool Platform::LAN_Init() {
+    ZoneScopedN("Platform::LAN_Init");
     using namespace melonds::config::net;
     switch (NetworkMode()) {
         case melonds::NetworkMode::Direct:
@@ -52,12 +54,14 @@ bool Platform::LAN_Init() {
 }
 
 void Platform::LAN_DeInit() {
+    ZoneScopedN("Platform::LAN_DeInit");
     LAN_PCap::DeInit();
     LAN_Socket::DeInit();
     _activeNetworkMode = melonds::NetworkMode::None;
 }
 
 int Platform::LAN_SendPacket(u8 *data, int len) {
+    ZoneScopedN("Platform::LAN_SendPacket");
     switch (_activeNetworkMode) {
         case melonds::NetworkMode::Direct:
             return LAN_PCap::SendPacket(data, len);
@@ -69,6 +73,7 @@ int Platform::LAN_SendPacket(u8 *data, int len) {
 }
 
 int Platform::LAN_RecvPacket(u8 *data) {
+    ZoneScopedN("Platform::LAN_RecvPacket");
     switch (_activeNetworkMode) {
         case melonds::NetworkMode::Direct:
             return LAN_PCap::RecvPacket(data);
@@ -80,13 +85,16 @@ int Platform::LAN_RecvPacket(u8 *data) {
 }
 
 Platform::DynamicLibrary *Platform::DynamicLibrary_Load(const char *lib) {
+    ZoneScopedN("Platform::DynamicLibrary_Load");
     return static_cast<DynamicLibrary *>(dylib_load(lib));
 }
 
 void Platform::DynamicLibrary_Unload(Platform::DynamicLibrary *lib) {
+    ZoneScopedN("Platform::DynamicLibrary_Unload");
     dylib_close(lib);
 }
 
 void *Platform::DynamicLibrary_LoadFunction(Platform::DynamicLibrary *lib, const char *name) {
+    ZoneScopedN("Platform::DynamicLibrary_LoadFunction");
     return reinterpret_cast<void *>(dylib_proc(lib, name));
 }

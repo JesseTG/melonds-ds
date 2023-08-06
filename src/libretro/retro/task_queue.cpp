@@ -19,26 +19,32 @@
 #include <string.h>
 #include <retro_assert.h>
 
+#include "tracy.hpp"
+
 struct TaskFunctions {
     retro::task::TaskHandler handler = nullptr;
     retro::task::TaskHandler cleanup = nullptr;
 };
 
 void retro::task::init(bool threaded, retro_task_queue_msg_t msg_push) noexcept {
+    ZoneScopedN("retro::task::init");
     task_queue_init(threaded, msg_push);
 }
 
 
 void retro::task::push(TaskSpec&& task) noexcept {
+    ZoneScopedN("retro::task::push");
     task_queue_push(task._task);
     task._task = nullptr;
 }
 
 void retro::task::deinit() noexcept {
+    ZoneScopedN("retro::task::deinit");
     task_queue_deinit();
 }
 
 void retro::task::check() noexcept {
+    ZoneScopedN("retro::task::check");
     task_queue_check();
 }
 
