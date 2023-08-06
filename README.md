@@ -191,12 +191,11 @@ Support is not guaranteed, but I'll do the best I can.
 The ultimate goal is for melonDS DS to supersede the [legacy melonDS core][melonds-libretro].
 This is a rough roadmap for achieving that goal:
 
-1. Implement support for Nintendo Wi-Fi Connection.
-2. Support Action Replay cheat codes.
-3. Implement support for migrating configuration from the existing core.
-4. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
-5. Add support for the DSi camera using `retro_camera_callback`.
-6. Get melonDS DS included in the official RetroArch distribution.
+1. Support Action Replay cheat codes.
+2. Implement support for migrating configuration from the existing core.
+3. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
+4. Add support for the DSi camera using `retro_camera_callback`.
+5. Get melonDS DS included in the official RetroArch distribution.
 
 # Building
 
