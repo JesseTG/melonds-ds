@@ -97,3 +97,8 @@ TaskSpec melonds::gba::FlushTask() noexcept {
 
     return task;
 }
+
+void Platform::EnterGBAMode() {
+    retro::set_error_message("GBA mode is not supported. Use a GBA core instead.");
+    retro::shutdown();
+}
