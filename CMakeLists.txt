@@ -18,6 +18,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 include(CheckSymbolExists)
 include(CheckIncludeFile)
 include(CheckIncludeFiles)
+include(CheckTypeSize)
 include(FetchContent)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 

@@ -18,6 +18,13 @@ target_include_directories(slirp SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
 )
 
+check_type_size("void*" SIZEOF_VOID_P BUILTIN_TYPES_ONLY)
+if (SIZEOF_VOID_P)
+    target_compile_definitions(slirp PRIVATE GLIB_SIZEOF_VOID_P=${SIZEOF_VOID_P})
+else()
+    target_compile_definitions(slirp PRIVATE GLIB_SIZEOF_VOID_P=8)
+endif()
+
 target_sources(slirp PRIVATE
     "${libslirp_SOURCE_DIR}/src/arp_table.c"
     "${libslirp_SOURCE_DIR}/src/bootp.c"
@@ -51,13 +58,10 @@ target_compile_definitions(slirp PRIVATE BUILDING_LIBSLIRP)
 
 if (UNIX)
     target_compile_definitions(slirp PRIVATE UNIX)
+elseif(BSD)
+    target_compile_definitions(slirp PRIVATE BSD)
 endif()
 
 if (APPLE)
     target_link_libraries(slirp PRIVATE resolv)
 endif()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(slirp PRIVATE -fPIC)
-    target_link_options(slirp PRIVATE -fPIC)
-endif ()

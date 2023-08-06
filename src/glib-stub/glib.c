@@ -6,10 +6,6 @@
 #include <socket.h>
 #include <string/stdstring.h>
 
-#ifdef UNIX
-#define G_OS_UNIX
-#endif
-
 GRand *g_rand_new() {
     GRand *rand = (GRand *) malloc(sizeof(GRand));
     *rand = 32148920;
@@ -156,20 +152,28 @@ g_strstr_len (const gchar *haystack,
 struct gfwd_list *add_guestfwd(struct gfwd_list **ex_ptr, SlirpWriteCb write_cb,
                                void *opaque, struct in_addr addr, int port)
 {
+    g_critical("add_guestfwd unexpectedly required in stub\n");
     return NULL;
 }
 
-/* Run the given command in the backaground, and send its output to the guest on
- * the given address and port */
 struct gfwd_list *add_exec(struct gfwd_list **ex_ptr, const char *cmdline,
                            struct in_addr addr, int port)
 {
+    g_critical("add_exec unexpectedly required in stub\n");
     return NULL;
 }
 
 int remove_guestfwd(struct gfwd_list **ex_ptr, struct in_addr addr, int port)
 {
+    g_critical("remove_guestfwd unexpectedly required in stub\n");
     return 0;
+}
+
+struct gfwd_list *add_unix(struct gfwd_list **ex_ptr, const char *unixsock,
+                           struct in_addr addr, int port)
+{
+    g_critical("add_unix unexpectedly required in stub\n");
+    return NULL;
 }
 
 int slirp_bind_outbound(struct socket *so, unsigned short af)
@@ -233,6 +237,7 @@ int open_unix(struct socket *so, const char *unixpath)
 
 int fork_exec(struct socket *so, const char *ex)
 {
+    g_critical("fork_exec unexpectedly required in stub\n");
     return 0;
 }
 

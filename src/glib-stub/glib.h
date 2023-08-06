@@ -32,7 +32,19 @@
 #include <compat/strl.h>
 #include <libretro.h>
 #include <retro_common_api.h>
+#include <retro_endianness.h>
 #include <retro_miscellaneous.h>
+
+#define G_BIG_ENDIAN __ORDER_BIG_ENDIAN__
+#define G_LITTLE_ENDIAN __ORDER_LITTLE_ENDIAN__
+#define G_BYTE_ORDER __BYTE_ORDER__
+#ifdef _WIN32
+#define G_OS_WIN32 1
+#endif
+
+#ifdef UNIX
+#define G_OS_UNIX 1
+#endif
 
 RETRO_BEGIN_DECLS
 #define G_STATIC_ASSERT(expr) static_assert(expr, #expr " failed")
