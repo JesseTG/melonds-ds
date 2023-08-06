@@ -121,6 +121,21 @@ allowing you to use your device's microphone for Nintendo DS games!
 > You will need to use [a nightly build][retroarch-nightly].
 > Additionally, some platforms may not have microphone support enabled yet.
 
+## Screen Rotation
+
+melonDS DS fully supports rotating the emulated DS left, right, and upside-down!
+Now you can play games that were meant to be played sideways,
+such as Brain Age.
+
+## Enhanced Screen Layout Options
+
+The legacy melonDS core supports multiple screen layouts,
+but the only way to cycle through them is through the core options menu.
+This is inconvenient if a single game uses different layouts.
+
+melonDS DS allows you to cycle through up to 8 screen layouts ([including rotations](#screen-rotation))
+at the push of a button!
+
 # Missing Features
 
 These features have not yet been implemented in standalone [melonDS][melonds],
