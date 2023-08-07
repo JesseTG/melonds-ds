@@ -14,18 +14,24 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_FAT_HPP
-#define MELONDS_DS_FAT_HPP
+#ifndef MELONDS_DS_FILE_HPP
+#define MELONDS_DS_FILE_HPP
+
+#include <Platform.h>
+#include <streams/file_stream.h>
 
 #include "retro/task_queue.hpp"
 
-namespace melonds::fat {
+struct Platform::FileHandle {
+    RFILE *file;
+    FileType type;
+};
+
+namespace melonds::file {
     void init();
     void deinit();
-
-    void FlushFATFilesystem(const retro_game_info& gba_save_info) noexcept;
 
     retro::task::TaskSpec FlushTask() noexcept;
 }
 
-#endif //MELONDS_DS_FAT_HPP
+#endif //MELONDS_DS_FILE_HPP

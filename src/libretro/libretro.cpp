@@ -48,7 +48,7 @@
 #include "dsi.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
-#include "fat.hpp"
+#include "file.hpp"
 #include "gba.hpp"
 #include "info.hpp"
 #include "input.hpp"
@@ -466,7 +466,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     ZoneScopedN("retro_deinit");
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
     retro::task::deinit();
-    melonds::fat::deinit();
+    melonds::file::deinit();
     retro::clear_environment();
     retro::content::clear();
     melonds::clear_memory_config();
@@ -661,7 +661,7 @@ static void melonds::load_games(
 
     if (config::system::ConsoleType() == ConsoleType::DSi || (_loaded_nds_cart && _loaded_nds_cart->GetHeader().IsHomebrew() && config::save::DldiEnable() && !config::save::DldiReadOnly())) {
         // If we're dealing with any FAT filesystem (because of the DSi or because of homebrew)...
-        retro::task::push(fat::FlushTask());
+        retro::task::push(file::FlushTask());
     }
 
     if (!config::system::ExternalBiosEnable() && _loaded_gba_cart) {
@@ -864,6 +864,7 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
 }
 
 static void melonds::ValidateFirmware() {
+    using namespace Platform;
     ZoneScopedN("melonds::ValidateFirmware");
     using namespace config::system;
     if (!ExternalBiosEnable() || config::system::ConsoleType() != ConsoleType::DS) {
@@ -873,19 +874,19 @@ static void melonds::ValidateFirmware() {
 
     // I don't really know how this works, it just came from upstream
     // TODO: Peek at the firmware buffer directly by forward-declaring SPI_Firmware::Firmware and SPI_Firmware::FirmwareLength
-    FILE* f = Platform::OpenLocalFile(config::system::FirmwarePath(), "rb");
+    FileHandle* f = Platform::OpenLocalFile(config::system::FirmwarePath(), "rb");
     if (!f) return;
     u8 chk1[0x180], chk2[0x180];
 
-    fseek(f, 0, SEEK_SET);
-    fread(chk1, 1, 0x180, f);
-    fseek(f, -0x380, SEEK_END);
-    fread(chk2, 1, 0x180, f);
+    FileSeek(f, 0, FileSeekOrigin::Set);
+    FileRead(chk1, 1, 0x180, f);
+    FileSeek(f, -0x380, FileSeekOrigin::End);
+    FileRead(chk2, 1, 0x180, f);
 
     memset(&chk1[0x0C], 0, 8);
     memset(&chk2[0x0C], 0, 8);
 
-    fclose(f);
+    CloseFile(f);
 
     if (!memcmp(chk1, chk2, 0x180))
     {
