@@ -61,6 +61,8 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${glm_SOURCE_DIR}"
     )
 
+target_include_directories(libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
+
 embed_binaries(libretro-assets
     ASSET
         NAME "melondsds_vertex_shader"

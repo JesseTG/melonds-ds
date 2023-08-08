@@ -21,6 +21,7 @@
 #include <utility>
 #include <unordered_map>
 #include <unistd.h>
+#include <vector>
 
 #include <file/file_path.h>
 #include <Platform.h>
@@ -73,7 +74,13 @@ bool Platform::FileExists(const std::string& name)
 
 bool Platform::LocalFileExists(const std::string& name)
 {
-    return path_is_valid(name.c_str());
+    if (path_is_absolute(name.c_str())) {
+        return path_is_valid(name.c_str());
+    }
+
+    std::string directory = retro::get_system_directory().value_or("");
+    std::string fullpath = directory + PLATFORM_DIR_SEPERATOR + name;
+    return path_is_valid(fullpath.c_str());
 }
 
 /// Close a file opened with \c OpenFile.
