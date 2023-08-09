@@ -93,7 +93,8 @@ void retro::content::set_loaded_content_info(
         _loaded_gba_path = nullopt;
     }
 
-    if (gba_save_info) {
+    if (gba_save_info && gba_save_info->data) {
+        // If a subsystem ROM is optional, then libretro might provide a zeroed-out retro_game_info
         _loaded_gba_save_path = gba_save_info->path ? make_optional(gba_save_info->path) : nullopt;
         _loaded_gba_save_info = retro_game_info {
             .path = _loaded_gba_save_path ? _loaded_gba_save_path->c_str() : nullptr,
