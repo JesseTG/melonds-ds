@@ -423,6 +423,10 @@ static void melonds::render_audio() {
     retro::audio_sample_batch(audio_buffer, read);
 }
 
+namespace NDS {
+    extern bool Running;
+}
+
 PUBLIC_SYMBOL void retro_unload_game(void) {
     ZoneScopedN("retro_unload_game");
     retro::log(RETRO_LOG_DEBUG, "retro_unload_game()");
@@ -433,7 +437,8 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
         melonds::gba::FlushSram(*gba_save_info);
     }
 
-    {
+    if (NDS::Running)
+    { // If the NDS wasn't already stopped due to some internal event...
         ZoneScopedN("NDS::Stop");
         NDS::Stop();
     }

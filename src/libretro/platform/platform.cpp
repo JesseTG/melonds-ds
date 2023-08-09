@@ -162,7 +162,18 @@ void Platform::DeInit() {
     scaler_ctx_gen_reset(&_scaler);
 }
 
-void Platform::StopEmu() {
+void Platform::SignalStop(Platform::StopReason reason) {
+    switch (reason) {
+        case StopReason::BadExceptionRegion:
+            retro::set_error_message("An internal error occurred in the emulated console.");
+            break;
+        case StopReason::GBAModeNotSupported:
+            retro::set_error_message("GBA mode is not supported. Use a GBA core instead.");
+            break;
+        default:
+            break;
+            // no-op; not every stop reason needs a message shown to the user
+    }
     retro::shutdown();
 }
 
