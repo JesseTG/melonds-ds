@@ -87,7 +87,7 @@ void g_critical(const char *msg, ...);
 #define g_free free
 #define g_realloc realloc
 
-#define g_strdup strdup
+gchar* g_strdup(const gchar* str);
 #define g_vsnprintf vsnprintf
 #define g_strerror strerror
 #define g_snprintf(string, n, format, ...) snprintf(string, n, format, ##__VA_ARGS__)

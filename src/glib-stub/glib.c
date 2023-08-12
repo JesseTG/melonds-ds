@@ -72,6 +72,11 @@ void g_debug(const char *msg, ...)
     va_end(va);
 }
 
+gchar* g_strdup(const gchar* str)
+{
+    return str ? strdup(str) : NULL;
+}
+
 void slirp_insque(void *a, void *b)
 {
     struct slirp_quehead *element = (struct slirp_quehead *)a;
