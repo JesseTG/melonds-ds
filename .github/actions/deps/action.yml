@@ -18,8 +18,7 @@ runs:
   using: composite
   steps:
     - name: Install GCC Problem Matcher
-      uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
-      if: ${{ !contains(inputs.runs-on, 'windows') }} # See https://github.com/root-project/gcc-problem-matcher-improved/issues/3
+      uses: root-project/gcc-problem-matcher-improved@f570674bcaf59d17ec0e6ae3ee0d03f8d68c1989
       with:
         build-directory: ${{ inputs.build-dir }}
 
