@@ -15,10 +15,10 @@
 */
 
 #include "file.hpp"
-
 #define SKIP_STDIO_REDEFINES
 
-#include <utility>
+#include <cerrno>
+#include <system_error>
 #include <unordered_map>
 #include <unistd.h>
 #include <vector>
@@ -36,13 +36,65 @@
 
 static std::unordered_map<Platform::FileHandle*, int> flushTimers;
 
-Platform::FileHandle *Platform::OpenFile(const std::string& path, const std::string& mode, bool mustexist, FileType type) {
-    if (mustexist && !path_is_valid(path.c_str())) {
+namespace Platform {
+    constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
+        unsigned retro_mode = 0;
+        if (mode & FileMode::Read)
+            retro_mode |= RETRO_VFS_FILE_ACCESS_READ;
+
+        if (mode & FileMode::Write)
+            retro_mode |= RETRO_VFS_FILE_ACCESS_WRITE;
+
+        if (mode & FileMode::Preserve)
+            retro_mode |= RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING;
+
+        return mode;
+    }
+
+    constexpr unsigned GetRetroVfsFileAccessHints(FileType type) noexcept {
+        switch (type) {
+            case FileType::GBASaveFile:
+            case FileType::NDSSaveFile:
+            case FileType::DSiFirmware:
+            case FileType::Firmware:
+            case FileType::DSiNANDImage:
+            case FileType::SDCardImage:
+                return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS;
+            default:
+                return RETRO_VFS_FILE_ACCESS_HINT_NONE;
+        }
+    }
+
+    constexpr unsigned GetRetroVfsFileSeekOrigin(FileSeekOrigin origin) noexcept {
+        switch (origin) {
+            case FileSeekOrigin::Start:
+                return RETRO_VFS_SEEK_POSITION_START;
+            case FileSeekOrigin::Current:
+                return RETRO_VFS_SEEK_POSITION_CURRENT;
+            case FileSeekOrigin::End:
+                return RETRO_VFS_SEEK_POSITION_END;
+        }
+    }
+}
+
+
+Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode, FileType type) {
+    if ((mode & FileMode::ReadWrite) == FileMode::None)
+    { // If we aren't reading or writing, then we can't open the file
+        Log(LogLevel::Error, "Attempted to open %s \"%s\" in neither read nor write mode (FileMode 0x%x)\n", FileTypeName(type), path.c_str(), mode);
+        return nullptr;
+    }
+
+    bool file_exists = path_is_valid(path.c_str());
+
+    if (!file_exists && (mode & FileMode::NoCreate)) {
+        // If the file doesn't exist, and we're not allowed to create it...
+        Log(LogLevel::Warn, "Attempted to open %s \"%s\" in FileMode 0x%x, but the file doesn't exist and FileMode::NoCreate is set\n", FileTypeName(type), path.c_str(), mode);
         return nullptr;
     }
 
     Platform::FileHandle *handle = new Platform::FileHandle;
-    handle->file = rfopen(path.c_str(), mode.c_str());
+    handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode), GetRetroVfsFileAccessHints(type));
     handle->type = type;
 
     if (!handle->file) {
@@ -53,18 +105,14 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, const std::str
     return handle;
 }
 
-Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, const std::string& mode, FileType type) {
+Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode mode, FileType type) {
     if (path_is_absolute(path.c_str())) {
-        return OpenFile(path, mode, true, type);
+        return OpenFile(path, mode, type);
     }
 
     std::string directory = retro::get_system_directory().value_or("");
     std::string fullpath = directory + PLATFORM_DIR_SEPERATOR + path;
-    return OpenFile(fullpath, mode, true, type);
-}
-
-Platform::FileHandle *Platform::OpenDataFile(const std::string& path, FileType type) {
-    return OpenLocalFile(path, "rb", type);
+    return OpenFile(fullpath, mode, type);
 }
 
 bool Platform::FileExists(const std::string& name)
@@ -91,7 +139,7 @@ bool Platform::CloseFile(FileHandle* file)
         return false;
     }
 
-    filestream_close(file->file);
+    bool ok = filestream_close(file->file);
     switch (file->type) {
         case FileType::DSiNANDImage:
         case FileType::SDCardImage:
@@ -105,7 +153,7 @@ bool Platform::CloseFile(FileHandle* file)
     }
 
     delete file;
-    return true;
+    return ok;
 }
 
 /// Returns true if there is no more data left to read in this file.
@@ -117,7 +165,7 @@ bool Platform::IsEndOfFile(FileHandle* file)
     return filestream_eof(file->file);
 }
 
-bool Platform::FileGetString(char* str, int count, FileHandle* file)
+bool Platform::FileReadLine(char* str, int count, FileHandle* file)
 {
     if (!file || !str)
         return false;
@@ -125,27 +173,12 @@ bool Platform::FileGetString(char* str, int count, FileHandle* file)
     return filestream_gets(file->file, str, count);
 }
 
-bool Platform::FileSeek(FileHandle* file, s32 offset, FileSeekOrigin origin)
+bool Platform::FileSeek(FileHandle* file, s64 offset, FileSeekOrigin origin)
 {
     if (!file)
         return false;
 
-    int seek_position;
-    switch (origin) {
-        case FileSeekOrigin::Set:
-            seek_position = RETRO_VFS_SEEK_POSITION_START;
-            break;
-        case FileSeekOrigin::Current:
-            seek_position = RETRO_VFS_SEEK_POSITION_CURRENT;
-            break;
-        case FileSeekOrigin::End:
-            seek_position = RETRO_VFS_SEEK_POSITION_END;
-            break;
-        default:
-            return false;
-    }
-
-    return filestream_seek(file->file, offset, seek_position) == 0;
+    return filestream_seek(file->file, offset, GetRetroVfsFileSeekOrigin(origin)) == 0;
 }
 
 void Platform::FileRewind(FileHandle* file)
@@ -156,10 +189,13 @@ void Platform::FileRewind(FileHandle* file)
 
 u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
 {
+    if (!file || !data)
+        return 0;
+
     return filestream_read(file->file, data, size * count);
 }
 
-bool Platform::FlushFile(FileHandle* file)
+bool Platform::FileFlush(FileHandle* file)
 {
     if (!file)
         return false;
