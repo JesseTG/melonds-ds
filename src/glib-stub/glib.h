@@ -130,12 +130,12 @@ gint g_ascii_strcasecmp(const gchar *s1, const gchar *s2);
 #define g_warn_if_fail(expr) \
     do { \
         if (!(expr)) \
-            g_warning("g_warn_if_fail: Expression '" #expr "' failed at " __FILE__ ":" __LINE__); \
+            g_warning("g_warn_if_fail: Expression '" #expr "' failed at " __FILE__ ":%d", __LINE__); \
     } while (false)
 
 #define g_assert_not_reached() \
     do { \
-        assert(false && "g_assert_not_reached: Reached " __FILE__ ":" __LINE__); \
+        assert(false && "g_assert_not_reached"); \
         __builtin_unreachable(); \
     } while (false)
 
