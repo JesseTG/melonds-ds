@@ -123,7 +123,7 @@ gint g_ascii_strcasecmp(const gchar *s1, const gchar *s2);
 
 #define g_warn_if_reached() \
     do { \
-        g_warning("g_assert_not_reached: Reached " __FILE__ ":" __LINE__); \
+        g_warning("g_assert_not_reached: Reached " __FILE__ ":%d", __LINE__); \
     } while (false)
 
 
