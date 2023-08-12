@@ -135,9 +135,7 @@ endif ()
 set_target_properties(libretro PROPERTIES PREFIX "")
 
 # Most platforms use the name "<core name>_libretro", but a few have their own conventions
-if (ANDROID)
-    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_android")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+if(CMAKE_SYSTEM_NAME STREQUAL "tvOS")
     set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_tvos")
 elseif(IOS)
     set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_ios")
