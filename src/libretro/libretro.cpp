@@ -879,11 +879,11 @@ static void melonds::ValidateFirmware() {
 
     // I don't really know how this works, it just came from upstream
     // TODO: Peek at the firmware buffer directly by forward-declaring SPI_Firmware::Firmware and SPI_Firmware::FirmwareLength
-    FileHandle* f = Platform::OpenLocalFile(config::system::FirmwarePath(), "rb");
+    FileHandle* f = Platform::OpenLocalFile(config::system::FirmwarePath(), FileMode::Read);
     if (!f) return;
     u8 chk1[0x180], chk2[0x180];
 
-    FileSeek(f, 0, FileSeekOrigin::Set);
+    FileSeek(f, 0, FileSeekOrigin::Start);
     FileRead(chk1, 1, 0x180, f);
     FileSeek(f, -0x380, FileSeekOrigin::End);
     FileRead(chk2, 1, 0x180, f);
