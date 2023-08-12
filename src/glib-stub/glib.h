@@ -51,8 +51,6 @@ RETRO_BEGIN_DECLS
 
 #define G_N_ELEMENTS(arr) ARRAY_SIZE(arr)
 
-#define g_assert_not_reached() do { assert(false && "unreachable"); __builtin_unreachable(); } while (0)
-
 typedef bool gboolean;
 typedef int gint;
 typedef unsigned char guchar;
@@ -123,8 +121,23 @@ gint g_ascii_strcasecmp(const gchar *s1, const gchar *s2);
             return (val); \
     } while (false)
 
-#define g_warn_if_reached() ((void)0)
-#define g_warn_if_fail(expr) ((void)(expr))
+#define g_warn_if_reached() \
+    do { \
+        g_warning("g_assert_not_reached: Reached " __FILE__ ":" __LINE__); \
+    } while (false)
+
+
+#define g_warn_if_fail(expr) \
+    do { \
+        if (!(expr)) \
+            g_warning("g_warn_if_fail: Expression '" #expr "' failed at " __FILE__ ":" __LINE__); \
+    } while (false)
+
+#define g_assert_not_reached() \
+    do { \
+        assert(false && "g_assert_not_reached: Reached " __FILE__ ":" __LINE__); \
+        __builtin_unreachable(); \
+    } while (false)
 
 RETRO_END_DECLS
 
