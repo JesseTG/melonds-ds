@@ -12,8 +12,6 @@ GRand *g_rand_new() {
     return rand;
 }
 
-// TODO: Implement the logging functions
-
 void g_rand_free(GRand *rand) {
     free((void *) rand);
 }
