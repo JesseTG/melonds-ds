@@ -391,9 +391,9 @@ bool melonds::update_option_visibility() {
 
     ShowDsiOptions = !consoleType || *consoleType == ConsoleType::DSi;
     if (ShowDsiOptions != oldShowDsiOptions) {
-        set_option_visible(system::DSI_SD_SAVE_MODE, ShowDsiOptions);
-        set_option_visible(system::DSI_SD_READ_ONLY, ShowDsiOptions);
-        set_option_visible(system::DSI_SD_SYNC_TO_HOST, ShowDsiOptions);
+        set_option_visible(storage::DSI_SD_SAVE_MODE, ShowDsiOptions);
+        set_option_visible(storage::DSI_SD_READ_ONLY, ShowDsiOptions);
+        set_option_visible(storage::DSI_SD_SYNC_TO_HOST, ShowDsiOptions);
 
         updated = true;
     }
@@ -866,24 +866,24 @@ static void melonds::config::parse_homebrew_save_options(
         return;
     }
 
-    if (const char* value = get_variable(system::HOMEBREW_READ_ONLY); !string_is_empty(value)) {
+    if (const char* value = get_variable(storage::HOMEBREW_READ_ONLY); !string_is_empty(value)) {
         _dldiReadOnly = string_is_equal(value, values::ENABLED);
     } else {
         _dldiReadOnly = false;
-        retro::warn("Failed to get value for %s; defaulting to %s", system::HOMEBREW_READ_ONLY, values::DISABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::HOMEBREW_READ_ONLY, values::DISABLED);
     }
 
-    if (const char* value = get_variable(system::HOMEBREW_SYNC_TO_HOST); !string_is_empty(value)) {
+    if (const char* value = get_variable(storage::HOMEBREW_SYNC_TO_HOST); !string_is_empty(value)) {
         _dldiFolderSync = string_is_equal(value, values::ENABLED);
     } else {
         _dldiFolderSync = true;
-        retro::warn("Failed to get value for %s; defaulting to %s", system::HOMEBREW_SYNC_TO_HOST, values::ENABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::HOMEBREW_SYNC_TO_HOST, values::ENABLED);
     }
 
-    if (optional<bool> value = ParseBoolean(get_variable(system::HOMEBREW_SAVE_MODE))) {
+    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE))) {
         _dldiEnable = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", system::HOMEBREW_SAVE_MODE, values::ENABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::HOMEBREW_SAVE_MODE, values::ENABLED);
         _dldiEnable = true;
     }
 }
@@ -896,24 +896,24 @@ static void melonds::config::parse_dsi_sd_options() noexcept {
     using namespace melonds::config::save;
     using retro::get_variable;
 
-    if (const char* value = get_variable(system::DSI_SD_READ_ONLY); !string_is_empty(value)) {
+    if (const char* value = get_variable(storage::DSI_SD_READ_ONLY); !string_is_empty(value)) {
         _dsiSdReadOnly = string_is_equal(value, values::ENABLED);
     } else {
         _dsiSdReadOnly = false;
-        retro::warn("Failed to get value for %s; defaulting to %s", system::DSI_SD_READ_ONLY, values::DISABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_READ_ONLY, values::DISABLED);
     }
 
-    if (const char* value = get_variable(system::DSI_SD_SYNC_TO_HOST); !string_is_empty(value)) {
+    if (const char* value = get_variable(storage::DSI_SD_SYNC_TO_HOST); !string_is_empty(value)) {
         _dsiSdFolderSync = string_is_equal(value, values::ENABLED);
     } else {
         _dsiSdFolderSync = true;
-        retro::warn("Failed to get value for %s; defaulting to %s", system::DSI_SD_SYNC_TO_HOST, values::ENABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_SYNC_TO_HOST, values::ENABLED);
     }
 
-    if (optional<bool> value = ParseBoolean(get_variable(system::DSI_SD_SAVE_MODE))) {
+    if (optional<bool> value = ParseBoolean(get_variable(storage::DSI_SD_SAVE_MODE))) {
         _dsiSdEnable = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", system::DSI_SD_SAVE_MODE, values::ENABLED);
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_SAVE_MODE, values::ENABLED);
         _dsiSdEnable = true;
     }
 }
@@ -1160,6 +1160,11 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "Change screen settings."
     },
     {
+        melonds::config::storage::CATEGORY,
+        "Storage",
+        "Change emulated SD card, NAND image, and save data settings."
+    },
+    {
         melonds::config::network::CATEGORY,
         "Network",
         "Change Nintendo Wi-Fi emulation settings."
@@ -1348,7 +1353,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
 
     // DSi
     {
-        config::system::DSI_SD_SAVE_MODE,
+        config::storage::DSI_SD_SAVE_MODE,
         "Virtual SD Card (DSi)",
         nullptr,
         "If enabled, a virtual SD card will be made available to the emulated DSi. "
@@ -1357,7 +1362,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Ignored when in DS mode. "
         "Changes take effect at next boot.",
         nullptr,
-        config::system::CATEGORY,
+        config::storage::CATEGORY,
         {
             {melonds::config::values::DISABLED, nullptr},
             {melonds::config::values::ENABLED, nullptr},
@@ -1366,13 +1371,13 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         melonds::config::values::ENABLED
     },
     {
-        config::system::DSI_SD_READ_ONLY,
+        config::storage::DSI_SD_READ_ONLY,
         "Read-Only Mode (DSi)",
         nullptr,
         "If enabled, the emulated DSi sees the virtual SD card as read-only. "
         "Changes take effect with next restart.",
         nullptr,
-        config::system::CATEGORY,
+        config::storage::CATEGORY,
         {
             {melonds::config::values::DISABLED, nullptr},
             {melonds::config::values::ENABLED, nullptr},
@@ -1381,7 +1386,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         melonds::config::values::DISABLED
     },
     {
-        config::system::DSI_SD_SYNC_TO_HOST,
+        config::storage::DSI_SD_SYNC_TO_HOST,
         "Sync SD Card to Host (DSi)",
         nullptr,
         "If enabled, the virtual SD card's files will be synced to this core's save directory. "
@@ -1391,7 +1396,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Takes effect at the next boot. "
         "Adjusting this setting may overwrite existing save data.",
         nullptr,
-        config::system::CATEGORY,
+        config::storage::CATEGORY,
         {
             {melonds::config::values::DISABLED, nullptr},
             {melonds::config::values::ENABLED, nullptr},
@@ -1908,7 +1913,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
 
     // Homebrew Save Data
     {
-        config::system::HOMEBREW_SAVE_MODE,
+        config::storage::HOMEBREW_SAVE_MODE,
         "Virtual SD Card",
         nullptr,
         "If enabled, a virtual SD card will be made available to homebrew DS games. "
@@ -1917,7 +1922,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Ignored for retail games. "
         "Changes take effect at next boot.",
         nullptr,
-        config::system::CATEGORY,
+        config::storage::CATEGORY,
         {
             {melonds::config::values::DISABLED, nullptr},
             {melonds::config::values::ENABLED, nullptr},
@@ -1926,13 +1931,13 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         melonds::config::values::ENABLED
     },
     {
-        config::system::HOMEBREW_READ_ONLY,
+        config::storage::HOMEBREW_READ_ONLY,
         "Read-Only Mode",
         nullptr,
         "If enabled, homebrew applications will see the virtual SD card as read-only. "
         "Changes take effect with next restart.",
         nullptr,
-        config::system::CATEGORY,
+        config::storage::CATEGORY,
         {
             {melonds::config::values::DISABLED, nullptr},
             {melonds::config::values::ENABLED, nullptr},
@@ -1941,7 +1946,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         melonds::config::values::DISABLED
     },
     {
-        config::system::HOMEBREW_SYNC_TO_HOST,
+        config::storage::HOMEBREW_SYNC_TO_HOST,
         "Sync SD Card to Host",
         nullptr,
         "If enabled, the virtual SD card's files will be synced to this core's save directory. "
@@ -1951,7 +1956,7 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         "Takes effect at the next boot. "
         "Adjusting this setting may overwrite existing save data.",
         nullptr,
-        config::system::CATEGORY,
+        config::storage::CATEGORY,
         {
             {melonds::config::values::DISABLED, nullptr},
             {melonds::config::values::ENABLED, nullptr},

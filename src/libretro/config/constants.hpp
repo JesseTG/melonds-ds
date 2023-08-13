@@ -83,18 +83,22 @@ namespace melonds::config {
         static const char *const BATTERY_UPDATE_INTERVAL = "melonds_battery_update_interval";
         static const char *const BOOT_DIRECTLY = "melonds_boot_directly";
         static const char *const CONSOLE_MODE = "melonds_console_mode";
+        static const char *const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
+        static const char *const FAVORITE_COLOR = "melonds_firmware_favorite_color";
+        static const char *const LANGUAGE = "melonds_language";
+        static const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
+        static const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
+    }
+
+    namespace storage {
+        static const char *const CATEGORY = "storage";
         static const char *const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
         static const char *const DSI_SD_SAVE_MODE = "melonds_dsi_sdcard";
         static const char *const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";
-        static const char *const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
-        static const char *const FAVORITE_COLOR = "melonds_firmware_favorite_color";
         static const char *const GBA_FLUSH_DELAY = "melonds_gba_flush_delay";
         static const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
         static const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
         static const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
-        static const char *const LANGUAGE = "melonds_language";
-        static const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
-        static const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
     }
 
     namespace video {
