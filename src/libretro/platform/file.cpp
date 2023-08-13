@@ -48,7 +48,7 @@ namespace Platform {
         if (mode & FileMode::Preserve)
             retro_mode |= RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING;
 
-        return mode;
+        return retro_mode;
     }
 
     constexpr unsigned GetRetroVfsFileAccessHints(FileType type) noexcept {
