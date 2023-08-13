@@ -46,9 +46,13 @@ namespace melonds {
     /// Called when settings have been updated mid-game
     void UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     bool update_option_visibility();
+    [[deprecated("Construct this at runtime based on the loaded game and available system files")]]
     extern struct retro_core_options_v2 options_us;
+
+    [[deprecated("Construct this at runtime based on the loaded game and available system files")]]
     extern struct retro_core_option_v2_definition option_defs_us[];
 #ifndef HAVE_NO_LANGEXTRA
+    [[deprecated("Construct this at runtime based on the loaded game and available system files")]]
     extern struct retro_core_options_v2* options_intl[];
 #endif
 
