@@ -71,6 +71,8 @@ namespace melonds {
     static ScreenLayoutData screenLayout;
     static bool swap_screen_toggled = false;
     static bool mic_state_toggled = false;
+    static bool isInDeinit = false;
+    static bool isUnloading = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
     static std::unique_ptr<NdsCart> _loaded_nds_cart;
@@ -109,6 +111,17 @@ namespace melonds {
     // functions for running games
     static void read_microphone(melonds::InputState& inputState) noexcept;
     static void render_audio();
+
+
+    bool IsUnloadingGame() noexcept
+    {
+        return isUnloading;
+    }
+
+    bool IsInDeinit() noexcept
+    {
+        return isInDeinit;
+    }
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -429,6 +442,7 @@ namespace NDS {
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
     ZoneScopedN("retro_unload_game");
+    melonds::isUnloading = true;
     retro::log(RETRO_LOG_DEBUG, "retro_unload_game()");
     // No need to flush SRAM to the buffer, Platform::WriteNDSSave has been doing that for us this whole time
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
@@ -454,6 +468,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
 
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
+    melonds::isUnloading = false;
 }
 
 PUBLIC_SYMBOL unsigned retro_get_region(void) {
@@ -469,6 +484,7 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 
 PUBLIC_SYMBOL void retro_deinit(void) {
     ZoneScopedN("retro_deinit");
+    melonds::isInDeinit = true;
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
     retro::task::deinit();
     melonds::file::deinit();
@@ -478,6 +494,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
     Platform::DeInit();
+    melonds::isInDeinit = false;
 }
 
 PUBLIC_SYMBOL unsigned retro_api_version(void) {

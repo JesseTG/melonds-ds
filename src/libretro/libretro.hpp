@@ -35,4 +35,9 @@
 using NdsCart = NDSCart::CartCommon;
 using GbaCart = GBACart::CartCommon;
 
+namespace melonds {
+    bool IsUnloadingGame() noexcept;
+    bool IsInDeinit() noexcept;
+}
+
 #endif //MELONDS_DS_LIBRETRO_HPP

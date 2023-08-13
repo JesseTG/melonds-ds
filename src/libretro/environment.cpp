@@ -47,6 +47,7 @@ namespace retro {
     static bool _supports_bitmasks;
     static bool _supportsPowerStatus;
     static bool _config_categories_supported;
+    static bool isShuttingDown = false;
     static unsigned _message_interface_version;
 
     // Cached so that the save directory won't change during a session
@@ -104,7 +105,14 @@ bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
 }
 
 bool retro::shutdown() noexcept {
-    return environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+    if (melonds::IsInDeinit() || melonds::IsUnloadingGame())
+        return true;
+
+    if (isShuttingDown)
+        return true;
+
+    isShuttingDown = environment(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+    return isShuttingDown;
 }
 
 bool retro::is_variable_updated() noexcept {
