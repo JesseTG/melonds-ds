@@ -6,7 +6,7 @@ corename = "melonDS DS"
 categories = "Emulator"
 license = "GPLv3"
 permissions = ""
-display_version = "0.2.2"
+display_version = "0.2.3"
 
 # Hardware Information
 manufacturer = "Nintendo"
