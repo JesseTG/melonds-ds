@@ -395,9 +395,9 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
 
     if (retro::_supportsPowerStatus) {
-        retro::debug("Power state available");
+        retro::debug("Power state available\n");
     } else {
-        retro::debug("Power state not available");
+        retro::debug("Power state not available\n");
     }
 
     environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version);
@@ -438,7 +438,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     bool supports_no_game = true;
     if (environment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &supports_no_game))
-        retro::log(RETRO_LOG_INFO, "Frontend supports no-game mode.");
+        retro::log(RETRO_LOG_INFO, "Frontend supports no-game mode.\n");
 
     retro::microphone::init_interface();
 }

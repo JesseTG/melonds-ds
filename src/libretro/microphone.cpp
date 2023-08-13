@@ -29,7 +29,6 @@ using std::nullopt;
 namespace retro::microphone {
     static optional<struct retro_microphone_interface> _microphone_interface;
     static retro_microphone_t* _microphone_handle;
-
 }
 
 void retro::microphone::init_interface() noexcept {
@@ -43,13 +42,13 @@ void retro::microphone::init_interface() noexcept {
             _microphone_interface = microphoneInterface;
 
             if (microphoneInterface.interface_version == RETRO_MICROPHONE_INTERFACE_VERSION) {
-                retro::debug("Microphone support available (version %u)", microphoneInterface.interface_version);
+                retro::debug("Microphone support available (version %u)\n", microphoneInterface.interface_version);
             } else {
-                retro::warn("Expected mic interface version %u, got %u.",
+                retro::warn("Expected mic interface version %u, got %u.\n",
                             RETRO_MICROPHONE_INTERFACE_VERSION, microphoneInterface.interface_version);
             }
         } else {
-            retro::warn("Microphone interface not available; substituting silence instead.");
+            retro::warn("Microphone interface not available; substituting silence instead.\n");
         }
     }
 }
