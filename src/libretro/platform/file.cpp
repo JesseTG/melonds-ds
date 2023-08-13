@@ -73,6 +73,8 @@ namespace Platform {
                 return RETRO_VFS_SEEK_POSITION_CURRENT;
             case FileSeekOrigin::End:
                 return RETRO_VFS_SEEK_POSITION_END;
+            default:
+                return 0;
         }
     }
 }
