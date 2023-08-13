@@ -9,6 +9,8 @@ add_library(libretro MODULE
     buffer.hpp
     config.cpp
     config.hpp
+    config/constants.cpp
+    config/constants.hpp
     content.cpp
     content.hpp
     dsi.cpp
