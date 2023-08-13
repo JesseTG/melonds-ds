@@ -63,6 +63,7 @@ const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
 namespace Config {
+    // Needed by melonDS's wi-fi implementation
     std::string LANDevice;
 }
 
