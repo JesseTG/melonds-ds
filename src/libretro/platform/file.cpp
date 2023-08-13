@@ -98,6 +98,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode,
     handle->type = type;
 
     if (!handle->file) {
+        Log(LogLevel::Error, "Attempted to open %s \"%s\" in FileMode 0x%x, but failed", FileTypeName(type), path.c_str(), mode);
         delete handle;
         return nullptr;
     }
