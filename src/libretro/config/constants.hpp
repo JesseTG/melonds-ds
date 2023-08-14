@@ -47,6 +47,7 @@ namespace melonds::config {
     namespace network {
         static const char *const CATEGORY = "network";
         static const char *const NETWORK_MODE = "melonds_network_mode";
+        static const char *const DIRECT_NETWORK_INTERFACE = "melonds_direct_network_interface";
     }
 
     namespace screen {
