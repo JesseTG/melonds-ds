@@ -50,6 +50,8 @@ add_library(libretro MODULE
     power.hpp
     render.cpp
     render.hpp
+    retro/dirent.cpp
+    retro/dirent.hpp
     retro/task_queue.cpp
     retro/task_queue.hpp
     screenlayout.cpp
