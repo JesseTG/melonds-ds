@@ -319,6 +319,10 @@ optional<retro_language> retro::get_language() noexcept {
         return nullopt;
     }
 
+    if (language >= RETRO_LANGUAGE_LAST) {
+        return nullopt;
+    }
+
     return language;
 }
 
