@@ -490,12 +490,27 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
                 {
                         {melonds::config::values::DISABLED, nullptr},
                         {melonds::config::values::INDIRECT, "Indirect"},
+#ifdef HAVE_NETWORKING_DIRECT_MODE
                         {melonds::config::values::DIRECT, "Direct"},
+#endif
                         {nullptr, nullptr},
                 },
                 melonds::config::values::INDIRECT
         },
-
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        {
+                config::network::DIRECT_NETWORK_INTERFACE,
+                "Wi-fi Interface",
+                nullptr,
+                "TODO",
+                nullptr,
+                config::network::CATEGORY,
+                {
+                    {melonds::config::values::AUTO, "Automatic"},
+                },
+                melonds::config::values::AUTO
+        },
+#endif
         {
                 config::screen::SHOW_CURSOR,
                 "Cursor Mode",
