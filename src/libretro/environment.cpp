@@ -25,6 +25,7 @@
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 #include <compat/strl.h>
+#include <retro_dirent.h>
 
 #include "microphone.hpp"
 #include "info.hpp"
@@ -430,11 +431,22 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) melonds::subsystems);
 
-    struct retro_vfs_interface_info vfs{};
-    vfs.required_interface_version = FILESTREAM_REQUIRED_VFS_VERSION;
-    vfs.iface = nullptr;
-    if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs))
-        filestream_vfs_init(&vfs);
+    retro_vfs_interface_info vfs { .required_interface_version = 1, .iface = nullptr };
+    if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs)) {
+        if (vfs.required_interface_version >= PATH_REQUIRED_VFS_VERSION) {
+            path_vfs_init(&vfs);
+        }
+
+        if (vfs.required_interface_version >= FILESTREAM_REQUIRED_VFS_VERSION) {
+            filestream_vfs_init(&vfs);
+        }
+
+        if (vfs.required_interface_version >= DIRENT_REQUIRED_VFS_VERSION) {
+            dirent_vfs_init(&vfs);
+        }
+    } else {
+        retro::debug("Frontend does not support VFS, using internal fallbacks.\n");
+    }
 
     bool supports_no_game = true;
     if (environment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &supports_no_game))
