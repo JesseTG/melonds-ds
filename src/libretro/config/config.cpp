@@ -32,6 +32,7 @@
 #include <SPU.h>
 
 #include "config/constants.hpp"
+#include "config/definitions.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "input.hpp"
@@ -1183,7 +1184,7 @@ static void melonds::config::set_core_options() {
 
         /* Determine total number of options */
         while (true) {
-            if (melonds::option_defs_us[num_options].key)
+            if (melonds::FixedOptionDefinitions[num_options].key)
                 num_options++;
             else
                 break;
@@ -1196,7 +1197,7 @@ static void melonds::config::set_core_options() {
 
             /* Copy parameters from option_defs_us array */
             for (int i = 0; i < num_options; i++) {
-                struct retro_core_option_v2_definition* option_def_us = &melonds::option_defs_us[i];
+                struct retro_core_option_v2_definition* option_def_us = &melonds::FixedOptionDefinitions[i];
                 struct retro_core_option_value* option_values = option_def_us->values;
                 struct retro_core_option_definition* option_v1_def_us = &option_v1_defs_us[i];
                 struct retro_core_option_value* option_v1_values = option_v1_def_us->values;
@@ -1276,10 +1277,10 @@ static void melonds::config::set_core_options() {
 
             /* Copy parameters from option_defs_us array */
             for (int i = 0; i < num_options; i++) {
-                const char* key = melonds::option_defs_us[i].key;
-                const char* desc = melonds::option_defs_us[i].desc;
-                const char* default_value = melonds::option_defs_us[i].default_value;
-                struct retro_core_option_value* values = melonds::option_defs_us[i].values;
+                const char* key = melonds::FixedOptionDefinitions[i].key;
+                const char* desc = melonds::FixedOptionDefinitions[i].desc;
+                const char* default_value = melonds::FixedOptionDefinitions[i].default_value;
+                struct retro_core_option_value* values = melonds::FixedOptionDefinitions[i].values;
                 size_t buf_len = 3;
                 size_t default_index = 0;
 

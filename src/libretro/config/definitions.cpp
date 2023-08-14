@@ -15,10 +15,11 @@
 */
 
 #include "config.hpp"
+#include "config/definitions.hpp"
 #include "config/constants.hpp"
 
 #include <libretro.h>
-
+#include <retro_miscellaneous.h>
 
 struct retro_core_option_v2_category option_cats_us[] = {
         {
@@ -62,7 +63,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
 };
 
 /// All descriptive text uses semantic line breaks. https://sembr.org
-struct retro_core_option_v2_definition melonds::option_defs_us[] = {
+struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
         // System
         {
                 config::system::CONSOLE_MODE,
@@ -952,13 +953,15 @@ struct retro_core_option_v2_definition melonds::option_defs_us[] = {
         },
 #endif
 #endif
-        {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{nullptr}}, nullptr},
+        {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{nullptr, nullptr}}, nullptr},
 };
+
+const size_t melonds::FixedOptionDefinitionsLength = ARRAY_SIZE(FixedOptionDefinitions) - 1;
 
 
 struct retro_core_options_v2 melonds::options_us = {
         option_cats_us,
-        option_defs_us
+        FixedOptionDefinitions
 };
 
 
