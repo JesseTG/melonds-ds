@@ -387,7 +387,7 @@ bool melonds::update_option_visibility() {
         updated = true;
     }
 #else
-    set_option_visible(keys::RENDER_MODE, false);
+    set_option_visible(video::RENDER_MODE, false);
 #endif
 
     bool oldShowDsiOptions = ShowDsiOptions;
