@@ -59,6 +59,7 @@ namespace retro {
     static optional<string> _save_directory;
     static optional<string> _system_directory;
     static optional<string> _system_subdir;
+    static optional<string> _system_fallback_subdir;
 
     static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
 }
@@ -471,6 +472,10 @@ const optional<string>& retro::get_system_subdirectory() {
     return _system_subdir;
 }
 
+const optional<string>& retro::get_system_fallback_subdirectory() {
+    return _system_fallback_subdir;
+}
+
 void retro::clear_environment() {
     _save_directory = nullopt;
     _system_directory = nullopt;
@@ -536,6 +541,11 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         else {
             retro::error("Failed to create melonDS DS system subdirectory at \"%s\"", melon_dir);
         }
+
+        fill_pathname_join_special(melon_dir, system_dir, "melonDS", sizeof(melon_dir));
+        retro::_system_fallback_subdir = melon_dir;
+
+        retro::info("melonDS DS system fallback directory: \"%s\" (won't be created, but will be honored)", melon_dir);
     }
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) melonds::subsystems);
