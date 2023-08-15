@@ -21,6 +21,7 @@
 #include "tracy.hpp"
 
 #include <algorithm>
+#include <string_view>
 #include <utility>
 
 #include <retro_dirent.h>
@@ -33,11 +34,12 @@ using std::min;
 using std::optional;
 using std::pair;
 using std::string;
+using std::string_view;
 using std::vector;
 
 constexpr size_t DSI_NAND_SIZE = 251658304;
 
-static vector<string> GetNandPaths(const optional<string> &base) noexcept;
+static vector<string> GetNandPaths() noexcept;
 
 melonds::config::DynamicCoreOptions::DynamicCoreOptions(
         const retro_core_option_v2_definition *definitions,
@@ -63,7 +65,7 @@ melonds::config::DynamicCoreOptions::DynamicCoreOptions(
     _optionCategories = new retro_core_option_v2_category[categories_length];
     memcpy(_optionCategories, categories, categories_length * sizeof(retro_core_option_v2_category));
 
-    optional<string> sysdir = retro::get_system_directory();
+
 
     {
         retro_core_option_v2_definition* dsiNandPathOption = find_if(_optionDefs, _optionDefsEnd, [](const auto& def) {
@@ -72,7 +74,7 @@ melonds::config::DynamicCoreOptions::DynamicCoreOptions(
 
         retro_assert(dsiNandPathOption != _optionDefsEnd);
 
-        for (const string& path : GetNandPaths(sysdir)) {
+        for (const string& path : GetNandPaths()) {
             _dsiNandPaths.push_back(std::move(path));
         }
 
@@ -97,19 +99,28 @@ melonds::config::DynamicCoreOptions::~DynamicCoreOptions() noexcept {
     delete[] _optionDefs;
 }
 
-static vector<string> GetNandPaths(const optional<string> &base) noexcept {
+static vector<string> GetNandPaths() noexcept {
     vector<string> paths;
 
-    if (base) {
-        for (const retro::dirent& d : retro::readdir(*base, true)) {
-            retro_assert(retro::is_regular_file(d.flags));
-            if (d.size == DSI_NAND_SIZE) {
-                // If this is a regular file...
-                paths.emplace_back(d.name);
+    auto appendPaths = [&paths](optional<string> base) {
+        if (base) {
+            for (const retro::dirent& d : retro::readdir(*base, true)) {
+                retro_assert(retro::is_regular_file(d.flags));
+                if (d.size == DSI_NAND_SIZE) {
+                    // If this is a regular file...
+                    string_view path = d.path;
+                    retro_assert(path.size() > base->size());
+
+                    path.remove_prefix(base->size() + 1);
+                    paths.emplace_back(path);
+                }
             }
         }
-    }
+    };
 
+    appendPaths(retro::get_system_directory());
+    appendPaths(retro::get_system_subdirectory());
+    appendPaths(retro::get_system_fallback_subdirectory());
 
     return paths;
 }
