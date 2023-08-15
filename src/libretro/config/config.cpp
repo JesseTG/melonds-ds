@@ -1164,7 +1164,6 @@ static void melonds::config::set_core_options(
 
     _config_categories_supported = false;
     DynamicCoreOptions options(
-        nds_info, nds_header,
         FixedOptionDefinitions, FixedOptionDefinitionsLength,
         OptionCategories, OptionCategoriesLength
     );

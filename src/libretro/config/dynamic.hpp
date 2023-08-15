@@ -26,18 +26,9 @@
 struct NDSHeader;
 
 namespace melonds::config {
-    struct CoreOption {
-        std::string value;
-        std::string label;
-
-        CoreOption(const std::string &value, const std::string &label) noexcept: value(value), label(label) {}
-    };
-
     class DynamicCoreOptions {
     public:
         DynamicCoreOptions(
-            const std::optional<retro_game_info> &nds_info,
-            const std::optional<NDSHeader> &nds_header,
             const retro_core_option_v2_definition *definitions,
             size_t definitions_length,
             const retro_core_option_v2_category *categories,

@@ -40,8 +40,6 @@ constexpr size_t DSI_NAND_SIZE = 251658304;
 static vector<string> GetNandPaths(const optional<string> &base) noexcept;
 
 melonds::config::DynamicCoreOptions::DynamicCoreOptions(
-        const std::optional<retro_game_info> &nds_info,
-        const std::optional<NDSHeader> &nds_header,
         const retro_core_option_v2_definition *definitions,
         size_t definitions_length,
         const retro_core_option_v2_category *categories,
