@@ -16,6 +16,7 @@
 
 #include "dynamic.hpp"
 #include "constants.hpp"
+#include "environment.hpp"
 #include "retro/dirent.hpp"
 #include "tracy.hpp"
 
@@ -26,7 +27,6 @@
 #include <retro_assert.h>
 #include <string/stdstring.h>
 #include <vfs/vfs_implementation.h>
-#include <environment.hpp>
 
 using std::find_if;
 using std::min;
