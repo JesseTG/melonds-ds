@@ -47,7 +47,6 @@ namespace retro {
     struct dirent_tree {
         using value_type = dirent;
 
-        dirent_tree(const std::string& path, bool hidden) noexcept;
         ~dirent_tree() noexcept;
 
         struct dirent_iterator {
@@ -74,8 +73,15 @@ namespace retro {
         dirent_iterator begin() noexcept;
         dirent_iterator end() const noexcept;
     private:
+        dirent_tree(const std::string& path, bool hidden) noexcept;
+        dirent_tree(const dirent_tree&) = delete;
+        dirent_tree(dirent_tree&&) = delete;
+        dirent_tree& operator=(const dirent_tree&) = delete;
+        dirent_tree& operator=(dirent_tree&&) = delete;
+
         RDIR* dir;
         std::string originalPath;
+        friend dirent_tree readdir(const std::string& path, bool hidden) noexcept;
     };
 
     dirent_tree readdir(const std::string& path, bool hidden) noexcept;
