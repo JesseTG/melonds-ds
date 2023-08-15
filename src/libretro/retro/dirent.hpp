@@ -44,11 +44,11 @@ namespace retro {
         }
     };
 
-    struct file_tree {
+    struct dirent_tree {
         using value_type = dirent;
 
-        file_tree(const std::string& path, bool hidden) noexcept;
-        ~file_tree() noexcept;
+        dirent_tree(const std::string& path, bool hidden) noexcept;
+        ~dirent_tree() noexcept;
 
         struct dirent_iterator {
             using iterator_category = std::input_iterator_tag;
@@ -57,7 +57,7 @@ namespace retro {
             using pointer = const value_type*;
             using reference = const value_type&;
 
-            dirent_iterator(file_tree* ptr) noexcept;
+            dirent_iterator(dirent_tree* ptr) noexcept;
             dirent_iterator& operator++() noexcept;
             dirent_iterator operator++(int) noexcept;
 
@@ -67,7 +67,7 @@ namespace retro {
             friend bool operator== (const dirent_iterator& a, const dirent_iterator& b) { return a.m_ptr == b.m_ptr; }
             friend bool operator!= (const dirent_iterator& a, const dirent_iterator& b) { return a.m_ptr != b.m_ptr; }
         private:
-            file_tree* m_ptr;
+            dirent_tree* m_ptr;
             dirent current;
         };
 
@@ -78,7 +78,7 @@ namespace retro {
         std::string originalPath;
     };
 
-    file_tree readdir(const std::string& path, bool hidden) noexcept;
+    dirent_tree readdir(const std::string& path, bool hidden) noexcept;
 }
 
 #endif //MELONDS_DS_DIRENT_HPP

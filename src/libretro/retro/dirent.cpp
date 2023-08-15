@@ -21,29 +21,29 @@
 
 #include <file/file_path.h>
 
-retro::file_tree retro::readdir(const std::string &path, bool hidden) noexcept {
-    return file_tree(path, hidden);
+retro::dirent_tree retro::readdir(const std::string &path, bool hidden) noexcept {
+    return dirent_tree(path, hidden);
 }
 
-retro::file_tree::file_tree(const std::string &path, bool hidden) noexcept: originalPath(path) {
+retro::dirent_tree::dirent_tree(const std::string &path, bool hidden) noexcept: originalPath(path) {
     dir = retro_opendir_include_hidden(path.c_str(), hidden);
 }
 
-retro::file_tree::~file_tree() noexcept {
+retro::dirent_tree::~dirent_tree() noexcept {
     if (dir) {
         retro_closedir(dir);
     }
 }
 
-retro::file_tree::dirent_iterator retro::file_tree::begin() noexcept {
+retro::dirent_tree::dirent_iterator retro::dirent_tree::begin() noexcept {
     return dir ? dirent_iterator(this) : dirent_iterator(nullptr);
 }
 
-retro::file_tree::dirent_iterator retro::file_tree::end() const noexcept {
+retro::dirent_tree::dirent_iterator retro::dirent_tree::end() const noexcept {
     return dirent_iterator(nullptr);
 }
 
-retro::file_tree::dirent_iterator::dirent_iterator(file_tree *ptr) noexcept: m_ptr(ptr) {
+retro::dirent_tree::dirent_iterator::dirent_iterator(dirent_tree *ptr) noexcept: m_ptr(ptr) {
     if (m_ptr) {
         ++(*this); // Find the first file
     } else {
@@ -54,14 +54,14 @@ retro::file_tree::dirent_iterator::dirent_iterator(file_tree *ptr) noexcept: m_p
     }
 }
 
-retro::file_tree::dirent_iterator retro::file_tree::dirent_iterator::operator++(int) noexcept {
+retro::dirent_tree::dirent_iterator retro::dirent_tree::dirent_iterator::operator++(int) noexcept {
     dirent_iterator tmp = *this;
     ++(*this);
     return tmp;
 }
 
 // Go to the next file
-retro::file_tree::dirent_iterator &retro::file_tree::dirent_iterator::operator++() noexcept {
+retro::dirent_tree::dirent_iterator &retro::dirent_tree::dirent_iterator::operator++() noexcept {
     if (!m_ptr) {
         // If this iterator is at its end...
         return *this;
