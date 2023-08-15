@@ -20,6 +20,9 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include <libretro.h>
 #include <file/file_path.h>
@@ -34,8 +37,11 @@
 #include "tracy.hpp"
 
 using std::string;
+using std::string_view;
 using std::optional;
 using std::nullopt;
+using std::vector;
+using namespace std::literals;
 
 namespace retro {
     static retro_environment_t _environment;
@@ -101,6 +107,109 @@ bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
     bool rotated = false;
     rotated = environment(RETRO_ENVIRONMENT_SET_ROTATION, &orientation);
     return rotated;
+}
+
+bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
+    unsigned version = 0;
+    if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
+        version = 0;
+
+    if (version >= 2) {
+        if (retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2, (void *) &options)) {
+            retro::debug("V2 core options set successfully");
+            return true;
+        }
+    }
+
+    retro::warn("V2 core options not supported, trying V1");
+
+    unsigned num_options = 0;
+    while (true) {
+        if (options.definitions[num_options].key)
+            num_options++;
+        else
+            break;
+    }
+
+    if (version >= 1) {
+        /* Allocate US array */
+        vector<retro_core_option_definition> optionDefsV1(num_options + 1);
+
+        /* Copy parameters from option_defs_us array */
+        for (unsigned i = 0; i < num_options; i++) {
+            retro_core_option_v2_definition& optionDefV2 = options.definitions[i];
+            retro_core_option_definition& optionDefV1 = optionDefsV1[i];
+
+            optionDefV1.key = optionDefV2.key;
+            optionDefV1.desc = optionDefV2.desc;
+            optionDefV1.info = optionDefV2.info;
+            optionDefV1.default_value = optionDefV2.default_value;
+            memcpy(optionDefV1.values, optionDefV2.values, sizeof(optionDefV1.values));
+        }
+
+        memset(&optionDefsV1.back(), 0, sizeof(retro_core_option_definition));
+
+        if (retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS, optionDefsV1.data())) {
+            retro::debug("V1 core options set successfully");
+            return true;
+        }
+    }
+
+    retro::warn("V1 core options not supported, trying V0");
+
+    /* Allocate arrays */
+    vector<retro_variable> variables(num_options + 1);
+    vector<string> valuesBuffer(num_options);
+
+    size_t option_index = 0;
+    /* Copy parameters from option_defs_us array */
+    for (unsigned i = 0; i < num_options; i++) {
+        string_view desc = options.definitions[i].desc ? options.definitions[i].desc : ""sv;
+        string_view default_value = options.definitions[i].default_value ? options.definitions[i].default_value : ""sv;
+        retro_core_option_value* values = options.definitions[i].values;
+        size_t default_index = 0;
+
+        valuesBuffer[i] = "";
+
+        if (!desc.empty()) {
+            size_t num_values = 0;
+
+            /* Determine number of values */
+            while (true) {
+                if (values[num_values].value) {
+                    /* Check if this is the default value */
+                    if (!default_value.empty() && values[num_values].value == default_value)
+                        default_index = num_values;
+
+                    num_values++;
+                } else
+                    break;
+            }
+
+            /* Build values string */
+            if (num_values > 0) {
+
+                /* Default value goes first */
+                valuesBuffer[i] = string(desc) + "; " + values[default_index].value;
+
+                /* Add remaining values */
+                for (unsigned j = 0; j < num_values; j++) {
+                    if (j != default_index) {
+                        valuesBuffer[i] += string("|") + values[j].value;
+                    }
+                }
+            }
+        }
+
+        variables[option_index].key = options.definitions[i].key;
+        variables[option_index].value = valuesBuffer[i].c_str();
+        option_index++;
+    }
+
+    memset(&variables.back(), 0, sizeof(retro_variable));
+
+    /* Set variables */
+    return retro::environment(RETRO_ENVIRONMENT_SET_VARIABLES, variables.data());
 }
 
 bool retro::shutdown() noexcept {
