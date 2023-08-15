@@ -146,7 +146,7 @@ namespace melonds::config {
         static const char *const MICROPHONE = "microphone";
         static const char *const MOUSE = "mouse";
         static const char *const NOISE = "noise";
-        static const char *const NOT_FOUND = "n/a"; // "/" is not allowed in file names, so it's a safe choice
+        static const char *const NOT_FOUND = "";
         static const char *const ONE = "one";
         static const char *const OPENGL = "opengl";
         static const char *const RIGHT_LEFT = "right-left";
