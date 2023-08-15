@@ -888,9 +888,10 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
 #ifdef JIT_ENABLED
         {
                 config::cpu::JIT_ENABLE,
-                "JIT Enable (Restart)",
+                "JIT Recompiler",
                 nullptr,
-                "Recompiles emulated machine code as it runs. "
+                "Recompiles emulated machine code into native code as it runs, "
+                "considerably improving performance over plain interpretation. "
                 "Restart required to take effect. "
                 "If unsure, leave enabled.",
                 nullptr,
@@ -904,7 +905,7 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
         },
         {
                 config::cpu::JIT_BLOCK_SIZE,
-                "JIT Block Size",
+                "Block Size",
                 nullptr,
                 nullptr,
                 nullptr,
@@ -948,7 +949,7 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
         },
         {
                 config::cpu::JIT_BRANCH_OPTIMISATIONS,
-                "JIT Branch Optimisations",
+                "Branch Optimizations",
                 nullptr,
                 nullptr,
                 nullptr,
@@ -962,7 +963,7 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
         },
         {
                 config::cpu::JIT_LITERAL_OPTIMISATIONS,
-                "JIT Literal Optimisations",
+                "Literal Optimizations",
                 nullptr,
                 nullptr,
                 nullptr,
