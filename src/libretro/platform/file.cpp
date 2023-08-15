@@ -125,6 +125,10 @@ bool Platform::FileExists(const std::string& name)
 
 bool Platform::LocalFileExists(const std::string& name)
 {
+    if (name.empty()) {
+        return false;
+    }
+
     if (path_is_absolute(name.c_str())) {
         return path_is_valid(name.c_str());
     }
