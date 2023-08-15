@@ -31,7 +31,7 @@ jobs:
       archive-name: melondsds_libretro-macos-universal
       runs-on: macos-latest
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64;x86_64"
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64;x86_64" -DENABLE_OGLRENDERER=OFF
 
   linux-x86_64:
     name: Linux (x86_64)
