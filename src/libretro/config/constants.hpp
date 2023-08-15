@@ -96,6 +96,7 @@ namespace melonds::config {
         static const char *const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
         static const char *const DSI_SD_SAVE_MODE = "melonds_dsi_sdcard";
         static const char *const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";
+        static const char *const DSI_NAND_PATH = "melonds_dsi_nand_path";
         static const char *const GBA_FLUSH_DELAY = "melonds_gba_flush_delay";
         static const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
         static const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
@@ -145,6 +146,7 @@ namespace melonds::config {
         static const char *const MICROPHONE = "microphone";
         static const char *const MOUSE = "mouse";
         static const char *const NOISE = "noise";
+        static const char *const NOT_FOUND = "n/a"; // "/" is not allowed in file names, so it's a safe choice
         static const char *const ONE = "one";
         static const char *const OPENGL = "opengl";
         static const char *const RIGHT_LEFT = "right-left";
