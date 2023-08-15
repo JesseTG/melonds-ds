@@ -29,12 +29,14 @@ namespace retro {
     }
 
     struct dirent {
-        char name[PATH_MAX];
+        char name[FILENAME_MAX];
+        char path[PATH_MAX];
         int32_t size;
         int flags;
 
         dirent() {
             memset((void *) name, 0, sizeof(name));
+            memset((void *) path, 0, sizeof(path));
             size = 0;
             flags = 0;
         }

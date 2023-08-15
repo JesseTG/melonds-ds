@@ -46,6 +46,7 @@ retro::file_tree::dirent_iterator::dirent_iterator(file_tree *ptr) noexcept: m_p
         ++(*this); // Find the first file
     } else {
         memset((void *) current.name, 0, sizeof(current.name));
+        memset((void *) current.path, 0, sizeof(current.path));
         current.size = 0;
         current.flags = 0;
     }
@@ -69,6 +70,7 @@ retro::file_tree::dirent_iterator &retro::file_tree::dirent_iterator::operator++
         bool hasNext = retro_readdir(m_ptr->dir);
         if (!hasNext) {
             m_ptr = nullptr;
+            memset((void *) current.path, 0, sizeof(current.path));
             memset((void *) current.name, 0, sizeof(current.name));
             current.flags = 0;
             current.size = 0;
@@ -82,9 +84,10 @@ retro::file_tree::dirent_iterator &retro::file_tree::dirent_iterator::operator++
         int32_t size = 0;
         int flags = retro_vfs_stat_impl(filePath, &size);
         if (is_regular_file(flags)) {
-            // If we've found the next file to return in the outer loop...
+            // If we've found the next file to return to whoever's using this iterator...
+            strncpy(current.name, fileName, sizeof(current.name));
+            strncpy(current.path, filePath, sizeof(current.path));
             current.flags = flags;
-            strncpy(const_cast<char *>(current.name), filePath, sizeof(current.name));
             current.size = size;
             done = true;
         }
