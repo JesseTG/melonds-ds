@@ -975,11 +975,20 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
                 melonds::config::values::ENABLED
         },
 #ifdef HAVE_JIT_FASTMEM
+        // Fastmem uses SIGSEGV for reasons I don't exactly understand,
+        // but I do know that it makes using debuggers a pain
+        // due to the constant breaks at each SIGSEGV.
+        // So it's turned off by default in debug builds.
         {
                 config::cpu::JIT_FAST_MEMORY,
-                "JIT Fast Memory",
+                "Fast Memory",
                 nullptr,
-                nullptr,
+#ifndef NDEBUG
+                "Disable this if running melonDS DS through a debugger, "
+                "otherwise the constant (but expected) SIGSEGVs will get annoying. "
+#endif
+                "Takes effect at next restart. "
+                "If unsure, leave enabled.",
                 nullptr,
                 melonds::config::cpu::CATEGORY,
                 {
@@ -987,7 +996,11 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
                         {melonds::config::values::ENABLED, nullptr},
                         {nullptr, nullptr},
                 },
+#ifdef NDEBUG
                 melonds::config::values::ENABLED
+#else
+                melonds::config::values::DISABLED
+#endif
         },
 #endif
 #endif
