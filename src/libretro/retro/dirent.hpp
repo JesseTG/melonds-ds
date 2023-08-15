@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iterator>
+#include <string>
 
 #include <retro_dirent.h>
 #include <vfs/vfs_implementation.h>
