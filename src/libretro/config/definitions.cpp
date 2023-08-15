@@ -21,7 +21,7 @@
 #include <libretro.h>
 #include <retro_miscellaneous.h>
 
-struct retro_core_option_v2_category option_cats_us[] = {
+struct retro_core_option_v2_category melonds::OptionCategories[] = {
         {
                 melonds::config::system::CATEGORY,
                 "System",
@@ -61,6 +61,8 @@ struct retro_core_option_v2_category option_cats_us[] = {
 #endif
         {nullptr, nullptr, nullptr},
 };
+
+const size_t melonds::OptionCategoriesLength = ARRAY_SIZE(OptionCategories);
 
 /// All descriptive text uses semantic line breaks. https://sembr.org
 struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
@@ -286,6 +288,27 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
                         {nullptr, nullptr},
                 },
                 melonds::config::values::DISABLED
+        },
+        {
+            config::storage::DSI_NAND_PATH,
+            "DSi NAND Path",
+            nullptr,
+            "Select a DSi NAND image to use. "
+            "Files listed here must be:\n"
+            "\n"
+            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\" or \"melonDS\".\n"
+            "- Exactly 251,658,304 bytes (240MB) in size.\n"
+            "\n"
+            "DSi mode requires a NAND image, or else it won't start. "
+            "Ignored in DS mode. "
+            "Takes effect at the next boot (not reset).",
+            nullptr,
+            config::storage::CATEGORY,
+            {
+                    {melonds::config::values::NOT_FOUND, "None Found"},
+                    {nullptr, nullptr},
+            },
+            melonds::config::values::NOT_FOUND
         },
 
         // Video
@@ -971,46 +994,4 @@ struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
         {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, {{nullptr, nullptr}}, nullptr},
 };
 
-const size_t melonds::FixedOptionDefinitionsLength = ARRAY_SIZE(FixedOptionDefinitions) - 1;
-
-
-struct retro_core_options_v2 melonds::options_us = {
-        option_cats_us,
-        FixedOptionDefinitions
-};
-
-
-#ifndef HAVE_NO_LANGEXTRA
-struct retro_core_options_v2* melonds::options_intl[] = {
-        &options_us, /* RETRO_LANGUAGE_ENGLISH */
-        nullptr,        /* RETRO_LANGUAGE_JAPANESE */
-        nullptr,        /* RETRO_LANGUAGE_FRENCH */
-        nullptr,        /* RETRO_LANGUAGE_SPANISH */
-        nullptr,        /* RETRO_LANGUAGE_GERMAN */
-        nullptr,        /* RETRO_LANGUAGE_ITALIAN */
-        nullptr,        /* RETRO_LANGUAGE_DUTCH */
-        nullptr,        /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
-        nullptr,        /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
-        nullptr,        /* RETRO_LANGUAGE_RUSSIAN */
-        nullptr,        /* RETRO_LANGUAGE_KOREAN */
-        nullptr,        /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
-        nullptr,        /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
-        nullptr,        /* RETRO_LANGUAGE_ESPERANTO */
-        nullptr,        /* RETRO_LANGUAGE_POLISH */
-        nullptr,        /* RETRO_LANGUAGE_VIETNAMESE */
-        nullptr,        /* RETRO_LANGUAGE_ARABIC */
-        nullptr,        /* RETRO_LANGUAGE_GREEK */
-        nullptr,        /* RETRO_LANGUAGE_TURKISH */
-        nullptr,        /* RETRO_LANGUAGE_SLOVAK */
-        nullptr,        /* RETRO_LANGUAGE_PERSIAN */
-        nullptr,        /* RETRO_LANGUAGE_HEBREW */
-        nullptr,        /* RETRO_LANGUAGE_ASTURIAN */
-        nullptr,        /* RETRO_LANGUAGE_FINNISH */
-        nullptr,        /* RETRO_LANGUAGE_INDONESIAN */
-        nullptr,        /* RETRO_LANGUAGE_SWEDISH */
-        nullptr,        /* RETRO_LANGUAGE_UKRAINIAN */
-        nullptr,        /* RETRO_LANGUAGE_CZECH */
-        nullptr,        /* RETRO_LANGUAGE_CATALAN_VALENCIA */
-        nullptr,        /* RETRO_LANGUAGE_CATALAN */
-};
-#endif
+const size_t melonds::FixedOptionDefinitionsLength = ARRAY_SIZE(FixedOptionDefinitions);

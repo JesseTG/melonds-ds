@@ -42,6 +42,7 @@
 #include "render.hpp"
 #include "screenlayout.hpp"
 #include "tracy.hpp"
+#include "dynamic.hpp"
 
 using std::from_chars;
 using std::from_chars_result;
@@ -104,7 +105,7 @@ namespace melonds::config {
         const optional<struct retro_game_info>& nds_info,
         const optional<NDSHeader>& header
     );
-    static void parse_dsi_sd_options() noexcept;
+    static void parse_dsi_storage_options() noexcept;
 
     static void verify_nds_bios(bool ds_game_loaded);
     static void verify_dsi_bios();
@@ -279,7 +280,9 @@ namespace melonds::config {
         string DsiBios9Path() noexcept { return "dsi_bios9.bin"; }
         string DsiBios7Path() noexcept { return "dsi_bios7.bin"; }
         string DsiFirmwarePath() noexcept { return "dsi_firmware.bin"; }
-        string DsiNandPath() noexcept { return "dsi_nand.bin"; }
+
+        static char _dsiNandPath[PATH_MAX];
+        string DsiNandPath() noexcept { return _dsiNandPath; }
     }
 
     namespace video {
@@ -312,7 +315,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     config::parse_system_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
-    config::parse_dsi_sd_options();
+    config::parse_dsi_storage_options();
     config::parse_firmware_options();
     config::parse_audio_options();
     config::parse_network_options();
@@ -899,8 +902,8 @@ static void melonds::config::parse_homebrew_save_options(
 /**
  * Reads the frontend's saved DSi save data options and applies them to the emulator.
  */
-static void melonds::config::parse_dsi_sd_options() noexcept {
-    ZoneScopedN("melonds::config::parse_dsi_sd_options");
+static void melonds::config::parse_dsi_storage_options() noexcept {
+    ZoneScopedN("melonds::config::parse_dsi_storage_options");
     using namespace melonds::config::save;
     using retro::get_variable;
 
@@ -923,6 +926,13 @@ static void melonds::config::parse_dsi_sd_options() noexcept {
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_SAVE_MODE, values::ENABLED);
         _dsiSdEnable = true;
+    }
+
+    if (const char* value = get_variable(storage::DSI_NAND_PATH); !string_is_empty(value) && Platform::LocalFileExists(value)) {
+        strncpy(system::_dsiNandPath, value, sizeof(system::_dsiNandPath));
+    } else {
+        strncpy(system::_dsiNandPath, values::NOT_FOUND, sizeof(system::_dsiNandPath));
+        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_NAND_PATH, values::NOT_FOUND);
     }
 }
 
@@ -1151,228 +1161,15 @@ static void melonds::config::set_core_options(
     const optional<NDSHeader> &nds_header
 ) noexcept {
     ZoneScopedN("retro::set_core_options");
-    unsigned version = 0;
 
     _config_categories_supported = false;
+    DynamicCoreOptions options(
+        nds_info, nds_header,
+        FixedOptionDefinitions, FixedOptionDefinitionsLength,
+        OptionCategories, OptionCategoriesLength
+    );
 
-    if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
-        version = 0;
+    retro_core_options_v2* optionsUs = options.GetOptions();
 
-    if (version >= 2) {
-#ifndef HAVE_NO_LANGEXTRA
-        unsigned language = 0;
-        struct retro_core_options_v2_intl core_options_intl{
-                &melonds::options_us,
-                nullptr
-        };
-
-        if (retro::environment(RETRO_ENVIRONMENT_GET_LANGUAGE, &language) &&
-            (language < RETRO_LANGUAGE_LAST) && (language != RETRO_LANGUAGE_ENGLISH))
-            core_options_intl.local = melonds::options_intl[language];
-
-        _config_categories_supported = retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL, &core_options_intl);
-#else
-        _config_categories_supported = retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2, &options_us);
-#endif
-    } else {
-        size_t option_index = 0;
-        size_t num_options = 0;
-        struct retro_core_option_definition* option_v1_defs_us = nullptr;
-#ifndef HAVE_NO_LANGEXTRA
-        size_t num_options_intl = 0;
-        unsigned language = 0;
-        struct retro_core_option_v2_definition* option_defs_intl = nullptr;
-        struct retro_core_option_definition* option_v1_defs_intl = nullptr;
-        struct retro_core_options_intl core_options_v1_intl;
-#endif
-        struct retro_variable* variables = nullptr;
-        char** values_buf = nullptr;
-
-        /* Determine total number of options */
-        while (true) {
-            if (melonds::FixedOptionDefinitions[num_options].key)
-                num_options++;
-            else
-                break;
-        }
-
-        if (version >= 1) {
-            /* Allocate US array */
-            option_v1_defs_us = (struct retro_core_option_definition*)
-                    calloc(num_options + 1, sizeof(struct retro_core_option_definition));
-
-            /* Copy parameters from option_defs_us array */
-            for (int i = 0; i < num_options; i++) {
-                struct retro_core_option_v2_definition* option_def_us = &melonds::FixedOptionDefinitions[i];
-                struct retro_core_option_value* option_values = option_def_us->values;
-                struct retro_core_option_definition* option_v1_def_us = &option_v1_defs_us[i];
-                struct retro_core_option_value* option_v1_values = option_v1_def_us->values;
-
-                option_v1_def_us->key = option_def_us->key;
-                option_v1_def_us->desc = option_def_us->desc;
-                option_v1_def_us->info = option_def_us->info;
-                option_v1_def_us->default_value = option_def_us->default_value;
-
-                /* Values must be copied individually... */
-                while (option_values->value) {
-                    option_v1_values->value = option_values->value;
-                    option_v1_values->label = option_values->label;
-
-                    option_values++;
-                    option_v1_values++;
-                }
-            }
-
-#ifndef HAVE_NO_LANGEXTRA
-            if (retro::environment(RETRO_ENVIRONMENT_GET_LANGUAGE, &language) &&
-                (language < RETRO_LANGUAGE_LAST) && (language != RETRO_LANGUAGE_ENGLISH) &&
-                melonds::options_intl[language])
-                option_defs_intl = melonds::options_intl[language]->definitions;
-
-            if (option_defs_intl) {
-                /* Determine number of intl options */
-                while (true) {
-                    if (option_defs_intl[num_options_intl].key)
-                        num_options_intl++;
-                    else
-                        break;
-                }
-
-                /* Allocate intl array */
-                option_v1_defs_intl = (struct retro_core_option_definition*)
-                        calloc(num_options_intl + 1, sizeof(struct retro_core_option_definition));
-
-                /* Copy parameters from option_defs_intl array */
-                for (int i = 0; i < num_options_intl; i++) {
-                    struct retro_core_option_v2_definition* option_def_intl = &option_defs_intl[i];
-                    struct retro_core_option_value* option_values = option_def_intl->values;
-                    struct retro_core_option_definition* option_v1_def_intl = &option_v1_defs_intl[i];
-                    struct retro_core_option_value* option_v1_values = option_v1_def_intl->values;
-
-                    option_v1_def_intl->key = option_def_intl->key;
-                    option_v1_def_intl->desc = option_def_intl->desc;
-                    option_v1_def_intl->info = option_def_intl->info;
-                    option_v1_def_intl->default_value = option_def_intl->default_value;
-
-                    /* Values must be copied individually... */
-                    while (option_values->value) {
-                        option_v1_values->value = option_values->value;
-                        option_v1_values->label = option_values->label;
-
-                        option_values++;
-                        option_v1_values++;
-                    }
-                }
-            }
-
-            core_options_v1_intl.us = option_v1_defs_us;
-            core_options_v1_intl.local = option_v1_defs_intl;
-
-            retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL, &core_options_v1_intl);
-#else
-            retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS, option_v1_defs_us);
-#endif
-        } else {
-            /* Allocate arrays */
-            variables = (struct retro_variable*) calloc(num_options + 1,
-                                                        sizeof(struct retro_variable));
-            values_buf = (char**) calloc(num_options, sizeof(char*));
-
-            if (!variables || !values_buf)
-                goto error;
-
-            /* Copy parameters from option_defs_us array */
-            for (int i = 0; i < num_options; i++) {
-                const char* key = melonds::FixedOptionDefinitions[i].key;
-                const char* desc = melonds::FixedOptionDefinitions[i].desc;
-                const char* default_value = melonds::FixedOptionDefinitions[i].default_value;
-                struct retro_core_option_value* values = melonds::FixedOptionDefinitions[i].values;
-                size_t buf_len = 3;
-                size_t default_index = 0;
-
-                values_buf[i] = nullptr;
-
-                if (desc) {
-                    size_t num_values = 0;
-
-                    /* Determine number of values */
-                    while (true) {
-                        if (values[num_values].value) {
-                            /* Check if this is the default value */
-                            if (default_value)
-                                if (strcmp(values[num_values].value, default_value) == 0)
-                                    default_index = num_values;
-
-                            buf_len += strlen(values[num_values].value);
-                            num_values++;
-                        } else
-                            break;
-                    }
-
-                    /* Build values string */
-                    if (num_values > 0) {
-                        buf_len += num_values - 1;
-                        buf_len += strlen(desc);
-
-                        values_buf[i] = (char*) calloc(buf_len, sizeof(char));
-                        if (!values_buf[i])
-                            goto error;
-
-                        strcpy(values_buf[i], desc);
-                        strcat(values_buf[i], "; ");
-
-                        /* Default value goes first */
-                        strcat(values_buf[i], values[default_index].value);
-
-                        /* Add remaining values */
-                        for (int j = 0; j < num_values; j++) {
-                            if (j != default_index) {
-                                strcat(values_buf[i], "|");
-                                strcat(values_buf[i], values[j].value);
-                            }
-                        }
-                    }
-                }
-
-                variables[option_index].key = key;
-                variables[option_index].value = values_buf[i];
-                option_index++;
-            }
-
-            /* Set variables */
-            retro::environment(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
-        }
-
-        error:
-        /* Clean up */
-
-        if (option_v1_defs_us) {
-            free(option_v1_defs_us);
-            option_v1_defs_us = NULL;
-        }
-
-#ifndef HAVE_NO_LANGEXTRA
-        if (option_v1_defs_intl) {
-            free(option_v1_defs_intl);
-            option_v1_defs_intl = NULL;
-        }
-#endif
-
-        if (values_buf) {
-            for (int i = 0; i < num_options; i++) {
-                if (values_buf[i]) {
-                    free(values_buf[i]);
-                    values_buf[i] = NULL;
-                }
-            }
-
-            free(values_buf);
-            values_buf = NULL;
-        }
-
-        if (variables) {
-            free(variables);
-            variables = NULL;
-        }
-    }
+    retro::set_core_options(*optionsUs);
 }

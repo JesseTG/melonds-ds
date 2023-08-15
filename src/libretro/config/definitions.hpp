@@ -19,7 +19,12 @@
 
 #include <cstdint>
 
+struct retro_core_option_v2_category;
+struct retro_core_option_v2_definition;
+
 namespace melonds {
+    extern struct retro_core_option_v2_category OptionCategories[];
+    extern const std::size_t OptionCategoriesLength;
     extern struct retro_core_option_v2_definition FixedOptionDefinitions[];
     extern const std::size_t FixedOptionDefinitionsLength;
 }
