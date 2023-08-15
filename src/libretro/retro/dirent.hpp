@@ -18,6 +18,7 @@
 #define MELONDS_DS_DIRENT_HPP
 
 #include <cstdint>
+#include <cstring>
 #include <iterator>
 
 #include <retro_dirent.h>
