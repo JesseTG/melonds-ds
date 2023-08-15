@@ -14,10 +14,12 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include "dirent.hpp"
 
 #include <cstring>
+#include <string>
+
 #include <file/file_path.h>
-#include "dirent.hpp"
 
 retro::file_tree retro::readdir(const std::string &path, bool hidden) noexcept {
     return file_tree(path, hidden);
