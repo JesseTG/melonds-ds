@@ -17,7 +17,7 @@ set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
 if (ENABLE_SCCACHE)
-    find_program(SCCACHE "sccache" HINTS "$ENV{HOME}/.cargo/bin")
+    find_program(SCCACHE "sccache" PATHS "$ENV{HOME}/.cargo/bin")
     if (SCCACHE)
         message(STATUS "Using sccache (instead of ccache) to speed up compilation")
         set(CMAKE_C_COMPILER_LAUNCHER ${SCCACHE})
