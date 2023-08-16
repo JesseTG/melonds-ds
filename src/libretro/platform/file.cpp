@@ -94,7 +94,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode,
 
     if (!file_exists && (mode & FileMode::NoCreate)) {
         // If the file doesn't exist, and we're not allowed to create it...
-        Log(LogLevel::Warn, "Attempted to open %s \"%s\" in FileMode 0x%x, but the file doesn't exist and FileMode::NoCreate is set\n", FileTypeName(type), path.c_str(), mode);
+        retro::warn("Attempted to open %s \"%s\" in FileMode 0x%x, but the file doesn't exist and FileMode::NoCreate is set\n", FileTypeName(type), path.c_str(), mode);
         return nullptr;
     }
 
@@ -103,10 +103,12 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode,
     handle->type = type;
 
     if (!handle->file) {
-        Log(LogLevel::Error, "Attempted to open %s \"%s\" in FileMode 0x%x, but failed", FileTypeName(type), path.c_str(), mode);
+        retro::error("Attempted to open %s \"%s\" in FileMode 0x%x, but failed", FileTypeName(type), path.c_str(), mode);
         delete handle;
         return nullptr;
     }
+
+    retro::debug("Opened %s \"%s\" in FileMode 0x%x", FileTypeName(type), path.c_str(), mode);
 
     return handle;
 }
@@ -275,6 +277,10 @@ void melonds::file::init() {
 }
 
 void melonds::file::deinit() {
+    retro_assert(flushTimers != nullptr);
+    for (auto& [file, timeUntilFlush] : *flushTimers) {
+        Platform::CloseFile(file);
+    }
     flushTimers.reset();
 }
 
