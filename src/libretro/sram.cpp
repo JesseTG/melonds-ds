@@ -16,17 +16,17 @@
 
 #include "sram.hpp"
 
+#include <cstring>
 #include <memory>
 #include <retro_assert.h>
 
-#include "memory.hpp"
 #include "tracy.hpp"
 
 using std::unique_ptr;
 using std::make_unique;
 
-unique_ptr<melonds::SaveManager> melonds::sram::NdsSaveManager;
-unique_ptr<melonds::SaveManager> melonds::sram::GbaSaveManager;
+unique_ptr<melonds::sram::SaveManager> melonds::sram::NdsSaveManager;
+unique_ptr<melonds::sram::SaveManager> melonds::sram::GbaSaveManager;
 
 void melonds::sram::init() {
     ZoneScopedN("melonds::sram::init");
@@ -40,4 +40,49 @@ void melonds::sram::deinit() noexcept {
     ZoneScopedN("melonds::sram::deinit");
     NdsSaveManager = nullptr;
     GbaSaveManager = nullptr;
+}
+
+melonds::sram::SaveManager::SaveManager() :
+        _sram(nullptr),
+        _sram_length(0),
+        _buffer_length(0) {
+}
+
+melonds::sram::SaveManager::~SaveManager() {
+    delete[] _sram; // deleting null pointers is a no-op, no need to check
+}
+
+void melonds::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    ZoneScopedN("melonds::sram::SaveManager::Flush");
+    if (_sram_length != savelen) {
+        // If we loaded a game with a different SRAM length...
+
+        delete[] _sram;
+
+        _sram_length = savelen;
+        _sram = new u8[_sram_length];
+
+        memcpy(_sram, savedata, _sram_length);
+    } else {
+        if ((writeoffset + writelen) > savelen) {
+            // If the write goes past the end of the SRAM, we have to wrap around
+            u32 len = savelen - writeoffset;
+            memcpy(_sram + writeoffset, savedata + writeoffset, len);
+            len = writelen - len;
+            if (len > savelen) len = savelen;
+            memcpy(_sram, savedata, len);
+        } else {
+            memcpy(_sram + writeoffset, savedata + writeoffset, writelen);
+        }
+    }
+}
+
+void melonds::sram::SaveManager::SetSaveSize(u32 savelen) {
+    ZoneScopedN("melonds::sram::SaveManager::SetSaveSize");
+    if (_sram_length != savelen) {
+        delete[] _sram;
+
+        _sram_length = savelen;
+        _sram = new u8[_sram_length];
+    }
 }
