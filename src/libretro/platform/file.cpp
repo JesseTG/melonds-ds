@@ -18,6 +18,7 @@
 #define SKIP_STDIO_REDEFINES
 
 #include <cerrno>
+#include <memory>
 #include <system_error>
 #include <unordered_map>
 #include <unistd.h>
@@ -28,6 +29,7 @@
 #include <streams/file_stream.h>
 #include <streams/file_stream_transforms.h>
 #include <retro_assert.h>
+#include <compat/strl.h>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -177,8 +179,16 @@ bool Platform::CloseFile(FileHandle* file)
             break;
     }
 
-    bool ok = filestream_close(file->file);
+    char path[PATH_MAX];
+    strlcpy(path, filestream_get_path(file->file), sizeof(path));
+    retro::debug("Closing %s \"%s\"", FileTypeName(file->type), path);
+    bool ok = (filestream_close(file->file) == 0);
+
+    if (!ok) {
+        retro::error("Failed to close %s \"%s\"", FileTypeName(file->type), path);
+    }
     delete file;
+
     return ok;
 }
 
