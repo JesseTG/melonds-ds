@@ -34,7 +34,10 @@
 #include "tracy.hpp"
 #include "utils.hpp"
 
-static std::unordered_map<Platform::FileHandle*, int> flushTimers;
+using std::unique_ptr;
+using std::unordered_map;
+
+static unique_ptr<unordered_map<Platform::FileHandle*, int>> flushTimers;
 
 namespace Platform {
     constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
@@ -166,7 +169,7 @@ bool Platform::CloseFile(FileHandle* file)
         case FileType::SDCardIndex:
         case FileType::Firmware:
         case FileType::DSiFirmware:
-            flushTimers.erase(file);
+            flushTimers->erase(file);
             break;
         default:
             break;
@@ -236,7 +239,7 @@ u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
         case FileType::SDCardIndex:
         case FileType::Firmware:
         case FileType::DSiFirmware: {
-            flushTimers[file] = melonds::config::save::FlushDelay();
+            (*flushTimers)[file] = melonds::config::save::FlushDelay();
         }
             break;
         default:
@@ -267,11 +270,12 @@ u64 Platform::FileLength(FileHandle* file)
 }
 
 void melonds::file::init() {
-    retro_assert(flushTimers.empty());
+    retro_assert(flushTimers == nullptr);
+    flushTimers = std::make_unique<unordered_map<Platform::FileHandle*, int>>();
 }
 
 void melonds::file::deinit() {
-    flushTimers.clear();
+    flushTimers.reset();
 }
 
 retro::task::TaskSpec melonds::file::FlushTask() noexcept {
@@ -286,7 +290,7 @@ retro::task::TaskSpec melonds::file::FlushTask() noexcept {
 
         std::vector<Platform::FileHandle*> filesToRemove;
 
-        for (auto& [file, timeUntilFlush] : flushTimers) {
+        for (auto& [file, timeUntilFlush] : *flushTimers) {
             timeUntilFlush--;
             if (timeUntilFlush == 0) {
                 // If the timer has reached 0, flush the file and remove it from the map
@@ -327,7 +331,7 @@ retro::task::TaskSpec melonds::file::FlushTask() noexcept {
         }
 
         for (auto& file : filesToRemove) {
-            flushTimers.erase(file);
+            flushTimers->erase(file);
         }
     });
 
