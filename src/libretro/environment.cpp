@@ -511,8 +511,6 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     if (retro::_supportsPowerStatus) {
         retro::debug("Power state available\n");
-    } else {
-        retro::debug("Power state not available\n");
     }
 
     environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version);
@@ -567,8 +565,6 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         if (vfs.required_interface_version >= DIRENT_REQUIRED_VFS_VERSION) {
             dirent_vfs_init(&vfs);
         }
-    } else {
-        retro::debug("Frontend does not support VFS, using internal fallbacks.\n");
     }
 
     bool supports_no_game = true;
