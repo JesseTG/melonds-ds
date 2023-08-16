@@ -489,6 +489,9 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
     return melonds::handle_load_game(type, info, num);
 }
 
+// We deinitialize all these variables just in case the frontend doesn't unload the dynamic library.
+// It might be keeping the library around for debugging purposes,
+// or it might just be buggy.
 PUBLIC_SYMBOL void retro_deinit(void) {
     ZoneScopedN("retro_deinit");
     melonds::isInDeinit = true;
@@ -501,6 +504,10 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
     Platform::DeInit();
+    melonds::mic_state_toggled = false;
+    melonds::isUnloading = false;
+    melonds::deferred_initialization_pending = false;
+    melonds::first_frame_run = false;
     melonds::isInDeinit = false;
 }
 
