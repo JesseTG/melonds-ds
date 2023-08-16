@@ -101,24 +101,25 @@ melonds::config::DynamicCoreOptions::~DynamicCoreOptions() noexcept {
 
 static vector<string> GetNandPaths() noexcept {
     vector<string> paths;
+    optional<string> sysdir = retro::get_system_directory();
 
-    auto appendPaths = [&paths](optional<string> base) {
+    auto appendPaths = [&paths, &sysdir](optional<string> base) {
         if (base) {
             for (const retro::dirent& d : retro::readdir(*base, true)) {
                 retro_assert(retro::is_regular_file(d.flags));
                 if (d.size == DSI_NAND_SIZE) {
                     // If this is a regular file...
                     string_view path = d.path;
-                    retro_assert(path.size() > base->size());
+                    retro_assert(path.size() > sysdir->size());
 
-                    path.remove_prefix(base->size() + 1);
+                    path.remove_prefix(sysdir->size() + 1);
                     paths.emplace_back(path);
                 }
             }
         }
     };
 
-    appendPaths(retro::get_system_directory());
+    appendPaths(sysdir);
     appendPaths(retro::get_system_subdirectory());
     appendPaths(retro::get_system_fallback_subdirectory());
 

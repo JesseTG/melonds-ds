@@ -525,14 +525,17 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     const char* system_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
-        retro::log(RETRO_LOG_INFO, "System directory: \"%s\"", system_dir);
-        retro::_system_directory = system_dir;
-
         char melon_dir[PATH_MAX];
+        strlcpy(melon_dir, system_dir, sizeof(melon_dir));
+        pathname_make_slashes_portable(melon_dir);
+        retro::log(RETRO_LOG_INFO, "System directory: \"%s\"", &melon_dir);
+        retro::_system_directory = melon_dir;
+
         memset(melon_dir, 0, sizeof(melon_dir));
         strlcpy(melon_dir, system_dir, sizeof(melon_dir));
 
         fill_pathname_join_special(melon_dir, system_dir, MELONDSDS_NAME, sizeof(melon_dir));
+        pathname_make_slashes_portable(melon_dir);
         retro::_system_subdir = melon_dir;
 
         if (path_mkdir(melon_dir)) {
@@ -543,6 +546,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         }
 
         fill_pathname_join_special(melon_dir, system_dir, "melonDS", sizeof(melon_dir));
+        pathname_make_slashes_portable(melon_dir);
         retro::_system_fallback_subdir = melon_dir;
 
         retro::info("melonDS DS system fallback directory: \"%s\" (won't be created, but will be honored)", melon_dir);
