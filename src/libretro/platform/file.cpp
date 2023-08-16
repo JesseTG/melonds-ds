@@ -347,8 +347,9 @@ retro::task::TaskSpec melonds::file::FlushTask() noexcept {
             }
         }
 
-        for (auto& file : filesToRemove) {
-            flushTimers->erase(file);
+        for (Platform::FileHandle* file : filesToRemove) {
+            int removed = flushTimers->erase(file);
+            retro_assert(removed == 1);
         }
     });
 
