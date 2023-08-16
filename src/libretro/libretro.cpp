@@ -49,7 +49,6 @@
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "file.hpp"
-#include "gba.hpp"
 #include "info.hpp"
 #include "input.hpp"
 #include "memory.hpp"
@@ -457,7 +456,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
     const optional<struct retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info();
     if (gba_save_info) {
-        melonds::gba::FlushSram(*gba_save_info);
+        melonds::sram::FlushGbaSram(*gba_save_info);
     }
 
     if (NDS::Running)
@@ -634,7 +633,7 @@ static void melonds::init_gba_save(GbaCart& gba_cart, const struct retro_game_in
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);
-    retro::task::push(gba::FlushTask());
+    retro::task::push(sram::FlushGbaSramTask());
 }
 
 static void melonds::load_games(

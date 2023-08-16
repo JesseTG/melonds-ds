@@ -24,9 +24,18 @@
 
 //! Definitions for managing SRAM.
 
+namespace retro::task {
+    class TaskSpec;
+}
+
+struct retro_game_info;
+
 namespace melonds::sram {
     void init();
     void deinit() noexcept;
+    void FlushGbaSram(const retro_game_info& gba_save_info) noexcept;
+
+    retro::task::TaskSpec FlushGbaSramTask() noexcept;
 
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
     class SaveManager {

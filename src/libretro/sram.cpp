@@ -18,15 +18,27 @@
 
 #include <cstring>
 #include <memory>
-#include <retro_assert.h>
+#include <optional>
 
+#include <retro_assert.h>
+#include <streams/file_stream.h>
+
+#include <Platform.h>
+
+#include "config.hpp"
+#include "content.hpp"
+#include "environment.hpp"
+#include "retro/task_queue.hpp"
 #include "tracy.hpp"
 
+using std::optional;
+using std::nullopt;
 using std::unique_ptr;
 using std::make_unique;
 
 unique_ptr<melonds::sram::SaveManager> melonds::sram::NdsSaveManager;
 unique_ptr<melonds::sram::SaveManager> melonds::sram::GbaSaveManager;
+static optional<int> TimeToGbaFlush = nullopt;
 
 void melonds::sram::init() {
     ZoneScopedN("melonds::sram::init");
@@ -84,5 +96,81 @@ void melonds::sram::SaveManager::SetSaveSize(u32 savelen) {
 
         _sram_length = savelen;
         _sram = new u8[_sram_length];
+    }
+}
+
+void melonds::sram::FlushGbaSram(const retro_game_info& gba_save_info) noexcept {
+    ZoneScopedN("melonds::sram::FlushSram");
+    const char* save_data_path = gba_save_info.path;
+    if (save_data_path == nullptr || sram::GbaSaveManager == nullptr) {
+        // No save data path was provided, or the GBA save manager isn't initialized
+        return; // TODO: Report this error
+    }
+    const u8* gba_sram = sram::GbaSaveManager->Sram();
+    u32 gba_sram_length = sram::GbaSaveManager->SramLength();
+
+    if (gba_sram == nullptr || gba_sram_length == 0) {
+        return; // TODO: Report this error
+    }
+
+    if (!filestream_write_file(save_data_path, gba_sram, gba_sram_length)) {
+        retro::error("Failed to write %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
+        // TODO: Report this to the user
+    } else {
+        retro::debug("Flushed %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
+    }
+}
+
+// This task keeps running for the lifetime of the task queue.
+retro::task::TaskSpec melonds::sram::FlushGbaSramTask() noexcept {
+    retro::task::TaskSpec task([](retro::task::TaskHandle &task) {
+        ZoneScopedN("melonds::sram::FlushTask");
+        if (task.IsCancelled()) {
+            // If it's time to stop...
+            task.Finish();
+            return;
+        }
+
+        if (TimeToGbaFlush == nullopt) {
+            // If we don't have a GBA SRAM flush coming up...
+            return; // ...then there's nothing to do.
+        }
+
+        if ((*TimeToGbaFlush)-- <= 0) {
+            // If it's time to flush the GBA's SRAM...
+            if (const optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info()) {
+                // If we actually have GBA save data loaded...
+                retro::debug("GBA SRAM flush timer expired, flushing save data now");
+                FlushGbaSram(*gba_save_info);
+            }
+            TimeToGbaFlush = nullopt; // Reset the timer
+        }
+
+    });
+
+    return task;
+}
+
+void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
+    ZoneScopedN("Platform::WriteNDSSave");
+    if (melonds::sram::NdsSaveManager) {
+        melonds::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+
+        // No need to maintain a flush timer for NDS SRAM,
+        // because retro_get_memory lets us delegate autosave to the frontend.
+    }
+}
+
+void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    ZoneScopedN("Platform::WriteGBASave");
+    if (melonds::sram::GbaSaveManager) {
+        melonds::sram::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+
+        // Start the countdown until we flush the SRAM back to disk.
+        // The timer resets every time we write to SRAM,
+        // so that a sequence of SRAM writes doesn't result in
+        // a sequence of disk writes.
+        TimeToGbaFlush = melonds::config::save::FlushDelay();
     }
 }

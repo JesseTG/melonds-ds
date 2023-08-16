@@ -25,7 +25,6 @@
 #include <retro_assert.h>
 #include <retro_endianness.h>
 
-#include "../gba.hpp"
 #include "../memory.hpp"
 #include "../environment.hpp"
 #include "../config.hpp"

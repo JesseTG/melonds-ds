@@ -24,8 +24,6 @@ add_library(libretro MODULE
     exceptions.cpp
     exceptions.hpp
     file.hpp
-    gba.cpp
-    gba.hpp
     glsym_private.cpp
     glsym_private.h
     info.cpp
