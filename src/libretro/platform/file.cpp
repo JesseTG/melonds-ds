@@ -30,6 +30,7 @@
 #include <streams/file_stream_transforms.h>
 #include <retro_assert.h>
 #include <compat/strl.h>
+#include <vfs/vfs.h>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -198,7 +199,7 @@ bool Platform::IsEndOfFile(FileHandle* file)
     if (!file)
         return false;
 
-    return filestream_eof(file->file);
+    return filestream_eof(file->file) == EOF;
 }
 
 bool Platform::FileReadLine(char* str, int count, FileHandle* file)
