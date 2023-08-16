@@ -88,6 +88,7 @@ std::string Platform::GetConfigString(ConfigEntry entry)
 
         case DSiSD_ImagePath: return save::DsiSdImagePath();
         case DSiSD_FolderPath: return save::DsiSdFolderPath();
+        case WifiSettingsPath: return "wfcsettings.bin";
 
         case Firm_Username: return firmware::Username();
         case Firm_Message: return firmware::Message();
