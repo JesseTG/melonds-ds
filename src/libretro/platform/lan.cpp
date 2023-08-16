@@ -18,16 +18,31 @@
 #include <dynamic/dylib.h>
 #include <frontend/qt_sdl/LAN_PCap.h>
 #include <frontend/qt_sdl/LAN_Socket.h>
+#include <retro_assert.h>
 
 #include "../config.hpp"
 #include "../environment.hpp"
 #include "tracy.hpp"
 
 static melonds::NetworkMode _activeNetworkMode;
+struct Slirp;
+
+namespace LAN_Socket
+{
+    extern Slirp* Ctx;
+}
+
+namespace LAN_PCap
+{
+    extern Platform::DynamicLibrary* PCapLib;
+}
 
 bool Platform::LAN_Init() {
     ZoneScopedN("Platform::LAN_Init");
     using namespace melonds::config::net;
+    retro_assert(_activeNetworkMode == melonds::NetworkMode::None);
+    retro_assert(LAN_Socket::Ctx == nullptr);
+    retro_assert(LAN_PCap::PCapLib == nullptr);
     switch (NetworkMode()) {
         case melonds::NetworkMode::Direct:
             if (LAN_PCap::Init(true)) {
@@ -58,6 +73,8 @@ void Platform::LAN_DeInit() {
     LAN_PCap::DeInit();
     LAN_Socket::DeInit();
     _activeNetworkMode = melonds::NetworkMode::None;
+    retro_assert(LAN_Socket::Ctx == nullptr);
+    retro_assert(LAN_PCap::PCapLib == nullptr);
 }
 
 int Platform::LAN_SendPacket(u8 *data, int len) {
