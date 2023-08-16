@@ -20,8 +20,7 @@
 #include <string>
 
 #include <file/file_path.h>
-
-#include "environment.hpp"
+#include <compat/strl.h>
 
 retro::dirent_tree retro::readdir(const std::string &path, bool hidden) noexcept {
     return dirent_tree(path, hidden);
@@ -81,15 +80,17 @@ retro::dirent_tree::dirent_iterator &retro::dirent_tree::dirent_iterator::operat
 
         const char *fileName = retro_dirent_get_name(m_ptr->dir);
         char filePath[PATH_MAX];
-        size_t filePathLength = fill_pathname_join_special(filePath, m_ptr->originalPath.c_str(), fileName,
-                                                           sizeof(filePath));
-        int32_t size = 0;
-        int flags = retro_vfs_stat_impl(filePath, &size);
+        size_t filePathLength = fill_pathname_join_special(filePath, m_ptr->originalPath.c_str(), fileName, sizeof(filePath));
+        if (filePathLength >= sizeof(filePath)) {
+            // If the path is too long...
+            continue;
+        }
+        int flags = path_stat(filePath);
         if (is_regular_file(flags)) {
             // If we've found the next file to return to whoever's using this iterator...
-            strncpy(current.path, filePath, sizeof(current.path));
+            strlcpy(current.path, filePath, sizeof(current.path));
             current.flags = flags;
-            current.size = size;
+            current.size = path_get_size(filePath);
             done = true;
         }
     } while (!done);

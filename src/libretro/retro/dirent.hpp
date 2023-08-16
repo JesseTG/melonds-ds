@@ -40,6 +40,10 @@ namespace retro {
             size = 0;
             flags = 0;
         }
+
+        constexpr bool is_regular_file() const noexcept {
+            return retro::is_regular_file(flags);
+        }
     };
 
     struct dirent_tree {
