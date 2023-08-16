@@ -113,8 +113,15 @@ Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode 
         return OpenFile(path, mode, type);
     }
 
-    std::string directory = retro::get_system_directory().value_or("");
-    std::string fullpath = directory + PLATFORM_DIR_SEPERATOR + path;
+    std::string sysdir = retro::get_system_directory().value_or("");
+    char fullpath[PATH_MAX];
+    size_t pathLength = fill_pathname_join_special(fullpath, sysdir.c_str(), path.c_str(), sizeof(fullpath));
+    pathname_make_slashes_portable(fullpath);
+
+    if (pathLength >= sizeof(fullpath)) {
+        Log(LogLevel::Warn, "Path \"%s\" is too long to be joined with system directory \"%s\"", path.c_str(), sysdir.c_str());
+    }
+
     return OpenFile(fullpath, mode, type);
 }
 
@@ -133,9 +140,16 @@ bool Platform::LocalFileExists(const std::string& name)
         return path_is_valid(name.c_str());
     }
 
-    std::string directory = retro::get_system_directory().value_or("");
-    std::string fullpath = directory + PLATFORM_DIR_SEPERATOR + name;
-    return path_is_valid(fullpath.c_str());
+    std::string sysdir = retro::get_system_directory().value_or("");
+    char fullpath[PATH_MAX];
+    size_t pathLength = fill_pathname_join_special(fullpath, sysdir.c_str(), name.c_str(), sizeof(fullpath));
+    pathname_make_slashes_portable(fullpath);
+
+    if (pathLength >= sizeof(fullpath)) {
+        Log(LogLevel::Warn, "Path \"%s\" is too long to be joined with system directory \"%s\"", name.c_str(), sysdir.c_str());
+    }
+
+    return path_is_valid(fullpath);
 }
 
 /// Close a file opened with \c OpenFile.
@@ -146,7 +160,6 @@ bool Platform::CloseFile(FileHandle* file)
         return false;
     }
 
-    bool ok = filestream_close(file->file);
     switch (file->type) {
         case FileType::DSiNANDImage:
         case FileType::SDCardImage:
@@ -159,6 +172,7 @@ bool Platform::CloseFile(FileHandle* file)
             break;
     }
 
+    bool ok = filestream_close(file->file);
     delete file;
     return ok;
 }
