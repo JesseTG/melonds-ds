@@ -1004,13 +1004,17 @@ static void melonds::config::verify_dsi_bios() {
     };
     std::vector<std::string> missing_roms;
 
+    optional<string> sysdir = retro::get_system_directory();
     // Check if any of the bioses / firmware files are missing
     for (const std::string& rom: required_roms) {
-        if (Platform::LocalFileExists(rom)) {
+        char path[PATH_MAX];
+        fill_pathname_join_special(path, sysdir->c_str(), rom.c_str(), sizeof(path));
+        pathname_make_slashes_portable(path);
+        if (path_is_valid(path)) {
             info("Found %s", rom.c_str());
         } else {
             missing_roms.push_back(rom);
-            warn("Could not find %s", rom.c_str());
+            warn("Could not find \"%s\" at \"%s\"", rom.c_str(), path);
         }
     }
 
