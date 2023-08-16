@@ -14,30 +14,22 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_GBA_HPP
-#define MELONDS_DS_GBA_HPP
+#ifndef MELONDS_DS_SRAM_HPP
+#define MELONDS_DS_SRAM_HPP
 
-#include <memory>
-#include <optional>
+#include <cstdint>
+#include <vector>
 
-#include <libretro.h>
-#include <streams/file_stream.h>
-#include <Platform.h>
+#include "memory.hpp"
 
-#include "retro/task_queue.hpp"
+//! Definitions for managing SRAM.
 
-struct retro_game_info;
+namespace melonds::sram {
+    void init();
+    void deinit() noexcept;
 
-namespace melonds {
-    class SaveManager;
-
-    namespace gba {
-
-        void FlushSram(const retro_game_info& gba_save_info) noexcept;
-
-        retro::task::TaskSpec FlushTask() noexcept;
-    }
-
+    extern std::unique_ptr<SaveManager> NdsSaveManager;
+    extern std::unique_ptr<SaveManager> GbaSaveManager;
 }
 
-#endif //MELONDS_DS_GBA_HPP
+#endif //MELONDS_DS_SRAM_HPP

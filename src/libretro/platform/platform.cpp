@@ -29,6 +29,7 @@
 #include "../memory.hpp"
 #include "../environment.hpp"
 #include "../config.hpp"
+#include "sram.hpp"
 
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
@@ -150,8 +151,6 @@ void Platform::Init(int, char **) {
 // TODO: Call this in retro_unload_game and retro_reset
 void Platform::DeInit() {
     retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
-    melonds::NdsSaveManager.reset();
-    melonds::gba::GbaSaveManager.reset();
 
     if (_camera.stop) {
         _camera.stop();
@@ -223,8 +222,8 @@ void Platform::Sleep(u64 usecs) {
 
 void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
-    if (melonds::NdsSaveManager) {
-        melonds::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    if (melonds::sram::NdsSaveManager) {
+        melonds::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
         // No need to maintain a flush timer for NDS SRAM,
         // because retro_get_memory lets us delegate autosave to the frontend.

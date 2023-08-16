@@ -14,30 +14,30 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_GBA_HPP
-#define MELONDS_DS_GBA_HPP
+#include "sram.hpp"
 
 #include <memory>
-#include <optional>
+#include <retro_assert.h>
 
-#include <libretro.h>
-#include <streams/file_stream.h>
-#include <Platform.h>
+#include "memory.hpp"
+#include "tracy.hpp"
 
-#include "retro/task_queue.hpp"
+using std::unique_ptr;
+using std::make_unique;
 
-struct retro_game_info;
+unique_ptr<melonds::SaveManager> melonds::sram::NdsSaveManager;
+unique_ptr<melonds::SaveManager> melonds::sram::GbaSaveManager;
 
-namespace melonds {
-    class SaveManager;
-
-    namespace gba {
-
-        void FlushSram(const retro_game_info& gba_save_info) noexcept;
-
-        retro::task::TaskSpec FlushTask() noexcept;
-    }
-
+void melonds::sram::init() {
+    ZoneScopedN("melonds::sram::init");
+    retro_assert(NdsSaveManager == nullptr);
+    retro_assert(GbaSaveManager == nullptr);
+    NdsSaveManager = make_unique<SaveManager>();
+    GbaSaveManager = make_unique<SaveManager>();
 }
 
-#endif //MELONDS_DS_GBA_HPP
+void melonds::sram::deinit() noexcept {
+    ZoneScopedN("melonds::sram::deinit");
+    NdsSaveManager = nullptr;
+    GbaSaveManager = nullptr;
+}

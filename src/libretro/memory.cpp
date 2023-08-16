@@ -28,6 +28,7 @@
 #include <retro_assert.h>
 
 #include "tracy.hpp"
+#include "sram.hpp"
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
@@ -39,8 +40,6 @@ namespace AREngine {
 
 namespace melonds {
     static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
-
-    std::unique_ptr<SaveManager> NdsSaveManager = std::make_unique<SaveManager>();
 }
 
 melonds::SaveManager::SaveManager() :
@@ -160,7 +159,7 @@ PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             return NDS::MainRAM;
         case RETRO_MEMORY_SAVE_RAM:
-            return melonds::NdsSaveManager->Sram();
+            return melonds::sram::NdsSaveManager->Sram();
         default:
             return nullptr;
     }
@@ -183,7 +182,7 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
                     return DSI_MEMORY_SIZE; // 16MB, the size of the DSi system RAM
             }
         case RETRO_MEMORY_SAVE_RAM:
-            return melonds::NdsSaveManager->SramLength();
+            return melonds::sram::NdsSaveManager->SramLength();
         default:
             return 0;
     }

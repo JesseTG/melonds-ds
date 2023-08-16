@@ -59,6 +59,7 @@
 #include "render.hpp"
 #include "retro/task_queue.hpp"
 #include "screenlayout.hpp"
+#include "sram.hpp"
 #include "tracy.hpp"
 
 using std::make_optional;
@@ -138,6 +139,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(!melonds::mic_state_toggled);
     srand(time(nullptr));
     melonds::input_state = melonds::InputState();
+    melonds::sram::init();
 
 
     melonds::file::init();
@@ -232,17 +234,17 @@ static void melonds::install_sram(
     // Nintendo DS SRAM is loaded by the frontend
     // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
     // This is where we install the SRAM data into the emulated DS.
-    if (nds_info && melonds::NdsSaveManager->SramLength() > 0) {
+    if (nds_info && sram::NdsSaveManager->SramLength() > 0) {
         // If we're loading a NDS game that has SRAM...
-        NDS::LoadSave(melonds::NdsSaveManager->Sram(), melonds::NdsSaveManager->SramLength());
+        NDS::LoadSave(sram::NdsSaveManager->Sram(), sram::NdsSaveManager->SramLength());
     }
 
     // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
     // but is not processed by retro_get_memory (again due to libretro limits).
-    if (gba_info && gba::GbaSaveManager->SramLength() > 0) {
+    if (gba_info && sram::GbaSaveManager->SramLength() > 0) {
         // If we're loading a GBA game that has existing SRAM...
         // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
-        GBACart::LoadSave(gba::GbaSaveManager->Sram(), gba::GbaSaveManager->SramLength());
+        GBACart::LoadSave(sram::GbaSaveManager->Sram(), sram::GbaSaveManager->SramLength());
     }
 
     // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
@@ -504,6 +506,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
     Platform::DeInit();
+    melonds::sram::deinit();
     melonds::mic_state_toggled = false;
     melonds::isUnloading = false;
     melonds::deferred_initialization_pending = false;
@@ -624,7 +627,7 @@ static void melonds::init_gba_save(GbaCart& gba_cart, const struct retro_game_in
         throw std::runtime_error("Failed to read GBA save file");
     }
 
-    gba::GbaSaveManager->SetSaveSize(gba_save_file_size);
+    sram::GbaSaveManager->SetSaveSize(gba_save_file_size);
     gba_cart.SetupSave(gba_save_file_size);
     gba_cart.LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
     retro::debug("Allocated %u-byte GBA SRAM", gba_cart.GetSaveMemoryLength());
@@ -757,7 +760,7 @@ static void melonds::init_nds_save(const NdsCart &nds_cart) {
      else {
         // Get the length of the ROM's SRAM, if any
         u32 sram_length = nds_cart.GetSaveMemoryLength();
-        NdsSaveManager->SetSaveSize(sram_length);
+         sram::NdsSaveManager->SetSaveSize(sram_length);
 
         if (sram_length > 0) {
             retro::log(RETRO_LOG_DEBUG, "Allocated %u-byte SRAM buffer for loaded NDS ROM.", sram_length);

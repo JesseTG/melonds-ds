@@ -77,7 +77,5 @@ namespace melonds {
         u32 _sram_length;
         u32 _buffer_length;
     };
-
-    extern std::unique_ptr<SaveManager> NdsSaveManager;
 }
 #endif //MELONDS_DS_MEMORY_HPP

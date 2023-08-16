@@ -58,6 +58,8 @@ add_library(libretro MODULE
     retro/task_queue.hpp
     screenlayout.cpp
     screenlayout.hpp
+    sram.cpp
+    sram.hpp
     tracy.hpp
     utils.cpp
     utils.hpp

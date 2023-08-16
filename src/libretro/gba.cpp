@@ -24,6 +24,7 @@
 #include "content.hpp"
 #include "environment.hpp"
 #include "memory.hpp"
+#include "sram.hpp"
 #include "tracy.hpp"
 
 using std::nullopt;
@@ -31,14 +32,13 @@ using std::optional;
 using retro::task::TaskSpec;
 
 namespace melonds::gba {
-    std::unique_ptr<melonds::SaveManager> GbaSaveManager = std::make_unique<melonds::SaveManager>();
     static optional<int> TimeToGbaFlush = nullopt;
 }
 
 void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     ZoneScopedN("Platform::WriteGBASave");
-    if (melonds::gba::GbaSaveManager) {
-        melonds::gba::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    if (melonds::sram::GbaSaveManager) {
+        melonds::sram::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
         // Start the countdown until we flush the SRAM back to disk.
         // The timer resets every time we write to SRAM,
@@ -51,12 +51,12 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
 void melonds::gba::FlushSram(const retro_game_info& gba_save_info) noexcept {
     ZoneScopedN("melonds::gba::FlushSram");
     const char* save_data_path = gba_save_info.path;
-    if (save_data_path == nullptr || GbaSaveManager == nullptr) {
+    if (save_data_path == nullptr || sram::GbaSaveManager == nullptr) {
         // No save data path was provided, or the GBA save manager isn't initialized
         return; // TODO: Report this error
     }
-    const u8* gba_sram = GbaSaveManager->Sram();
-    u32 gba_sram_length = GbaSaveManager->SramLength();
+    const u8* gba_sram = sram::GbaSaveManager->Sram();
+    u32 gba_sram_length = sram::GbaSaveManager->SramLength();
 
     if (gba_sram == nullptr || gba_sram_length == 0) {
         return; // TODO: Report this error
