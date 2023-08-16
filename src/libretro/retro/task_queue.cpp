@@ -40,6 +40,7 @@ void retro::task::push(TaskSpec&& task) noexcept {
 
 void retro::task::deinit() noexcept {
     ZoneScopedN("retro::task::deinit");
+    task_queue_reset();
     task_queue_deinit();
 }
 
