@@ -266,6 +266,10 @@ u64 Platform::FileLength(FileHandle* file)
     return filestream_get_size(file->file);
 }
 
+void melonds::file::init() {
+    retro_assert(flushTimers.empty());
+}
+
 void melonds::file::deinit() {
     flushTimers.clear();
 }

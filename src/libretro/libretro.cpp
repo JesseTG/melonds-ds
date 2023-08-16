@@ -69,7 +69,6 @@ using retro::task::TaskSpec;
 namespace melonds {
     static InputState input_state;
     static ScreenLayoutData screenLayout;
-    static bool swap_screen_toggled = false;
     static bool mic_state_toggled = false;
     static bool isInDeinit = false;
     static bool isUnloading = false;
@@ -132,8 +131,16 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(retro::content::get_loaded_nds_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
+    retro_assert(!melonds::first_frame_run);
+    retro_assert(!melonds::deferred_initialization_pending);
+    retro_assert(!melonds::isInDeinit);
+    retro_assert(!melonds::isUnloading);
+    retro_assert(!melonds::mic_state_toggled);
     srand(time(nullptr));
+    melonds::input_state = melonds::InputState();
 
+
+    melonds::file::init();
     melonds::first_frame_run = false;
     retro::task::init(false, nullptr);
 

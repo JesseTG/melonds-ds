@@ -14,6 +14,7 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include <retro_assert.h>
 #include "content.hpp"
 #include "environment.hpp"
 
@@ -67,6 +68,15 @@ void retro::content::set_loaded_content_info(
     const struct retro_game_info *gba_info,
     const struct retro_game_info *gba_save_info
 ) noexcept {
+    retro_assert(_loaded_nds_info == nullopt);
+    retro_assert(_loaded_nds_info_ext == nullopt);
+    retro_assert(_loaded_nds_path == nullopt);
+    retro_assert(_loaded_gba_info == nullopt);
+    retro_assert(_loaded_gba_info_ext == nullopt);
+    retro_assert(_loaded_gba_path == nullopt);
+    retro_assert(_loaded_gba_save_info == nullopt);
+    retro_assert(_loaded_gba_save_path == nullopt);
+
     if (nds_info) {
         _loaded_nds_path = nds_info->path ? make_optional(nds_info->path) : nullopt;
         _loaded_nds_info = retro_game_info {
