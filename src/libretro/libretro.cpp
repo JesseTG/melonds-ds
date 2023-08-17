@@ -93,7 +93,6 @@ namespace melonds {
     );
     static void parse_nds_rom(const struct retro_game_info &info);
     static void parse_gba_rom(const struct retro_game_info &info);
-    static void init_gba_save(GbaCart &gba_cart, const struct retro_game_info& gba_save_info);
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
@@ -563,77 +562,6 @@ static void melonds::parse_gba_rom(const struct retro_game_info &info) {
     retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
 }
 
-// Loads the GBA SRAM
-static void melonds::init_gba_save(GbaCart& gba_cart, const struct retro_game_info& gba_save_info) {
-    ZoneScopedN("melonds::init_gba_save");
-    // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
-    // because we'll overwrite it later and don't want the frontend to hold open any file handles.
-
-    if (path_contains_compressed_file(gba_save_info.path)) {
-        // If this save file is in an archive (e.g. /path/to/file.7z#mygame.srm)...
-
-        // We don't support GBA SRAM files in archives right now;
-        // libretro-common has APIs for extracting and re-inserting them,
-        // but I just can't be bothered.
-        retro::set_error_message(
-            "melonDS DS does not support archived GBA save data right now. "
-            "Please extract it and try again. "
-            "Continuing without using the save data."
-        );
-
-        return;
-    }
-
-    // rzipstream opens the file as-is if it's not rzip-formatted
-    rzipstream_t* gba_save_file = rzipstream_open(gba_save_info.path, RETRO_VFS_FILE_ACCESS_READ);
-    if (!gba_save_file) {
-        throw std::runtime_error("Failed to open GBA save file");
-    }
-
-    if (rzipstream_is_compressed(gba_save_file)) {
-        // If this save data is compressed in libretro's rzip format...
-        // (not to be confused with a standard archive format like zip or 7z)
-
-        // We don't support rzip-compressed GBA save files right now;
-        // I can't be bothered.
-        retro::set_error_message(
-            "melonDS DS does not support compressed GBA save data right now. "
-            "Please disable save data compression in the frontend and try again. "
-            "Continuing without using the save data."
-        );
-
-        rzipstream_close(gba_save_file);
-        return;
-    }
-
-    int64_t gba_save_file_size = rzipstream_get_size(gba_save_file);
-    if (gba_save_file_size < 0) {
-        // If we couldn't get the uncompressed size of the GBA save file...
-        rzipstream_close(gba_save_file);
-        throw std::runtime_error("Failed to get GBA save file size");
-    }
-
-    void* gba_save_data = malloc(gba_save_file_size);
-    if (!gba_save_data) {
-        rzipstream_close(gba_save_file);
-        throw std::runtime_error("Failed to allocate memory for GBA save file");
-    }
-
-    if (rzipstream_read(gba_save_file, gba_save_data, gba_save_file_size) != gba_save_file_size) {
-        rzipstream_close(gba_save_file);
-        free(gba_save_data);
-        throw std::runtime_error("Failed to read GBA save file");
-    }
-
-    sram::GbaSaveManager->SetSaveSize(gba_save_file_size);
-    gba_cart.SetupSave(gba_save_file_size);
-    gba_cart.LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
-    retro::debug("Allocated %u-byte GBA SRAM", gba_cart.GetSaveMemoryLength());
-    // Actually installing the SRAM will be done later, after NDS::Reset is called
-    free(gba_save_data);
-    rzipstream_close(gba_save_file);
-    retro::task::push(sram::FlushGbaSramTask());
-}
 
 static void melonds::load_games(
     const optional<struct retro_game_info> &nds_info,
@@ -688,7 +616,7 @@ static void melonds::load_games(
             parse_gba_rom(*gba_info);
 
             if (gba_save_info) {
-                init_gba_save(*_loaded_gba_cart, *gba_save_info);
+                sram::InitGbaSram(*_loaded_gba_cart, *gba_save_info);
             }
             else {
                 retro::info("No GBA SRAM was provided.");
