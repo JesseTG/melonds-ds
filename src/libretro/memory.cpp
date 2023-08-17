@@ -114,7 +114,10 @@ PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             return NDS::MainRAM;
         case RETRO_MEMORY_SAVE_RAM:
-            return melonds::sram::NdsSaveManager->Sram();
+            if (melonds::sram::NdsSaveManager) {
+                return melonds::sram::NdsSaveManager->Sram();
+            }
+            [[fallthrough]];
         default:
             return nullptr;
     }
@@ -137,7 +140,10 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
                     return DSI_MEMORY_SIZE; // 16MB, the size of the DSi system RAM
             }
         case RETRO_MEMORY_SAVE_RAM:
-            return melonds::sram::NdsSaveManager->SramLength();
+            if (melonds::sram::NdsSaveManager) {
+                return melonds::sram::NdsSaveManager->SramLength();
+            }
+            [[fallthrough]];
         default:
             return 0;
     }
