@@ -28,49 +28,49 @@ namespace melonds::config::definitions {
 
     template<>
     constexpr std::array OptionCategories<RETRO_LANGUAGE_ENGLISH> {
-            retro_core_option_v2_category {
-                    melonds::config::system::CATEGORY,
-                    "System",
-                    "Change system settings."
-            },
-            retro_core_option_v2_category {
-                    melonds::config::video::CATEGORY,
-                    "Video",
-                    "Change video settings."
-            },
-            retro_core_option_v2_category {
-                    melonds::config::audio::CATEGORY,
-                    "Audio",
-                    "Change audio settings."
-            },
-            retro_core_option_v2_category {
-                    melonds::config::screen::CATEGORY,
-                    "Screen",
-                    "Change screen settings."
-            },
-            retro_core_option_v2_category {
-                    melonds::config::storage::CATEGORY,
-                    "Storage",
-                    "Change emulated SD card, NAND image, and save data settings."
-            },
-            retro_core_option_v2_category {
-                    melonds::config::network::CATEGORY,
-                    "Network",
-                    "Change Nintendo Wi-Fi emulation settings."
-            },
+        retro_core_option_v2_category {
+            melonds::config::system::CATEGORY,
+            "System",
+            "Change system settings."
+        },
+        retro_core_option_v2_category {
+            melonds::config::video::CATEGORY,
+            "Video",
+            "Change video settings."
+        },
+        retro_core_option_v2_category {
+            melonds::config::audio::CATEGORY,
+            "Audio",
+            "Change audio settings."
+        },
+        retro_core_option_v2_category {
+            melonds::config::screen::CATEGORY,
+            "Screen",
+            "Change screen settings."
+        },
+        retro_core_option_v2_category {
+            melonds::config::storage::CATEGORY,
+            "Storage",
+            "Change emulated SD card, NAND image, and save data settings."
+        },
+        retro_core_option_v2_category {
+            melonds::config::network::CATEGORY,
+            "Network",
+            "Change Nintendo Wi-Fi emulation settings."
+        },
 #ifdef JIT_ENABLED
-            retro_core_option_v2_category {
-                    melonds::config::cpu::CATEGORY,
-                    "CPU Emulation",
-                    "Change CPU emulation settings."
-            },
+        retro_core_option_v2_category {
+            melonds::config::cpu::CATEGORY,
+            "CPU Emulation",
+            "Change CPU emulation settings."
+        },
 #endif
-            retro_core_option_v2_category {
-                    melonds::config::osd::CATEGORY,
-                    "On-Screen Display & Notifications",
-                    "Change what extra information is shown on-screen."
-            },
-            retro_core_option_v2_category {nullptr, nullptr, nullptr},
+        retro_core_option_v2_category {
+            melonds::config::osd::CATEGORY,
+            "On-Screen Display & Notifications",
+            "Change what extra information is shown on-screen."
+        },
+        retro_core_option_v2_category {nullptr, nullptr, nullptr},
     };
 }
 #endif //MELONDS_DS_CATEGORIES_HPP
