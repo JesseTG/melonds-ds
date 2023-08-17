@@ -33,6 +33,7 @@
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
+#include "config/definitions/categories.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "input.hpp"
@@ -1169,7 +1170,7 @@ static void melonds::config::set_core_options(
     _config_categories_supported = false;
     DynamicCoreOptions options(
         FixedOptionDefinitions, FixedOptionDefinitionsLength,
-        OptionCategories, OptionCategoriesLength
+        definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>.data(), definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>.size()
     );
 
     retro_core_options_v2* optionsUs = options.GetOptions();

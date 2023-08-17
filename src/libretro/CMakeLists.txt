@@ -13,6 +13,7 @@ add_library(libretro MODULE
     config/constants.hpp
     config/definitions.hpp
     config/definitions.cpp
+    config/definitions/categories.hpp
     config/dynamic.cpp
     config/dynamic.hpp
     content.cpp

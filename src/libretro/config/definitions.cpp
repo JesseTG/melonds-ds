@@ -21,49 +21,6 @@
 #include <libretro.h>
 #include <retro_miscellaneous.h>
 
-struct retro_core_option_v2_category melonds::OptionCategories[] = {
-        {
-                melonds::config::system::CATEGORY,
-                "System",
-                "Change system settings."
-        },
-        {
-                melonds::config::video::CATEGORY,
-                "Video",
-                "Change video settings."
-        },
-        {
-                melonds::config::audio::CATEGORY,
-                "Audio",
-                "Change audio settings."
-        },
-        {
-                melonds::config::screen::CATEGORY,
-                "Screen",
-                "Change screen settings."
-        },
-        {
-                melonds::config::storage::CATEGORY,
-                "Storage",
-                "Change emulated SD card, NAND image, and save data settings."
-        },
-        {
-                melonds::config::network::CATEGORY,
-                "Network",
-                "Change Nintendo Wi-Fi emulation settings."
-        },
-#ifdef JIT_ENABLED
-        {
-                melonds::config::cpu::CATEGORY,
-                "CPU Emulation",
-                "Change CPU emulation settings."
-        },
-#endif
-        {nullptr, nullptr, nullptr},
-};
-
-const size_t melonds::OptionCategoriesLength = ARRAY_SIZE(OptionCategories);
-
 /// All descriptive text uses semantic line breaks. https://sembr.org
 struct retro_core_option_v2_definition melonds::FixedOptionDefinitions[] = {
         // System
