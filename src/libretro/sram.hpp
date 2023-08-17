@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "libretro.hpp"
 #include "memory.hpp"
 
 //! Definitions for managing SRAM.
@@ -33,6 +34,7 @@ struct retro_game_info;
 namespace melonds::sram {
     void init();
     void deinit() noexcept;
+    void InitNdsSave(const NdsCart &nds_cart);
     void FlushGbaSram(const retro_game_info& gba_save_info) noexcept;
 
     retro::task::TaskSpec FlushGbaSramTask() noexcept;

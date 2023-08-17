@@ -20,14 +20,17 @@
 #include <memory>
 #include <optional>
 
+#include <file/file_path.h>
 #include <retro_assert.h>
 #include <streams/file_stream.h>
 
+#include <NDS.h>
 #include <Platform.h>
 
 #include "config.hpp"
 #include "content.hpp"
 #include "environment.hpp"
+#include "libretro.hpp"
 #include "retro/task_queue.hpp"
 #include "tracy.hpp"
 
@@ -149,6 +152,41 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask() noexcept {
     });
 
     return task;
+}
+
+// Does not load the NDS SRAM, since retro_get_memory is used for that.
+// But it will allocate the SRAM buffer
+void melonds::sram::InitNdsSave(const NdsCart &nds_cart) {
+    ZoneScopedN("melonds::sram::InitNdsSave");
+    using std::runtime_error;
+    if (nds_cart.GetHeader().IsHomebrew()) {
+        // If this is a homebrew ROM...
+
+        // Homebrew is a special case, as it uses an SD card rather than SRAM.
+        // No need to explicitly load or save homebrew SD card images;
+        // the CartHomebrew class does that.
+        if (config::save::DldiFolderSync()) {
+            // If we're syncing the homebrew SD card image to the host filesystem...
+            if (!path_mkdir(config::save::DldiFolderPath().c_str())) {
+                // Create the directory. If that fails...
+                // (note that an existing directory is not an error)
+                throw runtime_error("Failed to create virtual SD card directory at " + config::save::DldiFolderPath());
+            }
+        }
+    }
+    else {
+        // Get the length of the ROM's SRAM, if any
+        u32 sram_length = nds_cart.GetSaveMemoryLength();
+        sram::NdsSaveManager->SetSaveSize(sram_length);
+
+        if (sram_length > 0) {
+            retro::log(RETRO_LOG_DEBUG, "Allocated %u-byte SRAM buffer for loaded NDS ROM.", sram_length);
+        } else {
+            retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
+        }
+        // The actual SRAM file is installed later; it's loaded into the core via retro_get_memory_data,
+        // and it's applied in the first frame of retro_run.
+    }
 }
 
 void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {

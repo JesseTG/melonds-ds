@@ -92,7 +92,6 @@ namespace melonds {
         const optional<retro_game_info> &gba_save_info
     );
     static void parse_nds_rom(const struct retro_game_info &info);
-    static void init_nds_save(const NdsCart &nds_cart);
     static void parse_gba_rom(const struct retro_game_info &info);
     static void init_gba_save(GbaCart &gba_cart, const struct retro_game_info& gba_save_info);
     static void init_rendering();
@@ -677,7 +676,7 @@ static void melonds::load_games(
 
         if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
             // If this ROM represents a cartridge, rather than DSiWare...
-            init_nds_save(*_loaded_nds_cart);
+            sram::InitNdsSave(*_loaded_nds_cart);
         }
     }
 
@@ -733,41 +732,6 @@ static void melonds::load_games(
     } else {
         log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
         load_games_deferred(nds_info, gba_info);
-    }
-}
-
-// Does not load the NDS SRAM, since retro_get_memory is used for that.
-// But it will allocate the SRAM buffer
-static void melonds::init_nds_save(const NdsCart &nds_cart) {
-    ZoneScopedN("melonds::init_nds_save");
-    using std::runtime_error;
-     if (nds_cart.GetHeader().IsHomebrew()) {
-         // If this is a homebrew ROM...
-
-         // Homebrew is a special case, as it uses an SD card rather than SRAM.
-         // No need to explicitly load or save homebrew SD card images;
-         // the CartHomebrew class does that.
-         if (config::save::DldiFolderSync()) {
-             // If we're syncing the homebrew SD card image to the host filesystem...
-             if (!path_mkdir(config::save::DldiFolderPath().c_str())) {
-                 // Create the directory. If that fails...
-                 // (note that an existing directory is not an error)
-                 throw runtime_error("Failed to create virtual SD card directory at " + config::save::DldiFolderPath());
-             }
-         }
-     }
-     else {
-        // Get the length of the ROM's SRAM, if any
-        u32 sram_length = nds_cart.GetSaveMemoryLength();
-         sram::NdsSaveManager->SetSaveSize(sram_length);
-
-        if (sram_length > 0) {
-            retro::log(RETRO_LOG_DEBUG, "Allocated %u-byte SRAM buffer for loaded NDS ROM.", sram_length);
-        } else {
-            retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
-        }
-        // The actual SRAM file is installed later; it's loaded into the core via retro_get_memory_data,
-        // and it's applied in the first frame of retro_run.
     }
 }
 
