@@ -48,8 +48,6 @@ void melonds::sram::init() {
     ZoneScopedN("melonds::sram::init");
     retro_assert(NdsSaveManager == nullptr);
     retro_assert(GbaSaveManager == nullptr);
-    NdsSaveManager = make_unique<SaveManager>();
-    GbaSaveManager = make_unique<SaveManager>();
 }
 
 void melonds::sram::deinit() noexcept {
@@ -58,10 +56,9 @@ void melonds::sram::deinit() noexcept {
     GbaSaveManager = nullptr;
 }
 
-melonds::sram::SaveManager::SaveManager() :
-        _sram(nullptr),
-        _sram_length(0),
-        _buffer_length(0) {
+melonds::sram::SaveManager::SaveManager(u32 initialLength) :
+        _sram(new u8[initialLength]),
+        _sram_length(initialLength) {
 }
 
 melonds::sram::SaveManager::~SaveManager() {
@@ -90,16 +87,6 @@ void melonds::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writ
         } else {
             memcpy(_sram + writeoffset, savedata + writeoffset, writelen);
         }
-    }
-}
-
-void melonds::sram::SaveManager::SetSaveSize(u32 savelen) {
-    ZoneScopedN("melonds::sram::SaveManager::SetSaveSize");
-    if (_sram_length != savelen) {
-        delete[] _sram;
-
-        _sram_length = savelen;
-        _sram = new u8[_sram_length];
     }
 }
 
@@ -178,9 +165,9 @@ void melonds::sram::InitNdsSave(const NdsCart &nds_cart) {
     else {
         // Get the length of the ROM's SRAM, if any
         u32 sram_length = nds_cart.GetSaveMemoryLength();
-        sram::NdsSaveManager->SetSaveSize(sram_length);
 
         if (sram_length > 0) {
+            sram::NdsSaveManager = make_unique<SaveManager>(sram_length);
             retro::log(RETRO_LOG_DEBUG, "Allocated %u-byte SRAM buffer for loaded NDS ROM.", sram_length);
         } else {
             retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
@@ -253,8 +240,10 @@ void melonds::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info&
         throw std::runtime_error("Failed to read GBA save file");
     }
 
-    sram::GbaSaveManager->SetSaveSize(gba_save_file_size);
+    sram::GbaSaveManager = make_unique<SaveManager>(gba_save_file_size);
     gba_cart.SetupSave(gba_save_file_size);
+    // LoadSave's subclasses will call Platform::WriteGBASave.
+    // The data will be in the buffer soon enough.
     gba_cart.LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
     retro::debug("Allocated %u-byte GBA SRAM", gba_cart.GetSaveMemoryLength());
     // Actually installing the SRAM will be done later, after NDS::Reset is called

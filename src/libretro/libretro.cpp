@@ -99,10 +99,6 @@ namespace melonds {
         const optional<retro_game_info>& gba_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
-    static void install_sram(
-        const optional<retro_game_info>& nds_info,
-        const optional<retro_game_info>& gba_info
-    );
     static void ValidateFirmware();
 
     // functions for running games
@@ -223,33 +219,6 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     return melonds::handle_load_game(melonds::MELONDSDS_GAME_TYPE_NDS, info, 1);
 }
 
-static void melonds::install_sram(
-    const optional<retro_game_info>& nds_info,
-    const optional<retro_game_info>& gba_info
-) {
-    ZoneScopedN("melonds::install_sram");
-    // Nintendo DS SRAM is loaded by the frontend
-    // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
-    // This is where we install the SRAM data into the emulated DS.
-    if (nds_info && sram::NdsSaveManager->SramLength() > 0) {
-        // If we're loading a NDS game that has SRAM...
-        NDS::LoadSave(sram::NdsSaveManager->Sram(), sram::NdsSaveManager->SramLength());
-    }
-
-    // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
-    // but is not processed by retro_get_memory (again due to libretro limits).
-    if (gba_info && sram::GbaSaveManager->SramLength() > 0) {
-        // If we're loading a GBA game that has existing SRAM...
-        // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
-        GBACart::LoadSave(sram::GbaSaveManager->Sram(), sram::GbaSaveManager->SramLength());
-    }
-
-    // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
-    // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
-}
-
-
-
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     ZoneScopedN("retro_get_system_av_info");
     using melonds::screenLayout;
@@ -300,14 +269,30 @@ PUBLIC_SYMBOL void retro_run(void) {
         }
 
         if (!first_frame_run) {
+            using namespace sram;
             // Apply the save data from the core's SRAM buffer to the cart's SRAM;
             // we need to do this in the first frame of retro_run because
             // retro_get_memory_data is used to copy the loaded SRAM
             // in between retro_load and the first retro_run call.
-            install_sram(
-                    retro::content::get_loaded_nds_info(),
-                    retro::content::get_loaded_gba_info()
-            );
+
+            // Nintendo DS SRAM is loaded by the frontend
+            // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
+            // This is where we install the SRAM data into the emulated DS.
+            if (retro::content::get_loaded_nds_info() && NdsSaveManager && NdsSaveManager->SramLength() > 0) {
+                // If we're loading a NDS game that has SRAM...
+                NDS::LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
+            }
+
+            // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
+            // but is not processed by retro_get_memory (again due to libretro limits).
+            if (retro::content::get_loaded_nds_info() && GbaSaveManager && GbaSaveManager->SramLength() > 0) {
+                // If we're loading a GBA game that has existing SRAM...
+                // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
+                GBACart::LoadSave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
+            }
+
+            // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
+            // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
 
             // This has to be deferred even if we're not using OpenGL,
             // because libretro doesn't set the SRAM until after retro_load_game
