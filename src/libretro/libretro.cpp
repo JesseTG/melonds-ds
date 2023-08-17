@@ -676,7 +676,7 @@ static void melonds::load_games(
 
         if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
             // If this ROM represents a cartridge, rather than DSiWare...
-            sram::InitNdsSave(*_loaded_nds_cart);
+            sram::InitNdsSram(*_loaded_nds_cart);
         }
     }
 

@@ -156,8 +156,8 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask() noexcept {
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
 // But it will allocate the SRAM buffer
-void melonds::sram::InitNdsSave(const NdsCart &nds_cart) {
-    ZoneScopedN("melonds::sram::InitNdsSave");
+void melonds::sram::InitNdsSram(const NdsCart &nds_cart) {
+    ZoneScopedN("melonds::sram::InitNdsSram");
     using std::runtime_error;
     if (nds_cart.GetHeader().IsHomebrew()) {
         // If this is a homebrew ROM...
