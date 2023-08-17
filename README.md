@@ -61,7 +61,7 @@ You can place your BIOS files in RetroArch's `system` directory, named as follow
 - DSi ARM7 BIOS: `dsi_bios7.bin`
 - DSi ARM9 BIOS: `dsi_bios9.bin`
 - DSi Firmware: `dsi_firmware.bin`
-- DSi System NAND: `dsi_nand.bin`
+- DSi System NAND: Anything, it's auto-detected
 
 ### Game Boy Advance Connectivity
 
@@ -97,6 +97,20 @@ which means that large changes and merge conflicts are less of an issue.
 As a result, improvements to standalone melonDS can be integrated
 almost as quickly as they're released!
 
+## Wi-Fi Support
+
+Wi-fi is fully emulated on all platforms!
+You can use any server reimplementation that works with standalone melonDS,
+but I recommend [Kaeru WFC][kaeru] due to its ease of use.
+Follow the instructions at the link for instructions on getting started.
+
+Future versions of melonDS DS may use the Kaeru WFC server by default.
+
+> [!NOTE]
+> Do not confuse this with local multiplayer.
+> melonDS DS does not support emulating local wireless
+> at this time.
+
 ## Homebrew Save Data
 
 The legacy melonDS core does not support save data for homebrew games.
@@ -119,7 +133,7 @@ allowing you to use your device's microphone for Nintendo DS games!
 > The most recent stable release of RetroArch (as of this writing)
 > does not include microphone support.
 > You will need to use [a nightly build][retroarch-nightly].
-> Additionally, some platforms may not have microphone support enabled yet.
+> Additionally, some platforms may not have microphone support yet.
 
 ## Screen Rotation
 
@@ -135,6 +149,30 @@ This is inconvenient if a single game uses different layouts.
 
 melonDS DS allows you to cycle through up to 8 screen layouts ([including rotations](#screen-rotation))
 at the push of a button!
+
+## Streamlined DSiWare Installation
+
+melonDS does not support direct-booting DSiWare at this time;
+you need to install DSiWare games to a NAND image,
+then start them from the DSi menu when you want to play.
+
+But melonDS DS streamlines this process!
+
+- When you select a DSiWare ROM,
+  it's temporarily installed on the NAND
+  and removed when you exit the core.
+- Title metadata is automatically downloaded from Nintendo's servers
+  and cached locally for later.
+
+## Other Niceties
+
+- **Battery Support:** melonDS DS uses libretro's new power state API
+  so that your device's power status (battery level, charging status, etc.)
+  is reflected in the emulated DS.
+  This feature requires a nightly build of RetroArch as of this writing.
+  Some platforms may not support it.
+- **Selectable NAND Images:** You don't need to hard-code a specific name for your DSi NAND image!
+  Just place it in your system directory and select it from the core options.
 
 # Missing Features
 
@@ -192,10 +230,11 @@ The ultimate goal is for melonDS DS to supersede the [legacy melonDS core][melon
 This is a rough roadmap for achieving that goal:
 
 1. Support Action Replay cheat codes.
-2. Implement support for migrating configuration from the existing core.
-3. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
-4. Add support for the DSi camera using `retro_camera_callback`.
-5. Get melonDS DS included in the official RetroArch distribution.
+2. Fix all major outstanding bugs.
+3. Get melonDS DS included in the official RetroArch distribution.
+4. Implement support for migrating configuration from the existing core.
+5. Implement support for the [solar sensor][solar-sensor] using `retro_sensor_interface`.
+6. Add support for the DSi camera using `retro_camera_callback`.
 
 # Building
 
@@ -207,7 +246,9 @@ You will need to install the following beforehand:
 
 - CMake 3.15 or later
 - Git
-- A C++17 compiler
+- A C++17 compiler (MSVC is not supported)
+
+Most other dependencies are fetched automatically by CMake.
 
 ### Windows
 
@@ -292,6 +333,7 @@ I figured I'd get in on the fun.
 
 This project is not affiliated with, developed by, or endorsed by the melonDS team or by Nintendo.
 
+[kaeru]: https://kaeru.world/projects/wfc
 [libretro]: https://www.libretro.com
 [retroarch]: https://www.retroarch.com
 [melonds]: https://melonds.kuribo64.net
