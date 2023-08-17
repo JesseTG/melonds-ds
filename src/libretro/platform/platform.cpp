@@ -219,16 +219,6 @@ void Platform::Sleep(u64 usecs) {
     sleep_impl(usecs);
 }
 
-void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
-    // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
-    if (melonds::sram::NdsSaveManager) {
-        melonds::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
-
-        // No need to maintain a flush timer for NDS SRAM,
-        // because retro_get_memory lets us delegate autosave to the frontend.
-    }
-}
-
 void Platform::Camera_Start(int num) {
     if (_camera.start) {
         if (_camera.start()) {
