@@ -28,46 +28,58 @@
 
 namespace melonds::config {
     namespace audio {
-        static const char *const CATEGORY = "audio";
-        static const char *const AUDIO_BITDEPTH = "melonds_audio_bitdepth";
-        static const char *const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
-        static const char *const MIC_INPUT = "melonds_mic_input";
-        static const char *const MIC_INPUT_BUTTON = "melonds_mic_input_active";
+        static constexpr const char *const CATEGORY = "audio";
+        static constexpr const char *const AUDIO_BITDEPTH = "melonds_audio_bitdepth";
+        static constexpr const char *const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
+        static constexpr const char *const MIC_INPUT = "melonds_mic_input";
+        static constexpr const char *const MIC_INPUT_BUTTON = "melonds_mic_input_active";
     }
 
     namespace cpu {
-        static const char* const CATEGORY = "cpu";
-        static const char *const JIT_BLOCK_SIZE = "melonds_jit_block_size";
-        static const char *const JIT_BRANCH_OPTIMISATIONS = "melonds_jit_branch_optimisations";
-        static const char *const JIT_ENABLE = "melonds_jit_enable";
-        static const char *const JIT_FAST_MEMORY = "melonds_jit_fast_memory";
-        static const char *const JIT_LITERAL_OPTIMISATIONS = "melonds_jit_literal_optimisations";
+        static constexpr const char* const CATEGORY = "cpu";
+        static constexpr const char *const JIT_BLOCK_SIZE = "melonds_jit_block_size";
+        static constexpr const char *const JIT_BRANCH_OPTIMISATIONS = "melonds_jit_branch_optimisations";
+        static constexpr const char *const JIT_ENABLE = "melonds_jit_enable";
+        static constexpr const char *const JIT_FAST_MEMORY = "melonds_jit_fast_memory";
+        static constexpr const char *const JIT_LITERAL_OPTIMISATIONS = "melonds_jit_literal_optimisations";
     }
 
     namespace network {
-        static const char *const CATEGORY = "network";
-        static const char *const NETWORK_MODE = "melonds_network_mode";
-        static const char *const DIRECT_NETWORK_INTERFACE = "melonds_direct_network_interface";
+        static constexpr const char *const CATEGORY = "network";
+        static constexpr const char *const NETWORK_MODE = "melonds_network_mode";
+        static constexpr const char *const DIRECT_NETWORK_INTERFACE = "melonds_direct_network_interface";
+    }
+
+    namespace osd {
+        static constexpr const char *const CATEGORY = "osd";
+        static constexpr const char *const POINTER_COORDINATES = "melonds_show_pointer_coordinates";
+        static constexpr const char *const UNSUPPORTED_FEATURES = "melonds_show_unsupported_features";
+        static constexpr const char *const MIC_STATE = "melonds_show_mic_state";
+        static constexpr const char *const CAMERA_STATE = "melonds_show_camera_state";
+        static constexpr const char *const BIOS_WARNINGS = "melonds_show_bios_warnings";
+        static constexpr const char *const CURRENT_LAYOUT = "melonds_show_current_layout";
+        static constexpr const char *const LID_STATE = "melonds_show_lid_state";
+        static constexpr const char *const BRIGHTNESS_STATE = "melonds_show_brightness_state";
     }
 
     namespace screen {
-        static const char *const CATEGORY = "screen";
-        static const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
-        static const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
-        static const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
-        static const char *const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
-        static const char *const SCREEN_GAP = "melonds_screen_gap";
-        static const char *const SCREEN_LAYOUT1 = "melonds_screen_layout1";
-        static const char *const SCREEN_LAYOUT2 = "melonds_screen_layout2";
-        static const char *const SCREEN_LAYOUT3 = "melonds_screen_layout3";
-        static const char *const SCREEN_LAYOUT4 = "melonds_screen_layout4";
-        static const char *const SCREEN_LAYOUT5 = "melonds_screen_layout5";
-        static const char *const SCREEN_LAYOUT6 = "melonds_screen_layout6";
-        static const char *const SCREEN_LAYOUT7 = "melonds_screen_layout7";
-        static const char *const SCREEN_LAYOUT8 = "melonds_screen_layout8";
-        static const char *const SHOW_CURSOR = "melonds_show_cursor";
-        static const char *const TOUCH_MODE = "melonds_touch_mode";
-        static const std::array<const char *const, melonds::config::screen::MAX_SCREEN_LAYOUTS> SCREEN_LAYOUTS = {
+        static constexpr const char *const CATEGORY = "screen";
+        static constexpr const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
+        static constexpr const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
+        static constexpr const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
+        static constexpr const char *const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
+        static constexpr const char *const SCREEN_GAP = "melonds_screen_gap";
+        static constexpr const char *const SCREEN_LAYOUT1 = "melonds_screen_layout1";
+        static constexpr const char *const SCREEN_LAYOUT2 = "melonds_screen_layout2";
+        static constexpr const char *const SCREEN_LAYOUT3 = "melonds_screen_layout3";
+        static constexpr const char *const SCREEN_LAYOUT4 = "melonds_screen_layout4";
+        static constexpr const char *const SCREEN_LAYOUT5 = "melonds_screen_layout5";
+        static constexpr const char *const SCREEN_LAYOUT6 = "melonds_screen_layout6";
+        static constexpr const char *const SCREEN_LAYOUT7 = "melonds_screen_layout7";
+        static constexpr const char *const SCREEN_LAYOUT8 = "melonds_screen_layout8";
+        static constexpr const char *const SHOW_CURSOR = "melonds_show_cursor";
+        static constexpr const char *const TOUCH_MODE = "melonds_touch_mode";
+        static constexpr std::array SCREEN_LAYOUTS = {
                 SCREEN_LAYOUT1,
                 SCREEN_LAYOUT2,
                 SCREEN_LAYOUT3,
@@ -80,89 +92,89 @@ namespace melonds::config {
     }
 
     namespace system {
-        static const char *const CATEGORY = "system";
-        static const char *const BATTERY_UPDATE_INTERVAL = "melonds_battery_update_interval";
-        static const char *const BOOT_DIRECTLY = "melonds_boot_directly";
-        static const char *const CONSOLE_MODE = "melonds_console_mode";
-        static const char *const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
-        static const char *const FAVORITE_COLOR = "melonds_firmware_favorite_color";
-        static const char *const LANGUAGE = "melonds_language";
-        static const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
-        static const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
+        static constexpr const char *const CATEGORY = "system";
+        static constexpr const char *const BATTERY_UPDATE_INTERVAL = "melonds_battery_update_interval";
+        static constexpr const char *const BOOT_DIRECTLY = "melonds_boot_directly";
+        static constexpr const char *const CONSOLE_MODE = "melonds_console_mode";
+        static constexpr const char *const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
+        static constexpr const char *const FAVORITE_COLOR = "melonds_firmware_favorite_color";
+        static constexpr const char *const LANGUAGE = "melonds_language";
+        static constexpr const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
+        static constexpr const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
     }
 
     namespace storage {
-        static const char *const CATEGORY = "storage";
-        static const char *const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
-        static const char *const DSI_SD_SAVE_MODE = "melonds_dsi_sdcard";
-        static const char *const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";
-        static const char *const DSI_NAND_PATH = "melonds_dsi_nand_path";
-        static const char *const GBA_FLUSH_DELAY = "melonds_gba_flush_delay";
-        static const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
-        static const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
-        static const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
+        static constexpr const char *const CATEGORY = "storage";
+        static constexpr const char *const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
+        static constexpr const char *const DSI_SD_SAVE_MODE = "melonds_dsi_sdcard";
+        static constexpr const char *const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";
+        static constexpr const char *const DSI_NAND_PATH = "melonds_dsi_nand_path";
+        static constexpr const char *const GBA_FLUSH_DELAY = "melonds_gba_flush_delay";
+        static constexpr const char *const HOMEBREW_READ_ONLY = "melonds_homebrew_readonly";
+        static constexpr const char *const HOMEBREW_SAVE_MODE = "melonds_homebrew_sdcard";
+        static constexpr const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
     }
 
     namespace video {
-        static const char *const CATEGORY = "video";
-        static const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
-        static const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
-        static const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
-        static const char *const RENDER_MODE = "melonds_render_mode";
-        static const char *const THREADED_RENDERER = "melonds_threaded_renderer";
+        static constexpr const char *const CATEGORY = "video";
+        static constexpr const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
+        static constexpr const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
+        static constexpr const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
+        static constexpr const char *const RENDER_MODE = "melonds_render_mode";
+        static constexpr const char *const THREADED_RENDERER = "melonds_threaded_renderer";
     }
 
     namespace values {
-        static const char *const _10BIT = "10bit";
-        static const char *const _16BIT = "16bit";
-        static const char *const ALWAYS = "always";
-        static const char *const AUTO = "auto";
-        static const char *const BLOW = "blow";
-        static const char *const BOTTOM_TOP = "bottom-top";
-        static const char *const BOTH = "both";
-        static const char *const BOTTOM = "bottom";
-        static const char *const COSINE = "cosine";
-        static const char *const CUBIC = "cubic";
-        static const char *const DEDICATED = "dedicated";
-        static const char *const DEFAULT = "default";
-        static const char *const DIRECT = "direct";
-        static const char *const DISABLED = "disabled";
-        static const char *const DS = "ds";
-        static const char *const DSI = "dsi";
-        static const char *const ENABLED = "enabled";
-        static const char *const ENGLISH = "en";
-        static const char *const FRENCH = "fr";
-        static const char *const GERMAN = "de";
-        static const char *const HOLD = "hold";
-        static const char *const HYBRID_BOTTOM = "hybrid-bottom";
-        static const char *const HYBRID_TOP = "hybrid-top";
-        static const char *const INDIRECT = "indirect";
-        static const char *const ITALIAN = "it";
-        static const char *const JAPANESE = "ja";
-        static const char *const JOYSTICK = "joystick";
-        static const char *const LEFT_RIGHT = "left-right";
-        static const char *const LINEAR = "linear";
-        static const char *const NEAREST = "nearest";
-        static const char *const MICROPHONE = "microphone";
-        static const char *const MOUSE = "mouse";
-        static const char *const NOISE = "noise";
-        static const char *const NOT_FOUND = "";
-        static const char *const ONE = "one";
-        static const char *const OPENGL = "opengl";
-        static const char *const RIGHT_LEFT = "right-left";
-        static const char *const ROTATE_LEFT = "rotate-left";
-        static const char *const ROTATE_RIGHT = "rotate-right";
-        static const char *const SHARED = "shared";
-        static const char *const SILENCE = "silence";
-        static const char *const SOFTWARE = "software";
-        static const char *const SPANISH = "es";
-        static const char *const TIMEOUT = "timeout";
-        static const char *const TOGGLE = "toggle";
-        static const char *const TOP_BOTTOM = "top-bottom";
-        static const char *const TOP = "top";
-        static const char *const TOUCH = "touch";
-        static const char *const TOUCHING = "touching";
-        static const char *const UPSIDE_DOWN = "rotate-180";
+        static constexpr const char *const _10BIT = "10bit";
+        static constexpr const char *const _16BIT = "16bit";
+        static constexpr const char *const ALWAYS = "always";
+        static constexpr const char *const AUTO = "auto";
+        static constexpr const char *const BLOW = "blow";
+        static constexpr const char *const BOTTOM_TOP = "bottom-top";
+        static constexpr const char *const BOTH = "both";
+        static constexpr const char *const BOTTOM = "bottom";
+        static constexpr const char *const COSINE = "cosine";
+        static constexpr const char *const CUBIC = "cubic";
+        static constexpr const char *const DEDICATED = "dedicated";
+        static constexpr const char *const DEFAULT = "default";
+        static constexpr const char *const DIRECT = "direct";
+        static constexpr const char *const DISABLED = "disabled";
+        static constexpr const char *const DS = "ds";
+        static constexpr const char *const DSI = "dsi";
+        static constexpr const char *const ENABLED = "enabled";
+        static constexpr const char *const ENGLISH = "en";
+        static constexpr const char *const FRENCH = "fr";
+        static constexpr const char *const GERMAN = "de";
+        static constexpr const char *const HOLD = "hold";
+        static constexpr const char *const HYBRID_BOTTOM = "hybrid-bottom";
+        static constexpr const char *const HYBRID_TOP = "hybrid-top";
+        static constexpr const char *const INDIRECT = "indirect";
+        static constexpr const char *const ITALIAN = "it";
+        static constexpr const char *const JAPANESE = "ja";
+        static constexpr const char *const JOYSTICK = "joystick";
+        static constexpr const char *const LEFT_RIGHT = "left-right";
+        static constexpr const char *const LINEAR = "linear";
+        static constexpr const char *const NEAREST = "nearest";
+        static constexpr const char *const MICROPHONE = "microphone";
+        static constexpr const char *const MOUSE = "mouse";
+        static constexpr const char *const NOISE = "noise";
+        static constexpr const char *const NOT_FOUND = "";
+        static constexpr const char *const ONE = "one";
+        static constexpr const char *const OPENGL = "opengl";
+        static constexpr const char *const RIGHT_LEFT = "right-left";
+        static constexpr const char *const ROTATE_LEFT = "rotate-left";
+        static constexpr const char *const ROTATE_RIGHT = "rotate-right";
+        static constexpr const char *const SHARED = "shared";
+        static constexpr const char *const SILENCE = "silence";
+        static constexpr const char *const SOFTWARE = "software";
+        static constexpr const char *const SPANISH = "es";
+        static constexpr const char *const TIMEOUT = "timeout";
+        static constexpr const char *const TOGGLE = "toggle";
+        static constexpr const char *const TOP_BOTTOM = "top-bottom";
+        static constexpr const char *const TOP = "top";
+        static constexpr const char *const TOUCH = "touch";
+        static constexpr const char *const TOUCHING = "touching";
+        static constexpr const char *const UPSIDE_DOWN = "rotate-180";
     }
 
     std::optional<bool> ParseBoolean(const char *value) noexcept;
