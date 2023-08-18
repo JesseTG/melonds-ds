@@ -17,14 +17,14 @@
 #ifndef MELONDS_DS_STORAGE_HPP
 #define MELONDS_DS_STORAGE_HPP
 
-#include <array>
+#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
     template<retro_language L>
-    constexpr std::array StorageOptionDefinitions {
+    constexpr std::initializer_list<retro_core_option_v2_definition> StorageOptionDefinitions {
         retro_core_option_v2_definition {
             config::storage::DSI_SD_SAVE_MODE,
             "Virtual SD Card (DSi)",

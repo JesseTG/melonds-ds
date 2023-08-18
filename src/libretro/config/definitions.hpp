@@ -17,6 +17,7 @@
 #ifndef MELONDS_DS_DEFINITIONS_HPP
 #define MELONDS_DS_DEFINITIONS_HPP
 
+#include <array>
 #include <cstdint>
 #include <tuple>
 

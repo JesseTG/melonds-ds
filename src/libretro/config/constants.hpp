@@ -18,11 +18,14 @@
 #ifndef MELONDS_DS_CONSTANTS_HPP
 #define MELONDS_DS_CONSTANTS_HPP
 
+#include <array>
 #include <charconv>
 #include <cstring>
 #include <initializer_list>
 #include <optional>
 #include <system_error>
+
+#include <libretro.h>
 
 #include "../config.hpp"
 

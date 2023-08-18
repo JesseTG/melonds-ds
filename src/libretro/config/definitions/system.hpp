@@ -17,7 +17,7 @@
 #ifndef MELONDS_DS_SYSTEM_HPP
 #define MELONDS_DS_SYSTEM_HPP
 
-#include <array>
+#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"
@@ -31,7 +31,7 @@ namespace melonds::config::definitions {
     constexpr const char* EnglishLabel = "English";
 
     template<retro_language L>
-    constexpr std::array SystemOptionDefinitions {
+    constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         retro_core_option_v2_definition {
             config::system::CONSOLE_MODE,
             "Console Type",

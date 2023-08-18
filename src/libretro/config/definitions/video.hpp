@@ -17,14 +17,14 @@
 #ifndef MELONDS_DS_VIDEO_HPP
 #define MELONDS_DS_VIDEO_HPP
 
-#include <array>
+#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
     template<retro_language L>
-    constexpr std::array VideoOptionDefinitions {
+    constexpr std::initializer_list<retro_core_option_v2_definition> VideoOptionDefinitions {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         retro_core_option_v2_definition {
             config::video::RENDER_MODE,

@@ -17,14 +17,14 @@
 #ifndef MELONDS_DS_AUDIO_HPP
 #define MELONDS_DS_AUDIO_HPP
 
-#include <array>
+#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
     template<retro_language L>
-    constexpr std::array AudioOptionDefinitions {
+    constexpr std::initializer_list<retro_core_option_v2_definition> AudioOptionDefinitions {
         retro_core_option_v2_definition {
             config::audio::MIC_INPUT,
             "Microphone Input Mode",

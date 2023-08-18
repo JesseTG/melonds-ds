@@ -17,14 +17,14 @@
 #ifndef MELONDS_DS_CPU_HPP
 #define MELONDS_DS_CPU_HPP
 
-#include <array>
+#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
     template<retro_language L>
-    constexpr std::array CpuOptionDefinitions {
+    constexpr std::initializer_list<retro_core_option_v2_definition> CpuOptionDefinitions {
 #ifdef JIT_ENABLED
         retro_core_option_v2_definition {
             config::cpu::JIT_ENABLE,
