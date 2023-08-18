@@ -24,7 +24,7 @@
 
 struct Platform::FileHandle {
     RFILE *file;
-    FileType type;
+    unsigned hints;
 };
 
 namespace melonds::file {

@@ -31,6 +31,7 @@
 #include <retro_assert.h>
 #include <compat/strl.h>
 #include <vfs/vfs.h>
+#include <string/stdstring.h>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -57,18 +58,17 @@ namespace Platform {
         return retro_mode;
     }
 
-    constexpr unsigned GetRetroVfsFileAccessHints(FileType type) noexcept {
-        switch (type) {
-            case FileType::GBASaveFile:
-            case FileType::NDSSaveFile:
-            case FileType::DSiFirmware:
-            case FileType::Firmware:
-            case FileType::DSiNANDImage:
-            case FileType::SDCardImage:
-                return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS;
-            default:
-                return RETRO_VFS_FILE_ACCESS_HINT_NONE;
+    unsigned GetRetroVfsFileAccessHints(const std::string& path) noexcept {
+        // TODO: If this path matches an SD card path, NAND path, or firmware path,
+        // then we should return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS
+
+        if (string_ends_with(path.c_str(), ".bin")) {
+            // TODO: When I submit that PR with those new Platform calls,
+            // use them instead of relying on a .bin file extension
+            return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS;
         }
+
+        return RETRO_VFS_FILE_ACCESS_HINT_NONE;
     }
 
     constexpr unsigned GetRetroVfsFileSeekOrigin(FileSeekOrigin origin) noexcept {
@@ -86,10 +86,10 @@ namespace Platform {
 }
 
 
-Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode, FileType type) {
+Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode) {
     if ((mode & FileMode::ReadWrite) == FileMode::None)
     { // If we aren't reading or writing, then we can't open the file
-        Log(LogLevel::Error, "Attempted to open %s \"%s\" in neither read nor write mode (FileMode 0x%x)\n", FileTypeName(type), path.c_str(), mode);
+        Log(LogLevel::Error, "Attempted to open \"%s\" in neither read nor write mode (FileMode 0x%x)\n", path.c_str(), mode);
         return nullptr;
     }
 
@@ -97,28 +97,28 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode,
 
     if (!file_exists && (mode & FileMode::NoCreate)) {
         // If the file doesn't exist, and we're not allowed to create it...
-        retro::warn("Attempted to open %s \"%s\" in FileMode 0x%x, but the file doesn't exist and FileMode::NoCreate is set\n", FileTypeName(type), path.c_str(), mode);
+        retro::warn("Attempted to open \"%s\" in FileMode 0x%x, but the file doesn't exist and FileMode::NoCreate is set\n", path.c_str(), mode);
         return nullptr;
     }
 
     Platform::FileHandle *handle = new Platform::FileHandle;
-    handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode), GetRetroVfsFileAccessHints(type));
-    handle->type = type;
+    handle->hints = GetRetroVfsFileAccessHints(path);
+    handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode), handle->hints);
 
     if (!handle->file) {
-        retro::error("Attempted to open %s \"%s\" in FileMode 0x%x, but failed", FileTypeName(type), path.c_str(), mode);
+        retro::error("Attempted to open \"%s\" in FileMode 0x%x, but failed", path.c_str(), mode);
         delete handle;
         return nullptr;
     }
 
-    retro::debug("Opened %s \"%s\" in FileMode 0x%x", FileTypeName(type), path.c_str(), mode);
+    retro::debug("Opened \"%s\" in FileMode 0x%x", path.c_str(), mode);
 
     return handle;
 }
 
-Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode mode, FileType type) {
+Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode mode) {
     if (path_is_absolute(path.c_str())) {
-        return OpenFile(path, mode, type);
+        return OpenFile(path, mode);
     }
 
     std::string sysdir = retro::get_system_directory().value_or("");
@@ -130,7 +130,7 @@ Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode 
         Log(LogLevel::Warn, "Path \"%s\" is too long to be joined with system directory \"%s\"", path.c_str(), sysdir.c_str());
     }
 
-    return OpenFile(fullpath, mode, type);
+    return OpenFile(fullpath, mode);
 }
 
 bool Platform::FileExists(const std::string& name)
@@ -168,25 +168,15 @@ bool Platform::CloseFile(FileHandle* file)
         return false;
     }
 
-    switch (file->type) {
-        case FileType::DSiNANDImage:
-        case FileType::SDCardImage:
-        case FileType::SDCardIndex:
-        case FileType::Firmware:
-        case FileType::DSiFirmware:
-            flushTimers->erase(file);
-            break;
-        default:
-            break;
-    }
+    flushTimers->erase(file);
 
     char path[PATH_MAX];
     strlcpy(path, filestream_get_path(file->file), sizeof(path));
-    retro::debug("Closing %s \"%s\"", FileTypeName(file->type), path);
+    retro::debug("Closing \"%s\"", path);
     bool ok = (filestream_close(file->file) == 0);
 
     if (!ok) {
-        retro::error("Failed to close %s \"%s\"", FileTypeName(file->type), path);
+        retro::error("Failed to close \"%s\"", path);
     }
     delete file;
 
@@ -246,17 +236,8 @@ u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
         return 0;
 
     u64 result = filestream_write(file->file, data, size * count);
-    switch (file->type) {
-        case FileType::DSiNANDImage:
-        case FileType::SDCardImage:
-        case FileType::SDCardIndex:
-        case FileType::Firmware:
-        case FileType::DSiFirmware: {
-            (*flushTimers)[file] = melonds::config::save::FlushDelay();
-        }
-            break;
-        default:
-            break;
+    if (file->hints & RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS) {
+        (*flushTimers)[file] = melonds::config::save::FlushDelay();
     }
 
     return result;
