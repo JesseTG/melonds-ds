@@ -12,8 +12,14 @@ add_library(libretro MODULE
     config/constants.cpp
     config/constants.hpp
     config/definitions.hpp
-    config/definitions.cpp
+    config/definitions/audio.hpp
     config/definitions/categories.hpp
+    config/definitions/cpu.hpp
+    config/definitions/network.hpp
+    config/definitions/screen.hpp
+    config/definitions/storage.hpp
+    config/definitions/system.hpp
+    config/definitions/video.hpp
     config/dynamic.cpp
     config/dynamic.hpp
     content.cpp

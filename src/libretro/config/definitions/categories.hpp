@@ -23,11 +23,8 @@
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
-    template<retro_language L, class...T>
-    constexpr std::array<retro_core_option_v2_category, sizeof...(T)> OptionCategories;
-
-    template<>
-    constexpr std::array OptionCategories<RETRO_LANGUAGE_ENGLISH> {
+    template<retro_language L>
+    constexpr std::array OptionCategories {
         retro_core_option_v2_category {
             melonds::config::system::CATEGORY,
             "System",

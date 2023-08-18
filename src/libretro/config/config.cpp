@@ -45,6 +45,7 @@
 #include "tracy.hpp"
 #include "dynamic.hpp"
 
+using std::array;
 using std::from_chars;
 using std::from_chars_result;
 using std::initializer_list;
@@ -1168,9 +1169,14 @@ static void melonds::config::set_core_options(
     ZoneScopedN("retro::set_core_options");
 
     _config_categories_supported = false;
+
+    array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
+    array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
     DynamicCoreOptions options(
-        FixedOptionDefinitions, FixedOptionDefinitionsLength,
-        definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>.data(), definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>.size()
+        definitions.data(),
+        definitions.size(),
+        categories.data(),
+        categories.size()
     );
 
     retro_core_options_v2* optionsUs = options.GetOptions();

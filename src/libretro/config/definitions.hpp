@@ -18,12 +18,59 @@
 #define MELONDS_DS_DEFINITIONS_HPP
 
 #include <cstdint>
+#include <tuple>
 
-struct retro_core_option_v2_category;
-struct retro_core_option_v2_definition;
+#include <libretro.h>
 
-namespace melonds {
-    extern struct retro_core_option_v2_definition FixedOptionDefinitions[];
-    extern const std::size_t FixedOptionDefinitionsLength;
+#include "config/definitions/audio.hpp"
+#include "config/definitions/cpu.hpp"
+#include "config/definitions/network.hpp"
+#include "config/definitions/screen.hpp"
+#include "config/definitions/storage.hpp"
+#include "config/definitions/system.hpp"
+#include "config/definitions/video.hpp"
+
+// All descriptive text uses semantic line breaks. https://sembr.org
+
+// I know this is a monstrosity. The idea is to make it easier to add new options.
+namespace melonds::config::definitions {
+    template<retro_language L = RETRO_LANGUAGE_ENGLISH>
+    constexpr std::tuple CoreOptionDefinitionGroups {
+        AudioOptionDefinitions<L>,
+        CpuOptionDefinitions<L>,
+        NetworkOptionDefinitions<L>,
+        ScreenOptionDefinitions<L>,
+        StorageOptionDefinitions<L>,
+        SystemOptionDefinitions<L>,
+        VideoOptionDefinitions<L>,
+    };
+
+    template<retro_language L = RETRO_LANGUAGE_ENGLISH>
+    constexpr size_t CoreOptionCount = std::apply([](auto &&... args) { return (args.size() + ...); }, CoreOptionDefinitionGroups<L>);
+
+    // I gotta be honest, I don't know how this works.
+    // GitHub Copilot generated it and I'm too scared to change it.
+    template<retro_language L = RETRO_LANGUAGE_ENGLISH>
+    constexpr std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1>
+    GetCoreOptionDefinitions(decltype(CoreOptionDefinitionGroups<L>) categories) {
+        std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1> result {};
+        std::size_t index = 0;
+
+        std::apply([&](auto &&... args) {
+            (([&](auto &&category) {
+                for (const retro_core_option_v2_definition &o: category) {
+                    result[index] = std::move(o);
+                    ++index;
+                }
+            }(args)), ...);
+        }, categories);
+
+        return result;
+    }
+
+    template<retro_language L>
+    constexpr std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1> CoreOptionDefinitions = GetCoreOptionDefinitions<L>(CoreOptionDefinitionGroups<L>);
+
+    static_assert(CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>[CoreOptionCount<RETRO_LANGUAGE_ENGLISH>].key == nullptr);
 }
 #endif //MELONDS_DS_DEFINITIONS_HPP
