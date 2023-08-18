@@ -95,6 +95,7 @@ namespace melonds::config {
     }
 
     static void parse_jit_options() noexcept;
+    static void parse_osd_options() noexcept;
     static void parse_system_options() noexcept;
     static void parse_firmware_options() noexcept;
     static void parse_audio_options() noexcept;
@@ -189,6 +190,34 @@ namespace melonds::config {
         static enum NetworkMode _networkMode;
         enum NetworkMode NetworkMode() noexcept { return _networkMode; }
 #endif
+    }
+
+    namespace osd {
+#ifndef NDEBUG
+        static bool showPointerCoordinates = false;
+        [[nodiscard]] bool ShowPointerCoordinates() noexcept { return showPointerCoordinates; }
+#endif
+
+        static bool showUnsupportedFeatureWarnings = true;
+        [[nodiscard]] bool ShowUnsupportedFeatureWarnings() noexcept { return showUnsupportedFeatureWarnings; }
+
+        static bool showMicState = true;
+        [[nodiscard]] bool ShowMicState() noexcept { return showMicState; }
+
+        static bool showCameraState = true;
+        [[nodiscard]] bool ShowCameraState() noexcept { return showCameraState; }
+
+        static bool showBiosWarnings = true;
+        [[nodiscard]] bool ShowBiosWarnings() noexcept { return showBiosWarnings; }
+
+        static bool showCurrentLayout = true;
+        [[nodiscard]] bool ShowCurrentLayout() noexcept { return showCurrentLayout; }
+
+        static bool showLidState = false;
+        [[nodiscard]] bool ShowLidState() noexcept { return showLidState; }
+
+        static bool showBrightnessState = false;
+        [[nodiscard]] bool ShowBrightnessState() noexcept { return showBrightnessState; }
     }
 
     namespace save {
@@ -315,6 +344,7 @@ void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const
     ZoneScopedN("melonds::InitConfig");
     config::set_core_options(nds_info, header);
     config::parse_system_options();
+    config::parse_osd_options();
     config::parse_jit_options();
     config::parse_homebrew_save_options(nds_info, header);
     config::parse_dsi_storage_options();
@@ -349,6 +379,7 @@ void melonds::UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputStat
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     config::parse_screen_options();
+    config::parse_osd_options();
 
     config::apply_audio_options();
     config::apply_screen_options(screenLayout, inputState);
@@ -504,6 +535,63 @@ static melonds::FirmwareLanguage get_firmware_language(const optional<retro_lang
             return FirmwareLanguage::Spanish;
         default:
             return FirmwareLanguage::English;
+    }
+}
+
+static void melonds::config::parse_osd_options() noexcept {
+    ZoneScopedN("melonds::config::parse_osd_options");
+    using namespace melonds::config::osd;
+    using retro::get_variable;
+
+#ifndef NDEBUG
+    if (optional<bool> value = ParseBoolean(get_variable(osd::POINTER_COORDINATES))) {
+        showPointerCoordinates = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", POINTER_COORDINATES, values::DISABLED);
+        showPointerCoordinates = false;
+    }
+#endif
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::UNSUPPORTED_FEATURES))) {
+        showUnsupportedFeatureWarnings = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", UNSUPPORTED_FEATURES, values::ENABLED);
+        showUnsupportedFeatureWarnings = true;
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::MIC_STATE))) {
+        showMicState = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", MIC_STATE, values::ENABLED);
+        showMicState = true;
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::CAMERA_STATE))) {
+        showCameraState = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", CAMERA_STATE, values::ENABLED);
+        showCameraState = true;
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::BIOS_WARNINGS))) {
+        showBiosWarnings = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", BIOS_WARNINGS, values::ENABLED);
+        showBiosWarnings = true;
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::CURRENT_LAYOUT))) {
+        showCurrentLayout = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", CURRENT_LAYOUT, values::ENABLED);
+        showCurrentLayout = true;
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::LID_STATE))) {
+        showLidState = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", LID_STATE, values::DISABLED);
+        showLidState = false;
     }
 }
 
@@ -1060,7 +1148,7 @@ static void melonds::config::apply_audio_options() noexcept {
             retro::warn("Failed to %s microphone", is_using_host_mic ? "open" : "close");
         }
     } else {
-        if (is_using_host_mic) {
+        if (is_using_host_mic && osd::ShowUnsupportedFeatureWarnings()) {
             retro::set_warn_message("This frontend doesn't support microphones.");
         }
     }

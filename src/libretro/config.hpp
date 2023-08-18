@@ -193,6 +193,21 @@ namespace melonds {
 #endif
         }
 
+        namespace osd {
+            #ifndef NDEBUG
+            [[nodiscard]] bool ShowPointerCoordinates() noexcept;
+            #else
+            [[nodiscard]] constexpr bool ShowPointerCoordinates() noexcept { return false; }
+            #endif
+            [[nodiscard]] bool ShowUnsupportedFeatureWarnings() noexcept;
+            [[nodiscard]] bool ShowMicState() noexcept;
+            [[nodiscard]] bool ShowCameraState() noexcept;
+            [[nodiscard]] bool ShowBiosWarnings() noexcept;
+            [[nodiscard]] bool ShowCurrentLayout() noexcept;
+            [[nodiscard]] bool ShowLidState() noexcept;
+            [[nodiscard]] bool ShowBrightnessState() noexcept;
+        }
+
         namespace system {
             [[nodiscard]] ConsoleType ConsoleType() noexcept;
             [[nodiscard]] bool DirectBoot() noexcept;

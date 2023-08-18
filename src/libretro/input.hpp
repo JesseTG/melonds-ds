@@ -36,6 +36,7 @@ namespace melonds {
         [[nodiscard]] int TouchX() const noexcept { return touch.x; }
         [[nodiscard]] int TouchY() const noexcept { return touch.y; }
         [[nodiscard]] glm::ivec2 TouchPosition() const noexcept { return touch; }
+        [[nodiscard]] glm::i16vec2 PointerInput() const noexcept { return pointerInput; }
         [[nodiscard]] glm::ivec2 HybridTouchPosition() const noexcept { return hybridTouch; }
         [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutButton; }
         [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutButton && !previousCycleLayoutButton; }

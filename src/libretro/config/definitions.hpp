@@ -25,6 +25,7 @@
 #include "config/definitions/audio.hpp"
 #include "config/definitions/cpu.hpp"
 #include "config/definitions/network.hpp"
+#include "config/definitions/osd.hpp"
 #include "config/definitions/screen.hpp"
 #include "config/definitions/storage.hpp"
 #include "config/definitions/system.hpp"
@@ -43,6 +44,7 @@ namespace melonds::config::definitions {
         StorageOptionDefinitions<L>,
         SystemOptionDefinitions<L>,
         VideoOptionDefinitions<L>,
+        OsdOptionDefinitions<L>,
     };
 
     template<retro_language L = RETRO_LANGUAGE_ENGLISH>

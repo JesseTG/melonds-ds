@@ -115,6 +115,7 @@ namespace melonds {
     {
         return isInDeinit;
     }
+    retro::task::TaskSpec OnScreenDisplayTask() noexcept;
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -571,6 +572,8 @@ static void melonds::load_games(
         retro::task::push(melonds::power::PowerStatusUpdateTask());
     }
 
+    retro::task::push(melonds::OnScreenDisplayTask());
+
     using retro::environment;
     using retro::log;
     using retro::set_message;
@@ -805,8 +808,87 @@ static void melonds::ValidateFirmware() {
 
     if (!memcmp(chk1, chk2, 0x180))
     {
-        retro::set_warn_message("You're using a hacked firmware dump.\n"
-            "Firmware boot will stop working if you run any game that alters WFC settings.\n\n"
-            "(This would also happen on real hardware.)");
+        constexpr const char* const WARNING_MESSAGE =
+            "You're using a hacked firmware dump.\n"
+            "Firmware boot will stop working if you run any game that alters WFC settings.\n"
+            "(This would also happen on real hardware.)";
+
+        if (config::osd::ShowBiosWarnings()) {
+            retro::set_warn_message(WARNING_MESSAGE);
+        } else {
+            retro::warn(WARNING_MESSAGE);
+        }
     }
+}
+
+retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
+    return retro::task::TaskSpec([](retro::task::TaskHandle& handle) {
+        using std::to_string;
+        ZoneScopedN("melonds::OnScreenDisplayTask");
+        constexpr const char* const OSD_DELIMITER = " || ";
+        constexpr const char* const OSD_YES = "✔";
+        constexpr const char* const OSD_NO = "✘";
+
+        if (handle.IsCancelled()) {
+            handle.Finish();
+            return;
+        }
+
+        std::string text;
+        text.reserve(1024);
+
+        if (config::osd::ShowPointerCoordinates()) {
+            glm::i16vec2 pointerInput = input_state.PointerInput();
+            glm::ivec2 touch = input_state.TouchPosition();
+            text += "Pointer: (" + to_string(pointerInput.x) + ", " + to_string(pointerInput.y) + ") → (" + to_string(touch.x) + ", " + to_string(touch.y) + ")";
+        }
+
+        if (config::osd::ShowMicState()) {
+            optional<bool> mic_state = retro::microphone::get_state();
+
+            if (mic_state && *mic_state) {
+                // If the microphone is open and turned on...
+                if (!text.empty()) {
+                    text += OSD_DELIMITER;
+                }
+
+                // Toggle between a filled circle and an empty one every 1.5 seconds
+                // (kind of like a blinking "recording" light)
+                text += (NDS::NumFrames % 120 > 60) ? "●" : "○";
+            }
+        }
+
+        if (config::osd::ShowCurrentLayout()) {
+            if (!text.empty()) {
+                text += OSD_DELIMITER;
+            }
+
+            unsigned layout = screenLayout.LayoutIndex();
+            unsigned numberOfLayouts = screenLayout.NumberOfLayouts();
+
+            text += "Layout " + to_string(layout + 1) + "/" + to_string(numberOfLayouts);
+        }
+
+        if (config::osd::ShowLidState() && NDS::IsLidClosed()) {
+            if (!text.empty()) {
+                text += OSD_DELIMITER;
+            }
+
+            text += "Closed";
+        }
+
+        if (!text.empty()) {
+            retro_message_ext message {
+                .msg = text.c_str(),
+                .duration = 60,
+                .priority = 0,
+                .level = RETRO_LOG_DEBUG,
+                .target = RETRO_MESSAGE_TARGET_OSD,
+                .type = RETRO_MESSAGE_TYPE_STATUS,
+                .progress = -1
+            };
+            retro::set_message(&message);
+        }
+
+    });
 }

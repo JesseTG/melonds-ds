@@ -203,20 +203,6 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
         touch = screen_layout_data.TransformPointerInput(pointerInput);
         hybridTouch = screen_layout_data.TransformPointerInputToHybridScreen(pointerInput);
-
-        // TODO: Re-add this later when I add support for toggling it
-        //        char text[1024];
-        //        snprintf(text, sizeof(text), "Pointer: (%d, %d) -> (%d, %d)", pointerInput.x, pointerInput.y, touch.x, touch.y);
-        //        retro_message_ext message{
-        //            .msg = text,
-        //            .duration = 60,
-        //            .priority = 0,
-        //            .level = RETRO_LOG_DEBUG,
-        //            .target = RETRO_MESSAGE_TARGET_OSD,
-        //            .type = RETRO_MESSAGE_TYPE_STATUS,
-        //            .progress = -1
-        //        };
-        //        retro::set_message(&message);
     }
 
     if (cursorMode == CursorMode::Timeout) {
