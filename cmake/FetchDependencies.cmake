@@ -38,7 +38,7 @@ function(fetch_dependency name default_url default_tag)
 endfunction()
 
 fetch_dependency("melonDS" "https://github.com/melonDS-emu/melonDS.git" "0947e94")
-fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "10995d5")
+fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "01c6122")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm.git" "5c46b9c")
 fetch_dependency(libslirp "https://gitlab.freedesktop.org/slirp/libslirp.git" "44e7877")
