@@ -115,7 +115,7 @@ void melonds::sram::FlushGbaSram(const retro_game_info& gba_save_info) noexcept 
 // This task keeps running for the lifetime of the task queue.
 retro::task::TaskSpec melonds::sram::FlushGbaSramTask() noexcept {
     retro::task::TaskSpec task([](retro::task::TaskHandle &task) {
-        ZoneScopedN("melonds::sram::FlushTask");
+        ZoneScopedN("melonds::sram::FlushGbaSramTask");
         if (task.IsCancelled()) {
             // If it's time to stop...
             task.Finish();
