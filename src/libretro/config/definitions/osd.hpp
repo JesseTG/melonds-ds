@@ -45,7 +45,9 @@ namespace melonds::config::definitions {
             config::osd::BIOS_WARNINGS,
             "Warn About Certain BIOS Problems",
             nullptr,
-            "Enable to show whether your BIOS files have certain known problems.",
+            "Enable to display warnings if your BIOS files have certain known problems. "
+            "A warning will always be shown if your BIOS files are missing or invalid, "
+            "regardless of this setting.",
             nullptr,
             config::osd::CATEGORY,
             {
