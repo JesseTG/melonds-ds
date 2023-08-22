@@ -41,7 +41,7 @@ namespace melonds::sram {
     retro::task::TaskSpec FlushGbaSramTask() noexcept;
 
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
-    class SaveManager {
+    class [[deprecated("Expose the buffers to libretro directly")]] SaveManager {
     public:
         SaveManager(u32 initialLength);
 
@@ -80,7 +80,10 @@ namespace melonds::sram {
         u32 _sram_length;
     };
 
+    [[deprecated("Expose the buffers to libretro directly")]]
     extern std::unique_ptr<SaveManager> NdsSaveManager;
+
+    [[deprecated("Expose the buffers to libretro directly")]]
     extern std::unique_ptr<SaveManager> GbaSaveManager;
 }
 
