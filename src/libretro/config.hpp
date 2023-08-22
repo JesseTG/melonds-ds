@@ -22,6 +22,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <SPI_Firmware.h>
 
 namespace GPU {
     struct RenderSettings;
@@ -52,6 +53,15 @@ namespace melonds {
         DS = 0,
         DSi = 1,
     };
+
+    constexpr std::string_view ConsoleTypeName(ConsoleType type) noexcept {
+        switch (type) {
+            case ConsoleType::DS:
+                return "DS";
+            case ConsoleType::DSi:
+                return "DSi";
+        }
+    }
 
     enum class ScreenSwapMode {
         Hold,
@@ -168,6 +178,7 @@ namespace melonds {
         }
 
         namespace firmware {
+            [[deprecated("Individual settings may be overridden")]]
             [[nodiscard]] bool FirmwareSettingsOverrideEnable() noexcept;
             [[nodiscard]] FirmwareLanguage Language() noexcept;
             [[nodiscard]] unsigned BirthdayMonth() noexcept;
@@ -175,7 +186,8 @@ namespace melonds {
             [[nodiscard]] Color FavoriteColor() noexcept;
             [[nodiscard]] std::string Username() noexcept;
             [[nodiscard]] std::string Message() noexcept;
-            [[nodiscard]] MacAddress MacAddress() noexcept;
+            [[nodiscard]] SPI_Firmware::MacAddress MacAddress() noexcept;
+            [[nodiscard]] SPI_Firmware::IpAddress DnsServer() noexcept;
         }
 
         namespace jit {
@@ -223,6 +235,9 @@ namespace melonds {
             [[nodiscard]] std::string_view DsiFirmwarePath() noexcept;
             [[nodiscard]] std::string_view DsiNandPath() noexcept;
             [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() noexcept;
+            [[nodiscard]] std::string_view EffectiveFirmwarePath() noexcept {
+                return (ConsoleType() == ConsoleType::DSi) ? DsiFirmwarePath() : FirmwarePath();
+            }
 
             [[nodiscard]] bool RandomizeMac() noexcept;
         }
