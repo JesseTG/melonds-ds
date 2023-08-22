@@ -72,16 +72,17 @@ bool Platform::GetConfigBool(ConfigEntry entry)
 
 std::string Platform::GetConfigString(ConfigEntry entry)
 {
+    using std::string;
     switch (entry)
     {
-        case BIOS9Path: return system::Bios9Path();
-        case BIOS7Path: return system::Bios7Path();
-        case FirmwarePath: return system::FirmwarePath();
+        case BIOS9Path: return string(system::Bios9Path());
+        case BIOS7Path: return string(system::Bios7Path());
+        case FirmwarePath: return string(system::FirmwarePath());
 
-        case DSi_BIOS9Path: return system::DsiBios9Path();
-        case DSi_BIOS7Path: return system::DsiBios7Path();
-        case DSi_FirmwarePath: return system::DsiFirmwarePath();
-        case DSi_NANDPath: return system::DsiNandPath();
+        case DSi_BIOS9Path: return string(system::DsiBios9Path());
+        case DSi_BIOS7Path: return string(system::DsiBios7Path());
+        case DSi_FirmwarePath: return string(system::DsiFirmwarePath());
+        case DSi_NANDPath: return string(system::DsiNandPath());
 
         case DLDI_ImagePath: return save::DldiImagePath();
         case DLDI_FolderPath: return save::DldiFolderPath();

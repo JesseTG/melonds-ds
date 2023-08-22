@@ -22,6 +22,7 @@
 #include <charconv>
 #include <cstring>
 #include <initializer_list>
+#include <string_view>
 
 #include <file/file_path.h>
 #include <libretro.h>
@@ -52,6 +53,7 @@ using std::initializer_list;
 using std::nullopt;
 using std::optional;
 using std::string;
+using std::string_view;
 
 constexpr unsigned DS_NAME_LIMIT = 10;
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
@@ -305,15 +307,15 @@ namespace melonds::config {
         unsigned PowerUpdateInterval() noexcept { return _powerUpdateInterval; }
 
         // TODO: Allow these paths to be customized
-        string Bios9Path() noexcept { return "bios9.bin"; }
-        string Bios7Path() noexcept { return "bios7.bin"; }
-        string FirmwarePath() noexcept { return "firmware.bin"; }
-        string DsiBios9Path() noexcept { return "dsi_bios9.bin"; }
-        string DsiBios7Path() noexcept { return "dsi_bios7.bin"; }
-        string DsiFirmwarePath() noexcept { return "dsi_firmware.bin"; }
+        string_view Bios9Path() noexcept { return "bios9.bin"; }
+        string_view Bios7Path() noexcept { return "bios7.bin"; }
+        string_view FirmwarePath() noexcept { return "firmware.bin"; }
+        string_view DsiBios9Path() noexcept { return "dsi_bios9.bin"; }
+        string_view DsiBios7Path() noexcept { return "dsi_bios7.bin"; }
+        string_view DsiFirmwarePath() noexcept { return "dsi_firmware.bin"; }
 
         static char _dsiNandPath[PATH_MAX];
-        string DsiNandPath() noexcept { return _dsiNandPath; }
+        string_view DsiNandPath() noexcept { return _dsiNandPath; }
     }
 
     namespace video {
@@ -1039,20 +1041,21 @@ static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
         // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
         // so we have to do it ourselves
 
-        std::array<std::string, 3> required_roms = {
+        std::array<string_view, 3> required_roms = {
             config::system::Bios7Path(),
             config::system::Bios9Path(),
             config::system::FirmwarePath(),
         };
-        std::vector<std::string> missing_roms;
+        std::vector<string_view> missing_roms;
 
         // Check if any of the bioses / firmware files are missing
-        for (const std::string& rom: required_roms) {
-            if (Platform::LocalFileExists(rom)) {
-                log(RETRO_LOG_INFO, "Found %s", rom.c_str());
+        for (const std::string_view& rom: required_roms) {
+
+            if (Platform::LocalFileExists(string(rom))) {
+                log(RETRO_LOG_INFO, "Found %.*s", rom.length(), rom.data());
             } else {
                 missing_roms.push_back(rom);
-                log(RETRO_LOG_WARN, "Could not find %s", rom.c_str());
+                log(RETRO_LOG_WARN, "Could not find %.*s", rom.length(), rom.data());
             }
         }
 
@@ -1086,25 +1089,26 @@ static void melonds::config::verify_dsi_bios() {
             "DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
     }
 
-    std::array<std::string, 4> required_roms = {
+    std::array<string_view, 4> required_roms = {
         config::system::DsiBios7Path(),
         config::system::DsiBios9Path(),
         config::system::DsiFirmwarePath(),
         config::system::DsiNandPath()
     };
-    std::vector<std::string> missing_roms;
+    std::vector<string> missing_roms;
 
     optional<string> sysdir = retro::get_system_directory();
     // Check if any of the bioses / firmware files are missing
-    for (const std::string& rom: required_roms) {
+    for (const std::string_view& rom: required_roms) {
+        retro_assert(rom.empty() || rom.back() == '\0');
         char path[PATH_MAX];
-        fill_pathname_join_special(path, sysdir->c_str(), rom.c_str(), sizeof(path));
+        fill_pathname_join_special(path, sysdir->c_str(), rom.data(), sizeof(path));
         pathname_make_slashes_portable(path);
         if (path_is_valid(path)) {
-            info("Found %s", rom.c_str());
+            info("Found %.*s", rom.length(), rom.data());
         } else {
-            missing_roms.push_back(rom);
-            warn("Could not find \"%s\" at \"%s\"", rom.c_str(), path);
+            missing_roms.emplace_back(rom);
+            warn("Could not find \"%.*s\" at \"%s\"", rom.length(), rom.data(), path);
         }
     }
 

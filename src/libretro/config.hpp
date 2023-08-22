@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 
 namespace GPU {
     struct RenderSettings;
@@ -214,13 +215,14 @@ namespace melonds {
             [[nodiscard]] bool ExternalBiosEnable() noexcept;
             [[nodiscard]] unsigned DsPowerOkayThreshold() noexcept;
             [[nodiscard]] unsigned PowerUpdateInterval() noexcept;
-            [[nodiscard]] std::string Bios9Path() noexcept;
-            [[nodiscard]] std::string Bios7Path() noexcept;
-            [[nodiscard]] std::string FirmwarePath() noexcept;
-            [[nodiscard]] std::string DsiBios9Path() noexcept;
-            [[nodiscard]] std::string DsiBios7Path() noexcept;
-            [[nodiscard]] std::string DsiFirmwarePath() noexcept;
-            [[nodiscard]] std::string DsiNandPath() noexcept;
+            [[nodiscard]] std::string_view Bios9Path() noexcept;
+            [[nodiscard]] std::string_view Bios7Path() noexcept;
+            [[nodiscard]] std::string_view FirmwarePath() noexcept;
+            [[nodiscard]] std::string_view DsiBios9Path() noexcept;
+            [[nodiscard]] std::string_view DsiBios7Path() noexcept;
+            [[nodiscard]] std::string_view DsiFirmwarePath() noexcept;
+            [[nodiscard]] std::string_view DsiNandPath() noexcept;
+            [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() noexcept;
 
             [[nodiscard]] bool RandomizeMac() noexcept;
         }
