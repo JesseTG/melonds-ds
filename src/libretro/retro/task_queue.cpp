@@ -102,6 +102,7 @@ void retro::task::TaskSpec::TaskCleanupWrapper(retro_task_t* task) noexcept {
     }
 
     delete functions;
+    task->user_data = nullptr;
 }
 
 retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskCallback& callback, const TaskHandler& cleanup, retro_time_t when, const std::string& title) {
