@@ -28,6 +28,7 @@
 
 #include <NDS.h>
 #include <Platform.h>
+#include <SPI.h>
 
 #include "config.hpp"
 #include "config/constants.hpp"
@@ -42,16 +43,20 @@ using std::optional;
 using std::nullopt;
 using std::unique_ptr;
 using std::make_unique;
+using std::string;
 using std::string_view;
 
 unique_ptr<melonds::sram::SaveManager> melonds::sram::NdsSaveManager;
 unique_ptr<melonds::sram::SaveManager> melonds::sram::GbaSaveManager;
 static optional<int> TimeToGbaFlush = nullopt;
+static optional<int> TimeToFirmwareFlush = nullopt;
 
 void melonds::sram::init() {
     ZoneScopedN("melonds::sram::init");
     retro_assert(NdsSaveManager == nullptr);
     retro_assert(GbaSaveManager == nullptr);
+    TimeToGbaFlush = nullopt;
+    TimeToFirmwareFlush = nullopt;
 }
 
 void melonds::sram::deinit() noexcept {
@@ -117,6 +122,29 @@ static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& g
     }
 }
 
+static void FlushFirmware(string_view firmwarePath) noexcept {
+    ZoneScopedN("melonds::sram::FlushFirmware");
+    using SPI_Firmware::Firmware;
+    using namespace melonds;
+
+    retro_assert(!firmwarePath.empty() && firmwarePath.find('\0'));
+
+    const Firmware* firmware = SPI_Firmware::GetFirmware();
+
+    if (firmware == nullptr || firmware->Buffer() == 0) {
+        retro::error("No firmware loaded in memory, cannot write to file");
+        return;
+    }
+
+    // TODO: mimic melonds's behaviors
+
+    if (!filestream_write_file(firmwarePath.data(), firmware->Buffer(), firmware->Length())) {
+        retro::error("Failed to write %u-byte firmware to \"%.*s\"", firmware->Length(), firmwarePath.length(), firmwarePath.data());
+    } else {
+        retro::debug("Flushed %u-byte firmware to \"%.*s\"", firmware->Length(), firmwarePath.length(), firmwarePath.data());
+    }
+}
+
 // This task keeps running for the lifetime of the task queue.
 retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept {
     retro::task::TaskSpec task(
@@ -139,6 +167,31 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
     );
 
     return task;
+}
+
+retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view path) {
+    optional<string> firmwarePath = retro::get_system_path(path);
+    if (!firmwarePath) {
+        throw std::runtime_error(string("Failed to get system path for firmware named ") + string(path));
+    }
+    return retro::task::TaskSpec(
+        [path=*firmwarePath](retro::task::TaskHandle &) noexcept {
+            ZoneScopedN("melonds::sram::FlushFirmwareTask");
+
+            if (TimeToFirmwareFlush != nullopt && (*TimeToFirmwareFlush)-- <= 0) {
+                // If it's time to flush the firmware...
+                retro::debug("Firmware flush timer expired, flushing data now");
+                FlushFirmware(path);
+                TimeToFirmwareFlush = nullopt; // Reset the timer
+            }
+        },
+        nullptr,
+        [path=*firmwarePath](retro::task::TaskHandle&) noexcept {
+            ZoneScopedN("melonds::sram::FlushFirmwareTask::Cleanup");
+            FlushFirmware(path);
+            TimeToFirmwareFlush = nullopt;
+        }
+    );
 }
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
@@ -274,3 +327,11 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
         TimeToGbaFlush = melonds::config::save::FlushDelay();
     }
 }
+
+void Platform::WriteFirmware(const SPI_Firmware::Firmware &firmware, u32 writeoffset) {
+    ZoneScopedN("Platform::WriteFirmware");
+
+    TimeToFirmwareFlush = melonds::config::save::FlushDelay();
+}
+
+

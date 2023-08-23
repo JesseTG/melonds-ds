@@ -616,6 +616,8 @@ static void melonds::load_games(
         retro::task::push(file::FlushTask());
     }
 
+    retro::task::push(sram::FlushFirmwareTask(config::system::EffectiveFirmwarePath()));
+
     if (!config::system::ExternalBiosEnable() && _loaded_gba_cart) {
         // If we're using FreeBIOS and are trying to load a GBA cart...
         retro::set_warn_message(

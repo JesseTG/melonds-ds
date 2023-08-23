@@ -38,6 +38,7 @@ namespace melonds::sram {
     void InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info);
 
     retro::task::TaskSpec FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept;
+    retro::task::TaskSpec FlushFirmwareTask(std::string_view path);
 
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
     class [[deprecated("Expose the buffers to libretro directly")]] SaveManager {
