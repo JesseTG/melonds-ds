@@ -116,7 +116,7 @@ retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskCallback& 
         .callback = callback,
         .cleanup = cleanup,
     };
-    _task->title = strdup(title.c_str()); // the task queue will free this string later
+    _task->title = title.empty() ? nullptr : strdup(title.c_str()); // the task queue will free this string later
 }
 
 retro::task::TaskSpec::~TaskSpec() noexcept {
