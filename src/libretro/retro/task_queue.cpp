@@ -16,6 +16,7 @@
 
 #include "task_queue.hpp"
 #include <new>
+#include <stdexcept>
 #include <string.h>
 #include <retro_assert.h>
 
@@ -23,6 +24,7 @@
 
 struct TaskFunctions {
     retro::task::TaskHandler handler = nullptr;
+    retro::task::TaskCallback callback = nullptr;
     retro::task::TaskHandler cleanup = nullptr;
 };
 
@@ -40,7 +42,8 @@ void retro::task::push(TaskSpec&& task) noexcept {
 
 void retro::task::deinit() noexcept {
     ZoneScopedN("retro::task::deinit");
-    task_queue_reset();
+    task_queue_reset(); // cancel all outstanding tasks
+    task_queue_wait(nullptr, nullptr); // wait for all tasks to finish
     task_queue_deinit();
 }
 
@@ -50,6 +53,7 @@ void retro::task::check() noexcept {
 }
 
 void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
+    retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
 
     if (functions->handler) {
@@ -58,8 +62,30 @@ void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
     }
 }
 
+void retro::task::TaskSpec::TaskCallbackWrapper(
+    retro_task_t *task,
+    void *task_data,
+    void *user_data,
+    const char *error
+) noexcept {
+    TaskFunctions* functions = static_cast<TaskFunctions*>(user_data);
+
+    retro_assert(task != nullptr);
+    retro_assert(functions != nullptr);
+    retro_assert(functions->callback != nullptr); // if it were nullptr, we wouldn't have gotten this far
+
+    std::string_view error_view = error ? std::string_view(error) : std::string_view();
+
+    if (functions->callback) {
+        retro::task::TaskHandle handle(task);
+        functions->callback(handle, task_data, error_view);
+    }
+}
+
 void retro::task::TaskSpec::TaskCleanupWrapper(retro_task_t* task) noexcept {
+    retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
+    retro_assert(functions != nullptr);
 
     if (functions->cleanup) {
         retro::task::TaskHandle handle(task);
@@ -69,19 +95,25 @@ void retro::task::TaskSpec::TaskCleanupWrapper(retro_task_t* task) noexcept {
     delete functions;
 }
 
-retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskHandler& cleanup, retro_time_t when, const std::string& title) {
+retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskCallback& callback, const TaskHandler& cleanup, retro_time_t when, const std::string& title) {
     _task = task_init();
 
     if (!_task) {
         throw std::bad_alloc();
     }
 
+    if (!handler) {
+        throw std::invalid_argument("TaskSpec::TaskSpec: handler must be non-null");
+    }
+
     _task->mute = true;
     _task->when = when;
     _task->handler = TaskHandlerWrapper;
+    _task->callback = callback ? TaskCallbackWrapper : nullptr;
     _task->cleanup = TaskCleanupWrapper;
     _task->user_data = new TaskFunctions {
         .handler = handler,
+        .callback = callback,
         .cleanup = cleanup,
     };
     _task->title = strdup(title.c_str()); // the task queue will free this string later

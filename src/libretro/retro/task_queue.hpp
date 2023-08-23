@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <string>
+#include <string_view>
 
 #include <queues/task_queue.h>
 
@@ -28,6 +29,7 @@ namespace retro::task {
     class TaskHandle;
 
     using TaskHandler = std::function<void(TaskHandle&)>;
+    using TaskCallback = std::function<void(TaskHandle&, void*, std::string_view)>;
 
     void init(bool threaded, retro_task_queue_msg_t msg_push) noexcept;
 
@@ -37,7 +39,7 @@ namespace retro::task {
 
     class TaskSpec {
     public:
-        TaskSpec(const TaskHandler& handler, const TaskHandler& cleanup = nullptr, retro_time_t when = ASAP, const std::string& title = "");
+        TaskSpec(const TaskHandler& handler, const TaskCallback& callback = nullptr, const TaskHandler& cleanup = nullptr, retro_time_t when = ASAP, const std::string& title = "");
         ~TaskSpec() noexcept;
         TaskSpec(TaskSpec&& other) noexcept;
         TaskSpec(const TaskSpec& other) = delete;
@@ -50,6 +52,7 @@ namespace retro::task {
     private:
         void FreeTask() noexcept;
         static void TaskHandlerWrapper(retro_task_t* task) noexcept;
+        static void TaskCallbackWrapper(retro_task_t *task, void *task_data, void *user_data, const char *error) noexcept;
         static void TaskCleanupWrapper(retro_task_t* task) noexcept;
         friend void push(TaskSpec&& task) noexcept;
         retro_task_t* _task;
