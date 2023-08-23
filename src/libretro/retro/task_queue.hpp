@@ -69,6 +69,7 @@ namespace retro::task {
         [[nodiscard]] bool Valid() const noexcept { return _task != nullptr; }
         void Finish() noexcept;
         [[nodiscard]] bool IsCancelled() const noexcept;
+        [[nodiscard]] bool IsFinished() const noexcept;
         // TODO: Write a setter for the error message
     private:
         friend class TaskSpec;

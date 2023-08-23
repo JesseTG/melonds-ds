@@ -163,3 +163,7 @@ void retro::task::TaskHandle::Finish() noexcept {
 bool retro::task::TaskHandle::IsCancelled() const noexcept {
     return task_get_cancelled(_task);
 }
+
+bool retro::task::TaskHandle::IsFinished() const noexcept {
+    return task_get_finished(_task);
+}
