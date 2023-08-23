@@ -468,6 +468,25 @@ const optional<string>& retro::get_system_directory() {
     return _system_directory;
 }
 
+optional<string> retro::get_system_path(const string_view& name) noexcept {
+    optional<string> sysdir = retro::get_system_directory();
+    if (!sysdir || name.empty() || name.find('\0')) {
+        // If no system directory is available, or the name is empty or not null-terminated...
+        return nullopt;
+    }
+
+    char fullpath[PATH_MAX];
+    size_t pathLength = fill_pathname_join_special(fullpath, sysdir->c_str(), name.data(), sizeof(fullpath));
+
+    if (pathLength >= sizeof(fullpath)) {
+        // If the path is too long...
+        return nullopt;
+    }
+
+    pathname_make_slashes_portable(fullpath);
+    return string(fullpath);
+}
+
 const optional<string>& retro::get_system_subdirectory() {
     return _system_subdir;
 }
