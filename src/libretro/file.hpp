@@ -31,6 +31,7 @@ namespace melonds::file {
     void init();
     void deinit();
 
+    [[deprecated("Each kind of file will get its own flush task")]]
     retro::task::TaskSpec FlushTask() noexcept;
 }
 
