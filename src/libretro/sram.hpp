@@ -37,7 +37,6 @@ namespace melonds::sram {
     void InitNdsSave(const NdsCart &nds_cart);
     void InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info);
 
-    retro::task::TaskSpec FlushGbaSramTask() noexcept;
     retro::task::TaskSpec FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept;
 
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
