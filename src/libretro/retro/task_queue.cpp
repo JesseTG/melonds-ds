@@ -96,14 +96,14 @@ void retro::task::TaskSpec::TaskCleanupWrapper(retro_task_t* task) noexcept {
 }
 
 retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskCallback& callback, const TaskHandler& cleanup, retro_time_t when, const std::string& title) {
+    if (!handler) {
+        throw std::invalid_argument("TaskSpec::TaskSpec: handler must be non-null");
+    }
+
     _task = task_init();
 
     if (!_task) {
         throw std::bad_alloc();
-    }
-
-    if (!handler) {
-        throw std::invalid_argument("TaskSpec::TaskSpec: handler must be non-null");
     }
 
     _task->mute = true;
