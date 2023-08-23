@@ -19,6 +19,7 @@
 #include <cstring>
 #include <memory>
 #include <optional>
+#include <string_view>
 
 #include <file/file_path.h>
 #include <retro_assert.h>
@@ -29,8 +30,10 @@
 #include <Platform.h>
 
 #include "config.hpp"
+#include "config/constants.hpp"
 #include "content.hpp"
 #include "environment.hpp"
+#include "exceptions.hpp"
 #include "libretro.hpp"
 #include "retro/task_queue.hpp"
 #include "tracy.hpp"
@@ -39,6 +42,7 @@ using std::optional;
 using std::nullopt;
 using std::unique_ptr;
 using std::make_unique;
+using std::string_view;
 
 unique_ptr<melonds::sram::SaveManager> melonds::sram::NdsSaveManager;
 unique_ptr<melonds::sram::SaveManager> melonds::sram::GbaSaveManager;
@@ -90,8 +94,9 @@ void melonds::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writ
     }
 }
 
-void melonds::sram::FlushGbaSram(const retro_game_info& gba_save_info) noexcept {
+static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& gba_save_info) noexcept {
     ZoneScopedN("melonds::sram::FlushSram");
+    using namespace melonds;
     const char* save_data_path = gba_save_info.path;
     if (save_data_path == nullptr || sram::GbaSaveManager == nullptr) {
         // No save data path was provided, or the GBA save manager isn't initialized
@@ -113,31 +118,25 @@ void melonds::sram::FlushGbaSram(const retro_game_info& gba_save_info) noexcept 
 }
 
 // This task keeps running for the lifetime of the task queue.
-retro::task::TaskSpec melonds::sram::FlushGbaSramTask() noexcept {
-    retro::task::TaskSpec task([](retro::task::TaskHandle &task) {
-        ZoneScopedN("melonds::sram::FlushGbaSramTask");
-        if (task.IsCancelled()) {
-            // If it's time to stop...
-            task.Finish();
-            return;
-        }
+retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept {
+    retro::task::TaskSpec task(
+        [info=gba_save_info](retro::task::TaskHandle &task) noexcept {
+            ZoneScopedN("melonds::sram::FlushGbaSramTask");
 
-        if (TimeToGbaFlush == nullopt) {
-            // If we don't have a GBA SRAM flush coming up...
-            return; // ...then there's nothing to do.
-        }
-
-        if ((*TimeToGbaFlush)-- <= 0) {
-            // If it's time to flush the GBA's SRAM...
-            if (const optional<retro_game_info>& gba_save_info = retro::content::get_loaded_gba_save_info()) {
-                // If we actually have GBA save data loaded...
+            if (TimeToGbaFlush != nullopt && (*TimeToGbaFlush)-- <= 0) {
+                // If it's time to flush the GBA's SRAM...
                 retro::debug("GBA SRAM flush timer expired, flushing save data now");
-                FlushGbaSram(*gba_save_info);
+                FlushGbaSram(task, info);
+                TimeToGbaFlush = nullopt; // Reset the timer
             }
-            TimeToGbaFlush = nullopt; // Reset the timer
+        },
+        nullptr,
+        [info=gba_save_info](retro::task::TaskHandle& task) noexcept {
+            ZoneScopedN("melonds::sram::FlushGbaSramTask::Cleanup");
+            FlushGbaSram(task, info);
+            TimeToGbaFlush = nullopt;
         }
-
-    });
+    );
 
     return task;
 }
@@ -249,7 +248,7 @@ void melonds::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info&
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);
-    retro::task::push(sram::FlushGbaSramTask());
+    retro::task::push(sram::FlushGbaSramTask(gba_save_info));
 }
 
 void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {

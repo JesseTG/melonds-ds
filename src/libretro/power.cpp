@@ -50,14 +50,11 @@ retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
 {
     retro::task::TaskSpec updatePowerStatus([timeToPowerStatusUpdate=0](retro::task::TaskHandle& task) mutable noexcept {
         ZoneScopedN("melonds::power::PowerStatusUpdateTask");
-        if (task.IsCancelled()) {
+        if (!retro::supports_power_status()) {
+            // If this frontend or device doesn't support querying the power status...
             task.Finish();
             return;
         }
-
-        if (!retro::supports_power_status())
-            // If this frontend or device doesn't support querying the power status...
-            return;
 
         if (timeToPowerStatusUpdate > 0) {
             // If we'll be checking the power status soon...
@@ -85,6 +82,8 @@ retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
                         break;
                     }
                 }
+            } else {
+                retro::warn("Failed to get device power status\n");
             }
 
             timeToPowerStatusUpdate = config::system::PowerUpdateInterval() * 60; // Reset the timer
