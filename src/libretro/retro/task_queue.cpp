@@ -58,7 +58,12 @@ void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
 
     if (functions->handler) {
         retro::task::TaskHandle handle(task);
-        functions->handler(handle);
+        retro_assert(!handle.IsFinished());
+        if (handle.IsCancelled()) {
+            handle.Finish();
+        } else {
+            functions->handler(handle);
+        }
     }
 }
 
