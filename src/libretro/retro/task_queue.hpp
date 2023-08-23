@@ -70,7 +70,8 @@ namespace retro::task {
         void Finish() noexcept;
         [[nodiscard]] bool IsCancelled() const noexcept;
         [[nodiscard]] bool IsFinished() const noexcept;
-        // TODO: Write a setter for the error message
+        void SetError(const std::string_view& error) noexcept;
+        [[nodiscard]] std::string_view GetError() const noexcept;
     private:
         friend class TaskSpec;
         TaskHandle(retro_task_t* task) noexcept;

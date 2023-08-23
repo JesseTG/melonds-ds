@@ -18,9 +18,13 @@
 #include <new>
 #include <stdexcept>
 #include <string.h>
+
+#include <compat/strl.h>
 #include <retro_assert.h>
 
 #include "tracy.hpp"
+
+using std::string_view;
 
 struct TaskFunctions {
     retro::task::TaskHandler handler = nullptr;
@@ -171,4 +175,14 @@ bool retro::task::TaskHandle::IsCancelled() const noexcept {
 
 bool retro::task::TaskHandle::IsFinished() const noexcept {
     return task_get_finished(_task);
+}
+
+void retro::task::TaskHandle::SetError(const string_view& error) noexcept {
+    char* error_cstr = error.empty() ? nullptr : strldup(error.data(), error.size());
+    task_set_error(_task, error_cstr);
+}
+
+string_view retro::task::TaskHandle::GetError() const noexcept {
+    const char* error = task_get_error(_task);
+    return error ? string_view(error) : string_view();
 }
