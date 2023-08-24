@@ -231,7 +231,7 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     info->geometry = screenLayout.Geometry(melonds::render::CurrentRenderer());
 }
 
-PUBLIC_SYMBOL void retro_run(void) {
+PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
     {
         ZoneScopedN("retro_run");
         using namespace melonds;
