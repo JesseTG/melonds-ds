@@ -40,13 +40,26 @@ namespace retro {
 
     [[nodiscard]] bool is_variable_updated() noexcept;
 
+    [[gnu::access(read_only, 2)]]
     void log(enum retro_log_level level, const char *fmt, ...) noexcept;
+
+    [[gnu::format(printf, 1, 2)]]
     void debug(const char *fmt, ...) noexcept;
+
+    [[gnu::format(printf, 1, 2)]]
     void info(const char *fmt, ...) noexcept;
+
+    [[gnu::format(printf, 1, 2)]]
     void warn(const char *fmt, ...) noexcept;
+
+    [[gnu::format(printf, 1, 2)]]
     void error(const char *fmt, ...) noexcept;
+
+    [[gnu::format(printf, 2, 0)]]
+    [[gnu::access(read_only, 2)]]
     void vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept;
     bool set_message(const struct retro_message_ext *message);
+    [[gnu::access(read_only, 1)]]
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);
     bool set_warn_message(const char* message);

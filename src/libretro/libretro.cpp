@@ -250,7 +250,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             }
             catch (const melonds::emulator_exception &e) {
                 log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
-                retro::error(e.what());
+                retro::error("%s", e.what());
                 retro::set_error_message(e.user_message());
                 retro::shutdown();
                 return;
