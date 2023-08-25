@@ -437,6 +437,18 @@ optional<retro_language> retro::get_language() noexcept {
     return language;
 }
 
+optional<string> retro::username() noexcept {
+    const char* username = nullptr;
+    if (!environment(RETRO_ENVIRONMENT_GET_USERNAME, &username)) {
+        return nullopt;
+    }
+
+    if (!username) {
+        return nullopt;
+    }
+
+    return username;
+}
 
 void retro::set_option_visible(const char* key, bool visible) noexcept
 {
