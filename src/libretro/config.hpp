@@ -235,7 +235,7 @@ namespace melonds {
             [[nodiscard]] std::string_view DsiFirmwarePath() noexcept;
             [[nodiscard]] std::string_view DsiNandPath() noexcept;
             [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() noexcept;
-            [[nodiscard]] std::string_view EffectiveFirmwarePath() noexcept {
+            [[nodiscard]] inline std::string_view EffectiveFirmwarePath() noexcept {
                 return (ConsoleType() == ConsoleType::DSi) ? DsiFirmwarePath() : FirmwarePath();
             }
 
