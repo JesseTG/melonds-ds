@@ -44,11 +44,19 @@ void retro::task::push(TaskSpec&& task) noexcept {
     task._task = nullptr;
 }
 
+void retro::task::wait() noexcept {
+    ZoneScopedN("retro::task::wait");
+    task_queue_wait(nullptr, nullptr); // wait for all tasks to finish
+}
+
 void retro::task::deinit() noexcept {
     ZoneScopedN("retro::task::deinit");
-    task_queue_reset(); // cancel all outstanding tasks
-    task_queue_wait(nullptr, nullptr); // wait for all tasks to finish
     task_queue_deinit();
+}
+
+void retro::task::reset() noexcept {
+    ZoneScopedN("retro::task::reset");
+    task_queue_reset(); // cancel all outstanding tasks
 }
 
 void retro::task::check() noexcept {

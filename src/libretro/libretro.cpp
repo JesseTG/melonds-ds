@@ -440,6 +440,8 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
 
     // The cleanup handlers for each task will flush data to disk if needed
+    retro::task::reset();
+    retro::task::wait();
     retro::task::deinit();
 
     if (NDS::Running)

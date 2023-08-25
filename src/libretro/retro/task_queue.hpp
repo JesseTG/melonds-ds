@@ -35,7 +35,9 @@ namespace retro::task {
 
     void push(TaskSpec&& task) noexcept;
     void check() noexcept;
+    void reset() noexcept;
     void deinit() noexcept;
+    void wait() noexcept;
 
     class TaskSpec {
     public:
