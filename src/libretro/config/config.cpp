@@ -1189,7 +1189,7 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
         retro::warn("Forcing DSi mode for DSiWare game");
     }
 
-    std::initializer_list<string_view> requiredRoms;
+    std::vector<string_view> requiredRoms;
     if (_consoleType == ConsoleType::DSi) {
         requiredRoms = {
             DsiBios7Path(),
