@@ -482,7 +482,7 @@ const optional<string>& retro::get_system_directory() {
 
 optional<string> retro::get_system_path(const string_view& name) noexcept {
     optional<string> sysdir = retro::get_system_directory();
-    if (!sysdir || name.empty() || name.find('\0')) {
+    if (!sysdir) {
         // If no system directory is available, or the name is empty or not null-terminated...
         return nullopt;
     }
