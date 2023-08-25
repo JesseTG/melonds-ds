@@ -1231,11 +1231,6 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
 
             if (!_externalBiosEnable) {
                 retro::info("External BIOS is disabled, using internal FreeBIOS instead.");
-
-                if (!header) {
-                    // If we're using FreeBIOS and trying to boot without a game...
-                    throw unsupported_bios_exception("Booting without content requires a native BIOS.");
-                }
             }
             break;
         }
