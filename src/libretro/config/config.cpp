@@ -726,10 +726,9 @@ static void melonds::config::parse_firmware_options() noexcept {
         _username = string(retro_username, 0, std::max(length, DS_NAME_LIMIT));
 
         retro::info("Overridden username: %s", _username.c_str());
-    }
-    else {
-        retro::warn("Failed to get the user's name; defaulting to \"melonDS\"");
-        _username = "melonDS";
+    } else {
+        retro::warn("Failed to get the user's name; defaulting to \"melonDS DS\"");
+        _username = "melonDS DS";
     }
 
     // TODO: Make birthday configurable
