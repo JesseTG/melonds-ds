@@ -22,6 +22,7 @@
 #include <charconv>
 #include <cstring>
 #include <initializer_list>
+#include <memory>
 #include <string_view>
 
 #include <file/file_path.h>
@@ -31,6 +32,8 @@
 
 #include <GPU.h>
 #include <SPU.h>
+#include <SPI.h>
+#include <SPI_Firmware.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
@@ -50,10 +53,12 @@ using std::array;
 using std::from_chars;
 using std::from_chars_result;
 using std::initializer_list;
+using std::make_unique;
 using std::nullopt;
 using std::optional;
 using std::string;
 using std::string_view;
+using std::unique_ptr;
 
 constexpr unsigned DS_NAME_LIMIT = 10;
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
@@ -112,9 +117,8 @@ namespace melonds::config {
     );
     static void parse_dsi_storage_options() noexcept;
 
-    static void verify_nds_bios(bool ds_game_loaded);
-    static void verify_dsi_bios();
-    static void apply_system_options(const optional<NDSHeader>& header);
+    static void apply_system_options(const optional <NDSHeader>& header);
+
     static void apply_audio_options() noexcept;
     static void apply_save_options(const optional<NDSHeader>& header);
     static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
@@ -157,6 +161,10 @@ namespace melonds::config {
 
         static ::melonds::MacAddress _macAddress;
         ::melonds::MacAddress MacAddress() noexcept { return _macAddress; }
+
+        static SPI_Firmware::IpAddress _dnsServer;
+
+        SPI_Firmware::IpAddress DnsServer() noexcept { return _dnsServer; }
     }
 
     namespace jit {
@@ -296,9 +304,8 @@ namespace melonds::config {
         static bool _directBoot;
         bool DirectBoot() noexcept { return _directBoot; }
 
-        static bool _externalBiosFound;
         static bool _externalBiosEnable;
-        bool ExternalBiosEnable() noexcept { return _externalBiosEnable && _externalBiosFound; }
+        bool ExternalBiosEnable() noexcept { return _externalBiosEnable; }
 
         static unsigned _dsPowerOkayThreshold = 20;
         unsigned DsPowerOkayThreshold() noexcept { return _dsPowerOkayThreshold; }
@@ -316,6 +323,8 @@ namespace melonds::config {
 
         static char _dsiNandPath[PATH_MAX];
         string_view DsiNandPath() noexcept { return _dsiNandPath; }
+
+        string_view GeneratedFirmwareSettingsPath() noexcept { return "wfcsettings.bin"; }
     }
 
     namespace video {
@@ -720,10 +729,8 @@ static void melonds::config::parse_firmware_options() noexcept {
         _favoriteColor = Color::Gray;
     }
 
-    const char* retro_username;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_USERNAME, &retro_username) && !string_is_empty(retro_username)) {
-        unsigned length = strlen(retro_username);
-        _username = string(retro_username, 0, std::max(length, DS_NAME_LIMIT));
+    if (optional<string> username = retro::username()) {
+        _username = username->substr(0, DS_NAME_LIMIT);
 
         retro::info("Overridden username: %s", _username.c_str());
     } else {
@@ -732,7 +739,6 @@ static void melonds::config::parse_firmware_options() noexcept {
     }
 
     // TODO: Make birthday configurable
-    // TODO: Make message configurable with a file at runtime
     // TODO: Make MAC address configurable with a file at runtime
 }
 
@@ -1017,97 +1023,161 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
     }
 }
 
-static void melonds::config::verify_nds_bios(bool ds_game_loaded) {
-    ZoneScopedN("melonds::config::verify_nds_bios");
-    using retro::log;
-    using namespace melonds::config::system;
-    retro_assert(config::system::ConsoleType() == ConsoleType::DS);
+static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type) {
+    ZoneScopedN("melonds::config::InitFirmware");
+    using namespace melonds;
+    using namespace SPI_Firmware;
+    using namespace Platform;
 
-    // TODO: Allow user to force the use of a specific BIOS, and throw an exception if that's not possible
-    if (_externalBiosEnable) {
-        // If the player wants to use their own BIOS dumps...
+    unique_ptr<Firmware> firmware;
+    string_view firmwarePath = type == ConsoleType::DSi ? config::system::DsiFirmwarePath() : config::system::FirmwarePath();
 
-        // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
-        // so we have to do it ourselves
+    if (config::system::ExternalBiosEnable()) {
+        // If we want to try loading a firmware dump...
+        retro::debug("Loading %s firmware from \"%s\"\n", ConsoleTypeName(type).data(), firmwarePath.data());
 
-        std::array<string_view, 3> required_roms = {
-            config::system::Bios7Path(),
-            config::system::Bios9Path(),
-            config::system::FirmwarePath(),
-        };
-        std::vector<string_view> missing_roms;
+        if (FileHandle* file = OpenLocalFile(string(firmwarePath), FileMode::Read)) {
+            // Try to load the configured firmware dump. If that fails...
+            if (firmware = make_unique<SPI_Firmware::Firmware>(file); !firmware->Buffer()) {
+                retro::warn("Failed to read firmware from file\n");
+                firmware = nullptr;
+                firmwarePath = "";
+            }
 
-        // Check if any of the bioses / firmware files are missing
-        for (const std::string_view& rom: required_roms) {
+            CloseFile(file);
+        } else {
+            char warning[256];
+            snprintf(warning, sizeof(warning), "%s firmware not found!", ConsoleTypeName(type).data());
+            retro::set_warn_message(warning);
+        }
+    }
 
-            if (Platform::LocalFileExists(string(rom))) {
-                log(RETRO_LOG_INFO, "Found %.*s", rom.length(), rom.data());
+    bool generated = false;
+    if (!firmware) {
+        // If we haven't yet loaded firmware (either because the load failed or we want to use the default...)
+
+        generated = true;
+        firmware = make_unique<Firmware>(static_cast<int>(type));
+        retro_assert(firmware != nullptr);
+
+        // Try to open the instanced Wi-fi settings, falling back to the regular Wi-fi settings if they don't exist.
+        // We don't need to save the whole firmware, just the part that may actually change.
+        string_view wfcsettingspath = config::system::GeneratedFirmwareSettingsPath();
+
+        // If using generated firmware, we keep the wi-fi settings on the host disk separately.
+        // Wi-fi access point data includes Nintendo WFC settings,
+        // and if we didn't keep them then the player would have to reset them in each session.
+        if (FileHandle* file = OpenLocalFile(std::string(wfcsettingspath), FileMode::Read)) {
+            // If we have Wi-fi settings to load...
+            constexpr unsigned TOTAL_WFC_SETTINGS_SIZE = 3 * (sizeof(WifiAccessPoint) + sizeof(ExtendedWifiAccessPoint));
+
+            // The access point and extended access point segments might
+            // be in different locations depending on the firmware revision,
+            // but our generated firmware always keeps them next to each other.
+            // (Extended access points first, then regular ones.)
+            u8* userdata = firmware->UserDataPosition();
+
+            if (FileRead(userdata, TOTAL_WFC_SETTINGS_SIZE, 1, file) != 1) {
+                // If we couldn't read the Wi-fi settings from this file...
+                retro::warn("Failed to read Wi-fi settings from \"%s\"; using defaults instead\n", wfcsettingspath.data());
+
+                firmware->AccessPoints() = {
+                    WifiAccessPoint(static_cast<int>(type)),
+                    WifiAccessPoint(),
+                    WifiAccessPoint(),
+                };
+
+                firmware->ExtendedAccessPoints() = {
+                    ExtendedWifiAccessPoint(),
+                    ExtendedWifiAccessPoint(),
+                    ExtendedWifiAccessPoint(),
+                };
+            }
+
+            CloseFile(file);
+        }
+
+        // If we don't have Wi-fi settings to load,
+        // then the defaults will have already been populated by the constructor.
+    }
+
+    if (!generated && config::system::ConsoleType() == ConsoleType::DS) {
+        // If we're using externally-loaded DS (not DSi) firmware...
+
+        u8 chk1[0x180], chk2[0x180];
+
+        // I don't really know how this works, it's just adapted from upstream
+        memcpy(chk1, firmware->Buffer(), sizeof(chk1));
+        memcpy(chk2, firmware->Buffer() + firmware->Length() - 0x380, sizeof(chk2));
+
+        memset(&chk1[0x0C], 0, 8);
+        memset(&chk2[0x0C], 0, 8);
+
+        if (!memcmp(chk1, chk2, sizeof(chk1))) {
+            constexpr const char* const WARNING_MESSAGE =
+                "Corrupted firmware detected!\n"
+                "Any game that alters Wi-fi settings will break this firmware, even on real hardware.\n";
+
+            if (config::osd::ShowBiosWarnings()) {
+                retro::set_warn_message(WARNING_MESSAGE);
             } else {
-                missing_roms.push_back(rom);
-                log(RETRO_LOG_WARN, "Could not find %.*s", rom.length(), rom.data());
+                retro::warn(WARNING_MESSAGE);
             }
         }
-
-        // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
-        _externalBiosFound = missing_roms.empty();
-
-        // Abort if there are any of the required roms are missing
-        if (!_externalBiosFound) {
-            retro::log(RETRO_LOG_WARN, "Using FreeBIOS instead of the aforementioned missing files.");
-        }
-    } else {
-        retro::log(RETRO_LOG_INFO, "External BIOS is disabled, using internal FreeBIOS instead.");
     }
 
-    if (!ExternalBiosEnable() && !ds_game_loaded) {
-        // If we're using FreeBIOS and trying to boot without a game...
+    UserData& currentData = firmware->EffectiveUserData();
 
-        throw melonds::unsupported_bios_exception("Booting without content requires a native BIOS.");
-    }
-}
-
-static void melonds::config::verify_dsi_bios() {
-    ZoneScopedN("melonds::config::verify_dsi_bios");
-    using retro::info;
-    using retro::warn;
-    using namespace melonds::config::system;
-
-    retro_assert(config::system::ConsoleType() == ConsoleType::DSi);
-    if (!_externalBiosEnable) {
-        throw melonds::unsupported_bios_exception(
-            "DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
+    // setting up username
+    if (string username = config::firmware::Username(); !username.empty()) { // If the frontend defines a username, take it. If not, leave the existing one.
+        std::u16string convertedUsername = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(
+            username);
+        size_t usernameLength = std::min(convertedUsername.length(), (size_t) 10);
+        currentData.NameLength = usernameLength;
+        memcpy(currentData.Nickname, convertedUsername.data(), usernameLength * sizeof(char16_t));
     }
 
-    std::array<string_view, 4> required_roms = {
-        config::system::DsiBios7Path(),
-        config::system::DsiBios9Path(),
-        config::system::DsiFirmwarePath(),
-        config::system::DsiNandPath()
-    };
-    std::vector<string> missing_roms;
-
-    optional<string> sysdir = retro::get_system_directory();
-    // Check if any of the bioses / firmware files are missing
-    for (const std::string_view& rom: required_roms) {
-        retro_assert(rom.empty() || rom.back() == '\0');
-        char path[PATH_MAX];
-        fill_pathname_join_special(path, sysdir->c_str(), rom.data(), sizeof(path));
-        pathname_make_slashes_portable(path);
-        if (path_is_valid(path)) {
-            info("Found %.*s", rom.length(), rom.data());
-        } else {
-            missing_roms.emplace_back(rom);
-            warn("Could not find \"%.*s\" at \"%s\"", rom.length(), rom.data(), path);
-        }
+    switch (FirmwareLanguage language = config::firmware::Language()) {
+        case FirmwareLanguage::Auto:
+            currentData.Settings &= ~Language::Reserved; // clear the existing language bits
+            currentData.Settings |= static_cast<SPI_Firmware::Language>(get_firmware_language(retro::get_language()));
+            break;
+        case FirmwareLanguage::Default:
+            // do nothing, leave the existing language in place
+            break;
+        default:
+            currentData.Settings &= ~Language::Reserved;
+            currentData.Settings |= static_cast<SPI_Firmware::Language>(language);
+            break;
     }
 
-    _externalBiosFound = missing_roms.empty();
-    // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
-
-    // Abort if there are any of the required roms are missing
-    if (!missing_roms.empty()) {
-        throw melonds::missing_bios_exception(missing_roms);
+    if (Color color = config::firmware::FavoriteColor(); color != Color::Default) {
+        currentData.FavoriteColor = static_cast<u8>(color);
     }
+
+    if (u8 month = config::firmware::BirthdayMonth(); month != 0) {
+        // If the frontend specifies a birth month (rather than using the existing value)...
+        currentData.BirthdayMonth = config::firmware::BirthdayMonth();
+    }
+
+    if (u8 birthday = config::firmware::BirthdayDay(); birthday != 0) {
+        // If the frontend specifies a birthday (rather than using the existing value)...
+        currentData.BirthdayDay = birthday;
+    }
+
+    if (IpAddress dns = config::firmware::DnsServer(); dns != IpAddress()) {
+        firmware->AccessPoints()[0].PrimaryDns = dns;
+        firmware->AccessPoints()[0].SecondaryDns = dns;
+    }
+
+    if (MacAddress mac = config::firmware::MacAddress(); mac != MacAddress()) {
+        mac[0] &= 0xFC; // ensure the MAC isn't a broadcast MAC
+        firmware->Header().MacAddress = mac;
+    }
+
+    firmware->UpdateChecksums();
+
+    return firmware;
 }
 
 static void melonds::config::apply_system_options(const optional<NDSHeader>& header) {
@@ -1119,14 +1189,82 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
         retro::warn("Forcing DSi mode for DSiWare game");
     }
 
-    switch (_consoleType) {
-        case ConsoleType::DS:
-            verify_nds_bios(header.has_value());
-            break;
-        case ConsoleType::DSi:
-            verify_dsi_bios();
-            break;
+    std::initializer_list<string_view> requiredRoms;
+    if (_consoleType == ConsoleType::DSi) {
+        requiredRoms = {
+            DsiBios7Path(),
+            DsiBios9Path(),
+            DsiFirmwarePath(),
+            DsiNandPath(),
+        };
+    } else {
+        requiredRoms = {
+            Bios7Path(),
+            Bios9Path(),
+            FirmwarePath(),
+        };
     }
+    std::vector<string> missingRoms;
+
+    // Check if any of the bioses / firmware files are missing
+    // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
+    if (_externalBiosEnable || _consoleType == ConsoleType::DSi) {
+        for (const string_view& rom: requiredRoms) {
+            if (optional<string> path = retro::get_system_path(rom); path && path_is_valid(path->c_str())) {
+                retro::info("Found \"%.*s\" at \"%s\"", (int)rom.length(), rom.data(), path->c_str());
+            } else {
+                missingRoms.emplace_back(rom);
+                retro::warn("Could not find \"%.*s\" within the system directory", (int)rom.length(), rom.data());
+            }
+        }
+    }
+
+    // TODO: Simplify this block once I remove filesystem access for the BIOS files and NAND
+    switch (_consoleType) {
+        case ConsoleType::DS: {
+            if (!missingRoms.empty()) {
+                retro::warn("Falling back to FreeBIOS instead of the aforementioned missing files.");
+                // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
+                // so we have to do it ourselves
+                _externalBiosEnable = false;
+            }
+
+            if (!_externalBiosEnable) {
+                retro::info("External BIOS is disabled, using internal FreeBIOS instead.");
+
+                if (!header) {
+                    // If we're using FreeBIOS and trying to boot without a game...
+                    throw unsupported_bios_exception("Booting without content requires a native BIOS.");
+                }
+            }
+            break;
+        }
+        case ConsoleType::DSi: {
+            if (!_externalBiosEnable) {
+                throw unsupported_bios_exception(
+                    "DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
+            }
+
+            // Abort if there are any of the required roms are missing
+            if (!missingRoms.empty()) {
+                throw missing_bios_exception(missingRoms);
+            }
+            break;
+        }
+    }
+
+    unique_ptr<SPI_Firmware::Firmware> firmware = InitFirmware(_consoleType);
+
+    if (!firmware) {
+        throw emulator_exception("Failed to load firmware");
+    }
+
+    if (firmware->Header().Identifier == SPI_Firmware::GENERATED_FIRMWARE_IDENTIFIER) {
+        retro::warn("Forcing direct boot due to generated firmware");
+        _directBoot = true;
+    }
+
+    SPI_Firmware::InstallFirmware(std::move(*firmware.release()));
 }
 
 static void melonds::config::apply_audio_options() noexcept {
