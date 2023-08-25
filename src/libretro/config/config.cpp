@@ -1041,7 +1041,6 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
             if (firmware = make_unique<SPI_Firmware::Firmware>(file); !firmware->Buffer()) {
                 retro::warn("Failed to read firmware from file\n");
                 firmware = nullptr;
-                firmwarePath = "";
             }
 
             CloseFile(file);
