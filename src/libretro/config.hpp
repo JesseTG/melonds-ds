@@ -126,6 +126,7 @@ namespace melonds {
         DarkPurple,
         LightPurple,
         DarkPink,
+        Default,
     };
 
     enum class ScreenFilter {
