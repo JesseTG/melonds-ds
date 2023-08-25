@@ -107,6 +107,9 @@ namespace melonds {
         German = 3,
         Italian = 4,
         Spanish = 5,
+        Chinese = 6,
+        Default = 7,
+        Auto = 8,
     };
 
     enum class Color {
