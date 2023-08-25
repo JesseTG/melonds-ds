@@ -1259,7 +1259,7 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
         _directBoot = true;
     }
 
-    SPI_Firmware::InstallFirmware(std::move(*firmware.release()));
+    SPI_Firmware::InstallFirmware(std::move(firmware));
 }
 
 static void melonds::config::apply_audio_options() noexcept {
