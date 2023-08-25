@@ -41,6 +41,7 @@ namespace retro {
     [[nodiscard]] bool is_variable_updated() noexcept;
 
     [[gnu::access(read_only, 2)]]
+    [[gnu::format(printf, 2, 3)]]
     void log(enum retro_log_level level, const char *fmt, ...) noexcept;
 
     [[gnu::format(printf, 1, 2)]]
