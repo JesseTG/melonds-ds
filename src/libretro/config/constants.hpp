@@ -47,6 +47,11 @@ namespace melonds::config {
         static constexpr const char *const JIT_LITERAL_OPTIMISATIONS = "melonds_jit_literal_optimisations";
     }
 
+    namespace firmware {
+        static constexpr const char *const CATEGORY = "firmware";
+        static constexpr const char *const WFC_DNS = "melonds_wfc_dns";
+    }
+
     namespace network {
         static constexpr const char *const CATEGORY = "network";
         static constexpr const char *const NETWORK_MODE = "melonds_network_mode";
@@ -128,6 +133,12 @@ namespace melonds::config {
     }
 
     namespace values {
+        namespace wfc {
+            static constexpr const char *const DEFAULT = "0.0.0.0";
+            static constexpr const char *const ALTWFC = "172.104.88.237";
+            static constexpr const char *const KAERU = "178.62.43.212";
+            static constexpr const char *const WIIMMFI = "95.217.77.181";
+        }
         static constexpr const char *const _10BIT = "10bit";
         static constexpr const char *const _16BIT = "16bit";
         static constexpr const char *const ALWAYS = "always";
@@ -146,6 +157,7 @@ namespace melonds::config {
         static constexpr const char *const DSI = "dsi";
         static constexpr const char *const ENABLED = "enabled";
         static constexpr const char *const ENGLISH = "en";
+        static constexpr const char *const EXISTING = "";
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GERMAN = "de";
         static constexpr const char *const HOLD = "hold";
