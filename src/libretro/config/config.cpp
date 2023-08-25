@@ -702,21 +702,11 @@ static void melonds::config::parse_firmware_options() noexcept {
     if (!_firmwareSettingsOverrideEnable)
         return;
 
-    if (const char* value = get_variable(system::LANGUAGE); !string_is_empty(value)) {
-        if (string_is_equal(value, values::AUTO))
+    if (optional<melonds::FirmwareLanguage> value = ParseLanguage(get_variable(system::LANGUAGE))) {
+        if (*value == FirmwareLanguage::Auto)
             _language = get_firmware_language(retro::get_language());
-        else if (string_is_equal(value, values::JAPANESE))
-            _language = FirmwareLanguage::Japanese;
-        else if (string_is_equal(value, values::ENGLISH))
-            _language = FirmwareLanguage::English;
-        else if (string_is_equal(value, values::FRENCH))
-            _language = FirmwareLanguage::French;
-        else if (string_is_equal(value, values::GERMAN))
-            _language = FirmwareLanguage::German;
-        else if (string_is_equal(value, values::ITALIAN))
-            _language = FirmwareLanguage::Italian;
-        else if (string_is_equal(value, values::SPANISH))
-            _language = FirmwareLanguage::Spanish;
+        else
+            _language = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to English", system::LANGUAGE);
         _language = FirmwareLanguage::English;
