@@ -112,6 +112,18 @@ namespace melonds {
         Auto = 8,
     };
 
+    enum class AlarmMode {
+        Default,
+        Enabled,
+        Disabled,
+    };
+
+    enum class UsernameMode {
+        MelonDSDS,
+        Guess,
+        Firmware,
+    };
+
     enum class Color {
         Gray,
         Brown,

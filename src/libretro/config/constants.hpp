@@ -207,7 +207,10 @@ namespace melonds::config {
     }
 
     std::optional<bool> ParseBoolean(const char *value) noexcept;
+    std::optional<AlarmMode> ParseAlarmMode(const char *value) noexcept;
+    std::optional<UsernameMode> ParseUsernameMode(const char* value) noexcept;
 
+    std::string GetUsername(UsernameMode mode) noexcept;
     template<typename T>
     std::optional<T> ParseIntegerInRange(const char *value, T min, T max) noexcept {
         if (min > max) return std::nullopt;
@@ -250,6 +253,8 @@ namespace melonds::config {
     std::optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(const char *value) noexcept;
 
     std::optional<melonds::FirmwareLanguage> ParseLanguage(std::string_view value) noexcept;
+
+    std::optional<SPI_Firmware::IpAddress> ParseIpAddress(const char* value) noexcept;
 
 
 }

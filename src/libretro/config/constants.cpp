@@ -16,10 +16,15 @@
 
 #include "constants.hpp"
 
+#include <string>
+#include <net/net_compat.h>
 #include <string/stdstring.h>
+
+#include "environment.hpp"
 
 using std::optional;
 using std::nullopt;
+using std::string;
 
 optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
     if (string_is_equal(value, values::SOFTWARE)) return melonds::Renderer::Software;
@@ -52,6 +57,49 @@ optional<bool> melonds::config::ParseBoolean(const char* value) noexcept {
     if (string_is_equal(value, values::ENABLED)) return true;
     if (string_is_equal(value, values::DISABLED)) return false;
     return nullopt;
+}
+
+optional<melonds::AlarmMode> melonds::config::ParseAlarmMode(const char* value) noexcept {
+    if (string_is_equal(value, values::DISABLED)) return AlarmMode::Disabled;
+    if (string_is_equal(value, values::ENABLED)) return AlarmMode::Enabled;
+    if (string_is_equal(value, values::DEFAULT)) return AlarmMode::Default;
+    return nullopt;
+}
+
+optional<melonds::UsernameMode> melonds::config::ParseUsernameMode(const char* value) noexcept {
+    if (string_is_empty(value) || string_is_equal(value, values::firmware::DEFAULT_USERNAME)) return UsernameMode::MelonDSDS;
+    if (string_is_equal(value, values::firmware::FIRMWARE_USERNAME)) return UsernameMode::Firmware;
+    if (string_is_equal(value, values::firmware::GUESS_USERNAME)) return UsernameMode::Guess;
+    return nullopt;
+}
+
+string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
+    char result[DS_NAME_LIMIT];
+
+    switch (mode) {
+        case melonds::UsernameMode::Firmware:
+            return values::firmware::FIRMWARE_USERNAME;
+        case melonds::UsernameMode::Guess: {
+            if (optional<string> frontendGuess = retro::username(); frontendGuess && !frontendGuess->empty()) {
+                return *frontendGuess;
+            } else if (const char* user = getenv("USER"); !string_is_empty(user)) {
+                strncpy(result, user, DS_NAME_LIMIT);
+            } else if (const char* username = getenv("USERNAME"); !string_is_empty(username)) {
+                strncpy(result, username, DS_NAME_LIMIT);
+            } else if (const char* logname = getenv("LOGNAME"); !string_is_empty(logname)) {
+                strncpy(result, logname, DS_NAME_LIMIT);
+            } else {
+                strncpy(result, values::firmware::DEFAULT_USERNAME, DS_NAME_LIMIT);
+            }
+
+            return result;
+        }
+        case melonds::UsernameMode::MelonDSDS:
+        default:
+            return values::firmware::DEFAULT_USERNAME;
+    }
+
+
 }
 
 optional<melonds::ScreenLayout> melonds::config::ParseScreenLayout(const char* value) noexcept {
@@ -88,6 +136,16 @@ std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(std::str
     if (value == values::GERMAN) return melonds::FirmwareLanguage::German;
     if (value == values::ITALIAN) return melonds::FirmwareLanguage::Italian;
     if (value == values::SPANISH) return melonds::FirmwareLanguage::Spanish;
+
+    return nullopt;
+}
+
+optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
+    SPI_Firmware::IpAddress address;
+
+    if (inet_pton(AF_INET, value, &address) == 1) {
+        return address;
+    }
 
     return nullopt;
 }
