@@ -99,7 +99,6 @@ namespace melonds {
         const optional<retro_game_info>& gba_info
     );
     static void set_up_direct_boot(const retro_game_info &nds_info);
-    static void ValidateFirmware();
 
     // functions for running games
     static void read_microphone(melonds::InputState& inputState) noexcept;
@@ -683,8 +682,6 @@ static void melonds::load_games_deferred(
         NDS::Reset();
     }
 
-    ValidateFirmware();
-
     // The ROM must be inserted after NDS::Reset is called
 
     retro_assert(NDSCart::Cart == nullptr);
@@ -781,46 +778,6 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
             NDS::SetupDirectBoot(game_name);
         }
         retro::log(RETRO_LOG_DEBUG, "Initialized direct boot for \"%s\"", game_name);
-    }
-}
-
-static void melonds::ValidateFirmware() {
-    using namespace Platform;
-    ZoneScopedN("melonds::ValidateFirmware");
-    using namespace config::system;
-    if (!ExternalBiosEnable() || config::system::ConsoleType() != ConsoleType::DS) {
-        // If we're not using an external BIOS, or we're not emulating a DS...
-        return;
-    }
-
-    // I don't really know how this works, it just came from upstream
-    // TODO: Peek at the firmware buffer directly by forward-declaring SPI_Firmware::Firmware and SPI_Firmware::FirmwareLength
-    FileHandle* f = Platform::OpenLocalFile(config::system::FirmwarePath(), FileMode::Read);
-    if (!f) return;
-    u8 chk1[0x180], chk2[0x180];
-
-    FileSeek(f, 0, FileSeekOrigin::Start);
-    FileRead(chk1, 1, 0x180, f);
-    FileSeek(f, -0x380, FileSeekOrigin::End);
-    FileRead(chk2, 1, 0x180, f);
-
-    memset(&chk1[0x0C], 0, 8);
-    memset(&chk2[0x0C], 0, 8);
-
-    CloseFile(f);
-
-    if (!memcmp(chk1, chk2, 0x180))
-    {
-        constexpr const char* const WARNING_MESSAGE =
-            "You're using a hacked firmware dump.\n"
-            "Firmware boot will stop working if you run any game that alters WFC settings.\n"
-            "(This would also happen on real hardware.)";
-
-        if (config::osd::ShowBiosWarnings()) {
-            retro::set_warn_message(WARNING_MESSAGE);
-        } else {
-            retro::warn(WARNING_MESSAGE);
-        }
     }
 }
 
