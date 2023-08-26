@@ -110,6 +110,8 @@ bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
     return rotated;
 }
 
+// reminder: std::string_views are NOT null-terminated!
+// Even if they're created from null-terminated strings, the null byte is outside the view
 bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
     unsigned version = 0;
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
