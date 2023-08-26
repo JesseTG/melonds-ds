@@ -60,7 +60,6 @@ using std::string;
 using std::string_view;
 using std::unique_ptr;
 
-constexpr unsigned DS_NAME_LIMIT = 10;
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
 constexpr unsigned DEFAULT_SDCARD_SIZE = 4096;
 const char* const DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME = "dldi_sd_card.bin";
@@ -138,33 +137,21 @@ namespace melonds::config {
     }
 
     namespace firmware {
-        static bool _firmwareSettingsOverrideEnable;
+        [[deprecated("Override settings individually")]]
+        static bool _firmwareSettingsOverrideEnable = false;
         bool FirmwareSettingsOverrideEnable() noexcept { return _firmwareSettingsOverrideEnable; }
 
+        static AlarmMode _alarmMode;
+        static optional<unsigned> _alarmHour;
+        static optional<unsigned> _alarmMinute;
         static FirmwareLanguage _language;
-        FirmwareLanguage Language() noexcept { return _language; }
-
         static unsigned _birthdayMonth = 1;
-        unsigned BirthdayMonth() noexcept { return _birthdayMonth; }
-
         static unsigned _birthdayDay = 1;
-        unsigned BirthdayDay() noexcept { return _birthdayDay; }
-
         static Color _favoriteColor;
-        Color FavoriteColor() noexcept { return _favoriteColor; }
-
-        static string _username;
-        std::string Username() noexcept { return _username; }
-
+        static UsernameMode _usernameMode;
         static string _message;
-        std::string Message() noexcept { return _message; }
-
-        static ::melonds::MacAddress _macAddress;
-        ::melonds::MacAddress MacAddress() noexcept { return _macAddress; }
-
-        static SPI_Firmware::IpAddress _dnsServer;
-
-        SPI_Firmware::IpAddress DnsServer() noexcept { return _dnsServer; }
+        static optional<SPI_Firmware::MacAddress> _macAddress;
+        static optional<SPI_Firmware::IpAddress> _dnsServer;
     }
 
     namespace jit {
@@ -701,44 +688,82 @@ static void melonds::config::parse_firmware_options() noexcept {
     using namespace melonds::config::firmware;
     using retro::get_variable;
 
-    if (const char* value = get_variable(system::OVERRIDE_FIRMWARE_SETTINGS); !string_is_empty(value)) {
-        _firmwareSettingsOverrideEnable = string_is_equal(value, values::ENABLED);
+    if (optional<melonds::FirmwareLanguage> value = ParseLanguage(get_variable(firmware::LANGUAGE))) {
+        _language = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", system::OVERRIDE_FIRMWARE_SETTINGS, values::DISABLED);
-        _firmwareSettingsOverrideEnable = false;
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::LANGUAGE);
+        _language = FirmwareLanguage::Default;
     }
 
-    if (!_firmwareSettingsOverrideEnable)
-        return;
-
-    if (optional<melonds::FirmwareLanguage> value = ParseLanguage(get_variable(system::LANGUAGE))) {
-        if (*value == FirmwareLanguage::Auto)
-            _language = get_firmware_language(retro::get_language());
-        else
-            _language = *value;
-    } else {
-        retro::warn("Failed to get value for %s; defaulting to English", system::LANGUAGE);
-        _language = FirmwareLanguage::English;
-    }
-
-    if (const char* value = get_variable(system::FAVORITE_COLOR); !string_is_empty(value)) {
+    if (const char* value = get_variable(firmware::FAVORITE_COLOR); string_is_equal(value, values::DEFAULT)) {
+        _favoriteColor = Color::Default;
+    } else if (!string_is_empty(value)) {
         _favoriteColor = static_cast<Color>(std::clamp(std::stoi(value), 0, 15));
         // TODO: Warn if invalid
     } else {
-        retro::warn("Failed to get value for %s; defaulting to gray", system::FAVORITE_COLOR);
-        _favoriteColor = Color::Gray;
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::FAVORITE_COLOR);
+        _favoriteColor = Color::Default;
     }
 
-    if (optional<string> username = retro::username()) {
-        _username = username->substr(0, DS_NAME_LIMIT);
-
-        retro::info("Overridden username: %s", _username.c_str());
+    if (optional<UsernameMode> username = ParseUsernameMode(get_variable(firmware::USERNAME))) {
+        _usernameMode = *username;
     } else {
         retro::warn("Failed to get the user's name; defaulting to \"melonDS DS\"");
-        _username = "melonDS DS";
+        _usernameMode = UsernameMode::MelonDSDS;
     }
 
-    // TODO: Make birthday configurable
+    if (optional<AlarmMode> alarmMode = ParseAlarmMode(get_variable(firmware::ENABLE_ALARM))) {
+        _alarmMode = *alarmMode;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::ENABLE_ALARM);
+        _alarmHour = nullopt;
+    }
+
+    if (const char* alarmHourText = get_variable(firmware::ALARM_HOUR); string_is_equal(alarmHourText, values::DEFAULT)) {
+        _alarmHour = nullopt;
+    } else if (optional<unsigned> alarmHour = ParseIntegerInRange(alarmHourText, 0u, 23u)) {
+        _alarmHour = alarmHour;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::ALARM_HOUR);
+        _alarmHour = nullopt;
+    }
+
+    if (const char* alarmMinuteText = get_variable(firmware::ALARM_MINUTE); string_is_equal(alarmMinuteText, values::DEFAULT)) {
+        _alarmMinute = nullopt;
+    } else if (optional<unsigned> alarmMinute = ParseIntegerInRange(alarmMinuteText, 0u, 59u)) {
+        _alarmMinute = alarmMinute;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::ALARM_MINUTE);
+        _alarmMinute = nullopt;
+    }
+
+    if (const char* birthMonthText = get_variable(firmware::BIRTH_MONTH); string_is_equal(birthMonthText, values::DEFAULT)) {
+        _birthdayMonth = 0;
+    } else if (optional<unsigned> birthMonth = ParseIntegerInRange(birthMonthText, 1u, 12u)) {
+        _birthdayMonth = *birthMonth;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::BIRTH_MONTH);
+        _birthdayMonth = 0;
+    }
+
+    if (const char* birthDayText = get_variable(firmware::BIRTH_DAY); string_is_equal(birthDayText, values::DEFAULT)) {
+        _birthdayDay = 0;
+    } else if (optional<unsigned> birthDay = ParseIntegerInRange(birthDayText, 1u, 31u)) {
+        _birthdayDay = *birthDay;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::BIRTH_DAY);
+        _birthdayDay = 0;
+    }
+
+    if (const char* wfcDnsText = get_variable(firmware::WFC_DNS); string_is_equal(wfcDnsText, values::DEFAULT)) {
+        _dnsServer = nullopt;
+    } else if (optional<SPI_Firmware::IpAddress> wfcDns = ParseIpAddress(wfcDnsText)) {
+        _dnsServer = *wfcDns;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::WFC_DNS);
+        _dnsServer = nullopt;
+    }
+
     // TODO: Make MAC address configurable with a file at runtime
 }
 
@@ -1026,6 +1051,7 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
 static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type) {
     ZoneScopedN("melonds::config::InitFirmware");
     using namespace melonds;
+    using namespace melonds::config::firmware;
     using namespace SPI_Firmware;
     using namespace Platform;
 
@@ -1041,6 +1067,8 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
             if (firmware = make_unique<SPI_Firmware::Firmware>(file); !firmware->Buffer()) {
                 retro::warn("Failed to read firmware from file\n");
                 firmware = nullptr;
+            } else {
+                retro::info("Loaded firmware (Identifier: %4s)", firmware->Header().Identifier.data());
             }
 
             CloseFile(file);
@@ -1067,6 +1095,7 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
         // Wi-fi access point data includes Nintendo WFC settings,
         // and if we didn't keep them then the player would have to reset them in each session.
         if (FileHandle* file = OpenLocalFile(std::string(wfcsettingspath), FileMode::Read)) {
+            // TODO: Don't use OpenLocalFile here
             // If we have Wi-fi settings to load...
             constexpr unsigned TOTAL_WFC_SETTINGS_SIZE = 3 * (sizeof(WifiAccessPoint) + sizeof(ExtendedWifiAccessPoint));
 
@@ -1128,15 +1157,18 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
     UserData& currentData = firmware->EffectiveUserData();
 
     // setting up username
-    if (string username = config::firmware::Username(); !username.empty()) { // If the frontend defines a username, take it. If not, leave the existing one.
-        std::u16string convertedUsername = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(
-            username);
-        size_t usernameLength = std::min(convertedUsername.length(), (size_t) 10);
+    if (_usernameMode != UsernameMode::Firmware) {
+        // If we want to override the existing username...
+        string username = melonds::config::GetUsername(_usernameMode);
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+        std::u16string convertedUsername = converter.from_bytes(username);
+        size_t usernameLength = std::min(convertedUsername.length(), (size_t) melonds::config::DS_NAME_LIMIT);
         currentData.NameLength = usernameLength;
+
         memcpy(currentData.Nickname, convertedUsername.data(), usernameLength * sizeof(char16_t));
     }
 
-    switch (FirmwareLanguage language = config::firmware::Language()) {
+    switch (_language) {
         case FirmwareLanguage::Auto:
             currentData.Settings &= ~Language::Reserved; // clear the existing language bits
             currentData.Settings |= static_cast<SPI_Firmware::Language>(get_firmware_language(retro::get_language()));
@@ -1146,30 +1178,31 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
             break;
         default:
             currentData.Settings &= ~Language::Reserved;
-            currentData.Settings |= static_cast<SPI_Firmware::Language>(language);
+            currentData.Settings |= static_cast<SPI_Firmware::Language>(_language);
             break;
     }
 
-    if (Color color = config::firmware::FavoriteColor(); color != Color::Default) {
-        currentData.FavoriteColor = static_cast<u8>(color);
+    if (_favoriteColor != Color::Default) {
+        currentData.FavoriteColor = static_cast<u8>(_favoriteColor);
     }
 
-    if (u8 month = config::firmware::BirthdayMonth(); month != 0) {
+    if (_birthdayMonth != 0) {
         // If the frontend specifies a birth month (rather than using the existing value)...
-        currentData.BirthdayMonth = config::firmware::BirthdayMonth();
+        currentData.BirthdayMonth = _birthdayMonth;
     }
 
-    if (u8 birthday = config::firmware::BirthdayDay(); birthday != 0) {
+    if (_birthdayDay != 0) {
         // If the frontend specifies a birthday (rather than using the existing value)...
-        currentData.BirthdayDay = birthday;
+        currentData.BirthdayDay = _birthdayDay;
     }
 
-    if (IpAddress dns = config::firmware::DnsServer(); dns != IpAddress()) {
-        firmware->AccessPoints()[0].PrimaryDns = dns;
-        firmware->AccessPoints()[0].SecondaryDns = dns;
+    if (_dnsServer) {
+        firmware->AccessPoints()[0].PrimaryDns = *_dnsServer;
+        firmware->AccessPoints()[0].SecondaryDns = *_dnsServer;
     }
 
-    if (MacAddress mac = config::firmware::MacAddress(); mac != MacAddress()) {
+    if (_macAddress) {
+        MacAddress mac = *_macAddress;
         mac[0] &= 0xFC; // ensure the MAC isn't a broadcast MAC
         firmware->Header().MacAddress = mac;
     }
@@ -1254,6 +1287,16 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
     }
 
     if (firmware->Header().Identifier == SPI_Firmware::GENERATED_FIRMWARE_IDENTIFIER) {
+        if (!header) {
+            // If we're using generated firmware and trying to boot without a game...
+            throw emulator_exception("Booting without content requires native firmware.");
+        }
+
+        if (header->IsDSiWare() || _consoleType == ConsoleType::DSi) {
+            // If we're using generated firmware and trying to boot a DSiWare game...
+            throw emulator_exception("Booting into DSi mode requires native DSi firmware.");
+        }
+
         retro::warn("Forcing direct boot due to generated firmware");
         _directBoot = true;
     }
@@ -1395,4 +1438,97 @@ static void melonds::config::set_core_options(
     retro_core_options_v2* optionsUs = options.GetOptions();
 
     retro::set_core_options(*optionsUs);
+}
+
+using namespace melonds::config;
+
+int Platform::GetConfigInt(ConfigEntry entry)
+{
+    switch (entry)
+    {
+#ifdef JIT_ENABLED
+        case JIT_MaxBlockSize: return jit::MaxBlockSize();
+#endif
+
+        case DLDI_ImageSize: return save::DldiImageSize();
+
+        case DSiSD_ImageSize: return save::DsiSdImageSize();
+
+        case Firm_Language: return static_cast<int>(firmware::_language);
+        case Firm_BirthdayMonth: return firmware::_birthdayMonth;
+        case Firm_BirthdayDay: return firmware::_birthdayDay;
+        case Firm_Color: return static_cast<int>(firmware::_favoriteColor);
+
+        case AudioBitDepth: return static_cast<int>(audio::BitDepth());
+        default: return 0;
+    }
+}
+
+bool Platform::GetConfigBool(ConfigEntry entry)
+{
+    switch (entry)
+    {
+#ifdef JIT_ENABLED
+        case JIT_Enable: return jit::Enable();
+        case JIT_LiteralOptimizations: return jit::LiteralOptimizations();
+        case JIT_BranchOptimizations: return jit::BranchOptimizations();
+        case JIT_FastMemory: return jit::FastMemory();
+#endif
+
+        case ExternalBIOSEnable: return system::ExternalBiosEnable();
+
+        case DLDI_Enable: return save::DldiEnable();
+        case DLDI_ReadOnly: return save::DldiReadOnly();
+        case DLDI_FolderSync: return save::DldiFolderSync();
+
+        case DSiSD_Enable: return save::DsiSdEnable();
+        case DSiSD_ReadOnly: return save::DsiSdReadOnly();
+        case DSiSD_FolderSync: return save::DsiSdFolderSync();
+
+        case Firm_OverrideSettings: return false;
+        default: return false;
+    }
+}
+
+std::string Platform::GetConfigString(ConfigEntry entry)
+{
+    using std::string;
+    switch (entry)
+    {
+        case BIOS9Path: return string(system::Bios9Path());
+        case BIOS7Path: return string(system::Bios7Path());
+        case FirmwarePath: return string(system::FirmwarePath());
+
+        case DSi_BIOS9Path: return string(system::DsiBios9Path());
+        case DSi_BIOS7Path: return string(system::DsiBios7Path());
+        case DSi_FirmwarePath: return string(system::DsiFirmwarePath());
+        case DSi_NANDPath: return string(system::DsiNandPath());
+
+        case DLDI_ImagePath: return save::DldiImagePath();
+        case DLDI_FolderPath: return save::DldiFolderPath();
+
+        case DSiSD_ImagePath: return save::DsiSdImagePath();
+        case DSiSD_FolderPath: return save::DsiSdFolderPath();
+        case WifiSettingsPath: return "wfcsettings.bin";
+
+        case Firm_Username: return GetUsername(melonds::config::firmware::_usernameMode);
+        case Firm_Message: return "";
+        default: return "";
+    }
+}
+
+bool Platform::GetConfigArray(ConfigEntry entry, void* data)
+{
+    using SPI_Firmware::MacAddress;
+    switch (entry)
+    {
+        case Firm_MAC:
+        {
+            MacAddress* mac = (MacAddress*)data;
+            MacAddress current_mac = *firmware::_macAddress;
+            memcpy(mac, &current_mac, sizeof(MacAddress));
+        }
+        default:
+            return false;
+    }
 }

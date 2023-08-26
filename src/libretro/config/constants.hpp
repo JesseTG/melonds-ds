@@ -142,7 +142,7 @@ namespace melonds::config {
 
     namespace values {
         namespace firmware {
-            static constexpr const char *const FIRMWARE_USERNAME = "";
+            static constexpr const char *const FIRMWARE_USERNAME = "\\default";
             static constexpr const char *const GUESS_USERNAME = "\\guess";
             static constexpr const char *const DEFAULT_USERNAME = "melonDS DS";
         }

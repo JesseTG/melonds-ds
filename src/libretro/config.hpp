@@ -182,8 +182,6 @@ namespace melonds {
         Indirect,
     };
 
-    using MacAddress = std::array<std::uint8_t, 6>;
-
     namespace config {
         namespace audio {
             [[nodiscard]] BitDepth BitDepth() noexcept;
@@ -196,14 +194,6 @@ namespace melonds {
         namespace firmware {
             [[deprecated("Individual settings may be overridden")]]
             [[nodiscard]] bool FirmwareSettingsOverrideEnable() noexcept;
-            [[nodiscard]] FirmwareLanguage Language() noexcept;
-            [[nodiscard]] unsigned BirthdayMonth() noexcept;
-            [[nodiscard]] unsigned BirthdayDay() noexcept;
-            [[nodiscard]] Color FavoriteColor() noexcept;
-            [[nodiscard]] std::string Username() noexcept;
-            [[nodiscard]] std::string Message() noexcept;
-            [[nodiscard]] SPI_Firmware::MacAddress MacAddress() noexcept;
-            [[nodiscard]] SPI_Firmware::IpAddress DnsServer() noexcept;
         }
 
         namespace jit {

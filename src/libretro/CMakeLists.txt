@@ -46,7 +46,6 @@ add_library(libretro MODULE
     microphone.hpp
     memory.cpp
     memory.hpp
-    platform/config.cpp
     platform/file.cpp
     platform/lan.cpp
     platform/mp.cpp
