@@ -127,15 +127,15 @@ optional<melonds::HybridSideScreenDisplay> melonds::config::ParseHybridSideScree
     return nullopt;
 }
 
-std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(std::string_view value) noexcept {
-    if (value == values::AUTO) return melonds::FirmwareLanguage::Auto;
-    if (value == values::DEFAULT) return melonds::FirmwareLanguage::Default;
-    if (value == values::JAPANESE) return melonds::FirmwareLanguage::Japanese;
-    if (value == values::ENGLISH) return melonds::FirmwareLanguage::English;
-    if (value == values::FRENCH) return melonds::FirmwareLanguage::French;
-    if (value == values::GERMAN) return melonds::FirmwareLanguage::German;
-    if (value == values::ITALIAN) return melonds::FirmwareLanguage::Italian;
-    if (value == values::SPANISH) return melonds::FirmwareLanguage::Spanish;
+std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(const char* value) noexcept {
+    if (string_is_equal(value, values::AUTO)) return melonds::FirmwareLanguage::Auto;
+    if (string_is_equal(value, values::DEFAULT)) return melonds::FirmwareLanguage::Default;
+    if (string_is_equal(value, values::JAPANESE)) return melonds::FirmwareLanguage::Japanese;
+    if (string_is_equal(value, values::ENGLISH)) return melonds::FirmwareLanguage::English;
+    if (string_is_equal(value, values::FRENCH)) return melonds::FirmwareLanguage::French;
+    if (string_is_equal(value, values::GERMAN)) return melonds::FirmwareLanguage::German;
+    if (string_is_equal(value, values::ITALIAN)) return melonds::FirmwareLanguage::Italian;
+    if (string_is_equal(value, values::SPANISH)) return melonds::FirmwareLanguage::Spanish;
 
     return nullopt;
 }

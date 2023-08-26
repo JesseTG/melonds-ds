@@ -119,7 +119,7 @@ namespace melonds::config::definitions {
             nullptr,
             config::firmware::CATEGORY,
             {
-                {config::values::HOST, "Use Host"},
+                {config::values::AUTO, "Use Host"},
                 {config::values::ENGLISH, EnglishLabel<L>},
                 {config::values::JAPANESE, "Japanese"},
                 {config::values::FRENCH, "French"},
@@ -129,7 +129,7 @@ namespace melonds::config::definitions {
                 {config::values::DEFAULT, "Don't Override"},
                 {nullptr, nullptr},
             },
-            config::values::HOST
+            config::values::AUTO
         },
         retro_core_option_v2_definition {
             config::firmware::USERNAME,

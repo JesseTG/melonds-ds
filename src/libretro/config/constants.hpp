@@ -252,7 +252,7 @@ namespace melonds::config {
 
     std::optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(const char *value) noexcept;
 
-    std::optional<melonds::FirmwareLanguage> ParseLanguage(std::string_view value) noexcept;
+    std::optional<melonds::FirmwareLanguage> ParseLanguage(const char* value) noexcept;
 
     std::optional<SPI_Firmware::IpAddress> ParseIpAddress(const char* value) noexcept;
 
