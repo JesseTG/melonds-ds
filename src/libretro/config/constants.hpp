@@ -174,7 +174,6 @@ namespace melonds::config {
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GERMAN = "de";
         static constexpr const char *const HOLD = "hold";
-        static constexpr const char *const HOST = "host";
         static constexpr const char *const HYBRID_BOTTOM = "hybrid-bottom";
         static constexpr const char *const HYBRID_TOP = "hybrid-top";
         static constexpr const char *const INDIRECT = "indirect";
