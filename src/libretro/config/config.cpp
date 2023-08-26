@@ -19,11 +19,13 @@
 // This must come before <GPU.h>!
 #include "PlatformOGLPrivate.h"
 
+#include <algorithm>
 #include <charconv>
 #include <cstring>
 #include <initializer_list>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 #include <file/file_path.h>
 #include <libretro.h>
@@ -45,11 +47,12 @@
 #include "microphone.hpp"
 #include "opengl.hpp"
 #include "render.hpp"
+#include "retro/dirent.hpp"
 #include "screenlayout.hpp"
 #include "tracy.hpp"
-#include "dynamic.hpp"
 
 using std::array;
+using std::find_if;
 using std::from_chars;
 using std::from_chars_result;
 using std::initializer_list;
@@ -59,6 +62,7 @@ using std::optional;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
+using std::vector;
 
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
 constexpr unsigned DEFAULT_SDCARD_SIZE = 4096;
@@ -81,8 +85,7 @@ namespace melonds::config {
     static void set_core_options(
         const optional<retro_game_info> &nds_info,
         const optional<NDSHeader> &nds_header
-    ) noexcept;
-    static bool _config_categories_supported;
+    );
     namespace visibility {
         static bool ShowDsiOptions = true;
         static bool ShowDsiSdCardOptions = true;
@@ -93,6 +96,7 @@ namespace melonds::config {
         static bool ShowHybridOptions = true;
         static bool ShowVerticalLayoutOptions = true;
         static bool ShowCursorTimeout = true;
+        static bool ShowAlarm = true;
         static unsigned NumberOfShownScreenLayouts = screen::MAX_SCREEN_LAYOUTS;
 
 #ifdef JIT_ENABLED
@@ -488,6 +492,9 @@ bool melonds::update_option_visibility() {
 
         updated = true;
     }
+
+    bool oldShowAlarm = ShowAlarm;
+
 
 #ifdef JIT_ENABLED
     // Show/hide JIT core options
@@ -1421,23 +1428,101 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
 static void melonds::config::set_core_options(
     const optional<retro_game_info> &nds_info,
     const optional<NDSHeader> &nds_header
-) noexcept {
+)  {
     ZoneScopedN("retro::set_core_options");
-
-    _config_categories_supported = false;
 
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
     array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
-    DynamicCoreOptions options(
-        definitions.data(),
-        definitions.size(),
-        categories.data(),
-        categories.size()
-    );
 
-    retro_core_options_v2* optionsUs = options.GetOptions();
+    vector<string> bases;
 
-    retro::set_core_options(*optionsUs);
+    if (optional<string> subdir = retro::get_system_subdirectory(); subdir && path_is_directory(subdir->c_str())) {
+        bases.push_back(*subdir);
+    }
+
+    if (optional<string> fallback = retro::get_system_fallback_subdirectory(); fallback && path_is_directory(fallback->c_str())) {
+        bases.push_back(*fallback);
+    }
+    vector<string> dsiNandPaths;
+    vector<string> firmwarePaths;
+    optional<string> sysdir = retro::get_system_directory();
+
+    if (sysdir) {
+        for (const string& base : bases) {
+            for (const retro::dirent& d : retro::readdir(base, true)) {
+                if (IsDsiNandImage(d)) {
+                    dsiNandPaths.emplace_back(d.path);
+                }
+                if (IsFirmwareImage(d)) {
+                    firmwarePaths.emplace_back(d.path);
+                }
+            }
+        }
+    } else {
+        retro::set_error_message("Failed to get system directory, anything that needs it won't work.");
+    }
+
+    if (!dsiNandPaths.empty()) {
+        // If we found at least one DSi NAND image...
+        retro_core_option_v2_definition* dsiNandPathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
+            return string_is_equal(def.key, melonds::config::storage::DSI_NAND_PATH);
+        });
+
+        retro_assert(dsiNandPathOption != definitions.end());
+
+        memset(dsiNandPathOption->values, 0, sizeof(dsiNandPathOption->values));
+        int length = std::min((int)dsiNandPaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
+        for (int i = 0; i < length; ++i) {
+            retro::debug("Found a DSi NAND image at \"%s\"", dsiNandPaths[i].c_str());
+            string_view path = dsiNandPaths[i];
+            path.remove_prefix(sysdir->size() + 1);
+            dsiNandPathOption->values[i].value = path.data();
+            dsiNandPathOption->values[i].label = nullptr;
+        }
+
+        dsiNandPathOption->default_value = dsiNandPaths[0].c_str();
+    }
+
+    if (!firmwarePaths.empty()) {
+        // If we found at least one firmware image...
+        retro_core_option_v2_definition* firmwarePathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
+            return string_is_equal(def.key, melonds::config::firmware::FIRMWARE_PATH);
+        });
+        retro_core_option_v2_definition* firmwarePathDsiOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
+            return string_is_equal(def.key, melonds::config::firmware::FIRMWARE_DSI_PATH);
+        });
+
+        retro_assert(firmwarePathOption != definitions.end());
+        retro_assert(firmwarePathDsiOption != definitions.end());
+
+        // Keep the first element, it's for built-in firmware
+        // We subtract 2 because we need room for the terminating element and the built-in firmware
+        int length = std::min((int)firmwarePaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 2);
+        for (int i = 0; i < length; ++i) {
+            retro::debug("Found a firmware image at \"%s\"", firmwarePaths[i].c_str());
+            string_view path = firmwarePaths[i];
+            path.remove_prefix(sysdir->size() + 1);
+            firmwarePathOption->values[i + 1] = { path.data(), nullptr };
+            firmwarePathDsiOption->values[i + 1] = { path.data(), nullptr };
+        }
+        firmwarePathOption->values[length + 2] = { nullptr, nullptr };
+        firmwarePathDsiOption->values[length + 2] = { nullptr, nullptr };
+
+        firmwarePathOption->default_value = firmwarePathOption->values[0].value;
+        firmwarePathDsiOption->default_value = firmwarePathDsiOption->values[0].value;
+
+        retro_assert(firmwarePathOption->values[0].value != nullptr);
+        retro_assert(firmwarePathDsiOption->values[0].value != nullptr);
+    }
+
+    retro_core_options_v2 optionsUs = {
+        .categories = categories.data(),
+        .definitions = definitions.data(),
+    };
+
+    if (!retro::set_core_options(optionsUs)) {
+        throw emulator_exception("Failed to set core options");
+    }
 }
 
 using namespace melonds::config;

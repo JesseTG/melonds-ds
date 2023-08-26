@@ -16,12 +16,15 @@
 
 #include "constants.hpp"
 
+#include <algorithm>
 #include <string>
 #include <net/net_compat.h>
 #include <string/stdstring.h>
 
 #include "environment.hpp"
+#include "retro/dirent.hpp"
 
+using std::find;
 using std::optional;
 using std::nullopt;
 using std::string;
@@ -148,4 +151,16 @@ optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* va
     }
 
     return nullopt;
+}
+
+bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
+    // TODO: Validate the NoCash footer
+    return file.is_regular_file() && file.size == DSI_NAND_SIZE;
+}
+
+bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
+    return
+        file.is_regular_file() &&
+        find(FIRMWARE_SIZES.begin(), FIRMWARE_SIZES.end(), file.size) != FIRMWARE_SIZES.end() &&
+        !string_ends_with(file.path, ".bak");
 }

@@ -29,6 +29,10 @@
 
 #include "../config.hpp"
 
+namespace retro {
+    struct dirent;
+}
+
 namespace melonds::config {
     constexpr unsigned DS_NAME_LIMIT = 10;
 
@@ -57,6 +61,8 @@ namespace melonds::config {
         static constexpr const char *const BIRTH_DAY = "melonds_firmware_birth_day";
         static constexpr const char *const ENABLE_ALARM = "melonds_firmware_enable_alarm";
         static constexpr const char *const FAVORITE_COLOR = "melonds_firmware_favorite_color";
+        static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
+        static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const LANGUAGE = "melonds_firmware_language";
         static constexpr const char *const USERNAME = "melonds_firmware_username";
         static constexpr const char *const WFC_DNS = "melonds_firmware_wfc_dns";
@@ -160,6 +166,7 @@ namespace melonds::config {
         static constexpr const char *const BOTTOM_TOP = "bottom-top";
         static constexpr const char *const BOTH = "both";
         static constexpr const char *const BOTTOM = "bottom";
+        static constexpr const char *const BUILT_IN = "builtin";
         static constexpr const char *const COSINE = "cosine";
         static constexpr const char *const CUBIC = "cubic";
         static constexpr const char *const DEDICATED = "dedicated";
@@ -255,7 +262,11 @@ namespace melonds::config {
 
     std::optional<SPI_Firmware::IpAddress> ParseIpAddress(const char* value) noexcept;
 
+    constexpr size_t DSI_NAND_SIZE = 251658304;
+    constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
+    bool IsDsiNandImage(const retro::dirent &file) noexcept;
+    bool IsFirmwareImage(const retro::dirent &file) noexcept;
 }
 
 #endif //MELONDS_DS_CONSTANTS_HPP
