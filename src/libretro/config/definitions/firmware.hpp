@@ -38,13 +38,13 @@ namespace melonds::config::definitions {
             "The DNS server to use instead of the default. "
             "Use this to play online with custom servers that reimplement "
             "the discontinued Nintendo Wi-Fi Connection service. "
-            "Different servers support games differently. "
+            "Supported games depends on the server. "
             "If unsure, leave on Kaeru WFC. "
             "Changes take effect at next restart.\n"
             "\n"
-            "To use other servers, open \"wfc.cfg\" in the \"melonDS DS\" directory and follow the instructions. "
-            "The listed servers are not affiliated with libretro, Nintendo, or the core's author. "
-            "Please adhere to their terms of service.",
+            "To use other servers, open \"wfc.cfg\" in the \"melonDS DS\" system directory and follow the instructions. "
+            "The listed servers are not affiliated with libretro, Nintendo, the melonDS team, or the core's author. "
+            "Please respect other players and follow the server's rules.",
             nullptr,
             config::firmware::CATEGORY,
             {
@@ -66,7 +66,6 @@ namespace melonds::config::definitions {
             "- Use Host: Uses the frontend's language if supported by the DS, or English if not.\n"
             "- Don't Override: Doesn't override firmware defines.\n"
             "\n"
-            "Leave As-Is uses the language set in the existing firmware. "
             "Not every game honors this setting. "
             "Takes effect at next restart.",
             nullptr,
@@ -93,11 +92,10 @@ namespace melonds::config::definitions {
             "- Don't Override: Uses whatever name is defined on the firmware.\n"
             "- Guess: Try to get your username from the frontend. "
             "If that fails, try the USER, USERNAME, and LOGNAME environment variables.\n"
-            "- melonDS DS: Uses \"melonDS DS\"."
-            "Default if nothing else works.\n"
+            "- melonDS DS: Uses \"melonDS DS\". "
+            "This is the default if nothing else works.\n"
             "\n"
             "Names are truncated to 10 characters. "
-            "To use another name, edit the frontend's config file manually. "
             "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
