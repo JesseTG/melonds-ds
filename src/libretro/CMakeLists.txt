@@ -15,6 +15,7 @@ add_library(libretro MODULE
     config/definitions/audio.hpp
     config/definitions/categories.hpp
     config/definitions/cpu.hpp
+    config/definitions/firmware.hpp
     config/definitions/network.hpp
     config/definitions/osd.hpp
     config/definitions/screen.hpp

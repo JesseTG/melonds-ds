@@ -25,6 +25,7 @@
 
 #include "config/definitions/audio.hpp"
 #include "config/definitions/cpu.hpp"
+#include "config/definitions/firmware.hpp"
 #include "config/definitions/network.hpp"
 #include "config/definitions/osd.hpp"
 #include "config/definitions/screen.hpp"
@@ -42,6 +43,7 @@ namespace melonds::config::definitions {
         CpuOptionDefinitions<L>,
         NetworkOptionDefinitions<L>,
         ScreenOptionDefinitions<L>,
+        FirmwareOptionDefinitions<L>,
         StorageOptionDefinitions<L>,
         SystemOptionDefinitions<L>,
         VideoOptionDefinitions<L>,

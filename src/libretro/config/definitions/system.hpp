@@ -23,13 +23,6 @@
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
-
-    // If you ever get these translated, turn the variable into a template and
-    // make the translated strings variable templates too.
-    // Here's an example:
-    template<retro_language L>
-    constexpr const char* EnglishLabel = "English";
-
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         retro_core_option_v2_definition {
@@ -68,72 +61,7 @@ namespace melonds::config::definitions {
             },
             melonds::config::values::ENABLED
         },
-        retro_core_option_v2_definition {
-            config::system::OVERRIDE_FIRMWARE_SETTINGS,
-            "Override Firmware Settings",
-            nullptr,
-            "Use language and username specified in the frontend, "
-            "rather than those provided by the firmware itself. "
-            "If disabled or the firmware is unavailable, these values will be provided by the frontend. "
-            "If a name couldn't be found, \"melonDS\" will be used as the default.",
-            nullptr,
-            melonds::config::system::CATEGORY,
-            {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::DISABLED
-        },
-        retro_core_option_v2_definition {
-            config::system::LANGUAGE,
-            "Language",
-            nullptr,
-            "The language mode of the emulated console. "
-            "Not every game honors this setting. "
-            "Automatic uses the frontend's language if supported by the DS, or English if not.",
-            nullptr,
-            melonds::config::system::CATEGORY,
-            {
-                {melonds::config::values::AUTO, "Automatic"},
-                {melonds::config::values::ENGLISH, EnglishLabel<L>},
-                {melonds::config::values::JAPANESE, "Japanese"},
-                {melonds::config::values::FRENCH, "French"},
-                {melonds::config::values::GERMAN, "German"},
-                {melonds::config::values::ITALIAN, "Italian"},
-                {melonds::config::values::SPANISH, "Spanish"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::AUTO
-        },
-        retro_core_option_v2_definition {
-            config::system::FAVORITE_COLOR,
-            "Favorite Color",
-            nullptr,
-            "The theme (\"favorite color\") of the emulated console.",
-            nullptr,
-            melonds::config::system::CATEGORY,
-            {
-                {"0", "Gray"},
-                {"1", "Brown"},
-                {"2", "Red"},
-                {"3", "Light Pink"},
-                {"4", "Orange"},
-                {"5", "Yellow"},
-                {"6", "Lime"},
-                {"7", "Light Green"},
-                {"8", "Dark Green"},
-                {"9", "Turquoise"},
-                {"10", "Light Blue"},
-                {"11", "Blue"},
-                {"12", "Dark Blue"},
-                {"13", "Dark Purple"},
-                {"14", "Light Purple"},
-                {"15", "Dark Pink"},
-                {nullptr, nullptr},
-            },
-            "0"
-        },
+
         retro_core_option_v2_definition {
             config::system::USE_EXTERNAL_BIOS,
             "Use external BIOS if available",

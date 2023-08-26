@@ -46,6 +46,11 @@ namespace melonds::config::definitions {
             "Change screen settings."
         },
         retro_core_option_v2_category {
+            melonds::config::firmware::CATEGORY,
+            "Firmware",
+            "Override the emulated firmware's settings."
+        },
+        retro_core_option_v2_category {
             melonds::config::storage::CATEGORY,
             "Storage",
             "Change emulated SD card, NAND image, and save data settings."
