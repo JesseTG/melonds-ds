@@ -122,26 +122,46 @@ static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& g
     }
 }
 
-static void FlushFirmware(string_view firmwarePath) noexcept {
+static void FlushFirmware(const string& firmwarePath) noexcept {
     ZoneScopedN("melonds::sram::FlushFirmware");
     using SPI_Firmware::Firmware;
     using namespace melonds;
 
-    retro_assert(!firmwarePath.empty() && firmwarePath.find('\0'));
+    retro_assert(!firmwarePath.empty());
+    retro_assert(path_is_absolute(firmwarePath.c_str()));
 
     const Firmware* firmware = SPI_Firmware::GetFirmware();
 
-    if (firmware == nullptr || firmware->Buffer() == 0) {
-        retro::error("No firmware loaded in memory, cannot write to file");
-        return;
-    }
+    retro_assert(firmware != nullptr);
+    retro_assert(firmware->Buffer() != nullptr);
 
-    // TODO: mimic melonds's behaviors
-
-    if (!filestream_write_file(firmwarePath.data(), firmware->Buffer(), firmware->Length())) {
-        retro::error("Failed to write %u-byte firmware to \"%.*s\"", firmware->Length(), (int)firmwarePath.length(), firmwarePath.data());
+    if (firmware->Header().Identifier != SPI_Firmware::GENERATED_FIRMWARE_IDENTIFIER) {
+        // If this is not the default built-in firmware...
+        Firmware firmwareCopy(*firmware);
+        // TODO: Apply the original values of the settings that were overridden
+        if (filestream_write_file(firmwarePath.c_str(), firmware->Buffer(), firmware->Length())) {
+            // ...then write the whole thing back.
+            retro::debug("Flushed %u-byte firmware to \"%s\"", firmware->Length(), firmwarePath.c_str());
+        } else {
+            retro::error("Failed to write %u-byte firmware to \"%s\"", firmware->Length(), firmwarePath.c_str());
+        }
     } else {
-        retro::debug("Flushed %u-byte firmware to \"%.*s\"", firmware->Length(), (int)firmwarePath.length(), firmwarePath.data());
+        u32 eapstart = firmware->ExtendedAccessPointOffset();
+        u32 eapend = eapstart + sizeof(firmware->ExtendedAccessPoints());
+
+        u32 apstart = firmware->WifiAccessPointOffset();
+        u32 apend = apstart + sizeof(firmware->AccessPoints());
+
+        // assert that the extended access points come just before the regular ones
+        assert(eapend == apstart);
+
+        const u8* buffer = firmware->ExtendedAccessPointPosition();
+        u32 length = sizeof(firmware->ExtendedAccessPoints()) + sizeof(firmware->AccessPoints());
+        if (filestream_write_file(firmwarePath.c_str(), buffer, length)) {
+            retro::debug("Flushed %u-byte WFC settings to \"%s\"", length, firmwarePath.c_str());
+        } else {
+            retro::error("Failed to write %u-byte WFC settings to \"%s\"", length, firmwarePath.c_str());
+        }
     }
 }
 
