@@ -324,7 +324,7 @@ namespace melonds::config {
 
         string_view EffectiveFirmwarePath() noexcept {
             string_view firmware = (ConsoleType() == ConsoleType::DSi) ? DsiFirmwarePath() : FirmwarePath();
-            return (firmware == config::values::BUILT_IN) ? _generatedFirmwareSettingsPath : firmware;
+            return (firmware == config::values::BUILT_IN) ? GeneratedFirmwareSettingsPath() : firmware;
         }
     }
 
@@ -1119,7 +1119,6 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
         firmware = make_unique<Firmware>(static_cast<int>(type));
         retro_assert(firmware != nullptr);
 
-        // Try to open the instanced Wi-fi settings, falling back to the regular Wi-fi settings if they don't exist.
         // We don't need to save the whole firmware, just the part that may actually change.
         string_view wfcsettingspath = config::system::GeneratedFirmwareSettingsPath();
 
