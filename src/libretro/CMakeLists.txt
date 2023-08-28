@@ -22,8 +22,6 @@ add_library(libretro MODULE
     config/definitions/storage.hpp
     config/definitions/system.hpp
     config/definitions/video.hpp
-    config/dynamic.cpp
-    config/dynamic.hpp
     content.cpp
     content.hpp
     dsi.cpp
