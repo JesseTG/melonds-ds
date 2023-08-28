@@ -139,9 +139,9 @@ static void FlushFirmware(string_view firmwarePath) noexcept {
     // TODO: mimic melonds's behaviors
 
     if (!filestream_write_file(firmwarePath.data(), firmware->Buffer(), firmware->Length())) {
-        retro::error("Failed to write %u-byte firmware to \"%.*s\"", firmware->Length(), firmwarePath.length(), firmwarePath.data());
+        retro::error("Failed to write %u-byte firmware to \"%.*s\"", firmware->Length(), (int)firmwarePath.length(), firmwarePath.data());
     } else {
-        retro::debug("Flushed %u-byte firmware to \"%.*s\"", firmware->Length(), firmwarePath.length(), firmwarePath.data());
+        retro::debug("Flushed %u-byte firmware to \"%.*s\"", firmware->Length(), (int)firmwarePath.length(), firmwarePath.data());
     }
 }
 
