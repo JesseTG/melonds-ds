@@ -308,15 +308,24 @@ namespace melonds::config {
         // TODO: Allow these paths to be customized
         string_view Bios9Path() noexcept { return "bios9.bin"; }
         string_view Bios7Path() noexcept { return "bios7.bin"; }
-        string_view FirmwarePath() noexcept { return "firmware.bin"; }
         string_view DsiBios9Path() noexcept { return "dsi_bios9.bin"; }
         string_view DsiBios7Path() noexcept { return "dsi_bios7.bin"; }
-        string_view DsiFirmwarePath() noexcept { return "dsi_firmware.bin"; }
+
+        static char _firmwarePath[PATH_MAX];
+        string_view FirmwarePath() noexcept { return _firmwarePath; }
+
+        static char _dsiFirmwarePath[PATH_MAX];
+        string_view DsiFirmwarePath() noexcept { return _dsiFirmwarePath; }
 
         static char _dsiNandPath[PATH_MAX];
         string_view DsiNandPath() noexcept { return _dsiNandPath; }
 
         string_view GeneratedFirmwareSettingsPath() noexcept { return "wfcsettings.bin"; }
+
+        string_view EffectiveFirmwarePath() noexcept {
+            string_view firmware = (ConsoleType() == ConsoleType::DSi) ? DsiFirmwarePath() : FirmwarePath();
+            return (firmware == config::values::BUILT_IN) ? _generatedFirmwareSettingsPath : firmware;
+        }
     }
 
     namespace video {
@@ -1048,11 +1057,26 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
         _dsiSdEnable = true;
     }
 
-    if (const char* value = get_variable(storage::DSI_NAND_PATH); !string_is_empty(value) && Platform::LocalFileExists(value)) {
+    // If these firmware/BIOS files don't exist, an exception will be thrown later
+    if (const char* value = get_variable(storage::DSI_NAND_PATH); !string_is_empty(value)) {
         strncpy(system::_dsiNandPath, value, sizeof(system::_dsiNandPath));
     } else {
         strncpy(system::_dsiNandPath, values::NOT_FOUND, sizeof(system::_dsiNandPath));
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_NAND_PATH, values::NOT_FOUND);
+        retro::warn("Failed to get value for %s", storage::DSI_NAND_PATH);
+    }
+
+    if (const char* value = get_variable(firmware::FIRMWARE_PATH); !string_is_empty(value)) {
+        strncpy(system::_firmwarePath, value, sizeof(system::_firmwarePath));
+    } else {
+        strncpy(system::_firmwarePath, values::NOT_FOUND, sizeof(system::_firmwarePath));
+        retro::warn("Failed to get value for %s; defaulting to built-in firmware", firmware::FIRMWARE_PATH);
+    }
+
+    if (const char* value = get_variable(firmware::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
+        strncpy(system::_dsiFirmwarePath, value, sizeof(system::_dsiFirmwarePath));
+    } else {
+        strncpy(system::_dsiFirmwarePath, values::NOT_FOUND, sizeof(system::_dsiFirmwarePath));
+        retro::warn("Failed to get value for %s; defaulting to built-in firmware", firmware::FIRMWARE_DSI_PATH);
     }
 }
 
