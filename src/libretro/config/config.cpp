@@ -1459,28 +1459,18 @@ static void melonds::config::set_core_options(
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
     array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
 
-    vector<string> bases;
+    optional<string> subdir = retro::get_system_subdirectory();
 
-    if (optional<string> subdir = retro::get_system_subdirectory(); subdir && path_is_directory(subdir->c_str())) {
-        bases.push_back(*subdir);
-    }
-
-    if (optional<string> fallback = retro::get_system_fallback_subdirectory(); fallback && path_is_directory(fallback->c_str())) {
-        bases.push_back(*fallback);
-    }
-    vector<string> dsiNandPaths;
-    vector<string> firmwarePaths;
+    vector<string> dsiNandPaths, firmwarePaths;
     optional<string> sysdir = retro::get_system_directory();
 
     if (sysdir) {
-        for (const string& base : bases) {
-            for (const retro::dirent& d : retro::readdir(base, true)) {
-                if (IsDsiNandImage(d)) {
-                    dsiNandPaths.emplace_back(d.path);
-                }
-                if (IsFirmwareImage(d)) {
-                    firmwarePaths.emplace_back(d.path);
-                }
+        for (const retro::dirent& d : retro::readdir(*sysdir, true)) {
+            if (IsDsiNandImage(d)) {
+                dsiNandPaths.emplace_back(d.path);
+            }
+            if (IsFirmwareImage(d)) {
+                firmwarePaths.emplace_back(d.path);
             }
         }
     } else {
