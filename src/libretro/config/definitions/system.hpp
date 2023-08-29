@@ -61,15 +61,14 @@ namespace melonds::config::definitions {
             },
             melonds::config::values::ENABLED
         },
-
         retro_core_option_v2_definition {
             config::system::USE_EXTERNAL_BIOS,
-            "Use external BIOS if available",
+            "Use native BIOS if available",
             nullptr,
-            "If enabled, melonDS will attempt to load a BIOS file from the system directory. "
-            "If no valid BIOS is present, melonDS will fall back to its built-in FreeBIOS. "
-            "Note that GBA connectivity requires a native BIOS. "
-            "Takes effect at the next restart. "
+            "Use native BIOS files from the \"melonDS DS\" folder in the system directory if enabled and available, "
+            "falling back to the built-in FreeBIOS if not. "
+            "DS mode only; DSi mode and GBA connectivity each require a native BIOS. "
+            "Changes take effect at the next restart. "
             "If unsure, leave this enabled.",
             nullptr,
             melonds::config::system::CATEGORY,
