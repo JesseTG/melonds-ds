@@ -45,17 +45,35 @@ namespace melonds
         invalid_rom_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
     };
 
-    /// Thrown when attempting to use FreeBIOS with unsupported functionality.
-    class unsupported_bios_exception : public emulator_exception {
+    /// Thrown when a game cannot be loaded with the current configuration.
+    /// This should not stop the core;
+    /// instead, it should lead to an error screen
+    /// so that the user has a chance to make corrections.
+    class config_exception : public emulator_exception {
     public:
-        explicit unsupported_bios_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
-        unsupported_bios_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
+        explicit config_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
+        config_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
     };
 
-    class missing_bios_exception : public emulator_exception {
+    /// Thrown when there's a problem with the BIOS, firmware, or NAND configuration.
+    class bios_exception : public config_exception {
+    public:
+        explicit bios_exception(const std::string &what_arg) : config_exception(what_arg) {}
+        bios_exception(const std::string &what_arg, const std::string &user_message) : config_exception(what_arg, user_message) {}
+    };
+
+    /// Thrown when there's a problem with the BIOS, firmware, or NAND configuration.
+    class unsupported_bios_exception : public bios_exception {
+    public:
+        explicit unsupported_bios_exception(const std::string &what_arg) : bios_exception(what_arg) {}
+        unsupported_bios_exception(const std::string &what_arg, const std::string &user_message) : bios_exception(what_arg, user_message) {}
+    };
+
+    /// Thrown when attempting to load a required BIOS file that is missing.
+    class missing_bios_exception : public bios_exception {
     public:
         explicit missing_bios_exception(const std::vector<std::string>& bios_files);
-        missing_bios_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
+        missing_bios_exception(const std::string &what_arg, const std::string &user_message) : bios_exception(what_arg, user_message) {}
     };
 
     class missing_metadata_exception : public emulator_exception {

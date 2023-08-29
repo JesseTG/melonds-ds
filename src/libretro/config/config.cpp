@@ -29,14 +29,18 @@
 #include <vector>
 
 #include <file/file_path.h>
+#include <streams/file_stream.h>
 #include <libretro.h>
 #include <retro_assert.h>
 #include <string/stdstring.h>
 
+#include <DSi.h>
+#include <NDS.h>
 #include <GPU.h>
 #include <SPU.h>
 #include <SPI.h>
 #include <SPI_Firmware.h>
+#include <FreeBIOS.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
@@ -1080,6 +1084,39 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
     }
 }
 
+static bool LoadBios(const optional<string>& path, const string& type, u8* buffer, size_t bufferLength) noexcept {
+    ZoneScopedN("melonds::config::LoadArm9Bios");
+
+    if (!path) {
+        retro::error("No %s file path available", type.c_str());
+        return false;
+    }
+
+    RFILE* file = filestream_open(path->c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+    if (!file) {
+        retro::error("Failed to open %s file \"%s\" for reading", type.c_str(), path->c_str());
+        return false;
+    }
+
+    if (int64_t size = filestream_get_size(file); size != (int64_t)bufferLength) {
+        retro::error("Expected %s file \"%s\" to be exactly %lluB long, got %lldB", type.c_str(), path->c_str(), bufferLength, size);
+        filestream_close(file);
+        return false;
+    }
+
+    if (int64_t bytesRead = filestream_read(file, buffer, bufferLength); bytesRead != (int64_t)bufferLength) {
+        retro::error("Failed to read %lluB from %s file \"%s\"; got %lldB", bufferLength, type.c_str(), path->c_str(), bytesRead);
+        filestream_close(file);
+        return false;
+    }
+
+    filestream_close(file);
+    retro::info("Successfully read %lluB from %s file \"%s\"", bufferLength, type.c_str(), path->c_str());
+
+    return true;
+}
+
 static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type) {
     ZoneScopedN("melonds::config::InitFirmware");
     using namespace melonds;
@@ -1087,7 +1124,7 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
     using namespace SPI_Firmware;
     using namespace Platform;
 
-    unique_ptr<Firmware> firmware;
+    unique_ptr<SPI_Firmware::Firmware> firmware;
     string_view firmwarePath = type == ConsoleType::DSi ? config::system::DsiFirmwarePath() : config::system::FirmwarePath();
 
     if (config::system::ExternalBiosEnable()) {
@@ -1116,7 +1153,7 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
         // If we haven't yet loaded firmware (either because the load failed or we want to use the default...)
 
         generated = true;
-        firmware = make_unique<Firmware>(static_cast<int>(type));
+        firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(type));
         retro_assert(firmware != nullptr);
 
         // We don't need to save the whole firmware, just the part that may actually change.
@@ -1252,63 +1289,29 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
         retro::warn("Forcing DSi mode for DSiWare game");
     }
 
-    std::vector<string_view> requiredRoms;
     if (_consoleType == ConsoleType::DSi) {
-        requiredRoms = {
-            DsiBios7Path(),
-            DsiBios9Path(),
-            DsiFirmwarePath(),
-            DsiNandPath(),
-        };
-    } else {
-        requiredRoms = {
-            Bios7Path(),
-            Bios9Path(),
-            FirmwarePath(),
-        };
-    }
-    std::vector<string> missingRoms;
+        // If we're in DSi mode...
+        if (!LoadBios(retro::get_system_path(DsiBios7Path()), "DSi ARM7", DSi::ARM7iBIOS, sizeof(DSi::ARM7iBIOS))) {
+            // Try to load the DSi ARM7 BIOS. If that fails...
+            throw bios_exception("Failed to load DSi ARM7 BIOS");
+        }
 
-    // Check if any of the bioses / firmware files are missing
-    // TODO: Check both $SYSTEM/filename and $SYSTEM/melonDS DS/filename
-    if (_externalBiosEnable || _consoleType == ConsoleType::DSi) {
-        for (const string_view& rom: requiredRoms) {
-            if (optional<string> path = retro::get_system_path(rom); path && path_is_valid(path->c_str())) {
-                retro::info("Found \"%.*s\" at \"%s\"", (int)rom.length(), rom.data(), path->c_str());
-            } else {
-                missingRoms.emplace_back(rom);
-                retro::warn("Could not find \"%.*s\" within the system directory", (int)rom.length(), rom.data());
-            }
+        if (!LoadBios(retro::get_system_path(DsiBios9Path()), "DSi ARM9", DSi::ARM9iBIOS, sizeof(DSi::ARM9iBIOS))) {
+            // Try to load the DSi ARM9 BIOS. If that fails...
+            throw bios_exception("Failed to load DSi ARM9 BIOS");
         }
     }
 
-    // TODO: Simplify this block once I remove filesystem access for the BIOS files and NAND
-    switch (_consoleType) {
-        case ConsoleType::DS: {
-            if (!missingRoms.empty()) {
-                retro::warn("Falling back to FreeBIOS instead of the aforementioned missing files.");
-                // melonDS doesn't properly fall back to FreeBIOS if the external bioses are missing,
-                // so we have to do it ourselves
-                _externalBiosEnable = false;
-            }
+    if (!(_externalBiosEnable && LoadBios(retro::get_system_path(Bios7Path()), "ARM7", NDS::ARM7BIOS, sizeof(NDS::ARM7BIOS)))) {
+        // If we're not using external BIOS files, or if loading the ARM7 file failed...
+        retro::info("Using internal ARM7 BIOS.");
+        memcpy(NDS::ARM7BIOS, bios_arm7_bin, sizeof(bios_arm7_bin));
+    }
 
-            if (!_externalBiosEnable) {
-                retro::info("External BIOS is disabled, using internal FreeBIOS instead.");
-            }
-            break;
-        }
-        case ConsoleType::DSi: {
-            if (!_externalBiosEnable) {
-                throw unsupported_bios_exception(
-                    "DSi mode requires native BIOS to be enabled. Please enable it in the options menu.");
-            }
-
-            // Abort if there are any of the required roms are missing
-            if (!missingRoms.empty()) {
-                throw missing_bios_exception(missingRoms);
-            }
-            break;
-        }
+    if (!(_externalBiosEnable && LoadBios(retro::get_system_path(Bios9Path()), "ARM9", NDS::ARM9BIOS, sizeof(NDS::ARM9BIOS)))) {
+        // If we're not using external BIOS files, or if loading the ARM9 file failed...
+        retro::info("Using internal ARM9 BIOS.");
+        memcpy(NDS::ARM9BIOS, bios_arm9_bin, sizeof(bios_arm9_bin));
     }
 
     unique_ptr<SPI_Firmware::Firmware> firmware = InitFirmware(_consoleType);

@@ -35,5 +35,5 @@ static std::string construct_missing_bios_message(const std::vector<std::string>
 }
 
 melonds::missing_bios_exception::missing_bios_exception(const std::vector<std::string>& bios_files)
-    : emulator_exception(construct_missing_bios_message(bios_files)) {
+    : bios_exception(construct_missing_bios_message(bios_files)) {
 }

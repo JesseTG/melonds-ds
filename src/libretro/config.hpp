@@ -241,7 +241,7 @@ namespace melonds {
             [[nodiscard]] std::string_view DsiFirmwarePath() noexcept;
             [[nodiscard]] std::string_view DsiNandPath() noexcept;
             [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() noexcept;
-            [[nodiscard]] inline std::string_view EffectiveFirmwarePath() noexcept;
+            [[nodiscard]] std::string_view EffectiveFirmwarePath() noexcept;
 
             [[nodiscard]] bool RandomizeMac() noexcept;
         }
