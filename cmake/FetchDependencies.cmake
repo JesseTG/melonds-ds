@@ -41,7 +41,7 @@ fetch_dependency("melonDS" "https://github.com/melonDS-emu/melonDS.git" "0947e94
 fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "01c6122")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm.git" "5c46b9c")
-fetch_dependency(libslirp "https://gitlab.freedesktop.org/slirp/libslirp.git" "44e7877")
+fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7877")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
