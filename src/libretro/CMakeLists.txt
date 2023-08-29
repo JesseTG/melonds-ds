@@ -88,6 +88,11 @@ embed_binaries(libretro-assets
         PATH "glsl/melondsds.frag"
         BYTE_TYPE char
         NULL_TERMINATE
+    ASSET
+        NAME "melondsds_default_wfc_config"
+        PATH "assets/wfc.cfg"
+        BYTE_TYPE char
+        NULL_TERMINATE
 )
 
 add_common_definitions(libretro)
