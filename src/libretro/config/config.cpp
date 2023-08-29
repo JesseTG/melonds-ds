@@ -1085,7 +1085,7 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
 }
 
 static bool LoadBios(const optional<string>& path, const string& type, u8* buffer, size_t bufferLength) noexcept {
-    ZoneScopedN("melonds::config::LoadArm9Bios");
+    ZoneScopedN("melonds::config::LoadBios");
 
     if (!path) {
         retro::error("No %s file path available", type.c_str());
