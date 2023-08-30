@@ -371,6 +371,13 @@ bool retro::set_message(const struct retro_message_ext* message) {
         // Given that the frontend supports...
         case 0: { // ...the basic messaging interface...
             // Let's match the semantics of RETRO_ENVIRONMENT_SET_MESSAGE, since that's all we have
+
+            if (message->type == RETRO_MESSAGE_TYPE_STATUS || message->type == RETRO_MESSAGE_TYPE_PROGRESS) {
+                // retro_message doesn't support on-screen displays,
+                // just time-limited messages.
+                // So we don't fall back to retro_message in such cases.
+                return false;
+            }
             float target_refresh_rate = 60.0f; // In FPS
             environment(RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE, &target_refresh_rate);
 
