@@ -1144,7 +1144,8 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
                     retro::warn("Failed to read firmware from file\n");
                     firmware = nullptr;
                 } else {
-                    retro::info("Loaded firmware (Identifier: %4s)", firmware->Header().Identifier.data());
+                    SPI_Firmware::FirmwareIdentifier id = firmware->Header().Identifier;
+                    retro::info("Loaded firmware (Identifier: %c%c%c%c)", id[0], id[1], id[2], id[3]);
                 }
 
                 CloseFile(file);
