@@ -1084,37 +1084,46 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
     }
 }
 
-static bool LoadBios(const optional<string>& path, const string& type, u8* buffer, size_t bufferLength) noexcept {
+static bool LoadBios(const string_view& name, const string& type, u8* buffer, size_t bufferLength) noexcept {
     ZoneScopedN("melonds::config::LoadBios");
 
-    if (!path) {
-        retro::error("No %s file path available", type.c_str());
-        return false;
-    }
+    auto LoadBiosImpl = [&](const string& path) {
+        RFILE* file = filestream_open(path.c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
-    RFILE* file = filestream_open(path->c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+        if (!file) {
+            retro::error("Failed to open %s file \"%s\" for reading", type.c_str(), path.c_str());
+            return false;
+        }
 
-    if (!file) {
-        retro::error("Failed to open %s file \"%s\" for reading", type.c_str(), path->c_str());
-        return false;
-    }
+        if (int64_t size = filestream_get_size(file); size != (int64_t)bufferLength) {
+            retro::error("Expected %s file \"%s\" to be exactly %lluB long, got %lldB", type.c_str(), path.c_str(), bufferLength, size);
+            filestream_close(file);
+            return false;
+        }
 
-    if (int64_t size = filestream_get_size(file); size != (int64_t)bufferLength) {
-        retro::error("Expected %s file \"%s\" to be exactly %lluB long, got %lldB", type.c_str(), path->c_str(), bufferLength, size);
+        if (int64_t bytesRead = filestream_read(file, buffer, bufferLength); bytesRead != (int64_t)bufferLength) {
+            retro::error("Failed to read %lluB bytes from %s file \"%s\"; got %lldB", bufferLength, type.c_str(), path.c_str(), bytesRead);
+            filestream_close(file);
+            return false;
+        }
+
         filestream_close(file);
-        return false;
+        retro::info("Successfully read %llu bytes from %s file \"%s\"", bufferLength, type.c_str(), path.c_str());
+
+        return true;
+    };
+
+    if (optional<string> path = retro::get_system_subdir_path(name); path && LoadBiosImpl(*path)) {
+        return true;
     }
 
-    if (int64_t bytesRead = filestream_read(file, buffer, bufferLength); bytesRead != (int64_t)bufferLength) {
-        retro::error("Failed to read %lluB from %s file \"%s\"; got %lldB", bufferLength, type.c_str(), path->c_str(), bytesRead);
-        filestream_close(file);
-        return false;
+    if (optional<string> path = retro::get_system_path(name); path || !LoadBiosImpl(*path)) {
+        return true;
     }
 
-    filestream_close(file);
-    retro::info("Successfully read %lluB from %s file \"%s\"", bufferLength, type.c_str(), path->c_str());
+    retro::error("Failed to load %s file \"%s\"", type.c_str(), name.data());
 
-    return true;
+    return false;
 }
 
 static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type) {
@@ -1291,24 +1300,24 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
 
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        if (!LoadBios(retro::get_system_path(DsiBios7Path()), "DSi ARM7", DSi::ARM7iBIOS, sizeof(DSi::ARM7iBIOS))) {
+        if (!LoadBios(DsiBios7Path(), "DSi ARM7", DSi::ARM7iBIOS, sizeof(DSi::ARM7iBIOS))) {
             // Try to load the DSi ARM7 BIOS. If that fails...
             throw bios_exception("Failed to load DSi ARM7 BIOS");
         }
 
-        if (!LoadBios(retro::get_system_path(DsiBios9Path()), "DSi ARM9", DSi::ARM9iBIOS, sizeof(DSi::ARM9iBIOS))) {
+        if (!LoadBios(DsiBios9Path(), "DSi ARM9", DSi::ARM9iBIOS, sizeof(DSi::ARM9iBIOS))) {
             // Try to load the DSi ARM9 BIOS. If that fails...
             throw bios_exception("Failed to load DSi ARM9 BIOS");
         }
     }
 
-    if (!(_externalBiosEnable && LoadBios(retro::get_system_path(Bios7Path()), "ARM7", NDS::ARM7BIOS, sizeof(NDS::ARM7BIOS)))) {
+    if (!(_externalBiosEnable && LoadBios(Bios7Path(), "ARM7", NDS::ARM7BIOS, sizeof(NDS::ARM7BIOS)))) {
         // If we're not using external BIOS files, or if loading the ARM7 file failed...
         retro::info("Using internal ARM7 BIOS.");
         memcpy(NDS::ARM7BIOS, bios_arm7_bin, sizeof(bios_arm7_bin));
     }
 
-    if (!(_externalBiosEnable && LoadBios(retro::get_system_path(Bios9Path()), "ARM9", NDS::ARM9BIOS, sizeof(NDS::ARM9BIOS)))) {
+    if (!(_externalBiosEnable && LoadBios(Bios9Path(), "ARM9", NDS::ARM9BIOS, sizeof(NDS::ARM9BIOS)))) {
         // If we're not using external BIOS files, or if loading the ARM9 file failed...
         retro::info("Using internal ARM9 BIOS.");
         memcpy(NDS::ARM9BIOS, bios_arm9_bin, sizeof(bios_arm9_bin));
@@ -1466,15 +1475,21 @@ static void melonds::config::set_core_options(
     vector<string> dsiNandPaths, firmwarePaths;
     optional<string> sysdir = retro::get_system_directory();
 
-    if (sysdir) {
-        for (const retro::dirent& d : retro::readdir(*sysdir, true)) {
-            if (IsDsiNandImage(d)) {
-                dsiNandPaths.emplace_back(d.path);
-            }
-            if (IsFirmwareImage(d)) {
-                firmwarePaths.emplace_back(d.path);
+    if (subdir) {
+        retro_assert(sysdir.has_value());
+
+        array paths = {*sysdir, *subdir};
+        for (const string& path: paths) {
+            for (const retro::dirent& d : retro::readdir(path, true)) {
+                if (IsDsiNandImage(d)) {
+                    dsiNandPaths.emplace_back(d.path);
+                }
+                if (IsFirmwareImage(d)) {
+                    firmwarePaths.emplace_back(d.path);
+                }
             }
         }
+
     } else {
         retro::set_error_message("Failed to get system directory, anything that needs it won't work.");
     }
@@ -1536,6 +1551,18 @@ static void melonds::config::set_core_options(
         .categories = categories.data(),
         .definitions = definitions.data(),
     };
+
+#ifndef NDEBUG
+    // Ensure for sanity's sake that no option value can be the empty string.
+    // (This has bitten me before.)
+    for (size_t i = 0; i < definitions.size() - 1; ++i) {
+        // For each definition except the null terminator at the end...
+        for (size_t v = 0; v < RETRO_NUM_CORE_OPTION_VALUES_MAX && definitions[i].values[v].value != nullptr; ++v) {
+            // For each option value except the null terminator...
+            retro_assert(!string_is_empty(definitions[i].values[v].value));
+        }
+    }
+#endif
 
     if (!retro::set_core_options(optionsUs)) {
         throw emulator_exception("Failed to set core options");

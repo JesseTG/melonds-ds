@@ -193,7 +193,7 @@ namespace melonds::config {
         static constexpr const char *const MICROPHONE = "microphone";
         static constexpr const char *const MOUSE = "mouse";
         static constexpr const char *const NOISE = "noise";
-        static constexpr const char *const NOT_FOUND = "";
+        static constexpr const char *const NOT_FOUND = "/notfound";
         static constexpr const char *const ONE = "one";
         static constexpr const char *const OPENGL = "opengl";
         static constexpr const char *const RIGHT_LEFT = "right-left";
