@@ -330,6 +330,14 @@ namespace melonds::config {
             string_view firmware = FirmwarePath(ConsoleType());
             return (firmware == config::values::BUILT_IN) ? GeneratedFirmwareSettingsPath() : firmware;
         }
+
+        [[nodiscard]] bool IsLoadedArm9BiosBuiltIn() noexcept {
+            return memcmp(NDS::ARM9BIOS, bios_arm9_bin, sizeof(NDS::ARM9BIOS)) == 0;
+        }
+
+        [[nodiscard]] bool IsLoadedArm7BiosBuiltIn() noexcept {
+            return memcmp(NDS::ARM7BIOS, bios_arm7_bin, sizeof(NDS::ARM7BIOS)) == 0;
+        }
     }
 
     namespace video {
@@ -1161,11 +1169,9 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
         }
     }
 
-    bool generated = false;
     if (!firmware) {
         // If we haven't yet loaded firmware (either because the load failed or we want to use the default...)
 
-        generated = true;
         firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(type));
         retro_assert(firmware != nullptr);
 
@@ -1212,7 +1218,7 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
         // then the defaults will have already been populated by the constructor.
     }
 
-    if (!generated && config::system::ConsoleType() == ConsoleType::DS) {
+    if (firmware->Header().Identifier != GENERATED_FIRMWARE_IDENTIFIER && config::system::ConsoleType() == ConsoleType::DS) {
         // If we're using externally-loaded DS (not DSi) firmware...
 
         u8 chk1[0x180], chk2[0x180];
@@ -1610,7 +1616,7 @@ bool Platform::GetConfigBool(ConfigEntry entry)
         case JIT_FastMemory: return jit::FastMemory();
 #endif
 
-        case ExternalBIOSEnable: return system::ExternalBiosEnable();
+        case ExternalBIOSEnable: return system::ExternalBiosEnable() && !system::IsLoadedArm7BiosBuiltIn() && !system::IsLoadedArm9BiosBuiltIn();
 
         case DLDI_Enable: return save::DldiEnable();
         case DLDI_ReadOnly: return save::DldiReadOnly();

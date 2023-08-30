@@ -247,6 +247,8 @@ namespace melonds {
             }
 
             [[nodiscard]] bool RandomizeMac() noexcept;
+            [[nodiscard]] bool IsLoadedArm9BiosBuiltIn() noexcept;
+            [[nodiscard]] bool IsLoadedArm7BiosBuiltIn() noexcept;
         }
 
         namespace save {
