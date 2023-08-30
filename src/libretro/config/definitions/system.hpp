@@ -68,6 +68,7 @@ namespace melonds::config::definitions {
             "Use native BIOS files from the \"melonDS DS\" folder in the system directory if enabled and available, "
             "falling back to the built-in FreeBIOS if not. "
             "DS mode only; DSi mode and GBA connectivity each require a native BIOS. "
+            "Does not affect firmware. "
             "Changes take effect at the next restart. "
             "If unsure, leave this enabled.",
             nullptr,

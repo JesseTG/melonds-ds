@@ -166,7 +166,7 @@ namespace melonds::config {
         static constexpr const char *const BOTTOM_TOP = "bottom-top";
         static constexpr const char *const BOTH = "both";
         static constexpr const char *const BOTTOM = "bottom";
-        static constexpr const char *const BUILT_IN = "builtin";
+        static constexpr const char *const BUILT_IN = "/builtin"; // leading slash so it's not a valid filename
         static constexpr const char *const COSINE = "cosine";
         static constexpr const char *const CUBIC = "cubic";
         static constexpr const char *const DEDICATED = "dedicated";

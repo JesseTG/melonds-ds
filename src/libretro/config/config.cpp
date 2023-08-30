@@ -324,10 +324,10 @@ namespace melonds::config {
         static char _dsiNandPath[PATH_MAX];
         string_view DsiNandPath() noexcept { return _dsiNandPath; }
 
-        string_view GeneratedFirmwareSettingsPath() noexcept { return "wfcsettings.bin"; }
+        string_view GeneratedFirmwareSettingsPath() noexcept { return "melonDS DS/wfcsettings.bin"; }
 
         string_view EffectiveFirmwarePath() noexcept {
-            string_view firmware = (ConsoleType() == ConsoleType::DSi) ? DsiFirmwarePath() : FirmwarePath();
+            string_view firmware = FirmwarePath(ConsoleType());
             return (firmware == config::values::BUILT_IN) ? GeneratedFirmwareSettingsPath() : firmware;
         }
     }
@@ -1096,19 +1096,19 @@ static bool LoadBios(const string_view& name, const string& type, u8* buffer, si
         }
 
         if (int64_t size = filestream_get_size(file); size != (int64_t)bufferLength) {
-            retro::error("Expected %s file \"%s\" to be exactly %lluB long, got %lldB", type.c_str(), path.c_str(), bufferLength, size);
+            retro::error("Expected %s file \"%s\" to be exactly %llu bytes long, got %lld bytes", type.c_str(), path.c_str(), bufferLength, size);
             filestream_close(file);
             return false;
         }
 
         if (int64_t bytesRead = filestream_read(file, buffer, bufferLength); bytesRead != (int64_t)bufferLength) {
-            retro::error("Failed to read %lluB bytes from %s file \"%s\"; got %lldB", bufferLength, type.c_str(), path.c_str(), bytesRead);
+            retro::error("Failed to read %lluB bytes from %s file \"%s\"; got %lld bytes", bufferLength, type.c_str(), path.c_str(), bytesRead);
             filestream_close(file);
             return false;
         }
 
         filestream_close(file);
-        retro::info("Successfully read %llu bytes from %s file \"%s\"", bufferLength, type.c_str(), path.c_str());
+        retro::info("Successfully installed %llu-byte %s file \"%s\"", bufferLength, type.c_str(), path.c_str());
 
         return true;
     };
@@ -1134,25 +1134,27 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
     using namespace Platform;
 
     unique_ptr<SPI_Firmware::Firmware> firmware;
-    string_view firmwarePath = type == ConsoleType::DSi ? config::system::DsiFirmwarePath() : config::system::FirmwarePath();
+    string_view firmwareName = config::system::FirmwarePath(type);
 
-    if (config::system::ExternalBiosEnable()) {
-        // If we want to try loading a firmware dump...
-        retro::debug("Loading %s firmware from \"%s\"\n", ConsoleTypeName(type).data(), firmwarePath.data());
+    if (firmwareName != config::values::BUILT_IN) {
+        if (optional<string> firmwarePath = retro::get_system_path(firmwareName)) {
+            if (FileHandle* file = OpenLocalFile(*firmwarePath, FileMode::Read)) {
+                // Try to load the configured firmware dump. If that fails...
+                if (firmware = make_unique<SPI_Firmware::Firmware>(file); !firmware->Buffer()) {
+                    retro::warn("Failed to read firmware from file\n");
+                    firmware = nullptr;
+                } else {
+                    retro::info("Loaded firmware (Identifier: %4s)", firmware->Header().Identifier.data());
+                }
 
-        if (FileHandle* file = OpenLocalFile(string(firmwarePath), FileMode::Read)) {
-            // Try to load the configured firmware dump. If that fails...
-            if (firmware = make_unique<SPI_Firmware::Firmware>(file); !firmware->Buffer()) {
-                retro::warn("Failed to read firmware from file\n");
-                firmware = nullptr;
-            } else {
-                retro::info("Loaded firmware (Identifier: %4s)", firmware->Header().Identifier.data());
+                CloseFile(file);
             }
+        }
 
-            CloseFile(file);
-        } else {
+        if (!(firmware && firmware->Buffer())) {
+            // If the configured firmware dump failed to load...
             char warning[256];
-            snprintf(warning, sizeof(warning), "%s firmware not found!", ConsoleTypeName(type).data());
+            snprintf(warning, sizeof(warning), "Failed to load %s firmware at \"%s\", falling back to built-in default", ConsoleTypeName(type).data(), firmwareName.data());
             retro::set_warn_message(warning);
         }
     }
@@ -1166,13 +1168,15 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
         retro_assert(firmware != nullptr);
 
         // We don't need to save the whole firmware, just the part that may actually change.
-        string_view wfcsettingspath = config::system::GeneratedFirmwareSettingsPath();
+        optional<string> wfcsettingspath = retro::get_system_subdir_path(config::system::GeneratedFirmwareSettingsPath());
+        if (!wfcsettingspath) {
+            throw std::runtime_error("Failed to get path to generated firmware settings");
+        }
 
         // If using generated firmware, we keep the wi-fi settings on the host disk separately.
         // Wi-fi access point data includes Nintendo WFC settings,
         // and if we didn't keep them then the player would have to reset them in each session.
-        if (FileHandle* file = OpenLocalFile(std::string(wfcsettingspath), FileMode::Read)) {
-            // TODO: Don't use OpenLocalFile here
+        if (RFILE* file = filestream_open(wfcsettingspath->c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE)) {
             // If we have Wi-fi settings to load...
             constexpr unsigned TOTAL_WFC_SETTINGS_SIZE = 3 * (sizeof(WifiAccessPoint) + sizeof(ExtendedWifiAccessPoint));
 
@@ -1180,11 +1184,11 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
             // be in different locations depending on the firmware revision,
             // but our generated firmware always keeps them next to each other.
             // (Extended access points first, then regular ones.)
-            u8* userdata = firmware->UserDataPosition();
+            u8* userdata = firmware->ExtendedAccessPointPosition();
 
-            if (FileRead(userdata, TOTAL_WFC_SETTINGS_SIZE, 1, file) != 1) {
+            if (filestream_read(file, userdata, TOTAL_WFC_SETTINGS_SIZE) != TOTAL_WFC_SETTINGS_SIZE) {
                 // If we couldn't read the Wi-fi settings from this file...
-                retro::warn("Failed to read Wi-fi settings from \"%s\"; using defaults instead\n", wfcsettingspath.data());
+                retro::warn("Failed to read Wi-fi settings from \"%s\"; using defaults instead\n", wfcsettingspath->c_str());
 
                 firmware->AccessPoints() = {
                     WifiAccessPoint(static_cast<int>(type)),
@@ -1199,7 +1203,7 @@ static unique_ptr<SPI_Firmware::Firmware> InitFirmware(melonds::ConsoleType type
                 };
             }
 
-            CloseFile(file);
+            filestream_close(file);
         }
 
         // If we don't have Wi-fi settings to load,
@@ -1335,7 +1339,7 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
             throw emulator_exception("Booting without content requires native firmware.");
         }
 
-        if (header->IsDSiWare() || _consoleType == ConsoleType::DSi) {
+        if (header->IsDSiWare()) {
             // If we're using generated firmware and trying to boot a DSiWare game...
             throw emulator_exception("Booting into DSi mode requires native DSi firmware.");
         }

@@ -20,6 +20,9 @@
 #include <string>
 #include <net/net_compat.h>
 #include <string/stdstring.h>
+#include <retro_assert.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
 
 #include "environment.hpp"
 #include "retro/dirent.hpp"
@@ -159,8 +162,39 @@ bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
 }
 
 bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
-    return
-        file.is_regular_file() &&
-        find(FIRMWARE_SIZES.begin(), FIRMWARE_SIZES.end(), file.size) != FIRMWARE_SIZES.end() &&
-        !string_ends_with(file.path, ".bak");
+    retro_assert(path_is_absolute(file.path));
+
+    if (!file.is_regular_file())
+        return false;
+
+    if (find(FIRMWARE_SIZES.begin(), FIRMWARE_SIZES.end(), file.size) == FIRMWARE_SIZES.end())
+        return false;
+
+    if (string_ends_with(file.path, ".bak"))
+        return false;
+
+    if (RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE)) {
+        u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
+        memset(headerBytes, 0, sizeof(headerBytes));
+        filestream_read(stream, headerBytes, sizeof(headerBytes));
+        filestream_close(stream);
+
+        const SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<const SPI_Firmware::FirmwareHeader*>(headerBytes);
+        switch (header.ConsoleType) {
+            case SPI_Firmware::FirmwareConsoleType::DS:
+            case SPI_Firmware::FirmwareConsoleType::DSi:
+            case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
+            case SPI_Firmware::FirmwareConsoleType::iQueDS:
+            case SPI_Firmware::FirmwareConsoleType::DSLite:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    return false;
+
+
+
+
 }
