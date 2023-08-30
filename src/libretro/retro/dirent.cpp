@@ -83,6 +83,7 @@ retro::dirent_tree::dirent_iterator &retro::dirent_tree::dirent_iterator::operat
         size_t filePathLength = fill_pathname_join_special(filePath, m_ptr->originalPath.c_str(), fileName, sizeof(filePath));
         if (filePathLength >= sizeof(filePath)) {
             // If the path is too long...
+            // TODO: Log that this path is being skipped
             continue;
         }
         int flags = path_stat(filePath);
