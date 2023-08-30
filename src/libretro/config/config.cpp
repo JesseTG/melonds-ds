@@ -1113,11 +1113,12 @@ static bool LoadBios(const string_view& name, const string& type, u8* buffer, si
         return true;
     };
 
+    // Prefer looking in "system/melonDS DS/${name}", but fall back to "system/${name}" if that fails
     if (optional<string> path = retro::get_system_subdir_path(name); path && LoadBiosImpl(*path)) {
         return true;
     }
 
-    if (optional<string> path = retro::get_system_path(name); path || !LoadBiosImpl(*path)) {
+    if (optional<string> path = retro::get_system_path(name); path && LoadBiosImpl(*path)) {
         return true;
     }
 
