@@ -86,6 +86,7 @@ namespace retro {
     const std::optional<std::string>& get_system_directory();
     std::optional<std::string> get_system_path(const std::string_view& name) noexcept;
     const std::optional<std::string>& get_system_subdirectory();
+    std::optional<std::string> get_system_subdir_path(const std::string_view& name) noexcept;
 
     void clear_environment();
 }

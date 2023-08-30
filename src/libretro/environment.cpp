@@ -481,6 +481,14 @@ const optional<string>& retro::get_system_directory() {
     return _system_directory;
 }
 
+optional<string> retro::get_system_subdir_path(const std::string_view& name) noexcept {
+    char path[PATH_MAX];
+    size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
+    pathname_make_slashes_portable(path);
+
+    return get_system_path(path);
+}
+
 optional<string> retro::get_system_path(const string_view& name) noexcept {
     optional<string> sysdir = retro::get_system_directory();
     if (!sysdir) {
