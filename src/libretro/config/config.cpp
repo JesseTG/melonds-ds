@@ -674,28 +674,28 @@ static void melonds::config::parse_system_options() noexcept {
 
     // All of these options take effect when a game starts, so there's no need to update them mid-game
 
-    if (const optional<melonds::ConsoleType> type = ParseConsoleType(get_variable(CONSOLE_MODE))) {
+    if (optional<melonds::ConsoleType> type = ParseConsoleType(get_variable(CONSOLE_MODE))) {
         _consoleType = *type;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", CONSOLE_MODE, values::DS);
         _consoleType = ConsoleType::DS;
     }
 
-    if (const optional<bool> value = ParseBoolean(get_variable(BOOT_DIRECTLY))) {
+    if (optional<bool> value = ParseBoolean(get_variable(BOOT_DIRECTLY))) {
         _directBoot = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", BOOT_DIRECTLY, values::ENABLED);
         _directBoot = true;
     }
 
-    if (const char* value = get_variable(USE_EXTERNAL_BIOS); !string_is_empty(value)) {
-        _externalBiosEnable = string_is_equal(value, values::ENABLED);
+    if (optional<bool> value  = ParseBoolean(get_variable(USE_EXTERNAL_BIOS))) {
+        _externalBiosEnable = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", USE_EXTERNAL_BIOS, values::ENABLED);
         _externalBiosEnable = true;
     }
 
-    if (const optional<unsigned> value = ParseIntegerInList(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
+    if (optional<unsigned> value = ParseIntegerInList(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
         _dsPowerOkayThreshold = *value;
     }
     else {
@@ -703,7 +703,7 @@ static void melonds::config::parse_system_options() noexcept {
         _dsPowerOkayThreshold = 20;
     }
 
-    if (const optional<unsigned> value = ParseIntegerInList(get_variable(BATTERY_UPDATE_INTERVAL), POWER_UPDATE_INTERVALS)) {
+    if (optional<unsigned> value = ParseIntegerInList(get_variable(BATTERY_UPDATE_INTERVAL), POWER_UPDATE_INTERVALS)) {
         _powerUpdateInterval = *value;
     }
     else {
