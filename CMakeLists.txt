@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.17.5)
+cmake_minimum_required(VERSION 3.19)
 
-cmake_policy(VERSION 3.17.5)
+cmake_policy(VERSION 3.19)
 message(STATUS "Using CMake ${CMAKE_VERSION}")
 if (CMAKE_MESSAGE_LOG_LEVEL)
     message(STATUS "Message log level is set to ${CMAKE_MESSAGE_LOG_LEVEL}")
