@@ -51,3 +51,8 @@ add_test(
     NAME "RetroArch loads melonDS DS"
     COMMAND ${RETROARCH} -L "$<TARGET_FILE:libretro>" "${CMAKE_BINARY_DIR}/systemTest.nds"
 )
+
+add_test(
+    NAME "emutest loads melonDS DS"
+    COMMAND ${EMUTEST} -L "$<TARGET_FILE:libretro>" -r "${CMAKE_BINARY_DIR}/systemTest.nds" -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/emutest-loads-core.lua"
+)
