@@ -31,6 +31,14 @@ include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
 
+option(BUILD_TESTING "Build test suite." OFF)
+include(CTest)
+
 add_subdirectory(src/libretro)
+if (BUILD_TESTING)
+    message(STATUS "Enabling test suite.")
+    enable_testing()
+    add_subdirectory(test)
+endif()
 
 dump_cmake_variables()
