@@ -49,7 +49,7 @@ find_bios(DSI_NAND dsi_nand.bin 251658304 DSI_NAND_HASHES)
 
 add_test(
     NAME "RetroArch loads melonDS DS"
-    COMMAND ${RETROARCH} -L "$<TARGET_FILE:libretro>" "${CMAKE_BINARY_DIR}/systemTest.nds"
+    COMMAND ${RETROARCH} --libretro "$<TARGET_FILE:libretro>" --max-frames 5 --log-file /dev/stdout "${CMAKE_BINARY_DIR}/systemTest.nds"
 )
 
 add_test(
