@@ -63,8 +63,3 @@ if (TRACY_ENABLE)
     set(TRACY_STATIC ON)
     set(TRACY_ON_DEMAND ON)
 endif()
-
-set_target_properties(example minigzip PROPERTIES EXCLUDE_FROM_ALL TRUE)
-if(HAVE_OFF64_T)
-    set_target_properties(example64 minigzip64 PROPERTIES EXCLUDE_FROM_ALL TRUE)
-endif()
