@@ -330,14 +330,6 @@ namespace melonds::config {
             string_view firmware = FirmwarePath(ConsoleType());
             return (firmware == config::values::BUILT_IN) ? GeneratedFirmwareSettingsPath() : firmware;
         }
-
-        [[nodiscard]] bool IsLoadedArm9BiosBuiltIn() noexcept {
-            return memcmp(NDS::ARM9BIOS, bios_arm9_bin, sizeof(NDS::ARM9BIOS)) == 0;
-        }
-
-        [[nodiscard]] bool IsLoadedArm7BiosBuiltIn() noexcept {
-            return memcmp(NDS::ARM7BIOS, bios_arm7_bin, sizeof(NDS::ARM7BIOS)) == 0;
-        }
     }
 
     namespace video {

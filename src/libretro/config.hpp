@@ -245,10 +245,6 @@ namespace melonds {
             [[nodiscard]] inline std::string_view FirmwarePath(enum ConsoleType type) noexcept {
                 return type == ConsoleType::DSi ? DsiFirmwarePath() : FirmwarePath();
             }
-
-            [[nodiscard]] bool RandomizeMac() noexcept;
-            [[nodiscard]] bool IsLoadedArm9BiosBuiltIn() noexcept;
-            [[nodiscard]] bool IsLoadedArm7BiosBuiltIn() noexcept;
         }
 
         namespace save {
