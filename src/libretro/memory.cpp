@@ -155,17 +155,19 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
     ZoneScopedN("retro_cheat_set");
     if (!enabled)
         return;
-    ARCode curcode;
     std::string str(code);
     char *pch = &*str.begin();
+    ARCode curcode {
+        .Name = code,
+        .Enabled = true,
+        .Code = {}
+    };
     curcode.Name = code;
     curcode.Enabled = enabled;
-    curcode.CodeLen = 0;
     pch = strtok(pch, " +");
     while (pch != nullptr) {
-        curcode.Code[curcode.CodeLen] = (u32) strtol(pch, nullptr, 16);
-        retro::log(RETRO_LOG_INFO, "Adding Code %s (%d) \n", pch, curcode.Code[curcode.CodeLen]);
-        curcode.CodeLen++;
+        curcode.Code.push_back((u32) strtol(pch, nullptr, 16));
+        retro::log(RETRO_LOG_INFO, "Adding Code %s (%d) \n", pch, curcode.Code.back());
         pch = strtok(nullptr, " +");
     }
     AREngine::RunCheat(curcode);
