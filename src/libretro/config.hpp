@@ -63,6 +63,23 @@ namespace melonds {
         }
     }
 
+    constexpr std::string_view ConsoleTypeName(SPI_Firmware::FirmwareConsoleType type) noexcept {
+        switch (type) {
+            case SPI_Firmware::FirmwareConsoleType::DS:
+                return "DS";
+            case SPI_Firmware::FirmwareConsoleType::DSi:
+                return "DSi";
+            case SPI_Firmware::FirmwareConsoleType::DSLite:
+                return "DS Lite";
+            case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
+                return "iQue DS Lite";
+            case SPI_Firmware::FirmwareConsoleType::iQueDS:
+                return "iQue DS";
+            default:
+                return "unknown";
+        }
+    }
+
     enum class ScreenSwapMode {
         Hold,
         Toggle,
