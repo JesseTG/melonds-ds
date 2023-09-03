@@ -23,6 +23,9 @@ include(FetchContent)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 
 find_package(Git REQUIRED)
+include(GitInfo)
+
+message(STATUS "Git revision: ${GIT_REVISION}")
 
 option(TRACY_ENABLE "Build with Tracy support." OFF)
 
