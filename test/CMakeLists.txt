@@ -1,5 +1,4 @@
 find_package(Python3 COMPONENTS Interpreter)
-message(STATUS "Using Python: ${Python3_EXECUTABLE} version ${Python3_VERSION}")
 
 if (NOT RETROARCH)
     find_program(RETROARCH retroarch)
@@ -7,11 +6,10 @@ endif()
 message(STATUS "RETROARCH: ${RETROARCH}")
 
 cmake_path(GET RETROARCH PARENT_PATH RETROARCH_DIR)
-set(RETROARCH_SYSTEM_DIR "${RETROARCH_DIR}/system")
 
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
     if (NOT ${BIOS_NAME})
-        find_file(${BIOS_NAME} ${BIOS_FILE} HINTS "${RETROARCH_SYSTEM_DIR}" REQUIRED)
+        find_file(${BIOS_NAME} ${BIOS_FILE} HINTS "${RETROARCH_DIR}/system" REQUIRED)
     endif()
 
     file(SIZE ${${BIOS_NAME}} BIOS_SIZE)
