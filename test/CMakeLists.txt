@@ -1,7 +1,5 @@
-if (NOT EMUTEST)
-    find_program(EMUTEST emutest HINTS "$ENV{HOME}/go/bin" "$ENV{USERPROFILE}/go/bin")
-endif()
-message(STATUS "EMUTEST: ${EMUTEST}")
+find_package(Python3 COMPONENTS Interpreter)
+message(STATUS "Using Python: ${Python3_EXECUTABLE} version ${Python3_VERSION}")
 
 if (NOT RETROARCH)
     find_program(RETROARCH retroarch)
@@ -47,12 +45,44 @@ find_bios(NDS_FIRMWARE firmware.bin "131072;262144;524288" NDS_FIRMWARE_HASHES)
 find_bios(DSI_FIRMWARE dsi_firmware.bin "131072;262144;524288" DSI_FIRMWARE_HASHES)
 find_bios(DSI_NAND dsi_nand.bin 251658304 DSI_NAND_HASHES)
 
-add_test(
+include(CMakePrintHelpers)
+
+function(add_retroarch_test)
+    set(options )
+    set(oneValueArgs NAME MAX_FRAMES CONTENT)
+    set(multiValueArgs APPEND_CONFIG CORE_OPTION REQUIRED_FILE)
+    cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    if (NOT RETRO_MAX_FRAMES)
+        set(RETRO_MAX_FRAMES 30)
+    endif()
+
+    add_test(
+        NAME "${RETRO_NAME}"
+        COMMAND ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/python/retroarch.py"
+            --libretro "$<TARGET_FILE:libretro>"
+            --max-frames=${RETRO_MAX_FRAMES}
+            "${RETRO_CONTENT}"
+    )
+
+    list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
+    cmake_print_variables(RETRO_APPEND_CONFIG RETRO_CORE_OPTION RETRO_REQUIRED_FILE REQUIRED_FILES)
+
+    set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "RETROARCH=${RETROARCH};${RETRO_CORE_OPTION}")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
+endfunction()
+
+add_retroarch_test(
     NAME "RetroArch loads melonDS DS"
-    COMMAND ${RETROARCH} --libretro "$<TARGET_FILE:libretro>" --max-frames 5 --log-file /dev/stdout "${CMAKE_BINARY_DIR}/systemTest.nds"
+    CONTENT "${CMAKE_BINARY_DIR}/systemTest.nds"
 )
 
-add_test(
-    NAME "emutest loads melonDS DS"
-    COMMAND ${EMUTEST} -L "$<TARGET_FILE:libretro>" -r "${CMAKE_BINARY_DIR}/systemTest.nds" -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/emutest-loads-core.lua"
+add_retroarch_test(
+    NAME "melonDS DS loads retail game with generated BIOS and firmware in NDS mode"
+    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CORE_OPTION "melonds_console_mode=ds"
+    CORE_OPTION "melonds_use_external_bios=disabled"
+    CORE_OPTION "melonds_firmware_nds_path=/builtin"
 )
+
