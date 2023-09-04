@@ -48,7 +48,7 @@ find_bios(DSI_NAND dsi_nand.bin 251658304 DSI_NAND_HASHES)
 include(CMakePrintHelpers)
 
 function(add_retroarch_test)
-    set(options )
+    set(options WILL_FAIL)
     set(oneValueArgs NAME MAX_FRAMES CONTENT)
     set(multiValueArgs CORE_OPTION REQUIRED_FILE PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
@@ -92,6 +92,10 @@ function(add_retroarch_test)
 
     if (RETRO_SKIP_REGULAR_EXPRESSION)
         set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_REGULAR_EXPRESSION "${RETRO_SKIP_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_WILL_FAIL)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES WILL_FAIL TRUE)
     endif()
 endfunction()
 
