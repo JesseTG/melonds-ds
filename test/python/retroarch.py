@@ -87,4 +87,6 @@ with subprocess.Popen((retroarch,  f"--config={config_path}", "--verbose", f"--l
 with open(logpath, "r") as f:
     print(f.read())
 
+print("End of log file")
+
 sys.exit(result)
