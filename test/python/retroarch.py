@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-import configparser
-import os
 import os.path
 import subprocess
 import shutil
 import sys
 import tempfile
-from typing import List
 
 SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS_FIRMWARE", "DSI_FIRMWARE", "DSI_NAND")
 retroarch = os.environ["RETROARCH"]
