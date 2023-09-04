@@ -87,4 +87,7 @@ with subprocess.Popen((retroarch,  f"--config={config_path}", "--verbose", f"--l
     print(process.args)
     result = process.wait(30)
 
+with open(logpath, "r") as f:
+    print(f.read())
+
 sys.exit(result)
