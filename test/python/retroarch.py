@@ -70,16 +70,17 @@ config = {
     "savestate_directory": savestate_directory,
 }
 
-with open(config_path, "x") as f:
+with open(core_option_path, "x") as core_config, open(config_path, "x") as retroarch_config:
     # Need to create a config file here so RetroArch will use it as the root directory.
     for k, v in config.items():
-        f.write(f"{k} = \"{v}\"\n")
+        retroarch_config.write(f"{k} = \"{v}\"\n")
 
-with open(core_option_path, "x") as f:
     for e in sorted(os.environ):
-        option_key = e.lower()
-        if option_key.startswith("melonds_"):
-            f.write(f"{option_key} = \"{os.environ[e]}\"\n")
+        key = e.lower()
+        if key.startswith("melonds_"):
+            core_config.write(f"{key} = \"{os.environ[e]}\"\n")
+        elif key.startswith("retroarch_"):
+            retroarch_config.write(f"{key.removeprefix('retroarch_')} = \"{os.environ[e]}\"\n")
 
 logpath = os.path.join(tempdir, "logs", "retroarch.log")
 with subprocess.Popen((retroarch,  f"--config={config_path}", "--verbose", f"--log-file={logpath}", *sys.argv[1:]), stdout=subprocess.PIPE, cwd=tempdir, text=True) as process:
