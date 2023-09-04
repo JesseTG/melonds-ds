@@ -9,6 +9,7 @@ import sys
 import tempfile
 from typing import List
 
+SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS_FIRMWARE", "DSI_FIRMWARE", "DSI_NAND")
 retroarch = os.environ["RETROARCH"]
 
 assert retroarch is not None
@@ -29,14 +30,21 @@ savestate_directory = os.path.join(tempdir, "states")
 config_dir = os.path.join(tempdir, "config")
 core_option_dir = os.path.join(config_dir, "melonDS DS")
 core_option_path = os.path.join(core_option_dir, "melonDS DS.opt")
+core_system_dir = os.path.join(system_dir, "melonDS DS")
 
-os.makedirs(os.path.join(system_dir, "melonDS DS"), exist_ok=True)
+os.makedirs(core_system_dir, exist_ok=True)
 os.makedirs(save_dir, exist_ok=True)
 os.makedirs(log_dir, exist_ok=True)
 os.makedirs(screenshot_dir, exist_ok=True)
 os.makedirs(savestate_directory, exist_ok=True)
 os.makedirs(config_dir, exist_ok=True)
 os.makedirs(core_option_dir, exist_ok=True)
+
+for s in SYSTEM_FILES:
+    if s in os.environ:
+        sysfile = os.environ[s]
+        assert os.path.exists(sysfile)
+        shutil.copy2(sysfile, os.path.join(system_dir, os.path.basename(sysfile)))
 
 # Create a bare-bones RetroArch config.
 # RetroArch itself will add defaults for any missing options.
