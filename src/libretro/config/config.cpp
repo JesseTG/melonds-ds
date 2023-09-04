@@ -1110,7 +1110,7 @@ static unique_ptr<u8[]> LoadBios(const string_view& name, const string& type, si
         }
 
         filestream_close(file);
-        retro::info("Successfully installed %llu-byte %s file \"%s\"", expectedLength, type.c_str(), path.c_str());
+        retro::info("Successfully loaded %llu-byte %s file \"%s\"", expectedLength, type.c_str(), path.c_str());
 
         return result;
     };
@@ -1313,21 +1313,34 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
     // - Bootable firmware is required if booting without content.
     // - Both BIOS files must be native or both must be built-in.
     // - If BIOS files are built-in, then Direct Boot mode must be used
-    optional<string> firmwarePath = retro::get_system_path(FirmwarePath());
-    if (!firmwarePath) {
-        retro::error("Failed to get system directory");
+    string_view firmwareName = FirmwarePath();
+    unique_ptr<SPI_Firmware::Firmware> firmware;
+    if (firmwareName != melonds::config::values::BUILT_IN) {
+        optional<string> firmwarePath = retro::get_system_path(FirmwarePath());
+        if (!firmwarePath) {
+            retro::error("Failed to get system directory");
+        }
+
+        firmware = firmwarePath ? LoadFirmware(*firmwarePath) : nullptr;
     }
 
-    unique_ptr<SPI_Firmware::Firmware> firmware = firmwarePath ? LoadFirmware(*firmwarePath) : nullptr;
+
     if (!header && !(firmware && firmware->IsBootable())) {
         // If we're trying to boot into the NDS menu, but the firmware we loaded isn't bootable...
         throw bios_exception("Booting to the NDS menu requires a bootable firmware dump.");
     }
 
     if (!firmware) {
-        // If we failed to load the firmware...
-        retro::warn("Failed to load the required firmware; falling back to built-in firmware");
+        // If we haven't loaded any firmware...
+        if (firmwareName != melonds::config::values::BUILT_IN) {
+            // ...but we were trying to...
+            retro::warn("Failed to load the required firmware; falling back to built-in firmware");
+        }
         firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(melonds::ConsoleType::DS));
+    }
+
+    if (!tryNativeBios) {
+        retro::debug("Not loading native ARM BIOS files");
     }
 
     // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
