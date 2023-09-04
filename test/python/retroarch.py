@@ -52,6 +52,7 @@ config_path = os.path.join(tempdir, "retroarch.cfg")
 config = {
     "audio_driver": "null",
     "audio_enable": "false",
+    "camera_driver": "null",
     "frontend_log_level": "0",
     "libretro_log_level": "0",
     "input_pause_toggle": "nul",
@@ -59,6 +60,8 @@ config = {
     "log_dir": log_dir,
     "log_to_file_timestamp": "false",
     "log_verbosity": "true",
+    "microphone_driver": "null",
+    "midi_driver": "null",
     "network_cmd_enable": "true",
     "pause_nonactive": "false",
     "rgui_config_directory": config_dir,
