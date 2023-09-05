@@ -1637,7 +1637,7 @@ static void melonds::config::set_core_options(
 #endif
 
     if (!retro::set_core_options(optionsUs)) {
-        throw emulator_exception("Failed to set core options");
+        retro::set_error_message("Failed to set core option definitions, functionality will be limited.");
     }
 }
 
