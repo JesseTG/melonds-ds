@@ -1361,6 +1361,10 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
         _directBoot = true;
     }
 
+    if (!header && firmware->IsBootable() && (!bios7 && !bios9)) {
+        throw bios_exception("Booting to the NDS menu requires native ARM BIOS files.");
+    }
+
     if (bios7 && bios9) {
         memcpy(NDS::ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
         memcpy(NDS::ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
