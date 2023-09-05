@@ -252,6 +252,17 @@ add_retroarch_test(
 ## Boot to firmware ####################################################
 
 add_retroarch_test(
+    NAME "NDS boot with no content, native BIOS, and bootable firmware succeeds"
+    MAX_FRAMES 180
+    CORE_OPTION "melonds_console_mode=ds"
+    CORE_OPTION "melonds_use_external_bios=enabled"
+    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/firmware.bin"
+    NDS_FIRMWARE
+    ARM7_BIOS
+    ARM9_BIOS
+)
+
+add_retroarch_test(
     NAME "NDS boot with no content, FreeBIOS, and built-in firmware fails"
     MAX_FRAMES 180
     CORE_OPTION "melonds_console_mode=ds"
