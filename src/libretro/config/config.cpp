@@ -1361,8 +1361,9 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
         _directBoot = true;
     }
 
-    if (!header && firmware->IsBootable() && (!bios7 && !bios9)) {
-        throw bios_exception("Booting to the NDS menu requires native ARM BIOS files.");
+    if (!header && (!firmware || !firmware->IsBootable() || !bios7 || !bios9)) {
+        // If we're trying to boot into the NDS menu, but we don't have all the required files...
+        throw bios_exception("Booting to the NDS menu requires native NDS BIOS files and bootable firmware.");
     }
 
     if (bios7 && bios9) {
