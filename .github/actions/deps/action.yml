@@ -47,6 +47,8 @@ runs:
       if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
       shell: bash
       run: |
+        sudo apt-get update
+        sudo apt-get dist-upgrade -y
         sudo dpkg --add-architecture arm64
         sudo sh -c "sed \"s|^deb \([a-z\.:/]*\) \([a-z\-]*\) \(.*\)$|deb [arch=amd64] \1 \2 \3\ndeb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \2 \3|\" /etc/apt/sources.list > /etc/apt/sources.list.new"
         sudo rm /etc/apt/sources.list
