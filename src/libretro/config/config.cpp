@@ -1334,7 +1334,7 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
         // If we haven't loaded any firmware...
         if (firmwareName != melonds::config::values::BUILT_IN) {
             // ...but we were trying to...
-            retro::warn("Failed to load the required firmware; falling back to built-in firmware");
+            retro::warn("Falling back to built-in firmware");
         }
         firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(melonds::ConsoleType::DS));
     }
@@ -1347,12 +1347,9 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
     unique_ptr<u8[]> bios7 = tryNativeBios ? LoadBios(Bios7Path(), "ARM7", sizeof(NDS::ARM7BIOS)) : nullptr;
     unique_ptr<u8[]> bios9 = bios7 ? LoadBios(Bios9Path(), "ARM9", sizeof(NDS::ARM9BIOS)) : nullptr;
 
-    if (!(bios7 && bios9)) {
-        // If one of the native BIOS files loaded, but the other didn't...
-        if (tryNativeBios) {
-            // ...and we're trying to load native BIOS files...
-            retro::warn("Failed to load one of the native BIOS files; falling back to built-in BIOS files");
-        }
+    if (tryNativeBios && !(bios7 && bios9)) {
+        // If we're trying to load native BIOS files, but at least one of them failed...
+        retro::warn("Falling back to FreeBIOS");
     }
 
     // Now that we've loaded the system files, let's see if we can use them
@@ -1367,9 +1364,11 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
     if (bios7 && bios9) {
         memcpy(NDS::ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
         memcpy(NDS::ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
+        retro::debug("Installed loaded native ARM7 and ARM9 NDS BIOS images");
     } else {
         memcpy(NDS::ARM9BIOS, bios_arm9_bin, sizeof(NDS::ARM9BIOS));
         memcpy(NDS::ARM7BIOS, bios_arm7_bin, sizeof(NDS::ARM7BIOS));
+        retro::debug("Installed built-in ARM7 and ARM9 NDS BIOS images");
     }
 
     CustomizeFirmware(*firmware);
