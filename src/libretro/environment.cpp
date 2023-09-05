@@ -29,6 +29,7 @@
 #include <streams/file_stream.h>
 #include <compat/strl.h>
 #include <retro_dirent.h>
+#include <retro_assert.h>
 
 #include "microphone.hpp"
 #include "info.hpp"
@@ -52,7 +53,9 @@ namespace retro {
     static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _supportsPowerStatus;
+    static bool _supportsNoGameMode;
     static bool isShuttingDown = false;
+
     static unsigned _message_interface_version;
 
     // Cached so that the save directory won't change during a session
@@ -389,6 +392,20 @@ bool retro::set_message(const struct retro_message_ext* message) {
 
             return environment(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
         }
+        case UINT_MAX: { // ...no messaging interface...
+            if (message->type == RETRO_MESSAGE_TYPE_STATUS || message->type == RETRO_MESSAGE_TYPE_PROGRESS) {
+                // retro_message doesn't support on-screen displays,
+                // just time-limited messages.
+                // So we don't fall back to retro_message in such cases.
+                return false;
+            }
+            if (message->target == RETRO_MESSAGE_TARGET_OSD) {
+                return false;
+            }
+
+            log(message->level, "%s", message->msg);
+            return true;
+        }
         default:
             // ...a newer interface than we know about...
             // intentional fall-through
@@ -519,17 +536,38 @@ const optional<string>& retro::get_system_subdirectory() {
     return _system_subdir;
 }
 
-void retro::clear_environment() {
+void retro::env::init() noexcept {
+    ZoneScopedN("retro::env::init");
+    retro_assert(_environment != nullptr);
+
+    if (_supportsNoGameMode)
+        retro::debug("Frontend supports no-game mode.\n");
+
+    if (retro::_supportsPowerStatus)
+        retro::debug("Power state available\n");
+
+    retro::microphone::init_interface();
+}
+
+void retro::env::deinit() noexcept {
+    ZoneScopedN("retro::env::deinit");
     _save_directory = nullopt;
     _system_directory = nullopt;
     _system_subdir = nullopt;
     microphone::clear_interface();
+    _environment = nullptr;
+    _log = nullptr;
+    _supports_bitmasks = false;
+    _supportsPowerStatus = false;
+    _supportsNoGameMode = false;
+    _message_interface_version = UINT_MAX;
 }
 
 // This function might be called multiple times by the frontend,
 // and not always with the same value of cb.
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     ZoneScopedN("retro_set_environment");
+    retro_assert(cb != nullptr);
     using retro::environment;
     retro::_environment = cb;
 
@@ -552,11 +590,9 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
     retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
 
-    if (retro::_supportsPowerStatus) {
-        retro::debug("Power state available\n");
+    if (!environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version)) {
+        retro::_message_interface_version = UINT_MAX;
     }
-
-    environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version);
 
     const char* save_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
@@ -604,11 +640,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         }
     }
 
-    bool supports_no_game = true;
-    if (environment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &supports_no_game))
-        retro::log(RETRO_LOG_INFO, "Frontend supports no-game mode.\n");
-
-    retro::microphone::init_interface();
+    yes = true;
+    retro::_supportsNoGameMode |= environment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &yes);
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {

@@ -88,7 +88,10 @@ namespace retro {
     const std::optional<std::string>& get_system_subdirectory();
     std::optional<std::string> get_system_subdir_path(const std::string_view& name) noexcept;
 
-    void clear_environment();
+    namespace env {
+        void init() noexcept;
+        void deinit() noexcept;
+    }
 }
 
 #endif //MELONDS_DS_ENVIRONMENT_HPP

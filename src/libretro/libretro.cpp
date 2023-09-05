@@ -119,6 +119,7 @@ namespace melonds {
 
 PUBLIC_SYMBOL void retro_init(void) {
     ZoneScopedN("retro_init");
+    retro::env::init();
     retro::log(RETRO_LOG_DEBUG, "retro_init");
     retro_assert(melonds::_loaded_nds_cart == nullptr);
     retro_assert(melonds::_loaded_gba_cart == nullptr);
@@ -483,7 +484,6 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_deinit()");
     retro::task::deinit();
     melonds::file::deinit();
-    retro::clear_environment();
     retro::content::clear();
     melonds::clear_memory_config();
     melonds::_loaded_nds_cart.reset();
@@ -495,6 +495,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::deferred_initialization_pending = false;
     melonds::first_frame_run = false;
     melonds::isInDeinit = false;
+    retro::env::deinit();
 }
 
 PUBLIC_SYMBOL unsigned retro_api_version(void) {
