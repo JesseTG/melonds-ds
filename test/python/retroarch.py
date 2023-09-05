@@ -41,7 +41,7 @@ for s in SYSTEM_FILES:
     if s in os.environ:
         sysfile = os.environ[s]
         assert os.path.exists(sysfile)
-        shutil.copy2(sysfile, os.path.join(system_dir, os.path.basename(sysfile)))
+        shutil.copy2(sysfile, os.path.join(core_system_dir, os.path.basename(sysfile)))
 
 # Create a bare-bones RetroArch config.
 # RetroArch itself will add defaults for any missing options.
