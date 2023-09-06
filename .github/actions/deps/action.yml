@@ -43,19 +43,18 @@ runs:
         packages: cmake ninja-build libepoxy-dev ccache
         version: 1.0
 
-    - name: Install Cross-Compile Support (ARM64)
+    - name: Install Cross-Compile Support (Linux aarch64)
       if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
-      uses: bitxeno/gha-ubuntu-cross@d34323dfffde52f9ad708698fb503623b56f60cd # Fork needed due to https://github.com/cyberjunk/gha-ubuntu-cross/pull/4
+      uses: JesseTG/gha-ubuntu-cross@d4db19532db7c115bee0d051944c226c5057cd4a # Fork needed due to https://github.com/cyberjunk/gha-ubuntu-cross/pull/4
       with:
         arch: arm64
 
     - name: Install Dependencies (Linux aarch64)
       if: ${{ contains(inputs.runs-on, 'ubuntu') && contains(inputs.ccache-cache-name, 'aarch64') }}
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libepoxy-dev:arm64 cmake dpkg-dev ccache ninja-build
-      # Caching cross-compiling packages is a huge pain in the ass, so let's not do it
+      uses: awalsh128/cache-apt-pkgs-action@dev
+      with:
+        packages: cmake ninja-build libepoxy-dev:arm64 ccache
+        version: 1.1
 
     - name: Set Up CCache
       uses: hendrikmuhs/ccache-action@v1.2.10
