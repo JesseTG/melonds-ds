@@ -30,8 +30,18 @@ namespace melonds::config::definitions {
             "Console Type",
             nullptr,
             "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
+            "DSi mode requires a native DSi NAND image "
+            "and native BIOS images for the DS and DSi. "
+            "Place them in the system directory or its \"melonDS DS\" subdirectory "
+            " and name them as follows:\n"
+            "\n"
+            "- DS BIOS: bios7.bin, bios9.bin\n"
+            "- DSi BIOS: dsi_bios7.bin, dsi_bios9.bin\n"
+            "- DSi NAND: Anything, set it with the \"DSi NAND Path\" option.\n"
+            "\n"
+            "Ignored if loading a DSiWare game (DSi mode will be forced). "
             "Some features may not be available in DSi mode. "
-            "DSi mode will be used if loading a DSiWare application.",
+            "Changes take effect at the next restart.",
             nullptr,
             config::system::CATEGORY,
             {
