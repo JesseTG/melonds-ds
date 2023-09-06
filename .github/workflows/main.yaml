@@ -47,9 +47,9 @@ jobs:
     uses: ./.github/workflows/build.yaml
     with:
       archive-name: melondsds_libretro-linux-aarch64
-      runs-on: ubuntu-20.04
+      runs-on: ubuntu-latest
       lib-ext: so
-      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc-10 -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++-10 -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config
+      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config
 
   android:
     name: Android
