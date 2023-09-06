@@ -38,6 +38,13 @@ namespace melonds
         std::string _user_message;
     };
 
+    /// An environment call failed, and there's no way to recover.
+    class environment_exception : public emulator_exception {
+    public:
+        explicit environment_exception(const std::string &what_arg) : emulator_exception(what_arg) {}
+        environment_exception(const std::string &what_arg, const std::string &user_message) : emulator_exception(what_arg, user_message) {}
+    };
+
     /// Thrown when attempting to load a file that is not a valid NDS or GBA ROM.
     class invalid_rom_exception : public emulator_exception {
     public:
