@@ -1380,27 +1380,92 @@ static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativ
     SPI_Firmware::InstallFirmware(std::move(firmware));
 }
 
-static void InitDsiSystemConfig(const optional<NDSHeader>& header, bool tryNativeBios) {
+static void InitDsiSystemConfig() {
     ZoneScopedN("melonds::config::InitDsiSystemConfig");
     using namespace melonds::config::system;
     using namespace melonds;
 
-    if (_consoleType == ConsoleType::DSi && !_externalBiosEnable) {
-        // If we're in DSi mode, but we're not looking to load external BIOS files...
-        throw bios_exception("DSi mode requires all BIOS files to be native.");
+    retro_assert(_consoleType == ConsoleType::DSi);
+
+    string_view nandName = DsiNandPath();
+    if (nandName == melonds::config::values::NOT_FOUND) {
+        throw bios_exception("DSi mode requires a valid NAND image, but none was found.");
     }
 
-    // TODO: Implement
-    // TODO: Try to load DSi BIOS files, throw an exception if it fails
-    // TODO: Load the DSi firmware
-    // TODO: Load the DS ARM BIOS files
-    // TODO: Can the DSi use generated firmware?
+    optional<string> nandPath = retro::get_system_path(nandName);
+    if (!nandPath) {
+        throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
+    }
+
+    // TODO: Actually open the NAND file and keep it around
+    int statFlags = path_stat(nandPath->c_str());
+    if ((statFlags & RETRO_VFS_STAT_IS_VALID) == 0) {
+        // If this isn't a valid file...
+        throw bios_exception("Failed to find a DSi NAND image at \"%s\"", nandPath->c_str());
+    }
+
+#ifndef NDEBUG
+    // If it weren't a regular file, it would've never been added to the config options
+    retro_assert((statFlags & RETRO_VFS_STAT_IS_DIRECTORY) == 0);
+    retro_assert((statFlags & RETRO_VFS_STAT_IS_CHARACTER_SPECIAL) == 0);
+#endif
+
+    // DSi mode requires all native BIOS files
+    unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), "DSi ARM7", sizeof(DSi::ARM7iBIOS));
+    if (!bios7i) {
+        throw bios_exception("Failed to load DSi ARM7 BIOS file, which is required in DSi mode");
+    }
+
+    unique_ptr<u8[]> bios9i = LoadBios(DsiBios9Path(), "DSi ARM9", sizeof(DSi::ARM9iBIOS));
+    if (!bios9i) {
+        throw bios_exception("Failed to load DSi ARM9 BIOS file, which is required in DSi mode");
+    }
+
+    unique_ptr<u8[]> bios7 = LoadBios(Bios7Path(), "DS ARM7", sizeof(NDS::ARM7BIOS));
+    if (!bios7) {
+        throw bios_exception("Failed to load DS ARM7 BIOS file, which is required in DSi mode");
+    }
+
+    unique_ptr<u8[]> bios9 = LoadBios(Bios9Path(), "DS ARM9", sizeof(NDS::ARM9BIOS));
+    if (!bios9) {
+        throw bios_exception("Failed to load DS ARM9 BIOS file, which is required in DSi mode");
+    }
+
+    string_view firmwareName = DsiFirmwarePath();
+    unique_ptr<SPI_Firmware::Firmware> firmware;
+    if (firmwareName != melonds::config::values::BUILT_IN) {
+        optional<string> firmwarePath = retro::get_system_path(firmwareName);
+        retro_assert(firmwarePath.has_value());
+        // If we couldn't get the system directory, we wouldn't have gotten this far
+
+        firmware = LoadFirmware(*firmwarePath);
+        if (firmware && firmware->Header().ConsoleType != SPI_Firmware::FirmwareConsoleType::DSi) {
+            retro::warn("Expected firmware of type DSi, got %s", ConsoleTypeName(firmware->Header().ConsoleType).data());
+            firmware = nullptr;
+        }
+        // DSi firmware isn't bootable, so we don't need to check for that here.
+
+        if (!firmware) {
+            retro::warn("Falling back to built-in DSi firmware");
+        }
+    }
+
+    if (!firmware) {
+        // If we haven't loaded any firmware...
+        firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(melonds::ConsoleType::DSi));
+    }
+
+    memcpy(DSi::ARM9iBIOS, bios9i.get(), sizeof(DSi::ARM9iBIOS));
+    memcpy(DSi::ARM7iBIOS, bios7i.get(), sizeof(DSi::ARM7iBIOS));
+    memcpy(NDS::ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
+    memcpy(NDS::ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
+    retro::debug("Installed native ARM7, ARM9, DSi ARM7, and DSi ARM9 BIOS images.");
+
+    CustomizeFirmware(*firmware);
+    SPI_Firmware::InstallFirmware(std::move(firmware));
+    // TODO: Customize the equivalent firmware config on the DSi NAND
 }
 
-// TODO: Refactor this to split it into the following phases:
-// - Load external files (if desired)
-// - If all external files loaded successfully, apply them
-// - Else, fall back to built-in files
 static void melonds::config::apply_system_options(const optional<NDSHeader>& header) {
     ZoneScopedN("melonds::config::apply_system_options");
     using namespace melonds::config::system;
@@ -1412,7 +1477,7 @@ static void melonds::config::apply_system_options(const optional<NDSHeader>& hea
 
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        InitDsiSystemConfig(header, _externalBiosEnable);
+        InitDsiSystemConfig();
     } else {
         // If we're in DS mode...
         InitNdsSystemConfig(header, _externalBiosEnable);
