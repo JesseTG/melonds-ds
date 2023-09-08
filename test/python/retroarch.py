@@ -7,11 +7,11 @@ import sys
 import tempfile
 
 SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS_FIRMWARE", "DSI_FIRMWARE", "DSI_NAND")
-retroarch = os.environ["RETROARCH"]
+retroarch_path = os.environ["RETROARCH"]
 
-assert retroarch is not None
-assert os.path.isabs(retroarch)
-assert os.path.isfile(retroarch)
+assert retroarch_path is not None
+assert os.path.isabs(retroarch_path)
+assert os.path.isfile(retroarch_path)
 
 # Create a temporary directory, so that we don't mess with the user's config.
 # (Also, this helps us parallelize tests.)
@@ -67,26 +67,32 @@ config = {
     "savestate_directory": savestate_directory,
 }
 
-with open(core_option_path, "x") as core_config, open(config_path, "x") as retroarch_config:
-    # Need to create a config file here so RetroArch will use it as the root directory.
-    for k, v in config.items():
-        retroarch_config.write(f"{k} = \"{v}\"\n")
 
-    for e in sorted(os.environ):
-        key = e.lower()
-        if key.startswith("melonds_"):
-            core_config.write(f"{key} = \"{os.environ[e]}\"\n")
-        elif key.startswith("retroarch_"):
-            retroarch_config.write(f"{key.removeprefix('retroarch_')} = \"{os.environ[e]}\"\n")
+def retroarch():
+    with open(core_option_path, "x") as core_config, open(config_path, "x") as retroarch_config:
+        # Need to create a config file here so RetroArch will use it as the root directory.
+        for k, v in config.items():
+            retroarch_config.write(f"{k} = \"{v}\"\n")
 
-logpath = os.path.join(tempdir, "logs", "retroarch.log")
-with subprocess.Popen((retroarch,  f"--config={config_path}", "--verbose", f"--log-file={logpath}", *sys.argv[1:]), stdout=subprocess.PIPE, cwd=tempdir, text=True) as process:
-    print(process.args)
-    result = process.wait(30)
+        for e in sorted(os.environ):
+            key = e.lower()
+            if key.startswith("melonds_"):
+                core_config.write(f"{key} = \"{os.environ[e]}\"\n")
+            elif key.startswith("retroarch_"):
+                retroarch_config.write(f"{key.removeprefix('retroarch_')} = \"{os.environ[e]}\"\n")
 
-with open(logpath, "r") as f:
-    print(f.read())
+    logpath = os.path.join(tempdir, "logs", "retroarch.log")
 
-print("End of log file")
+    with subprocess.Popen((retroarch_path,  f"--config={config_path}", "--verbose", f"--log-file={logpath}", *sys.argv[1:]), stdout=subprocess.PIPE, cwd=tempdir, text=True) as process:
+        print(process.args)
+        result = process.wait(30)
 
-sys.exit(result)
+    with open(logpath, "r") as f:
+        print(f.read())
+
+    print("End of log file")
+    return result
+
+
+if __name__ == "__main__":
+    sys.exit(retroarch())
