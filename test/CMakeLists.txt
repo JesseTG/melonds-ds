@@ -472,6 +472,21 @@ add_retroarch_test(
     WILL_FAIL
 )
 
+add_retroarch_test(
+    NAME "Direct DSi boot to NDS game with all system files succeeds"
+    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    MAX_FRAMES 6
+    CORE_OPTION "melonds_console_mode=dsi"
+    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/dsi_firmware.bin"
+    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/dsi_nand.bin"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    DSI_FIRMWARE
+    DSI_NAND
+)
+
 ### Using wfcsettings.bin
 
 # See https://github.com/JesseTG/melonds-ds/issues/59
