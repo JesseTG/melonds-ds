@@ -1,4 +1,4 @@
-find_package(Python3 COMPONENTS Interpreter)
+find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
 
 if (NOT RETROARCH)
     find_program(RETROARCH retroarch)
@@ -47,7 +47,7 @@ include(CMakePrintHelpers)
 
 function(add_retroarch_test)
     set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND)
-    set(oneValueArgs NAME MAX_FRAMES CONTENT)
+    set(oneValueArgs NAME MAX_FRAMES CONTENT REQUIRE_FILE_SIZE_UNCHANGED REQUIRE_FILE_CREATED)
     set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -67,6 +67,14 @@ function(add_retroarch_test)
     list(APPEND REQUIRED_FILES "$<TARGET_FILE:libretro>")
     if (RETRO_CONTENT)
         list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
+    endif()
+
+    if (RETRO_REQUIRE_FILE_SIZE_UNCHANGED)
+        list(APPEND ENVIRONMENT "REQUIRE_FILE_SIZE_UNCHANGED=${RETRO_REQUIRE_FILE_SIZE_UNCHANGED}")
+    endif()
+
+    if (RETRO_REQUIRE_FILE_CREATED)
+        list(APPEND ENVIRONMENT "REQUIRE_FILE_CREATED=${RETRO_REQUIRE_FILE_CREATED}")
     endif()
 
     list(APPEND ENVIRONMENT "RETROARCH=${RETROARCH}")
@@ -464,11 +472,35 @@ add_retroarch_test(
     WILL_FAIL
 )
 
+### Using wfcsettings.bin
+
+# See https://github.com/JesseTG/melonds-ds/issues/59
+add_retroarch_test(
+    NAME "Native firmware is not overwritten by contents of wfcsettings.bin"
+    MAX_FRAMES 6
+    CORE_OPTION "melonds_console_mode=ds"
+    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/firmware.bin"
+    ARM7_BIOS
+    ARM9_BIOS
+    NDS_FIRMWARE
+    REQUIRE_FILE_SIZE_UNCHANGED "system/melonDS DS/firmware.bin"
+)
+
+add_retroarch_test(
+    NAME "Core saves wi-fi settings to wfcsettings.bin when using built-in firmware"
+    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    MAX_FRAMES 6
+    CORE_OPTION "melonds_console_mode=ds"
+    CORE_OPTION "melonds_firmware_nds_path=/builtin"
+    ARM7_BIOS
+    ARM9_BIOS
+    REQUIRE_FILE_CREATED "system/melonDS DS/wfcsettings.bin"
+)
+
 # TODO: Write the following test capabilities:
 # - Copying a system file to a particular location
 # - Select a GBA ROM
 # - Select a GBA save file
-# - Select a different test script
 
 # TODO: Write the following tests:
 

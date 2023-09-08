@@ -95,4 +95,31 @@ def retroarch():
 
 
 if __name__ == "__main__":
-    sys.exit(retroarch())
+    require_file_size_unchanged = os.environ.get("REQUIRE_FILE_SIZE_UNCHANGED", None)
+    required_file_size: int | None = None
+    if require_file_size_unchanged is not None:
+        # If there's a file whose size we must ensure didn't change...
+        require_file_size_unchanged = os.path.join(tempdir, require_file_size_unchanged)
+        stat = os.stat(require_file_size_unchanged)
+        assert stat is not None
+        required_file_size = stat.st_size
+
+    require_file_created = os.environ.get("REQUIRE_FILE_CREATED", None)
+    if require_file_created is not None:
+        # If there's a file that we must ensure is newly-created...
+        require_file_created = os.path.join(tempdir, require_file_created)
+        assert not os.access(require_file_created, os.F_OK)
+
+    returnCode = retroarch()
+
+    if require_file_size_unchanged is not None:
+        # If there's a file whose size we must ensure didn't change...
+        stat = os.stat(require_file_size_unchanged)
+        assert stat is not None
+        assert stat.st_size == required_file_size
+
+    if require_file_created is not None:
+        # If there's a file that we must ensure is newly-created...
+        assert os.access(require_file_created, os.F_OK)
+
+    sys.exit(returnCode)
