@@ -80,7 +80,8 @@ optional<melonds::UsernameMode> melonds::config::ParseUsernameMode(const char* v
 }
 
 string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
-    char result[DS_NAME_LIMIT];
+    char result[DS_NAME_LIMIT + 1];
+    result[DS_NAME_LIMIT] = '\0';
 
     switch (mode) {
         case melonds::UsernameMode::Firmware:
