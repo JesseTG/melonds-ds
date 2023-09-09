@@ -148,10 +148,17 @@ std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(const ch
 }
 
 optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
-    SPI_Firmware::IpAddress address;
+    if (string_is_empty(value))
+        return nullopt;
 
+    in_addr address;
     if (inet_pton(AF_INET, value, &address) == 1) {
-        return address;
+        // Both in_addr and ip represent an IPv4 address,
+        // but they may have different alignment requirements.
+        // Better safe than sorry.
+        SPI_Firmware::IpAddress ip;
+        memcpy(&ip, &address, sizeof(address));
+        return ip;
     }
 
     return nullopt;
