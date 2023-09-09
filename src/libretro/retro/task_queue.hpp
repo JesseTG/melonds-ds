@@ -33,6 +33,7 @@ namespace retro::task {
 
     void init(bool threaded, retro_task_queue_msg_t msg_push) noexcept;
 
+    /// Ignores invalid tasks.
     void push(TaskSpec&& task) noexcept;
     void check() noexcept;
     void reset() noexcept;
@@ -41,6 +42,8 @@ namespace retro::task {
 
     class TaskSpec {
     public:
+        // Exists to create a trivial task that does nothing.
+        TaskSpec() noexcept = default;
         TaskSpec(const TaskHandler& handler, const TaskCallback& callback = nullptr, const TaskHandler& cleanup = nullptr, retro_time_t when = ASAP, const std::string& title = "");
         ~TaskSpec() noexcept;
         TaskSpec(TaskSpec&& other) noexcept;
@@ -49,8 +52,10 @@ namespace retro::task {
         TaskSpec& operator=(const TaskSpec& other) = delete;
         [[nodiscard]] bool Valid() const noexcept { return _task != nullptr; }
 
-        [[nodiscard]] retro_time_t When() const noexcept { return _task->when; }
-        void When(retro_time_t when) noexcept { _task->when = when; }
+        [[nodiscard]] retro_time_t When() const noexcept { return _task ? _task->when : 0; }
+        void When(retro_time_t when) noexcept { if (_task) _task->when = when; }
+
+        operator bool() const noexcept { return _task != nullptr; }
     private:
         void FreeTask() noexcept;
         static void TaskHandlerWrapper(retro_task_t* task) noexcept;
@@ -59,6 +64,11 @@ namespace retro::task {
         friend void push(TaskSpec&& task) noexcept;
         retro_task_t* _task;
     };
+
+    static bool operator==(const TaskSpec& lhs, std::nullptr_t) noexcept { return !lhs; }
+    static bool operator==(std::nullptr_t, const TaskSpec& rhs) noexcept { return !rhs; }
+    static bool operator!=(const TaskSpec& lhs, std::nullptr_t) noexcept { return (bool)lhs; }
+    static bool operator!=(std::nullptr_t, const TaskSpec& rhs) noexcept { return (bool)rhs; }
 
     class TaskHandle {
     public:

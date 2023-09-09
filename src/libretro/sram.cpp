@@ -122,13 +122,15 @@ static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& g
     }
 }
 
-static void FlushFirmware(const string& firmwarePath) noexcept {
+static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsPath) noexcept {
     ZoneScopedN("melonds::sram::FlushFirmware");
     using SPI_Firmware::Firmware;
     using namespace melonds;
 
     retro_assert(!firmwarePath.empty());
     retro_assert(path_is_absolute(firmwarePath.c_str()));
+    retro_assert(!wfcSettingsPath.empty());
+    retro_assert(path_is_absolute(wfcSettingsPath.c_str()));
 
     const Firmware* firmware = SPI_Firmware::GetFirmware();
 
@@ -136,7 +138,7 @@ static void FlushFirmware(const string& firmwarePath) noexcept {
     retro_assert(firmware->Buffer() != nullptr);
 
     if (firmware->Header().Identifier != SPI_Firmware::GENERATED_FIRMWARE_IDENTIFIER) {
-        // If this is not the default built-in firmware...
+        // If this is a native firmware blob...
         Firmware firmwareCopy(*firmware);
         // TODO: Apply the original values of the settings that were overridden
         if (filestream_write_file(firmwarePath.c_str(), firmware->Buffer(), firmware->Length())) {
@@ -148,19 +150,17 @@ static void FlushFirmware(const string& firmwarePath) noexcept {
     } else {
         u32 eapstart = firmware->ExtendedAccessPointOffset();
         u32 eapend = eapstart + sizeof(firmware->ExtendedAccessPoints());
-
         u32 apstart = firmware->WifiAccessPointOffset();
-        u32 apend = apstart + sizeof(firmware->AccessPoints());
 
         // assert that the extended access points come just before the regular ones
         assert(eapend == apstart);
 
         const u8* buffer = firmware->ExtendedAccessPointPosition();
         u32 length = sizeof(firmware->ExtendedAccessPoints()) + sizeof(firmware->AccessPoints());
-        if (filestream_write_file(firmwarePath.c_str(), buffer, length)) {
-            retro::debug("Flushed %u-byte WFC settings to \"%s\"", length, firmwarePath.c_str());
+        if (filestream_write_file(wfcSettingsPath.c_str(), buffer, length)) {
+            retro::debug("Flushed %u-byte WFC settings to \"%s\"", length, wfcSettingsPath.c_str());
         } else {
-            retro::error("Failed to write %u-byte WFC settings to \"%s\"", length, firmwarePath.c_str());
+            retro::error("Failed to write %u-byte WFC settings to \"%s\"", length, wfcSettingsPath.c_str());
         }
     }
 }
@@ -189,26 +189,35 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
     return task;
 }
 
-retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view path) {
-    optional<string> firmwarePath = retro::get_system_path(path);
+retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName) noexcept {
+    optional<string> firmwarePath = retro::get_system_path(firmwareName);
     if (!firmwarePath) {
-        throw environment_exception("Failed to get system path for firmware named " + string(path));
+        retro::error("Failed to get system path for firmware named \"%s\", firmware changes won't be saved.", firmwareName.data());
+        return retro::task::TaskSpec();
     }
+
+    string_view wfcSettingsName = config::system::GeneratedFirmwareSettingsPath();
+    optional<string> wfcSettingsPath = retro::get_system_path(wfcSettingsName);
+    if (!wfcSettingsPath) {
+        retro::error("Failed to get system path for WFC settings at \"%s\", firmware changes won't be saved.", wfcSettingsName.data());
+        return retro::task::TaskSpec();
+    }
+
     return retro::task::TaskSpec(
-        [path=*firmwarePath](retro::task::TaskHandle &) noexcept {
+        [firmwarePath=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle &) noexcept {
             ZoneScopedN("melonds::sram::FlushFirmwareTask");
 
             if (TimeToFirmwareFlush != nullopt && (*TimeToFirmwareFlush)-- <= 0) {
                 // If it's time to flush the firmware...
                 retro::debug("Firmware flush timer expired, flushing data now");
-                FlushFirmware(path);
+                FlushFirmware(firmwarePath, wfcSettingsPath);
                 TimeToFirmwareFlush = nullopt; // Reset the timer
             }
         },
         nullptr,
-        [path=*firmwarePath](retro::task::TaskHandle&) noexcept {
+        [path=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle&) noexcept {
             ZoneScopedN("melonds::sram::FlushFirmwareTask::Cleanup");
-            FlushFirmware(path);
+            FlushFirmware(path, wfcSettingsPath);
             TimeToFirmwareFlush = nullopt;
         }
     );

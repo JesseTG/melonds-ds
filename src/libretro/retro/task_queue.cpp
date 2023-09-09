@@ -40,8 +40,10 @@ void retro::task::init(bool threaded, retro_task_queue_msg_t msg_push) noexcept 
 
 void retro::task::push(TaskSpec&& task) noexcept {
     ZoneScopedN("retro::task::push");
-    task_queue_push(task._task);
-    task._task = nullptr;
+    if (task.Valid()) {
+        task_queue_push(task._task);
+        task._task = nullptr;
+    }
 }
 
 void retro::task::wait() noexcept {

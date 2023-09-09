@@ -325,11 +325,6 @@ namespace melonds::config {
         string_view DsiNandPath() noexcept { return _dsiNandPath; }
 
         string_view GeneratedFirmwareSettingsPath() noexcept { return "melonDS DS/wfcsettings.bin"; }
-
-        string_view EffectiveFirmwarePath() noexcept {
-            string_view firmware = FirmwarePath(ConsoleType());
-            return (firmware == config::values::BUILT_IN) ? GeneratedFirmwareSettingsPath() : firmware;
-        }
     }
 
     namespace video {

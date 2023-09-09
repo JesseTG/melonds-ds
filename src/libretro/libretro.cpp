@@ -64,6 +64,8 @@
 using std::make_optional;
 using std::optional;
 using std::nullopt;
+wfcSettingsPathusing std::string;
+using std::string_view;
 using retro::task::TaskSpec;
 
 namespace melonds {
@@ -619,7 +621,13 @@ static void melonds::load_games(
         retro::task::push(file::FlushTask());
     }
 
-    retro::task::push(sram::FlushFirmwareTask(config::system::EffectiveFirmwarePath()));
+    string_view firmwareName = config::system::FirmwarePath(config::system::ConsoleType());
+    if (TaskSpec flushTask = sram::FlushFirmwareTask(firmwareName)) {
+        retro::task::push(std::move(flushTask));
+    }
+    else {
+        retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
+    }
 
     if (_loaded_gba_cart && (NDS::IsLoadedARM9BIOSBuiltIn() || NDS::IsLoadedARM7BIOSBuiltIn() || SPI_Firmware::IsLoadedFirmwareBuiltIn())) {
         // If we're using FreeBIOS and are trying to load a GBA cart...
