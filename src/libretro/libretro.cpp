@@ -64,7 +64,7 @@
 using std::make_optional;
 using std::optional;
 using std::nullopt;
-wfcSettingsPathusing std::string;
+using std::string;
 using std::string_view;
 using retro::task::TaskSpec;
 
