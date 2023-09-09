@@ -192,7 +192,7 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
 retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view path) {
     optional<string> firmwarePath = retro::get_system_path(path);
     if (!firmwarePath) {
-        throw std::runtime_error(string("Failed to get system path for firmware named ") + string(path));
+        throw environment_exception("Failed to get system path for firmware named " + string(path));
     }
     return retro::task::TaskSpec(
         [path=*firmwarePath](retro::task::TaskHandle &) noexcept {
