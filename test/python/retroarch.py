@@ -59,7 +59,7 @@ config = {
     "log_verbosity": "true",
     "microphone_driver": "null",
     "midi_driver": "null",
-    "network_cmd_enable": "true",
+    "network_cmd_enable": "false",
     "pause_nonactive": "false",
     "rgui_config_directory": config_dir,
     "system_directory": system_dir,
