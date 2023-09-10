@@ -7,6 +7,11 @@ message(STATUS "RETROARCH: ${RETROARCH}")
 
 cmake_path(GET RETROARCH PARENT_PATH RETROARCH_DIR)
 
+if (NOT NDS_ROM)
+    message(WARNING "NDS_ROM must be set to the path of an NDS ROM")
+    set(NDS_ROM "NDS_ROM-NOTFOUND" CACHE FILEPATH "Path to an NDS ROM" FORCE)
+endif()
+
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
     if (NOT ${BIOS_NAME})
         find_file(${BIOS_NAME} ${BIOS_FILE} HINTS "${RETROARCH_DIR}/system" REQUIRED)
@@ -116,13 +121,13 @@ endfunction()
 
 add_retroarch_test(
     NAME "RetroArch loads melonDS DS"
-    CONTENT "${CMAKE_BINARY_DIR}/systemTest.nds"
+    CONTENT "${NDS_ROM}"
 )
 
 # See https://github.com/JesseTG/melonds-ds/issues/51
 add_retroarch_test(
     NAME "Core exposes config options to frontend"
-    CONTENT "${CMAKE_BINARY_DIR}/systemTest.nds"
+    CONTENT "${NDS_ROM}"
     FAIL_REGULAR_EXPRESSION "GET_VARIABLE: melonds_[a-z_]+ - Not implemented"
 )
 
@@ -130,7 +135,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core doesn't try to load native firmware if using built-in firmware (NDS)"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_use_external_bios=disabled"
@@ -142,7 +147,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core doesn't try to load native firmware if using built-in firmware (DSi)"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_firmware_dsi_path=/builtin"
@@ -159,7 +164,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core doesn't try to load native BIOS if using FreeBIOS (NDS)"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_use_external_bios=disabled"
@@ -171,7 +176,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core falls back to FreeBIOS if ARM7 BIOS is missing (NDS)"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_use_external_bios=enabled"
@@ -183,7 +188,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core falls back to FreeBIOS if ARM9 BIOS is missing (NDS)"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_use_external_bios=enabled"
@@ -195,7 +200,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core falls back to built-in firmware if native firmware is missing (NDS)"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_use_external_bios=enabled"
@@ -211,7 +216,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct NDS boot with FreeBIOS and built-in firmware succeeds"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
     CORE_OPTION "melonds_boot_directly=enabled"
     CORE_OPTION "melonds_console_mode=ds"
@@ -221,7 +226,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct NDS boot with native BIOS and native firmware succeeds"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
     CORE_OPTION "melonds_boot_directly=enabled"
     CORE_OPTION "melonds_console_mode=ds"
@@ -236,7 +241,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct NDS boot with native BIOS and non-bootable firmware succeeds"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
     CORE_OPTION "melonds_boot_directly=enabled"
     CORE_OPTION "melonds_console_mode=ds"
@@ -251,7 +256,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct NDS boot with native BIOS and built-in firmware succeeds"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
     CORE_OPTION "melonds_boot_directly=enabled"
     CORE_OPTION "melonds_console_mode=ds"
@@ -264,7 +269,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct NDS boot with FreeBIOS and native firmware succeeds"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
     CORE_OPTION "melonds_boot_directly=enabled"
     CORE_OPTION "melonds_console_mode=ds"
@@ -428,7 +433,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct DSi boot to NDS game with no NAND image fails"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_boot_directly=enabled"
@@ -444,7 +449,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct DSi boot to NDS game with no NDS BIOS image fails"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_boot_directly=enabled"
@@ -459,7 +464,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct DSi boot to NDS game with no DSi BIOS image fails"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_boot_directly=enabled"
@@ -474,7 +479,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Direct DSi boot to NDS game with all system files succeeds"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/dsi_firmware.bin"
@@ -503,7 +508,7 @@ add_retroarch_test(
 
 add_retroarch_test(
     NAME "Core saves wi-fi settings to wfcsettings.bin when using built-in firmware"
-    CONTENT "${CMAKE_BINARY_DIR}/mkds.nds"
+    CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_firmware_nds_path=/builtin"
