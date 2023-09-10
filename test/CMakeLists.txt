@@ -1,7 +1,7 @@
 find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
 
 if (NOT RETROARCH)
-    find_program(RETROARCH retroarch)
+    find_program(RETROARCH retroarch REQUIRED)
 endif()
 message(STATUS "RETROARCH: ${RETROARCH}")
 
