@@ -83,7 +83,6 @@ jobs:
       - name: Install Dependencies
         uses: ./.github/actions/deps
         with:
-          build-dir: ${{ env.BUILD_DIR }}
           target: ${{ inputs.target }}
 
       - name: Create build environment

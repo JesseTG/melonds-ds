@@ -1,9 +1,6 @@
 name: Install Dependencies
 description: Install Dependencies
 inputs:
-  build-dir:
-    description: The directory in which to build the project.
-    required: true
   target:
     description: Platform target
     required: true
