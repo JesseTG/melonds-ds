@@ -10,6 +10,8 @@ cmake_path(GET RETROARCH PARENT_PATH RETROARCH_DIR)
 if (NOT NDS_ROM)
     message(WARNING "NDS_ROM must be set to the path of an NDS ROM")
     set(NDS_ROM "NDS_ROM-NOTFOUND" CACHE FILEPATH "Path to an NDS ROM" FORCE)
+else()
+    message(STATUS "NDS_ROM: ${NDS_ROM}")
 endif()
 
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
