@@ -56,9 +56,15 @@ on:
         description: The platform target.
         type: string
         required: true
+      test-suite:
+        description: Whether to run the test suite
+        type: boolean
+        required: false
+        default: false
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
+  TESTFILE_DIR: "${{ github.workspace }}/testfiles"
 jobs:
   build:
     strategy:
@@ -84,13 +90,43 @@ jobs:
         uses: ./.github/actions/deps
         with:
           target: ${{ inputs.target }}
+          test-suite: ${{ inputs.test-suite }}
+          testfile-repo: ${{ secrets.TESTFILE_REPO }}
+          testfile-repo-token: ${{ secrets.TESTFILE_REPO_TOKEN }}
+          dsi-nand-archive: ${{ secrets.DSI_NAND_ARCHIVE }}
 
       - name: Create build environment
         run: mkdir -vp "${{ env.BUILD_DIR }}"
 
       - name: Configure
+        if: ${{ !inputs.test-suite }}
         working-directory: "${{ env.BUILD_DIR }}"
-        run: cmake "${{ github.workspace }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" -DMELONDS_REPOSITORY_URL:STRING="${{ vars.MELONDS_REPOSITORY_URL }}" -DMELONDS_REPOSITORY_TAG:STRING="${{ vars.MELONDS_REPOSITORY_TAG }}" ${{ inputs.cmake-args }}
+        run: |
+          cmake "${{ github.workspace }}" \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
+            -DMELONDS_REPOSITORY_TAG="${{ vars.MELONDS_REPOSITORY_TAG }}" \
+            ${{ inputs.cmake-args }}
+
+      - name: Configure (with test suite)
+        if: ${{ inputs.test-suite }}
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: |
+          cmake "${{ github.workspace }}" \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
+            -DMELONDS_REPOSITORY_TAG="${{ vars.MELONDS_REPOSITORY_TAG }}" \
+            -DBUILD_TESTING=ON \
+            -DRETROARCH="${{ github.workspace }}/RetroArch/retroarch" \
+            -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
+            -DARM9_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_BIOS }}" \
+            -DARM7_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_DSI_BIOS }}" \
+            -DARM9_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_DSI_BIOS }}" \
+            -DNDS_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_FIRMWARE }}" \
+            -DDSI_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_FIRMWARE }}" \
+            -DDSI_NAND="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_NAND }}" \
+            -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
+            ${{ inputs.cmake-args }}
 
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"

@@ -4,6 +4,24 @@ inputs:
   target:
     description: Platform target
     required: true
+  test-suite:
+    description: True if running the test suite
+    required: false
+    default: "false"
+  testfile-dir:
+    description: Directory containing the test files
+    required: false
+    default: "testfiles"
+  testfile-repo:
+    description: Repository containing the test files
+    required: true
+  testfile-repo-token:
+    description: Token for the repository containing the test files
+    required: true
+  dsi-nand-archive:
+    description: Name of the DSI NAND archive
+    required: true
+
 runs:
   using: composite
   steps:
@@ -53,3 +71,92 @@ runs:
         append-timestamp: false
         variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }}
         # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
+
+    - name: Download Test Files
+      if: ${{ inputs.test-suite }}
+      uses: actions/checkout@v3
+      with:
+        repository: "${{ inputs.testfile-repo }}"
+        token: "${{ inputs.testfile-repo-token }}"
+        path: "${{ inputs.testfile-dir }}"
+
+    - name: Prepare Test Files
+      if: ${{ inputs.test-suite }}
+      working-directory: "${{ inputs.testfile-dir }}"
+      shell: bash
+      run: 7z x "${{ inputs.dsi-nand-archive }}"
+
+    - name: Check Out RetroArch
+      if: ${{ inputs.test-suite }}
+      uses: actions/checkout@v3
+      with:
+        repository: libretro/RetroArch
+        path: "${{ github.workspace }}/RetroArch"
+        ref: "5b2ed5c9ee45c0ecb740f4835db30189e84058a5"
+        token: "${{ inputs.testfile-repo-token }}"
+
+    - name: Configure RetroArch
+      if: ${{ inputs.test-suite }}
+      env:
+        CC: "ccache gcc"
+        CXX: "ccache g++"
+      working-directory: "${{ github.workspace }}/RetroArch"
+      shell: bash
+      run: |
+        ./configure \
+          --disable-accessibility \
+          --disable-alsa \
+          --disable-builtinbearssl \
+          --disable-builtinmbedtls \
+          --disable-cdrom \
+          --disable-cg \
+          --disable-chd \
+          --disable-core_info_cache \
+          --disable-crtswitchres \
+          --disable-discord \
+          --disable-egl \
+          --disable-ffmpeg \
+          --disable-flac \
+          --disable-freetype \
+          --disable-gfx_widgets \
+          --disable-ibxm \
+          --disable-imageviewer \
+          --disable-jack \
+          --disable-libretrodb \
+          --disable-materialui \
+          --disable-netplaydiscovery \
+          --disable-networkgamepad \
+          --disable-online_updater \
+          --disable-oss \
+          --disable-overlay \
+          --disable-ozone \
+          --disable-parport \
+          --disable-patch \
+          --disable-pulse \
+          --disable-qt \
+          --disable-rgui \
+          --disable-runahead \
+          --disable-sixel \
+          --disable-ssa \
+          --disable-ssl \
+          --disable-stb_image \
+          --disable-stb_vorbis \
+          --disable-systemd \
+          --disable-systemmbedtls \
+          --disable-translate \
+          --disable-update_assets \
+          --disable-update_core_info \
+          --disable-update_cores \
+          --disable-vg \
+          --disable-video_filter \
+          --disable-videocore \
+          --disable-videoprocessor \
+          --disable-xmb \
+          --enable-command \
+          --enable-sse
+
+    - name: Build RetroArch
+      if: ${{ inputs.test-suite }}
+      shell: bash
+      working-directory: "${{ github.workspace }}/RetroArch"
+      run: make -j$(nproc)

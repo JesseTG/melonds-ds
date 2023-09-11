@@ -42,6 +42,8 @@ jobs:
       target: linux-x86_64
       runs-on: ubuntu-latest
       lib-ext: so
+      test-suite: true
+    secrets: inherit
 
   linux-aarch64:
     name: Linux (aarch64)
