@@ -16,10 +16,6 @@ on:
         type: string
         required: false
         default: cores
-      generator:
-        type: string
-        required: false
-        default: "Ninja"
       runs-on:
         description: The platform on which the workflow will be run. Passed directly to jobs.<job_id>.runs-on.
         type: string
