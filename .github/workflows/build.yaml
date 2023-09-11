@@ -6,6 +6,20 @@ on:
         required: false
       TESTFILE_REPO:
         required: false
+      ARM7_BIOS:
+        required: false
+      ARM9_BIOS:
+        required: false
+      ARM7_DSI_BIOS:
+        required: false
+      ARM9_DSI_BIOS:
+        required: false
+      NDS_FIRMWARE:
+        required: false
+      DSI_FIRMWARE:
+        required: false
+      NDS_ROM:
+        required: false
       DSI_NAND_ARCHIVE:
         required: false
       DSI_NAND:
