@@ -76,8 +76,8 @@ runs:
       if: ${{ inputs.test-suite }}
       uses: actions/checkout@v3
       with:
-        repository: "${{ inputs.testfile-repo }}"
-        token: "${{ inputs.testfile-repo-token }}"
+        repository: "${{ inputs.test-suite && inputs.testfile-repo || 'NA' }}"
+        token: "${{ inputs.test-suite && inputs.testfile-repo-token || 'NA' }}"
         path: "${{ inputs.testfile-dir }}"
 
     - name: Prepare Test Files
