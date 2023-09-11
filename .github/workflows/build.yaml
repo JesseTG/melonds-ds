@@ -3,13 +3,13 @@ on:
   workflow_call:
     secrets:
       TESTFILE_REPO_TOKEN:
-        required: true
+        required: false
       TESTFILE_REPO:
-        required: true
+        required: false
       DSI_NAND_ARCHIVE:
-        required: true
+        required: false
       DSI_NAND:
-        required: true
+        required: false
     inputs:
       cmake-args:
         description: Additional arguments to pass to CMake.
