@@ -4,10 +4,6 @@ inputs:
   build-dir:
     description: The directory in which to build the project.
     required: true
-  ccache:
-    description: CCache variant
-    required: false
-    default: ccache
   ccache-cache-name:
     description: CCache cache name
     required: true
@@ -60,4 +56,5 @@ runs:
       uses: hendrikmuhs/ccache-action@v1.2.10
       with:
         key: ${{ inputs.ccache-cache-name }}
-        variant: ${{ inputs.ccache }}
+        variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }}
+        # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112

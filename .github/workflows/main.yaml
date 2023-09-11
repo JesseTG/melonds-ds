@@ -20,9 +20,7 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
-      ccache: sccache
       cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
-      # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
 
   macos:
     name: macOS (Universal)
