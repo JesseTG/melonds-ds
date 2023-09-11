@@ -74,6 +74,12 @@ jobs:
       - name: Check Out Source
         uses: actions/checkout@v3
 
+      - name: Install GCC Problem Matcher
+        uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
+        if: ${{ runner.os != 'Windows' }} # See https://github.com/root-project/gcc-problem-matcher-improved/issues/3
+        with:
+          build-directory: ${{ env.BUILD_DIR }}
+
       - name: Install Dependencies
         uses: ./.github/actions/deps
         with:
