@@ -56,5 +56,6 @@ runs:
       uses: hendrikmuhs/ccache-action@v1.2.10
       with:
         key: ${{ inputs.ccache-cache-name }}
+        append-timestamp: false
         variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }}
         # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
