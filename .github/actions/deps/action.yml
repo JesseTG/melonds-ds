@@ -73,7 +73,7 @@ runs:
         # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
 
     - name: Download Test Files
-      if: inputs.test-suite == "true"
+      if: inputs.test-suite == 'true'
       uses: actions/checkout@v3
       with:
         repository: "${{ inputs.testfile-repo }}"
@@ -81,13 +81,13 @@ runs:
         path: "${{ inputs.testfile-dir }}"
 
     - name: Prepare Test Files
-      if: inputs.test-suite == "true"
+      if: inputs.test-suite == 'true'
       working-directory: "${{ inputs.testfile-dir }}"
       shell: bash
       run: 7z x "${{ inputs.dsi-nand-archive }}"
 
     - name: Check Out RetroArch
-      if: inputs.test-suite == "true"
+      if: inputs.test-suite == 'true'
       uses: actions/checkout@v3
       with:
         repository: libretro/RetroArch
@@ -96,7 +96,7 @@ runs:
         token: "${{ inputs.testfile-repo-token }}"
 
     - name: Configure RetroArch
-      if: inputs.test-suite == "true"
+      if: inputs.test-suite == 'true'
       env:
         CC: "ccache gcc"
         CXX: "ccache g++"
@@ -156,7 +156,7 @@ runs:
           --enable-sse
 
     - name: Build RetroArch
-      if: inputs.test-suite == "true"
+      if: inputs.test-suite == 'true'
       shell: bash
       working-directory: "${{ github.workspace }}/RetroArch"
       run: make -j$(nproc)
