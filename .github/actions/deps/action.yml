@@ -34,8 +34,13 @@ runs:
       if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: cmake ninja-build libepoxy-dev ccache
+        packages: cmake ninja-build libepoxy-dev ccache p7zip-full xvfb libx11-xcb-dev
         version: 1.0
+
+    - name: Install Dependencies (Linux x86_64/Android + act)
+      if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+      shell: bash
+      run: sudo apt-get update -y && sudo apt-get install -y libepoxy-dev ccache ninja-build cmake p7zip-full xvfb libx11-xcb-dev
 
     - name: Install Cross-Compile Support (Linux aarch64)
       if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
