@@ -20,11 +20,6 @@ on:
         type: string
         required: false
         default: "Ninja"
-      deps:
-        description: The script that installs dependencies.
-        type: string
-        required: false
-        default: echo No deps
       runs-on:
         description: The platform on which the workflow will be run. Passed directly to jobs.<job_id>.runs-on.
         type: string
