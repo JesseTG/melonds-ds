@@ -1,6 +1,15 @@
 name: Build (Internal)
 on:
   workflow_call:
+    secrets:
+      TESTFILE_REPO_TOKEN:
+        required: true
+      TESTFILE_REPO:
+        required: true
+      DSI_NAND_ARCHIVE:
+        required: true
+      DSI_NAND:
+        required: true
     inputs:
       cmake-args:
         description: Additional arguments to pass to CMake.
