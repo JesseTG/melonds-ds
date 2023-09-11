@@ -43,7 +43,11 @@ jobs:
       runs-on: ubuntu-latest
       lib-ext: so
       test-suite: true
-    secrets: inherit
+    secrets:
+      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
+      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
+      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
+      DSI_NAND: ${{ secrets.DSI_NAND }}
 
   linux-aarch64:
     name: Linux (aarch64)
