@@ -4,13 +4,12 @@ inputs:
   build-dir:
     description: The directory in which to build the project.
     required: true
+  target:
+    description: Platform target
+    required: true
 runs:
   using: composite
   steps:
-    - run: echo "${{ toJSON(github) }}" # Debugging
-      shell: bash
-    - run: echo "${{ toJSON(job) }}" # Debugging
-      shell: bash
     - name: Install GCC Problem Matcher
       uses: root-project/gcc-problem-matcher-improved@9d83f12b27a78210f0485fb188e08d94fa807a6d
       if: ${{ runner.os != 'Windows' }} # See https://github.com/root-project/gcc-problem-matcher-improved/issues/3
@@ -32,20 +31,20 @@ runs:
 
       # Skip this step on act due to https://github.com/nektos/act/issues/1849
     - name: Install Dependencies (Linux x86_64/Android)
-      if: ${{ !env.ACT && runner.os == 'Linux' && !contains(github.job, 'aarch64') }}
+      if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: cmake ninja-build libepoxy-dev ccache
         version: 1.0
 
     - name: Install Cross-Compile Support (Linux aarch64)
-      if: ${{ runner.os == 'Linux' && contains(github.job, 'aarch64') }}
+      if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
       uses: JesseTG/gha-ubuntu-cross@d4db19532db7c115bee0d051944c226c5057cd4a # Fork needed due to https://github.com/cyberjunk/gha-ubuntu-cross/pull/4
       with:
         arch: arm64
 
     - name: Install Dependencies (Linux aarch64)
-      if: ${{ runner.os == 'Linux' && contains(github.job, 'aarch64') }}
+      if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@dev
       with:
         packages: cmake ninja-build libepoxy-dev:arm64 ccache
@@ -54,7 +53,7 @@ runs:
     - name: Set Up CCache
       uses: hendrikmuhs/ccache-action@v1.2.10
       with:
-        key: ${{ github.job }}-${{ matrix.build-type }}
+        key: ${{ inputs.target }}-${{ matrix.build-type }}
         append-timestamp: false
         variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }}
         # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112

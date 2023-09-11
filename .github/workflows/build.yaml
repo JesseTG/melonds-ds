@@ -57,6 +57,10 @@ on:
         description: The name of the archive to upload.
         type: string
         required: true
+      target:
+        description: The platform target.
+        type: string
+        required: true
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
@@ -79,6 +83,7 @@ jobs:
         uses: ./.github/actions/deps
         with:
           build-dir: ${{ env.BUILD_DIR }}
+          target: ${{ inputs.target }}
 
       - name: Create build environment
         run: mkdir -vp "${{ env.BUILD_DIR }}"
