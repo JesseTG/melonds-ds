@@ -11,7 +11,7 @@ if (NOT NDS_ROM)
     message(WARNING "NDS_ROM must be set to the path of an NDS ROM")
     set(NDS_ROM "NDS_ROM-NOTFOUND" CACHE FILEPATH "Path to an NDS ROM" FORCE)
 else()
-    message(STATUS "NDS_ROM: ${NDS_ROM}")
+    message(DEBUG "NDS_ROM: ${NDS_ROM}")
 endif()
 
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
@@ -32,7 +32,7 @@ function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
         endif()
     endif()
 
-    message(STATUS "${BIOS_NAME}: ${${BIOS_NAME}} (${BIOS_SIZE} bytes, MD5=${BIOS_MD5})")
+    message(DEBUG "${BIOS_NAME}: ${${BIOS_NAME}} (${BIOS_SIZE} bytes, MD5=${BIOS_MD5})")
 endfunction()
 
 
