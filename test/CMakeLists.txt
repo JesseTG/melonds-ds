@@ -5,6 +5,11 @@ if (NOT RETROARCH)
 endif()
 message(STATUS "RETROARCH: ${RETROARCH}")
 
+if (NOT EMUTEST)
+    find_program(EMUTEST emutest REQUIRED)
+endif()
+message(STATUS "EMUTEST: ${EMUTEST}")
+
 cmake_path(GET RETROARCH PARENT_PATH RETROARCH_DIR)
 
 if (NOT NDS_ROM)
@@ -121,9 +126,75 @@ function(add_retroarch_test)
     endif()
 endfunction()
 
+function(add_emutest_test)
+    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND)
+    set(oneValueArgs NAME TEST_SCRIPT CONTENT)
+    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
+    cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    add_test(
+        NAME "${RETRO_NAME}"
+        COMMAND ${Python3_EXECUTABLE}
+        "${CMAKE_CURRENT_SOURCE_DIR}/python/emutest.py"
+        -L "$<TARGET_FILE:libretro>"
+        -r "${RETRO_CONTENT}"
+        -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/${RETRO_TEST_SCRIPT}"
+    )
+
+    list(APPEND REQUIRED_FILES "$<TARGET_FILE:libretro>")
+    if (RETRO_CONTENT)
+        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
+    endif()
+
+    list(APPEND ENVIRONMENT "EMUTEST=${EMUTEST}")
+    list(APPEND ENVIRONMENT ${RETRO_CORE_OPTION}) # Not an omission, this is already a list
+
+    macro(expose_system_file SYSFILE)
+        if (RETRO_${SYSFILE})
+            list(APPEND REQUIRED_FILES "${${SYSFILE}}")
+            list(APPEND ENVIRONMENT "${SYSFILE}=${${SYSFILE}}")
+        endif()
+    endmacro()
+
+    expose_system_file(ARM7_BIOS)
+    expose_system_file(ARM9_BIOS)
+    expose_system_file(ARM7_DSI_BIOS)
+    expose_system_file(ARM9_DSI_BIOS)
+    expose_system_file(NDS_FIRMWARE)
+    expose_system_file(DSI_FIRMWARE)
+    expose_system_file(DSI_NAND)
+
+    set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
+
+    # emutest only supports a pre-defined base directory, so we can only run one emutest test at a time
+    set_tests_properties("${RETRO_NAME}" PROPERTIES RESOURCE_LOCK "homedir")
+    if (RETRO_PASS_REGULAR_EXPRESSION)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_FAIL_REGULAR_EXPRESSION)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_SKIP_REGULAR_EXPRESSION)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_REGULAR_EXPRESSION "${RETRO_SKIP_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_WILL_FAIL)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES WILL_FAIL TRUE)
+    endif()
+endfunction()
+
 add_retroarch_test(
     NAME "RetroArch loads melonDS DS"
     CONTENT "${NDS_ROM}"
+)
+
+add_emutest_test(
+    NAME "emutest loads melonDS DS"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "loads-core.lua"
 )
 
 # See https://github.com/JesseTG/melonds-ds/issues/51
