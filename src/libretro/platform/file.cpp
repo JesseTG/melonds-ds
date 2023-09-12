@@ -219,7 +219,14 @@ u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
     if (!file || !data)
         return 0;
 
-    return filestream_read(file->file, data, size * count);
+    int64_t bytesRead = filestream_read(file->file, data, size * count);
+    if (bytesRead < 0) {
+        retro::error("Failed to read from file \"%s\"", filestream_get_path(file->file));
+    } else if (bytesRead != size * count) {
+        retro::warn("Read %lld bytes from file \"%s\", expected %llu", bytesRead, filestream_get_path(file->file), size * count);
+    }
+
+    return bytesRead;
 }
 
 bool Platform::FileFlush(FileHandle* file)
@@ -260,7 +267,11 @@ u64 Platform::FileLength(FileHandle* file)
     if (!file)
         return 0;
 
-    return filestream_get_size(file->file);
+    int64_t size = filestream_get_size(file->file);
+    if (filestream_error(file->file)) {
+        retro::error("Failed to get size of file \"%s\"", filestream_get_path(file->file));
+    }
+    return size;
 }
 
 void melonds::file::init() {
