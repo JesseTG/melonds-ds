@@ -166,3 +166,8 @@ jobs:
           name: "${{ inputs.archive-name }}-${{ matrix.build-type }}"
           if-no-files-found: error
           path: "${{ env.DIST_DIR }}"
+
+      - name: Run Test Suite
+        if: ${{ inputs.test-suite }}
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: xvfb-run ctest --extra-verbose --exclude-regex example --output-on-failure

@@ -57,6 +57,7 @@ config = {
     "log_dir": log_dir,
     "log_to_file_timestamp": "false",
     "log_verbosity": "true",
+    "menu_driver": "rgui",
     "microphone_driver": "null",
     "midi_driver": "null",
     "network_cmd_enable": "false",
@@ -65,6 +66,7 @@ config = {
     "system_directory": system_dir,
     "savefile_directory": save_dir,
     "savestate_directory": savestate_directory,
+    "video_driver": "glcore",
 }
 
 
