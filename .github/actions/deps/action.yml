@@ -158,3 +158,14 @@ runs:
       shell: bash
       working-directory: "${{ github.workspace }}/RetroArch"
       run: make -j$(nproc)
+
+    - name: Install Go
+      if: inputs.test-suite == 'true'
+      uses: actions/setup-go@v4
+      with:
+        go-version: '^1.21.0'
+
+    - name: Install Emutest
+      if: inputs.test-suite == 'true'
+      shell: bash
+      run: go install github.com/kivutar/emutest@latest
