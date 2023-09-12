@@ -5,8 +5,6 @@ import subprocess
 import shutil
 import sys
 
-print("doge")
-
 SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS_FIRMWARE", "DSI_FIRMWARE", "DSI_NAND")
 emutest_path = os.environ["EMUTEST"]
 
