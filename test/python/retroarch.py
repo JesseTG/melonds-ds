@@ -86,7 +86,7 @@ def retroarch():
 
     logpath = os.path.join(tempdir, "logs", "retroarch.log")
 
-    with subprocess.Popen((retroarch_path,  f"--config={config_path}", "--verbose", f"--log-file={logpath}", *sys.argv[1:]), stdout=subprocess.PIPE, cwd=tempdir, text=True) as process:
+    with subprocess.Popen((retroarch_path,  f"--config={config_path}", "--verbose", f"--log-file={logpath}", *sys.argv[1:]), cwd=tempdir, text=True) as process:
         print(process.args)
         result = process.wait(30)
 
