@@ -51,6 +51,7 @@ config = {
     "audio_enable": "false",
     "camera_driver": "null",
     "frontend_log_level": "0",
+    "gamemode_enable": "false",
     "libretro_log_level": "0",
     "input_pause_toggle": "nul",
     "log_to_file": "true",
