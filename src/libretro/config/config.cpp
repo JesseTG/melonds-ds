@@ -1137,16 +1137,26 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
     using namespace Platform;
 
     // Try to open the configured firmware dump.
-    FileHandle* file = OpenLocalFile(firmwarePath, FileMode::Read);
+    RFILE* file = filestream_open(firmwarePath.c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!file) {
         // If that fails...
         retro::error("Failed to open firmware file \"%s\" for reading", firmwarePath.c_str());
         return nullptr;
     }
 
+    int64_t fileSize = filestream_get_size(file);
+    unique_ptr<u8[]> buffer = make_unique<u8[]>(fileSize);
+    int64_t bytesRead = filestream_read(file, buffer.get(), fileSize);
+    filestream_close(file);
+
+    if (bytesRead != fileSize) {
+        // If we couldn't read the firmware file...
+        retro::error("Failed to read firmware file \"%s\"; got %lld bytes, expected %lld bytes", firmwarePath.c_str(), bytesRead, fileSize);
+        return nullptr;
+    }
+
     // Try to load the firmware dump into the object.
-    unique_ptr<SPI_Firmware::Firmware> firmware = make_unique<SPI_Firmware::Firmware>(file);
-    CloseFile(file);
+    unique_ptr<SPI_Firmware::Firmware> firmware = make_unique<SPI_Firmware::Firmware>(buffer.get(), fileSize);
 
     if (!firmware->Buffer()) {
         // If we failed to load the firmware...
