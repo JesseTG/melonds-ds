@@ -107,6 +107,7 @@ function(add_retroarch_test)
     expose_system_file(DSI_FIRMWARE)
     expose_system_file(DSI_NAND)
 
+    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "RetroArch")
     set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
     if (RETRO_PASS_REGULAR_EXPRESSION)
@@ -178,8 +179,10 @@ function(add_emutest_test)
     expose_system_file(DSI_FIRMWARE)
     expose_system_file(DSI_NAND)
 
+    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "emutest")
     set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 30)
 
     # emutest only supports a pre-defined base directory, so we can only run one emutest test at a time
     set_tests_properties("${RETRO_NAME}" PROPERTIES RESOURCE_LOCK "homedir")
