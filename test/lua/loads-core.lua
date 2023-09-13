@@ -1,3 +1,4 @@
+local preamble = dofile(os.getenv("PREAMBLE"))
 load_core(corepath)
 load_game(rompath)
 

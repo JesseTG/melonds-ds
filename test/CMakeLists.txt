@@ -134,25 +134,39 @@ function(add_emutest_test)
 
     add_test(
         NAME "${RETRO_NAME}"
-        COMMAND ${Python3_EXECUTABLE}
-        "${CMAKE_CURRENT_SOURCE_DIR}/python/emutest.py"
+        COMMAND ${EMUTEST}
         -L "$<TARGET_FILE:libretro>"
         -r "${RETRO_CONTENT}"
         -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/${RETRO_TEST_SCRIPT}"
     )
 
+    list(APPEND REQUIRED_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
     list(APPEND REQUIRED_FILES "$<TARGET_FILE:libretro>")
     if (RETRO_CONTENT)
         list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
     endif()
 
-    list(APPEND ENVIRONMENT "EMUTEST=${EMUTEST}")
-    list(APPEND ENVIRONMENT ${RETRO_CORE_OPTION}) # Not an omission, this is already a list
+
+    if (WIN32)
+        cmake_path(CONVERT "$ENV{USERPROFILE}\\.emutest" TO_CMAKE_PATH_LIST EMUTEST_HOME)
+        # emutest hardcodes a single root directory
+    else()
+        set(EMUTEST_HOME "$ENV{HOME}/.emutest")
+    endif()
+
+    list(APPEND ENVIRONMENT "EMUTEST_HOME=${EMUTEST_HOME}")
+    list(APPEND ENVIRONMENT "PREAMBLE=${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
+    list(JOIN RETRO_CORE_OPTION "\n" RETRO_CORE_OPTIONS)
+    list(APPEND ENVIRONMENT "RETRO_CORE_OPTIONS=${RETRO_CORE_OPTIONS}")
 
     macro(expose_system_file SYSFILE)
         if (RETRO_${SYSFILE})
+            cmake_path(GET ${SYSFILE} FILENAME filename)
+            # emutest doesn't use standard Lua; it uses a Go port that happens to not support regexes.
+            # So we have to pass in the basename separately.
             list(APPEND REQUIRED_FILES "${${SYSFILE}}")
             list(APPEND ENVIRONMENT "${SYSFILE}=${${SYSFILE}}")
+            list(APPEND ENVIRONMENT "${SYSFILE}_NAME=${filename}")
         endif()
     endmacro()
 
