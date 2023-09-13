@@ -53,6 +53,7 @@ config = {
     "frontend_log_level": "0",
     "gamemode_enable": "false",
     "libretro_log_level": "0",
+    "input_max_users": "8",
     "input_pause_toggle": "nul",
     "log_to_file": "true",
     "log_dir": log_dir,
@@ -60,6 +61,7 @@ config = {
     "log_verbosity": "true",
     "menu_driver": "rgui",
     "microphone_driver": "null",
+    "microphone_enable": "false",
     "midi_driver": "null",
     "network_cmd_enable": "false",
     "pause_nonactive": "false",
@@ -67,6 +69,7 @@ config = {
     "system_directory": system_dir,
     "savefile_directory": save_dir,
     "savestate_directory": savestate_directory,
+    "suspend_screensaver_enable": "false",
     "video_driver": "glcore",
 }
 
