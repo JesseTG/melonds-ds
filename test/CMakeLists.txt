@@ -285,6 +285,40 @@ add_emutest_test(
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
+add_emutest_test(
+    NAME "Core doesn't hang when resetting with native BIOS files, generated firmware, and direct boot (DSi)"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "no-hang-on-reboot.lua"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    DSI_NAND
+    CORE_OPTION melonds_firmware_dsi_path="/builtin"
+    CORE_OPTION melonds_console_mode="dsi"
+    CORE_OPTION melonds_dsi_nand_path="melonDS DS/dsi_nand.bin"
+    CORE_OPTION melonds_boot_directly="enabled"
+    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_show_cursor="disabled"
+)
+
+add_emutest_test(
+    NAME "Core doesn't hang when resetting with native BIOS files, generated firmware, and native boot (DSi)"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "no-hang-on-reboot.lua"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    DSI_NAND
+    CORE_OPTION melonds_firmware_dsi_path="/builtin"
+    CORE_OPTION melonds_console_mode="dsi"
+    CORE_OPTION melonds_dsi_nand_path="melonDS DS/dsi_nand.bin"
+    CORE_OPTION melonds_boot_directly="disabled"
+    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_show_cursor="disabled"
+)
+
 # See https://github.com/JesseTG/melonds-ds/issues/51
 add_retroarch_test(
     NAME "Core exposes config options to frontend"
