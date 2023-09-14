@@ -529,29 +529,6 @@ PUBLIC_SYMBOL void retro_reset(void) {
     }
 }
 
-static void melonds::parse_nds_rom(const struct retro_game_info &info) {
-    ZoneScopedN("melonds::parse_nds_rom");
-    _loaded_nds_cart = NDSCart::ParseROM(static_cast<const u8 *>(info.data), static_cast<u32>(info.size));
-
-    if (!_loaded_nds_cart) {
-        throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
-    }
-
-    retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\"", info.path);
-}
-
-static void melonds::parse_gba_rom(const struct retro_game_info &info) {
-    ZoneScopedN("melonds::parse_gba_rom");
-    _loaded_gba_cart = GBACart::ParseROM(static_cast<const u8 *>(info.data), static_cast<u32>(info.size));
-
-    if (!_loaded_gba_cart) {
-        throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
-    }
-
-    retro::log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", info.path);
-}
-
-
 static void melonds::load_games(
     const optional<struct retro_game_info> &nds_info,
     const optional<struct retro_game_info> &gba_info,
@@ -589,10 +566,16 @@ static void melonds::load_games(
     if (nds_info) {
         // NDS::Reset() calls wipes the cart buffer so on invoke we need a reload from info->data.
         // Since retro_reset callback doesn't pass the info struct we need to cache it.
-        parse_nds_rom(*nds_info);
+        {
+            ZoneScopedN("NDSCart::ParseROM");
+            _loaded_nds_cart = NDSCart::ParseROM(static_cast<const u8*>(nds_info->data), nds_info->size);
+        }
 
-        // sanity check; parse_nds_rom does the real validation
-        retro_assert(_loaded_nds_cart != nullptr);
+        if (!_loaded_nds_cart) {
+            throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
+        }
+
+        log(RETRO_LOG_DEBUG, "Loaded NDS ROM: \"%s\"", nds_info->path);
 
         if (!_loaded_nds_cart->GetHeader().IsDSiWare()) {
             // If this ROM represents a cartridge, rather than DSiWare...
@@ -605,7 +588,16 @@ static void melonds::load_games(
             // TODO: What if I force DS mode when using GBA SRAM?
             retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
         } else {
-            parse_gba_rom(*gba_info);
+            {
+                ZoneScopedN("GBACart::ParseROM");
+                _loaded_gba_cart = GBACart::ParseROM(static_cast<const u8*>(gba_info->data), gba_info->size);
+            }
+
+            if (!_loaded_gba_cart) {
+                throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
+            }
+
+            log(RETRO_LOG_DEBUG, "Loaded GBA ROM: \"%s\"", gba_info->path);
 
             if (gba_save_info) {
                 sram::InitGbaSram(*_loaded_gba_cart, *gba_save_info);
