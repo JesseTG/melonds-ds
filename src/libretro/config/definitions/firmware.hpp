@@ -46,7 +46,7 @@ namespace melonds::config::definitions {
             "Nintendo WFC IDs are saved to firmware, "
             "so switching firmware images may result in the loss of some WFC data. "
             "Ignored in DSi mode. "
-            "Takes effect at the next boot (not reset).",
+            "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
             {
@@ -70,7 +70,7 @@ namespace melonds::config::definitions {
             "Nintendo WFC IDs are saved to firmware, "
             "so switching firmware images may result in the loss of some WFC data. "
             "Ignored in DS mode. "
-            "Takes effect at the next boot (not reset).",
+            "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
             {

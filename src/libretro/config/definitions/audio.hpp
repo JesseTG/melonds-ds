@@ -78,7 +78,7 @@ namespace melonds::config::definitions {
             "and 16-bit audio for DSi mode.\n"
             "\n"
             "Takes effect at next restart. "
-            "If unsure, leave this set to Automatic.",
+            "If unsure, set to Automatic.",
             nullptr,
             config::audio::CATEGORY,
             {

@@ -32,7 +32,7 @@ namespace melonds::config::definitions {
             nullptr,
             "Recompiles emulated machine code into native code as it runs, "
             "considerably improving performance over plain interpretation. "
-            "Restart required to take effect. "
+            "Takes effect at next restart. "
             "If unsure, leave enabled.",
             nullptr,
             melonds::config::cpu::CATEGORY,
