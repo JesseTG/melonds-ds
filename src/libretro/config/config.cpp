@@ -87,10 +87,7 @@ namespace Config {
 }
 
 namespace melonds::config {
-    static void set_core_options(
-        const optional<retro_game_info> &nds_info,
-        const optional<NDSHeader> &nds_header
-    );
+    static void set_core_options() noexcept;
     namespace visibility {
         static bool ShowDsiOptions = true;
         static bool ShowDsiSdCardOptions = true;
@@ -353,7 +350,7 @@ namespace melonds::config {
 void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header,
                          ScreenLayoutData& screenLayout, InputState& inputState) {
     ZoneScopedN("melonds::InitConfig");
-    config::set_core_options(nds_info, header);
+    config::set_core_options();
     config::parse_system_options();
     config::parse_osd_options();
     config::parse_jit_options();
@@ -1603,10 +1600,9 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
     inputState.SetMaxCursorTimeout(screen::CursorTimeout());
 }
 
-static void melonds::config::set_core_options(
-    const optional<retro_game_info> &nds_info,
-    const optional<NDSHeader> &nds_header
-)  {
+// If I make an option depend on the game (e.g. different defaults for different games),
+// then I can have set_core_option accept a NDSHeader
+static void melonds::config::set_core_options() noexcept {
     ZoneScopedN("retro::set_core_options");
 
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
