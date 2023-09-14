@@ -536,14 +536,9 @@ static void melonds::load_games(
 ) {
     ZoneScopedN("melonds::load_games");
     melonds::clear_memory_config();
-    NDSHeader header;
-    if (nds_info) {
-        // Need to get the header before parsing the ROM,
-        // as parsing the ROM can depend on the config
-        // but the config can depend on the header.
-        memcpy(&header, nds_info->data, sizeof(header));
-    }
-    melonds::InitConfig(nds_info, nds_info ? make_optional(header) : nullopt, screenLayout, input_state);
+
+    const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
+    melonds::InitConfig(header, screenLayout, input_state);
 
     Platform::Init(0, nullptr);
 

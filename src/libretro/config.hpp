@@ -39,8 +39,7 @@ namespace melonds {
 
     /// Called when loading a game
     void InitConfig(
-        const std::optional<retro_game_info>& nds_info,
-        const std::optional<NDSHeader>& header,
+        const NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
         ScreenLayoutData& screenLayout,
         InputState& inputState
     );

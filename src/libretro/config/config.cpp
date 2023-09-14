@@ -116,16 +116,13 @@ namespace melonds::config {
     /// @returns true if the OpenGL state needs to be rebuilt
     static bool parse_video_options(bool initializing) noexcept;
     static void parse_screen_options() noexcept;
-    static void parse_homebrew_save_options(
-        const optional<struct retro_game_info>& nds_info,
-        const optional<NDSHeader>& header
-    );
+    static void parse_homebrew_save_options(const NDSHeader* header);
     static void parse_dsi_storage_options() noexcept;
 
-    static void apply_system_options(const optional <NDSHeader>& header);
+    static void apply_system_options(const NDSHeader* header);
 
     static void apply_audio_options() noexcept;
-    static void apply_save_options(const optional<NDSHeader>& header);
+    static void apply_save_options(const NDSHeader* header);
     static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
 
     namespace audio {
@@ -347,14 +344,17 @@ namespace melonds::config {
 }
 
 
-void melonds::InitConfig(const optional<struct retro_game_info>& nds_info, const optional<NDSHeader>& header,
-                         ScreenLayoutData& screenLayout, InputState& inputState) {
+void melonds::InitConfig(
+    const NDSHeader* header,
+    ScreenLayoutData& screenLayout,
+    InputState& inputState
+) {
     ZoneScopedN("melonds::InitConfig");
     config::set_core_options();
     config::parse_system_options();
     config::parse_osd_options();
     config::parse_jit_options();
-    config::parse_homebrew_save_options(nds_info, header);
+    config::parse_homebrew_save_options(header);
     config::parse_dsi_storage_options();
     config::parse_firmware_options();
     config::parse_audio_options();
@@ -980,15 +980,12 @@ static void melonds::config::parse_screen_options() noexcept {
 /**
  * Reads the frontend's saved homebrew save data options and applies them to the emulator.
  */
-static void melonds::config::parse_homebrew_save_options(
-    const optional<struct retro_game_info>& nds_info,
-    const optional<NDSHeader>& header
-) {
+static void melonds::config::parse_homebrew_save_options(const NDSHeader* header) {
     ZoneScopedN("melonds::config::parse_homebrew_save_options");
     using namespace melonds::config::save;
     using retro::get_variable;
 
-    if (!nds_info || !header || !header->IsHomebrew()) {
+    if (!header || !header->IsHomebrew()) {
         // If no game is loaded, or if a non-homebrew game is loaded...
         _dldiEnable = false;
         retro::debug("Not parsing homebrew save options, as no homebrew game is loaded");
@@ -1305,7 +1302,7 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
 // Then, fall back to other system files if needed and possible
 // If fallback is needed and not possible, throw an exception
 // Finally, install the system files
-static void InitNdsSystemConfig(const optional<NDSHeader>& header, bool tryNativeBios) {
+static void InitNdsSystemConfig(const NDSHeader* header, bool tryNativeBios) {
     ZoneScopedN("melonds::config::InitNdsSystemConfig");
     using namespace melonds::config::system;
     using namespace melonds;
@@ -1468,7 +1465,7 @@ static void InitDsiSystemConfig() {
     // TODO: Customize the equivalent firmware config on the DSi NAND
 }
 
-static void melonds::config::apply_system_options(const optional<NDSHeader>& header) {
+static void melonds::config::apply_system_options(const NDSHeader* header) {
     ZoneScopedN("melonds::config::apply_system_options");
     using namespace melonds::config::system;
     if (header && header->IsDSiWare()) {
@@ -1506,7 +1503,7 @@ static void melonds::config::apply_audio_options() noexcept {
     SPU::SetInterpolation(static_cast<int>(config::audio::Interpolation()));
 }
 
-static void melonds::config::apply_save_options(const optional<NDSHeader>& header) {
+static void melonds::config::apply_save_options(const NDSHeader* header) {
     ZoneScopedN("melonds::config::apply_save_options");
     using namespace config::save;
 
