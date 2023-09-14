@@ -93,8 +93,6 @@ namespace melonds {
         const optional<retro_game_info> &gba_info,
         const optional<retro_game_info> &gba_save_info
     );
-    static void parse_nds_rom(const struct retro_game_info &info);
-    static void parse_gba_rom(const struct retro_game_info &info);
     static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
@@ -673,7 +671,6 @@ static void melonds::load_games_deferred(
     ZoneScopedN("melonds::load_games_deferred");
     using retro::log;
 
-    // Loads the BIOS, too
     {
         ZoneScopedN("NDS::Reset");
         NDS::Reset();
