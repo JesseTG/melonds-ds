@@ -1474,6 +1474,8 @@ static void melonds::config::apply_system_options(const NDSHeader* header) {
         retro::warn("Forcing DSi mode for DSiWare game");
     }
 
+    NDS::SetConsoleType(static_cast<int>(melonds::config::system::ConsoleType()));
+
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
         InitDsiSystemConfig();

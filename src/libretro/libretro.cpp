@@ -636,9 +636,6 @@ static void melonds::load_games(
         throw std::runtime_error("Failed to initialize NDS emulator.");
     }
 
-    SPU::SetInterpolation(static_cast<int>(config::audio::Interpolation()));
-    NDS::SetConsoleType(static_cast<int>(config::system::ConsoleType()));
-
     // GPU config must be initialized before NDS::Reset is called.
     // Ensure that there's a renderer, even if we're about to throw it out.
     // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
