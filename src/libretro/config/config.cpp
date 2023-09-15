@@ -410,6 +410,8 @@ bool melonds::update_option_visibility() {
     using retro::set_option_visible;
     bool updated = false;
 
+    retro::debug("melonds::update_option_visibility");
+
     // Convention: if an option is not found, show any dependent options
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Show/hide OpenGL core options
