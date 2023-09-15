@@ -149,9 +149,11 @@ retro::task::TaskSpec::TaskSpec(TaskSpec&& other) noexcept {
 }
 
 retro::task::TaskSpec& retro::task::TaskSpec::operator=(TaskSpec&& other) noexcept {
-    FreeTask();
-    _task = other._task;
-    other._task = nullptr;
+    if (this != &other) {
+        FreeTask();
+        _task = other._task;
+        other._task = nullptr;
+    }
 
     return *this;
 }
