@@ -41,6 +41,7 @@
 using std::unique_ptr;
 using std::unordered_map;
 
+[[deprecated("Use specific Platform calls instead")]]
 static unique_ptr<unordered_map<Platform::FileHandle*, int>> flushTimers;
 
 namespace Platform {
@@ -277,6 +278,12 @@ u64 Platform::FileLength(FileHandle* file)
 void melonds::file::init() {
     retro_assert(flushTimers == nullptr);
     flushTimers = std::make_unique<unordered_map<Platform::FileHandle*, int>>();
+}
+
+void melonds::file::reset() noexcept {
+    for (auto& [file, timeUntilFlush] : *flushTimers) {
+        timeUntilFlush = 0;
+    }
 }
 
 void melonds::file::deinit() {

@@ -29,6 +29,7 @@ struct Platform::FileHandle {
 
 namespace melonds::file {
     void init();
+    void reset() noexcept;
     void deinit();
 
     [[deprecated("Each kind of file will get its own flush task")]]

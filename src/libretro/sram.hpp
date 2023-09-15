@@ -33,6 +33,7 @@ struct retro_game_info;
 
 namespace melonds::sram {
     void init();
+    void reset() noexcept;
     void deinit() noexcept;
     void InitNdsSave(const NdsCart &nds_cart);
     void InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info);

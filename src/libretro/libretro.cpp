@@ -514,6 +514,11 @@ PUBLIC_SYMBOL void retro_reset(void) {
     ZoneScopedN("retro_reset");
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
 
+    // Flush all data before resetting
+    melonds::file::reset();
+    melonds::sram::reset();
+    retro::task::check();
+
     {
         ZoneScopedN("NDS::Reset");
         NDS::Reset();

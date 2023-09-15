@@ -59,6 +59,12 @@ void melonds::sram::init() {
     TimeToFirmwareFlush = nullopt;
 }
 
+void melonds::sram::reset() noexcept {
+    ZoneScopedN("melonds::sram::reset");
+    TimeToGbaFlush = 0;
+    TimeToFirmwareFlush = 0;
+}
+
 void melonds::sram::deinit() noexcept {
     ZoneScopedN("melonds::sram::deinit");
     NdsSaveManager = nullptr;
