@@ -216,7 +216,7 @@ add_emutest_test(
 
 # See https://github.com/JesseTG/melonds-ds/issues/62
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with built-in system files and direct boot (NDS)"
+    NAME "Core resets when using built-in system files and direct boot (NDS)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     CORE_OPTION melonds_boot_directly="enabled"
@@ -224,7 +224,7 @@ add_emutest_test(
 )
 
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with native system files and direct boot (NDS)"
+    NAME "Core resets when using native system files and direct boot (NDS)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     ARM7_BIOS
@@ -237,7 +237,7 @@ add_emutest_test(
 )
 
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with native system files and native boot (NDS)"
+    NAME "Core resets when using native system files and native boot (NDS)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     ARM7_BIOS
@@ -250,7 +250,7 @@ add_emutest_test(
 )
 
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with native system files and direct boot (DSi)"
+    NAME "Core resets when using native system files and direct boot (DSi)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     ARM7_BIOS
@@ -268,7 +268,7 @@ add_emutest_test(
 )
 
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with native system files and native boot (DSi)"
+    NAME "Core resets when using native system files and native boot (DSi)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     ARM7_BIOS
@@ -286,7 +286,7 @@ add_emutest_test(
 )
 
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with native BIOS files, generated firmware, and direct boot (DSi)"
+    NAME "Core resets when using native BIOS files, generated firmware, and direct boot (DSi)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     ARM7_BIOS
@@ -303,7 +303,7 @@ add_emutest_test(
 )
 
 add_emutest_test(
-    NAME "Core doesn't hang when resetting with native BIOS files, generated firmware, and native boot (DSi)"
+    NAME "Core resets when using native BIOS files, generated firmware, and native boot (DSi)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
     ARM7_BIOS
