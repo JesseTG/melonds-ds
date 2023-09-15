@@ -641,20 +641,6 @@ static void melonds::load_games(
         throw std::runtime_error("Failed to initialize NDS emulator.");
     }
 
-    // GPU config must be initialized before NDS::Reset is called.
-    // Ensure that there's a renderer, even if we're about to throw it out.
-    // (GPU::SetRenderSettings may try to deinitialize a non-existing renderer)
-    bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
-    {
-        ZoneScopedN("GPU::InitRenderer");
-        GPU::InitRenderer(isOpenGl);
-    }
-    {
-        GPU::RenderSettings render_settings = config::video::RenderSettings();
-        ZoneScopedN("GPU::SetRenderSettings");
-        GPU::SetRenderSettings(isOpenGl, render_settings);
-    }
-
     if (render::CurrentRenderer() == Renderer::OpenGl) {
         log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
         deferred_initialization_pending = true;
@@ -672,6 +658,18 @@ static void melonds::load_games_deferred(
 ) {
     ZoneScopedN("melonds::load_games_deferred");
     using retro::log;
+
+    // GPU config must be initialized before NDS::Reset is called.
+    bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
+    {
+        ZoneScopedN("GPU::InitRenderer");
+        GPU::InitRenderer(isOpenGl);
+    }
+    {
+        GPU::RenderSettings render_settings = config::video::RenderSettings();
+        ZoneScopedN("GPU::SetRenderSettings");
+        GPU::SetRenderSettings(isOpenGl, render_settings);
+    }
 
     {
         ZoneScopedN("NDS::Reset");
