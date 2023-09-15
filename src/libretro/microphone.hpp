@@ -21,15 +21,15 @@
 #include <optional>
 
 namespace retro::microphone {
-    void init_interface() noexcept;
-    void clear_interface() noexcept;
+    [[deprecated("Wrap this in a class instead")]] void init_interface() noexcept;
+    [[deprecated("Wrap this in a class instead")]] void clear_interface() noexcept;
 
-    bool is_interface_available() noexcept;
-    bool set_open(bool open) noexcept;
-    bool is_open() noexcept;
-    bool set_state(bool on) noexcept;
-    std::optional<bool> get_state() noexcept;
-    std::optional<int> read(int16_t* samples, size_t num_samples) noexcept;
+    [[deprecated("Wrap this in a class instead")]] bool is_interface_available() noexcept;
+    [[deprecated("Wrap this in a class instead")]] bool set_open(bool open) noexcept;
+    [[deprecated("Wrap this in a class instead")]] bool is_open() noexcept;
+    [[deprecated("Wrap this in a class instead")]] bool set_state(bool on) noexcept;
+    [[deprecated("Wrap this in a class instead")]] std::optional<bool> get_state() noexcept;
+    [[deprecated("Wrap this in a class instead")]] std::optional<int> read(int16_t* samples, size_t num_samples) noexcept;
 }
 
 #endif //MELONDS_DS_MICROPHONE_HPP
