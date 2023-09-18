@@ -363,7 +363,7 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
     }
 }
 
-void Platform::WriteFirmware(const SPI_Firmware::Firmware &firmware, u32 writeoffset) {
+void Platform::WriteFirmware(const SPI_Firmware::Firmware &firmware, u32 writeoffset, u32 writelen) {
     ZoneScopedN("Platform::WriteFirmware");
 
     TimeToFirmwareFlush = melonds::config::save::FlushDelay();
