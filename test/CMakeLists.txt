@@ -221,6 +221,9 @@ add_emutest_test(
     TEST_SCRIPT "no-hang-on-reboot.lua"
     CORE_OPTION melonds_boot_directly="enabled"
     CORE_OPTION melonds_show_cursor="disabled"
+    CORE_OPTION melonds_use_external_bios="disabled"
+    CORE_OPTION melonds_firmware_nds_path="/builtin"
+    CORE_OPTION melonds_console_mode="ds"
 )
 
 add_emutest_test(
@@ -234,6 +237,7 @@ add_emutest_test(
     CORE_OPTION melonds_boot_directly="enabled"
     CORE_OPTION melonds_use_external_bios="enabled"
     CORE_OPTION melonds_show_cursor="disabled"
+    CORE_OPTION melonds_console_mode="ds"
 )
 
 add_emutest_test(

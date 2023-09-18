@@ -519,17 +519,43 @@ PUBLIC_SYMBOL void retro_reset(void) {
     melonds::sram::reset();
     retro::task::check();
 
+    const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
+    const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
+    melonds::InitConfig(header, melonds::screenLayout, melonds::input_state);
+
     {
         ZoneScopedN("NDS::Reset");
         NDS::Reset();
     }
 
-    melonds::first_frame_run = false;
+    if (nds_info) {
+        // We need to reload the ROM because it might need to be encrypted with a different key,
+        // depending on which console mode and BIOS mode is in effect.
+        std::unique_ptr<NDSCart::CartCommon> rom;
+        {
+            ZoneScopedN("NDSCart::ParseROM");
+            rom = NDSCart::ParseROM(static_cast<const u8*>(nds_info->data), nds_info->size);
+        }
+        if (rom->GetSaveMemory()) {
+            retro_assert(rom->GetSaveMemoryLength() == NDSCart::GetSaveMemoryLength());
+            memcpy(rom->GetSaveMemory(), NDSCart::GetSaveMemory(), NDSCart::GetSaveMemoryLength());
+        }
 
-    const auto &nds_info = retro::content::get_loaded_nds_info();
-    if (nds_info && melonds::_loaded_nds_cart && !melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
-        melonds::set_up_direct_boot(nds_info.value());
+        {
+            ZoneScopedN("NDSCart::InsertROM");
+            NDSCart::InsertROM(std::move(rom));
+        }
+        // TODO: Only reload the ROM if the BIOS mode, boot mode, or console mode has changed
+
+        retro_assert(NDSCart::Cart != nullptr);
+        if (NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
+            melonds::set_up_direct_boot(nds_info.value());
+        }
     }
+
+
+
+    melonds::first_frame_run = false;
 }
 
 static void melonds::load_games(
