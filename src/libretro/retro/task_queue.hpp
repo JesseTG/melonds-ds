@@ -44,7 +44,13 @@ namespace retro::task {
     public:
         // Exists to create a trivial task that does nothing.
         TaskSpec() noexcept = default;
-        TaskSpec(const TaskHandler& handler, const TaskCallback& callback = nullptr, const TaskHandler& cleanup = nullptr, retro_time_t when = ASAP, const std::string& title = "");
+        TaskSpec(
+            const TaskHandler& handler,
+            const TaskCallback& callback = nullptr,
+            const TaskHandler& cleanup = nullptr,
+            retro_time_t when = ASAP,
+            const std::string& title = ""
+        );
         ~TaskSpec() noexcept;
         TaskSpec(TaskSpec&& other) noexcept;
         TaskSpec(const TaskSpec& other) = delete;
