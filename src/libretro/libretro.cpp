@@ -76,6 +76,7 @@ namespace melonds {
     static bool isUnloading = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
+    static uint32_t flushTaskId = 0;
     static std::unique_ptr<NdsCart> _loaded_nds_cart;
     static std::unique_ptr<GbaCart> _loaded_gba_cart;
     static const char *const INTERNAL_ERROR_MESSAGE =
@@ -103,6 +104,17 @@ namespace melonds {
     // functions for running games
     static void read_microphone(melonds::InputState& inputState) noexcept;
     static void render_audio();
+    static void InitFlushFirmwareTask() noexcept
+    {
+        string_view firmwareName = config::system::FirmwarePath(config::system::ConsoleType());
+        if (TaskSpec flushTask = sram::FlushFirmwareTask(firmwareName)) {
+            flushTaskId = flushTask.Identifier();
+            retro::task::push(std::move(flushTask));
+        }
+        else {
+            retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
+        }
+    }
 
 
     bool IsUnloadingGame() noexcept
@@ -131,6 +143,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(!melonds::isInDeinit);
     retro_assert(!melonds::isUnloading);
     retro_assert(!melonds::mic_state_toggled);
+    retro_assert(melonds::flushTaskId == 0);
     srand(time(nullptr));
     melonds::input_state = melonds::InputState();
     melonds::sram::init();
@@ -495,6 +508,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::deferred_initialization_pending = false;
     melonds::first_frame_run = false;
     melonds::isInDeinit = false;
+    melonds::flushTaskId = 0;
     retro::env::deinit();
 }
 
@@ -637,13 +651,7 @@ static void melonds::load_games(
         retro::task::push(file::FlushTask());
     }
 
-    string_view firmwareName = config::system::FirmwarePath(config::system::ConsoleType());
-    if (TaskSpec flushTask = sram::FlushFirmwareTask(firmwareName)) {
-        retro::task::push(std::move(flushTask));
-    }
-    else {
-        retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
-    }
+    InitFlushFirmwareTask();
 
     if (_loaded_gba_cart && (NDS::IsLoadedARM9BIOSBuiltIn() || NDS::IsLoadedARM7BIOSBuiltIn() || SPI_Firmware::IsLoadedFirmwareBuiltIn())) {
         // If we're using FreeBIOS and are trying to load a GBA cart...
