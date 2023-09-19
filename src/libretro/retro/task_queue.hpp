@@ -31,10 +31,14 @@ namespace retro::task {
     using TaskHandler = std::function<void(TaskHandle&)>;
     using TaskCallback = std::function<void(TaskHandle&, void*, std::string_view)>;
 
+    using UnaryTaskFinder = std::function<bool(TaskHandle&)>;
+
     void init(bool threaded, retro_task_queue_msg_t msg_push) noexcept;
 
     /// Ignores invalid tasks.
     void push(TaskSpec&& task) noexcept;
+    bool find(const UnaryTaskFinder& finder) noexcept;
+
     void check() noexcept;
     void reset() noexcept;
     void deinit() noexcept;
@@ -61,6 +65,9 @@ namespace retro::task {
         [[nodiscard]] retro_time_t When() const noexcept { return _task ? _task->when : 0; }
         void When(retro_time_t when) noexcept { if (_task) _task->when = when; }
 
+        [[nodiscard]] uint32_t Identifier() const noexcept { return _task ? _task->ident : 0; }
+        void Identifier(uint32_t ident) noexcept { if (_task) _task->ident = ident; }
+
         operator bool() const noexcept { return _task != nullptr; }
     private:
         void FreeTask() noexcept;
@@ -78,7 +85,7 @@ namespace retro::task {
 
     class TaskHandle {
     public:
-        // Default destructor
+        // Default destructor (the task system will clean up the underlying task)
         ~TaskHandle() = default;
         TaskHandle(const TaskHandle& other) = delete;
         TaskHandle& operator=(const TaskHandle& other) = delete;
@@ -86,17 +93,18 @@ namespace retro::task {
         TaskHandle& operator=(TaskHandle&& other) = delete;
         [[nodiscard]] bool Valid() const noexcept { return _task != nullptr; }
         void Finish() noexcept;
+        void Cancel() noexcept;
         [[nodiscard]] bool IsCancelled() const noexcept;
         [[nodiscard]] bool IsFinished() const noexcept;
         void SetError(const std::string_view& error) noexcept;
         [[nodiscard]] std::string_view GetError() const noexcept;
+        [[nodiscard]] uint32_t Identifier() const noexcept { return _task->ident; }
     private:
         friend class TaskSpec;
+        friend bool find(const UnaryTaskFinder& finder) noexcept;
         TaskHandle(retro_task_t* task) noexcept;
         retro_task_t* _task;
     };
-
-
 }
 
 #endif //MELONDS_DS_TASK_QUEUE_HPP

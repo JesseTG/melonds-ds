@@ -46,6 +46,24 @@ void retro::task::push(TaskSpec&& task) noexcept {
     }
 }
 
+bool retro::task::find(const UnaryTaskFinder& finder) noexcept {
+    ZoneScopedN("retro::task::find");
+    if (finder == nullptr) {
+        return false;
+    }
+
+    task_finder_data_t finder_data {
+        .func = [](retro_task_t* task, void* data) noexcept {
+            const UnaryTaskFinder& finder = *(const UnaryTaskFinder*)data;
+            TaskHandle task_handle(task);
+            return finder(task_handle);
+        },
+        .userdata = (void*) &finder,
+    };
+
+    return task_queue_find(&finder_data);
+}
+
 void retro::task::wait() noexcept {
     ZoneScopedN("retro::task::wait");
     task_queue_wait(nullptr, nullptr); // wait for all tasks to finish
@@ -180,6 +198,10 @@ retro::task::TaskHandle::TaskHandle(retro_task_t* task) noexcept : _task(task) {
 
 void retro::task::TaskHandle::Finish() noexcept {
     task_set_finished(_task, true);
+}
+
+void retro::task::TaskHandle::Cancel() noexcept {
+    task_set_cancelled(_task, true);
 }
 
 bool retro::task::TaskHandle::IsCancelled() const noexcept {
