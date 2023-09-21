@@ -531,11 +531,21 @@ PUBLIC_SYMBOL void retro_reset(void) {
     // Flush all data before resetting
     melonds::file::reset();
     melonds::sram::reset();
+    retro::task::find([](retro::task::TaskHandle& task) {
+        if (task.Identifier() == melonds::flushTaskId) {
+            // If this is the flush task we want to cancel...
+            task.Cancel();
+            return true;
+        }
+        return false; // Keep looking...
+    });
     retro::task::check();
 
     const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
     melonds::InitConfig(header, melonds::screenLayout, melonds::input_state);
+
+    melonds::InitFlushFirmwareTask();
 
     {
         ZoneScopedN("NDS::Reset");
