@@ -168,4 +168,4 @@ runs:
     - name: Install Emutest
       if: inputs.test-suite == 'true'
       shell: bash
-      run: go install github.com/kivutar/emutest@latest
+      run: go install github.com/JesseTG/emutest@1e0e197
