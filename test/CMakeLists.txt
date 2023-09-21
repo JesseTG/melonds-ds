@@ -724,6 +724,88 @@ add_retroarch_test(
     REQUIRE_FILE_CREATED "system/melonDS DS/wfcsettings.bin"
 )
 
+### Overwriting Firmware
+
+add_emutest_test(
+    NAME "NDS firmware is not overwritten when switching from DS to DSi mode"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "firmware-not-overwritten.lua"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    NDS_FIRMWARE
+    DSI_FIRMWARE
+    DSI_NAND
+    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
+    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
+    CORE_OPTION melonds_console_mode="ds"
+    CORE_OPTION melonds_boot_directly="false"
+    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_show_cursor="disabled"
+)
+
+add_emutest_test(
+    NAME "NDS firmware is not overwritten when switching from DSi to NDS mode"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "firmware-not-overwritten.lua"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    NDS_FIRMWARE
+    DSI_FIRMWARE
+    DSI_NAND
+    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
+    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
+    CORE_OPTION melonds_console_mode="dsi"
+    CORE_OPTION melonds_boot_directly="false"
+    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_show_cursor="disabled"
+)
+
+add_emutest_test(
+    NAME "DSi firmware is not overwritten when switching from NDS to DSi mode"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "firmware-not-overwritten.lua"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    NDS_FIRMWARE
+    DSI_FIRMWARE
+    DSI_NAND
+    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
+    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
+    CORE_OPTION melonds_console_mode="dsi"
+    CORE_OPTION melonds_boot_directly="false"
+    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_show_cursor="disabled"
+)
+
+add_emutest_test(
+    NAME "DSi firmware is not overwritten when switching from DSi to NDS mode"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "firmware-not-overwritten.lua"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    NDS_FIRMWARE
+    DSI_FIRMWARE
+    DSI_NAND
+    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
+    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
+    CORE_OPTION melonds_console_mode="dsi"
+    CORE_OPTION melonds_boot_directly="false"
+    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_show_cursor="disabled"
+)
+
 # TODO: Write the following test capabilities:
 # - Copying a system file to a particular location
 # - Select a GBA ROM
