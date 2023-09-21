@@ -82,6 +82,13 @@ cmake --build build # Build the project
 ctest --test-dir build # Run the tests. (CTest is included with CMake)
 ```
 
+> [!WARNING]
+> There are different revisions of the DS and DSi's system files.
+> The test suite itself doesn't care which ones you use,
+> but certain bugs may only appear with particular firmware revisions.
+> If you can't reproduce a bug that should cause a test to fail,
+> try a different firmware image.
+
 [emutest]: https://github.com/kivutar/emutest
 [go]: https://go.dev
 [python]: https://www.python.org
