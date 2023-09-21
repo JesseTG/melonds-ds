@@ -42,6 +42,7 @@ for s in SYSTEM_FILES:
         sysfile = os.environ[s]
         assert os.path.exists(sysfile)
         shutil.copy2(sysfile, os.path.join(core_system_dir, os.path.basename(sysfile)))
+        # TODO: For the ARM BIOS files, hardcode the destination filename to "bios7.bin", etc.
 
 # Create a bare-bones RetroArch config.
 # RetroArch itself will add defaults for any missing options.

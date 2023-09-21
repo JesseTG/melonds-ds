@@ -22,6 +22,7 @@ for _, f in ipairs(SYSTEM_FILES) do
         local sysname = os.getenv(f .. "_NAME")
         assert(sysname ~= nil and sysname ~= "")
         local cmd = string.format('cmake -E copy "%s" "%s/%s"', sysfile, core_system_dir, sysname)
+        -- TODO: For the ARM BIOS files, hardcode the destination filename to "bios7.bin", etc.
         os.execute(cmd)
     end
 end
