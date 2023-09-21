@@ -646,11 +646,6 @@ static void melonds::load_games(
         }
     }
 
-    if (config::system::ConsoleType() == ConsoleType::DSi || (_loaded_nds_cart && _loaded_nds_cart->GetHeader().IsHomebrew() && config::save::DldiEnable() && !config::save::DldiReadOnly())) {
-        // If we're dealing with any FAT filesystem (because of the DSi or because of homebrew)...
-        retro::task::push(file::FlushTask());
-    }
-
     InitFlushFirmwareTask();
 
     if (_loaded_gba_cart && (NDS::IsLoadedARM9BIOSBuiltIn() || NDS::IsLoadedARM7BIOSBuiltIn() || SPI_Firmware::IsLoadedFirmwareBuiltIn())) {
