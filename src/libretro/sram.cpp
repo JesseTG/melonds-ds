@@ -29,6 +29,7 @@
 #include <NDS.h>
 #include <Platform.h>
 #include <SPI.h>
+#include <string/stdstring.h>
 
 #include "config.hpp"
 #include "config/constants.hpp"
@@ -145,6 +146,19 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
 
     if (firmware->Header().Identifier != SPI_Firmware::GENERATED_FIRMWARE_IDENTIFIER) {
         // If this is a native firmware blob...
+        int32_t existingFirmwareFileSize = path_get_size(firmwarePath.c_str());
+        if (existingFirmwareFileSize == -1)  {
+            retro::warn("Expected firmware \"%s\" to exist before updating, but it doesn't", firmwarePath.c_str());
+        }
+        else if (existingFirmwareFileSize != firmware->Length()) {
+            retro::warn(
+                "In-memory firmware is %u bytes, but destination file \"%s\" has %u bytes",
+                firmware->Length(),
+                firmwarePath.c_str(),
+                existingFirmwareFileSize
+            );
+        }
+        retro_assert(!string_ends_with(firmwarePath.c_str(), "//builtin"));
         Firmware firmwareCopy(*firmware);
         // TODO: Apply the original values of the settings that were overridden
         if (filestream_write_file(firmwarePath.c_str(), firmware->Buffer(), firmware->Length())) {
@@ -154,19 +168,32 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
             retro::error("Failed to write %u-byte firmware to \"%s\"", firmware->Length(), firmwarePath.c_str());
         }
     } else {
+        u32 expectedWfcSettingsSize = sizeof(firmware->ExtendedAccessPoints()) + sizeof(firmware->AccessPoints());
+        int32_t existingWfcSettingsSize = path_get_size(wfcSettingsPath.c_str());
+        if (existingWfcSettingsSize == -1)  {
+            retro::debug("Wi-Fi settings file at \"%s\" doesn't exist, creating it", wfcSettingsPath.c_str());
+        }
+        else if (existingWfcSettingsSize != expectedWfcSettingsSize) {
+            retro::warn(
+                "In-memory WFC settings is %u bytes, but destination file \"%s\" has %u bytes",
+                expectedWfcSettingsSize,
+                wfcSettingsPath.c_str(),
+                existingWfcSettingsSize
+            );
+        }
+        retro_assert(string_ends_with(wfcSettingsPath.c_str(), "/wfcsettings.bin"));
         u32 eapstart = firmware->ExtendedAccessPointOffset();
         u32 eapend = eapstart + sizeof(firmware->ExtendedAccessPoints());
         u32 apstart = firmware->WifiAccessPointOffset();
 
         // assert that the extended access points come just before the regular ones
-        assert(eapend == apstart);
+        retro_assert(eapend == apstart);
 
         const u8* buffer = firmware->ExtendedAccessPointPosition();
-        u32 length = sizeof(firmware->ExtendedAccessPoints()) + sizeof(firmware->AccessPoints());
-        if (filestream_write_file(wfcSettingsPath.c_str(), buffer, length)) {
-            retro::debug("Flushed %u-byte WFC settings to \"%s\"", length, wfcSettingsPath.c_str());
+        if (filestream_write_file(wfcSettingsPath.c_str(), buffer, expectedWfcSettingsSize)) {
+            retro::debug("Flushed %u-byte WFC settings to \"%s\"", expectedWfcSettingsSize, wfcSettingsPath.c_str());
         } else {
-            retro::error("Failed to write %u-byte WFC settings to \"%s\"", length, wfcSettingsPath.c_str());
+            retro::error("Failed to write %u-byte WFC settings to \"%s\"", expectedWfcSettingsSize, wfcSettingsPath.c_str());
         }
     }
 }
