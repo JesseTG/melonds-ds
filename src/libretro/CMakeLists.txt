@@ -58,6 +58,8 @@ add_library(libretro MODULE
     render.hpp
     retro/dirent.cpp
     retro/dirent.hpp
+    retro/scaler.cpp
+    retro/scaler.hpp
     retro/task_queue.cpp
     retro/task_queue.hpp
     screenlayout.cpp
