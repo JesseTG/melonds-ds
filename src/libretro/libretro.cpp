@@ -815,68 +815,76 @@ static void melonds::set_up_direct_boot(const retro_game_info &nds_info) {
 }
 
 retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
-    return retro::task::TaskSpec([](retro::task::TaskHandle&) noexcept {
-        using std::to_string;
-        ZoneScopedN("melonds::OnScreenDisplayTask");
-        constexpr const char* const OSD_DELIMITER = " || ";
-        constexpr const char* const OSD_YES = "✔";
-        constexpr const char* const OSD_NO = "✘";
+    return retro::task::TaskSpec(
+        [](retro::task::TaskHandle&) noexcept {
+            using std::to_string;
+            ZoneScopedN("melonds::OnScreenDisplayTask");
+            constexpr const char* const OSD_DELIMITER = " || ";
+            constexpr const char* const OSD_YES = "✔";
+            constexpr const char* const OSD_NO = "✘";
 
-        std::string text;
-        text.reserve(1024);
+            // TODO: If an on-screen display isn't supported, finish the task
 
-        if (config::osd::ShowPointerCoordinates()) {
-            glm::i16vec2 pointerInput = input_state.PointerInput();
-            glm::ivec2 touch = input_state.TouchPosition();
-            text += "Pointer: (" + to_string(pointerInput.x) + ", " + to_string(pointerInput.y) + ") → (" + to_string(touch.x) + ", " + to_string(touch.y) + ")";
-        }
+            std::string text;
+            text.reserve(1024);
 
-        if (config::osd::ShowMicState()) {
-            optional<bool> mic_state = retro::microphone::get_state();
+            if (config::osd::ShowPointerCoordinates()) {
+                glm::i16vec2 pointerInput = input_state.PointerInput();
+                glm::ivec2 touch = input_state.TouchPosition();
+                text += "Pointer: (" + to_string(pointerInput.x) + ", " + to_string(pointerInput.y) + ") → (" + to_string(touch.x) + ", " + to_string(touch.y) + ")";
+            }
 
-            if (mic_state && *mic_state) {
-                // If the microphone is open and turned on...
+            if (config::osd::ShowMicState()) {
+                optional<bool> mic_state = retro::microphone::get_state();
+
+                if (mic_state && *mic_state) {
+                    // If the microphone is open and turned on...
+                    if (!text.empty()) {
+                        text += OSD_DELIMITER;
+                    }
+
+                    // Toggle between a filled circle and an empty one every 1.5 seconds
+                    // (kind of like a blinking "recording" light)
+                    text += (NDS::NumFrames % 120 > 60) ? "●" : "○";
+                }
+            }
+
+            if (config::osd::ShowCurrentLayout()) {
                 if (!text.empty()) {
                     text += OSD_DELIMITER;
                 }
 
-                // Toggle between a filled circle and an empty one every 1.5 seconds
-                // (kind of like a blinking "recording" light)
-                text += (NDS::NumFrames % 120 > 60) ? "●" : "○";
-            }
-        }
+                unsigned layout = screenLayout.LayoutIndex();
+                unsigned numberOfLayouts = screenLayout.NumberOfLayouts();
 
-        if (config::osd::ShowCurrentLayout()) {
+                text += "Layout " + to_string(layout + 1) + "/" + to_string(numberOfLayouts);
+            }
+
+            if (config::osd::ShowLidState() && NDS::IsLidClosed()) {
+                if (!text.empty()) {
+                    text += OSD_DELIMITER;
+                }
+
+                text += "Closed";
+            }
+
             if (!text.empty()) {
-                text += OSD_DELIMITER;
+                retro_message_ext message {
+                    .msg = text.c_str(),
+                    .duration = 60,
+                    .priority = 0,
+                    .level = RETRO_LOG_DEBUG,
+                    .target = RETRO_MESSAGE_TARGET_OSD,
+                    .type = RETRO_MESSAGE_TYPE_STATUS,
+                    .progress = -1
+                };
+                retro::set_message(&message);
             }
 
-            unsigned layout = screenLayout.LayoutIndex();
-            unsigned numberOfLayouts = screenLayout.NumberOfLayouts();
-
-            text += "Layout " + to_string(layout + 1) + "/" + to_string(numberOfLayouts);
-        }
-
-        if (config::osd::ShowLidState() && NDS::IsLidClosed()) {
-            if (!text.empty()) {
-                text += OSD_DELIMITER;
-            }
-
-            text += "Closed";
-        }
-
-        if (!text.empty()) {
-            retro_message_ext message {
-                .msg = text.c_str(),
-                .duration = 60,
-                .priority = 0,
-                .level = RETRO_LOG_DEBUG,
-                .target = RETRO_MESSAGE_TARGET_OSD,
-                .type = RETRO_MESSAGE_TYPE_STATUS,
-                .progress = -1
-            };
-            retro::set_message(&message);
-        }
-
-    });
+        },
+        nullptr,
+        nullptr,
+        retro::task::ASAP,
+        "OnScreenDisplayTask"
+    );
 }

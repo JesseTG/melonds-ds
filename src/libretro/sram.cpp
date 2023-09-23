@@ -216,7 +216,9 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
             ZoneScopedN("melonds::sram::FlushGbaSramTask::Cleanup");
             FlushGbaSram(task, info);
             TimeToGbaFlush = nullopt;
-        }
+        },
+        retro::task::ASAP,
+        "GBA SRAM Flush"
     );
 
     return task;
@@ -252,7 +254,9 @@ retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName)
             ZoneScopedN("melonds::sram::FlushFirmwareTask::Cleanup");
             FlushFirmware(path, wfcSettingsPath);
             TimeToFirmwareFlush = nullopt;
-        }
+        },
+        retro::task::ASAP,
+        "Firmware Flush"
     );
 }
 

@@ -48,47 +48,53 @@ static u8 GetDsiBatteryLevel(u8 percent) noexcept {
 
 retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
 {
-    retro::task::TaskSpec updatePowerStatus([timeToPowerStatusUpdate=0](retro::task::TaskHandle& task) mutable noexcept {
-        ZoneScopedN("melonds::power::PowerStatusUpdateTask");
-        if (!retro::supports_power_status()) {
-            // If this frontend or device doesn't support querying the power status...
-            task.Finish();
-            return;
-        }
-
-        if (timeToPowerStatusUpdate > 0) {
-            // If we'll be checking the power status soon...
-            timeToPowerStatusUpdate--;
-        }
-
-        if (timeToPowerStatusUpdate == 0) {
-            // If it's time to check the power status...
-
-            if (optional<retro_device_power> devicePower = retro::get_device_power()) {
-                // ...and the check succeeded...
-                bool charging = devicePower->state == RETRO_POWERSTATE_CHARGING || devicePower->state == RETRO_POWERSTATE_PLUGGED_IN;
-                switch (config::system::ConsoleType()) {
-                    case ConsoleType::DS: {
-                        // If the threshold is 0, the battery level is always okay
-                        // If the threshold is 100, the battery level is never okay
-                        bool ok = charging || static_cast<unsigned>(devicePower->percent) > config::system::DsPowerOkayThreshold();
-                        SPI_Powerman::SetBatteryLevelOkay(ok);
-                        break;
-                    }
-                    case ConsoleType::DSi: {
-                        u8 batteryLevel = GetDsiBatteryLevel(devicePower->percent == RETRO_POWERSTATE_NO_ESTIMATE ? 100 : devicePower->percent);
-                        DSi_BPTWL::SetBatteryCharging(charging);
-                        DSi_BPTWL::SetBatteryLevel(batteryLevel);
-                        break;
-                    }
-                }
-            } else {
-                retro::warn("Failed to get device power status\n");
+    retro::task::TaskSpec updatePowerStatus(
+        [timeToPowerStatusUpdate=0](retro::task::TaskHandle& task) mutable noexcept {
+            ZoneScopedN("melonds::power::PowerStatusUpdateTask");
+            if (!retro::supports_power_status()) {
+                // If this frontend or device doesn't support querying the power status...
+                task.Finish();
+                return;
             }
 
-            timeToPowerStatusUpdate = config::system::PowerUpdateInterval() * 60; // Reset the timer
-        }
-    });
+            if (timeToPowerStatusUpdate > 0) {
+                // If we'll be checking the power status soon...
+                timeToPowerStatusUpdate--;
+            }
+
+            if (timeToPowerStatusUpdate == 0) {
+                // If it's time to check the power status...
+
+                if (optional<retro_device_power> devicePower = retro::get_device_power()) {
+                    // ...and the check succeeded...
+                    bool charging = devicePower->state == RETRO_POWERSTATE_CHARGING || devicePower->state == RETRO_POWERSTATE_PLUGGED_IN;
+                    switch (config::system::ConsoleType()) {
+                        case ConsoleType::DS: {
+                            // If the threshold is 0, the battery level is always okay
+                            // If the threshold is 100, the battery level is never okay
+                            bool ok = charging || static_cast<unsigned>(devicePower->percent) > config::system::DsPowerOkayThreshold();
+                            SPI_Powerman::SetBatteryLevelOkay(ok);
+                            break;
+                        }
+                        case ConsoleType::DSi: {
+                            u8 batteryLevel = GetDsiBatteryLevel(devicePower->percent == RETRO_POWERSTATE_NO_ESTIMATE ? 100 : devicePower->percent);
+                            DSi_BPTWL::SetBatteryCharging(charging);
+                            DSi_BPTWL::SetBatteryLevel(batteryLevel);
+                            break;
+                        }
+                    }
+                } else {
+                    retro::warn("Failed to get device power status\n");
+                }
+
+                timeToPowerStatusUpdate = config::system::PowerUpdateInterval() * 60; // Reset the timer
+            }
+        },
+        nullptr,
+        nullptr,
+        retro::task::ASAP,
+        "PowerStatusUpdateTask"
+    );
 
     return updatePowerStatus;
 }
