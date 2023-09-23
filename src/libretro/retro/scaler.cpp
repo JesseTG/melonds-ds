@@ -64,7 +64,7 @@ retro::Scaler::Scaler(
     unsigned in_height,
     unsigned out_width,
     unsigned out_height
-) {
+) : scaler() {
     scaler.in_fmt = in_fmt;
     scaler.in_width = in_width;
     scaler.in_height = in_height;
