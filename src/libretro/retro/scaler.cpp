@@ -99,12 +99,14 @@ retro::Scaler::~Scaler() noexcept {
 }
 
 retro::Scaler::Scaler(Scaler&& other) noexcept {
+    scaler_ctx_gen_reset(&scaler);
     scaler = other.scaler;
     other.scaler = {};
 }
 
 retro::Scaler& retro::Scaler::operator=(Scaler&& other) noexcept {
     if (this != &other) {
+        scaler_ctx_gen_reset(&scaler);
         scaler = other.scaler;
         other.scaler = {};
     }
