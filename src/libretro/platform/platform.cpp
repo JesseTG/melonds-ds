@@ -16,6 +16,8 @@
 
 #include <array>
 #include <cstdarg>
+#include <cstdio>
+#include <memory>
 
 #include <gfx/scaler/scaler.h>
 #include <libretro.h>
@@ -28,12 +30,13 @@
 #include "../memory.hpp"
 #include "../environment.hpp"
 #include "../config.hpp"
+#include "retro/scaler.hpp"
 #include "sram.hpp"
 
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
 static struct retro_camera_callback _camera{};
-static struct scaler_ctx _scaler{};
+static std::unique_ptr<retro::Scaler> scaler{};
 
 // YUV422 framebuffer, two pixels per 32-bit int (see DSi_Camera.h)
 static std::array<uint32_t, DSI_CAMERA_WIDTH * DSI_CAMERA_HEIGHT / 2> _camera_buffer{};
@@ -100,25 +103,13 @@ static void conv_argb8888_yuyv(void *output_, const void *input_,
 
 static void CaptureImage(const uint32_t *buffer, unsigned width, unsigned height, size_t pitch) noexcept {
 
-    if (_scaler.in_width != static_cast<int>(width) || _scaler.in_height != static_cast<int>(height) ||
-        _scaler.in_stride != static_cast<int>(pitch)) {
-        // If the camera's dimensions changed behind our back (or haven't been initialized)...
-        _scaler.in_width = width;
-        _scaler.in_height = height;
-        _scaler.in_stride = pitch;
-        _scaler.out_width = DSI_CAMERA_WIDTH;
-        _scaler.out_height = DSI_CAMERA_HEIGHT;
-        _scaler.out_stride = DSI_CAMERA_WIDTH * sizeof(uint32_t) / 2;
-        _scaler.direct_pixconv = conv_argb8888_yuyv;
-        _scaler.in_pixconv = nullptr;
-        _scaler.out_pixconv = conv_argb8888_yuyv;
+    if (!scaler || scaler->InWidth() != width || scaler->InHeight() != height || scaler->InStride() != pitch) {
+        // If the scaler hasn't been initialized, or if the camera's dimensions changed behind our back...
 
-        if (!scaler_ctx_gen_filter(&_scaler)) {
-            retro::warn("Failed to initialize camera scaler.");
-        }
+        scaler = std::make_unique<retro::Scaler>(SCALER_FMT_ARGB8888, SCALER_FMT_RGBA4444, SCALER_TYPE_BILINEAR, width, height, DSI_CAMERA_WIDTH, DSI_CAMERA_HEIGHT);
     }
 
-    scaler_ctx_scale(&_scaler, _camera_buffer.data(), buffer);
+    scaler->Scale(_camera_buffer.data(), buffer);
 }
 
 void Platform::Init(int, char **) {
@@ -135,10 +126,6 @@ void Platform::Init(int, char **) {
     _camera.frame_opengl_texture = nullptr;
     _camera.width = DSI_CAMERA_WIDTH;
     _camera.height = DSI_CAMERA_HEIGHT;
-
-    _scaler.in_fmt = SCALER_FMT_ARGB8888;
-    _scaler.out_fmt = SCALER_FMT_YUYV;
-    _scaler.scaler_type = SCALER_TYPE_BILINEAR; // TODO: Make configurable
 
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &_camera)) {
         retro::warn("Camera interface not available.");
@@ -157,7 +144,7 @@ void Platform::DeInit() {
 
     _camera.start = nullptr;
     _camera.stop = nullptr;
-    scaler_ctx_gen_reset(&_scaler);
+    scaler.reset();
 }
 
 void Platform::SignalStop(Platform::StopReason reason) {

@@ -54,7 +54,6 @@ melonds::ScreenLayoutData::ScreenLayoutData() :
 }
 
 melonds::ScreenLayoutData::~ScreenLayoutData() noexcept {
-    scaler_ctx_gen_reset(&hybridScaler);
 }
 
 void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept {
@@ -120,7 +119,7 @@ void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const 
         retro_assert(hybridBuffer);
         const uint32_t* primaryBuffer = layout == ScreenLayout::HybridTop ? topBuffer : bottomBuffer;
 
-        scaler_ctx_scale(&hybridScaler, hybridBuffer.Buffer(), primaryBuffer);
+        hybridScaler.Scale(hybridBuffer.Buffer(), primaryBuffer);
         buffer.CopyRows(hybridBuffer.Buffer(), hybridScreenTranslation, NDS_SCREEN_SIZE<unsigned> * hybridRatio);
 
         HybridSideScreenDisplay smallScreenLayout = HybridSmallScreenLayout();
@@ -323,16 +322,15 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             // TODO: Don't recreate this buffer if the hybrid ratio didn't change
             // TODO: Maintain a separate _hybridDirty flag
             hybridBuffer = PixelBuffer(NDS_SCREEN_SIZE<unsigned> * hybridRatio);
-            hybridScaler.in_width = NDS_SCREEN_WIDTH;
-            hybridScaler.in_height = NDS_SCREEN_HEIGHT;
-            hybridScaler.in_stride = NDS_SCREEN_WIDTH * sizeof(uint32_t);
-            hybridScaler.out_width = NDS_SCREEN_WIDTH * hybridRatio;
-            hybridScaler.out_height = NDS_SCREEN_HEIGHT * hybridRatio;
-            hybridScaler.out_stride = NDS_SCREEN_WIDTH * hybridRatio * sizeof(uint32_t);
-            hybridScaler.in_fmt = SCALER_FMT_ARGB8888;
-            hybridScaler.out_fmt = SCALER_FMT_ARGB8888;
-            hybridScaler.scaler_type = config::video::ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
-            scaler_ctx_gen_filter(&hybridScaler);
+            hybridScaler = retro::Scaler(
+                SCALER_FMT_ARGB8888,
+                SCALER_FMT_ARGB8888,
+                config::video::ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
+                NDS_SCREEN_WIDTH,
+                NDS_SCREEN_HEIGHT,
+                NDS_SCREEN_WIDTH * hybridRatio,
+                NDS_SCREEN_HEIGHT * hybridRatio
+            );
         } else {
             hybridBuffer = nullptr;
         }

@@ -33,6 +33,7 @@
 #include "environment.hpp"
 #include "input.hpp"
 #include "buffer.hpp"
+#include "retro/scaler.hpp"
 
 namespace melonds {
     /// The native width of a single Nintendo DS screen, in pixels
@@ -228,7 +229,7 @@ namespace melonds {
 
         // Used as a staging area for the hybrid screen to be scaled
         PixelBuffer hybridBuffer;
-        struct scaler_ctx hybridScaler;
+        retro::Scaler hybridScaler;
     };
 
     constexpr bool LayoutSupportsScreenGap(ScreenLayout layout) noexcept {

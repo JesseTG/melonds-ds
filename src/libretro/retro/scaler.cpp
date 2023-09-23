@@ -17,6 +17,7 @@
 #include "scaler.hpp"
 
 #include <stdexcept>
+#include <retro_assert.h>
 
 constexpr unsigned PixelSize(scaler_pix_fmt fmt) noexcept {
     switch (fmt) {
@@ -56,6 +57,10 @@ const char* PixelFormatName(scaler_pix_fmt fmt) noexcept {
     }
 }
 
+retro::Scaler::Scaler() noexcept {
+
+}
+
 retro::Scaler::Scaler(
     scaler_pix_fmt in_fmt,
     scaler_pix_fmt out_fmt,
@@ -92,6 +97,17 @@ retro::Scaler::Scaler(
         );
         throw std::runtime_error(error);
     }
+}
+
+retro::Scaler::Scaler(scaler_ctx&& ctx) noexcept {
+    scaler = ctx;
+    ctx = {};
+
+    retro_assert(ctx.input.frame == nullptr);
+    retro_assert(ctx.scaled.frame == nullptr);
+    retro_assert(ctx.output.frame == nullptr);
+    retro_assert(ctx.in_pixconv == nullptr);
+    retro_assert(ctx.out_pixconv == nullptr);
 }
 
 retro::Scaler::~Scaler() noexcept {
