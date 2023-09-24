@@ -52,6 +52,45 @@ namespace melonds::config::definitions {
             melonds::config::values::DS
         },
         retro_core_option_v2_definition {
+            config::system::BOOT_DIRECTLY,
+            "Boot Game Directly",
+            nullptr,
+            "If enabled, melonDS will bypass the native DS menu and boot the loaded game directly. "
+            "If disabled, native BIOS and firmware files must be provided in the system directory. "
+            "Ignored if any of the following is true:\n"
+            "\n"
+            "- The core is loaded without a game\n"
+            "- Native BIOS/firmware files weren't found\n"
+            "- The loaded game is a DSiWare game\n",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::ENABLED
+        },
+        retro_core_option_v2_definition {
+            config::system::USE_EXTERNAL_BIOS,
+            "Use native BIOS if available",
+            nullptr,
+            "Use native BIOS files from the \"melonDS DS\" folder in the system directory if enabled and available, "
+            "falling back to the built-in FreeBIOS if not. "
+            "DS mode only; DSi mode and GBA connectivity each require a native BIOS. "
+            "Does not affect firmware. "
+            "Changes take effect at the next restart. "
+            "If unsure, leave this enabled.",
+            nullptr,
+            melonds::config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::ENABLED
+        },
+        retro_core_option_v2_definition {
             config::system::FIRMWARE_PATH,
             "Firmware Path",
             nullptr,
@@ -98,45 +137,6 @@ namespace melonds::config::definitions {
                 {nullptr, nullptr},
             },
             melonds::config::values::BUILT_IN
-        },
-        retro_core_option_v2_definition {
-            config::system::BOOT_DIRECTLY,
-            "Boot Game Directly",
-            nullptr,
-            "If enabled, melonDS will bypass the native DS menu and boot the loaded game directly. "
-            "If disabled, native BIOS and firmware files must be provided in the system directory. "
-            "Ignored if any of the following is true:\n"
-            "\n"
-            "- The core is loaded without a game\n"
-            "- Native BIOS/firmware files weren't found\n"
-            "- The loaded game is a DSiWare game\n",
-            nullptr,
-            config::system::CATEGORY,
-            {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::ENABLED
-        },
-        retro_core_option_v2_definition {
-            config::system::USE_EXTERNAL_BIOS,
-            "Use native BIOS if available",
-            nullptr,
-            "Use native BIOS files from the \"melonDS DS\" folder in the system directory if enabled and available, "
-            "falling back to the built-in FreeBIOS if not. "
-            "DS mode only; DSi mode and GBA connectivity each require a native BIOS. "
-            "Does not affect firmware. "
-            "Changes take effect at the next restart. "
-            "If unsure, leave this enabled.",
-            nullptr,
-            melonds::config::system::CATEGORY,
-            {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::system::BATTERY_UPDATE_INTERVAL,
