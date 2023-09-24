@@ -55,6 +55,8 @@ void Platform::Thread_Wait(Thread *thread) {
 
 void Platform::Thread_Free(Thread *thread) {
 #if HAVE_THREADS
+    // sthread_join frees the thread once it finishes,
+    // so we don't want to detach a dead thread here
     if (!thread->joined)
         sthread_detach(thread->thread);
 
