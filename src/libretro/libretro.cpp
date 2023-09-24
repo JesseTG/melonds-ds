@@ -530,7 +530,6 @@ PUBLIC_SYMBOL void retro_reset(void) {
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
 
     // Flush all data before resetting
-    melonds::file::reset();
     melonds::sram::reset();
     retro::task::find([](retro::task::TaskHandle& task) {
         if (task.Identifier() == melonds::flushTaskId) {
