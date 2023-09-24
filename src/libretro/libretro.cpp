@@ -525,6 +525,7 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->valid_extensions = "nds|ids|dsi";
 }
 
+// TODO: Catch any thrown exceptions (in case the config is bad) and quit if needed
 PUBLIC_SYMBOL void retro_reset(void) {
     ZoneScopedN("retro_reset");
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");

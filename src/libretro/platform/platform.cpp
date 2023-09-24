@@ -112,6 +112,7 @@ static void CaptureImage(const uint32_t *buffer, unsigned width, unsigned height
     scaler->Scale(_camera_buffer.data(), buffer);
 }
 
+// TODO: Remove this, move the logic to retro_load_game
 void Platform::Init(int, char **) {
     // these args are not used in libretro
     retro::log(RETRO_LOG_DEBUG, "Platform::Init\n");
@@ -134,7 +135,7 @@ void Platform::Init(int, char **) {
     }
 }
 
-// TODO: Call this in retro_unload_game and retro_reset
+// TODO: Remove this, move the logic to retro_unload_game or retro_deinit
 void Platform::DeInit() {
     retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
 
