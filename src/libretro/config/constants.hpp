@@ -61,8 +61,6 @@ namespace melonds::config {
         static constexpr const char *const BIRTH_DAY = "melonds_firmware_birth_day";
         static constexpr const char *const ENABLE_ALARM = "melonds_firmware_enable_alarm";
         static constexpr const char *const FAVORITE_COLOR = "melonds_firmware_favorite_color";
-        static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
-        static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const LANGUAGE = "melonds_firmware_language";
         static constexpr const char *const USERNAME = "melonds_firmware_username";
         static constexpr const char *const WFC_DNS = "melonds_firmware_wfc_dns";
@@ -121,6 +119,8 @@ namespace melonds::config {
         static constexpr const char *const BOOT_DIRECTLY = "melonds_boot_directly";
         static constexpr const char *const CONSOLE_MODE = "melonds_console_mode";
         static constexpr const char *const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
+        static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
+        static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
         static constexpr const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
     }

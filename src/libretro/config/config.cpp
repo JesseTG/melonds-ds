@@ -1060,18 +1060,18 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
         retro::warn("Failed to get value for %s", storage::DSI_NAND_PATH);
     }
 
-    if (const char* value = get_variable(firmware::FIRMWARE_PATH); !string_is_empty(value)) {
+    if (const char* value = get_variable(system::FIRMWARE_PATH); !string_is_empty(value)) {
         strncpy(system::_firmwarePath, value, sizeof(system::_firmwarePath));
     } else {
         strncpy(system::_firmwarePath, values::NOT_FOUND, sizeof(system::_firmwarePath));
-        retro::warn("Failed to get value for %s; defaulting to built-in firmware", firmware::FIRMWARE_PATH);
+        retro::warn("Failed to get value for %s; defaulting to built-in firmware", system::FIRMWARE_PATH);
     }
 
-    if (const char* value = get_variable(firmware::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
+    if (const char* value = get_variable(system::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
         strncpy(system::_dsiFirmwarePath, value, sizeof(system::_dsiFirmwarePath));
     } else {
         strncpy(system::_dsiFirmwarePath, values::NOT_FOUND, sizeof(system::_dsiFirmwarePath));
-        retro::warn("Failed to get value for %s; defaulting to built-in firmware", firmware::FIRMWARE_DSI_PATH);
+        retro::warn("Failed to get value for %s; defaulting to built-in firmware", system::FIRMWARE_DSI_PATH);
     }
 }
 
@@ -1657,10 +1657,10 @@ static void melonds::config::set_core_options() noexcept {
     if (!firmwarePaths.empty()) {
         // If we found at least one firmware image...
         retro_core_option_v2_definition* firmwarePathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
-            return string_is_equal(def.key, melonds::config::firmware::FIRMWARE_PATH);
+            return string_is_equal(def.key, melonds::config::system::FIRMWARE_PATH);
         });
         retro_core_option_v2_definition* firmwarePathDsiOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
-            return string_is_equal(def.key, melonds::config::firmware::FIRMWARE_DSI_PATH);
+            return string_is_equal(def.key, melonds::config::system::FIRMWARE_DSI_PATH);
         });
 
         retro_assert(firmwarePathOption != definitions.end());

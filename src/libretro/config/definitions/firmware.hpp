@@ -32,54 +32,6 @@ namespace melonds::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> FirmwareOptionDefinitions {
         retro_core_option_v2_definition {
-            config::firmware::FIRMWARE_PATH,
-            "Firmware Path",
-            nullptr,
-            "Select a firmware image to use for DS mode. "
-            "Files listed here must be:\n"
-            "\n"
-            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
-            "- Exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB).\n"
-            "\n"
-            "Defaults to Built-In if no firmware image is available. "
-            "Built-In firmware cannot be booted and lacks GBA connectivity support. "
-            "Nintendo WFC IDs are saved to firmware, "
-            "so switching firmware images may result in the loss of some WFC data. "
-            "Ignored in DSi mode. "
-            "Changes take effect at next restart.",
-            nullptr,
-            config::firmware::CATEGORY,
-            {
-                {melonds::config::values::BUILT_IN, "Built-In"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::BUILT_IN
-        },
-        retro_core_option_v2_definition {
-            config::firmware::FIRMWARE_DSI_PATH,
-            "Firmware Path (DSi)",
-            nullptr,
-            "Select a firmware image to use for DSi mode. "
-            "Files listed here must be:\n"
-            "\n"
-            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
-            "- Exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB).\n"
-            "\n"
-            "Defaults to Built-In if no firmware image is available. "
-            "Built-In firmware cannot be booted. "
-            "Nintendo WFC IDs are saved to firmware, "
-            "so switching firmware images may result in the loss of some WFC data. "
-            "Ignored in DS mode. "
-            "Changes take effect at next restart.",
-            nullptr,
-            config::firmware::CATEGORY,
-            {
-                {melonds::config::values::BUILT_IN, "Built-In"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::BUILT_IN
-        },
-        retro_core_option_v2_definition {
             config::firmware::WFC_DNS,
             "DNS Override",
             nullptr,
