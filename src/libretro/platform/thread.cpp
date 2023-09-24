@@ -19,9 +19,12 @@
 #include <Platform.h>
 
 #include <utility>
-#include <retro_timers.h>
 
 using Platform::Thread;
+struct Platform::Thread {
+    sthread_t *thread;
+    bool joined;
+};
 struct ThreadData {
     std::function<void()> fn;
 };
@@ -34,20 +37,28 @@ static void function_trampoline(void *param) {
 
 Thread *Platform::Thread_Create(std::function<void()> func) {
 #if HAVE_THREADS
-    return (Thread *) sthread_create(function_trampoline, new ThreadData{std::move(func)});
+    return new Thread {
+        sthread_create(function_trampoline, new ThreadData{std::move(func)}),
+        false
+    };
 #else
     return nullptr;
 #endif
 }
 
-void Platform::Thread_Free(Thread *thread) {
+void Platform::Thread_Wait(Thread *thread) {
 #if HAVE_THREADS
-    sthread_detach((sthread_t *) thread);
+    sthread_join(thread->thread);
+    thread->joined = true;
 #endif
 }
 
-void Platform::Thread_Wait(Thread *thread) {
+void Platform::Thread_Free(Thread *thread) {
 #if HAVE_THREADS
-    sthread_join((sthread_t *) thread);
+    if (!thread->joined)
+        sthread_detach(thread->thread);
+
+    thread->thread = nullptr;
+    delete thread;
 #endif
 }
