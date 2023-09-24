@@ -222,6 +222,18 @@ add_emutest_test(
     TEST_SCRIPT "loads-core.lua"
 )
 
+# See https://github.com/JesseTG/melonds-ds/issues/70
+add_emutest_test(
+    NAME "Core unloads with threaded software rendering"
+    CONTENT "${NDS_ROM}"
+    TEST_SCRIPT "loads-core.lua"
+    CORE_OPTION melonds_boot_directly="enabled"
+    CORE_OPTION melonds_use_external_bios="disabled"
+    CORE_OPTION melonds_firmware_nds_path="/builtin"
+    CORE_OPTION melonds_console_mode="ds"
+    CORE_OPTION melonds_threaded_renderer="enabled"
+)
+
 # See https://github.com/JesseTG/melonds-ds/issues/62
 add_emutest_test(
     NAME "Core resets when using built-in system files and direct boot (NDS)"
