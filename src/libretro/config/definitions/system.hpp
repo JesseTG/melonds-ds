@@ -55,31 +55,6 @@ namespace melonds::config::definitions {
             melonds::config::values::DS
         },
         retro_core_option_v2_definition {
-            config::system::BOOT_MODE,
-            "Boot Mode",
-            nullptr,
-            "Determines how melonDS boots games.\n"
-            "\n"
-            "Native: Load games through the system menu, "
-            "similar to the real DS/DSi boot process. "
-            "Requires native BIOS and firmware files in the system directory.\n"
-            "Direct: Skip the system menu and go straight to the game. "
-            "Required if native BIOS/firmware isn't available.\n"
-            "\n"
-            "Ignored if loaded without a game, "
-            "the loaded game is DSiWare, "
-            "or native BIOS/firmware files weren't found. "
-            "Changes take effect at next restart.",
-            nullptr,
-            config::system::CATEGORY,
-            {
-                {melonds::config::values::DIRECT, "Direct"},
-                {melonds::config::values::NATIVE, "Native"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::DIRECT
-        },
-        retro_core_option_v2_definition {
             config::system::SYSFILE_MODE,
             "BIOS/Firmware Mode",
             nullptr,
@@ -149,6 +124,52 @@ namespace melonds::config::definitions {
             melonds::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
+            config::storage::DSI_NAND_PATH,
+            "DSi NAND Path",
+            nullptr,
+            "Select a DSi NAND image to use. "
+            "Files listed here must be:\n"
+            "\n"
+            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\" or \"melonDS\".\n"
+            "- Exactly 251,658,304 bytes (240MB) in size.\n"
+            "\n"
+            "DSi mode requires a NAND image, or else it won't start. "
+            "Ignored in DS mode. "
+            "Takes effect at the next boot (not reset).",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::NOT_FOUND, "None Found"},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::NOT_FOUND
+        },
+        retro_core_option_v2_definition {
+            config::system::BOOT_MODE,
+            "Boot Mode",
+            nullptr,
+            "Determines how melonDS boots games.\n"
+            "\n"
+            "Native: Load games through the system menu, "
+            "similar to the real DS/DSi boot process. "
+            "Requires native BIOS and firmware files in the system directory.\n"
+            "Direct: Skip the system menu and go straight to the game. "
+            "Required if native BIOS/firmware isn't available.\n"
+            "\n"
+            "Ignored if loaded without a game, "
+            "the loaded game is DSiWare, "
+            "or native BIOS/firmware files weren't found. "
+            "Changes take effect at next restart.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DIRECT, "Direct"},
+                {melonds::config::values::NATIVE, "Native"},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::DIRECT
+        },
+        retro_core_option_v2_definition {
             config::storage::DSI_SD_SAVE_MODE,
             "Virtual SD Card (DSi)",
             nullptr,
@@ -199,27 +220,6 @@ namespace melonds::config::definitions {
                 {nullptr, nullptr},
             },
             melonds::config::values::DISABLED
-        },
-        retro_core_option_v2_definition {
-            config::storage::DSI_NAND_PATH,
-            "DSi NAND Path",
-            nullptr,
-            "Select a DSi NAND image to use. "
-            "Files listed here must be:\n"
-            "\n"
-            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\" or \"melonDS\".\n"
-            "- Exactly 251,658,304 bytes (240MB) in size.\n"
-            "\n"
-            "DSi mode requires a NAND image, or else it won't start. "
-            "Ignored in DS mode. "
-            "Takes effect at the next boot (not reset).",
-            nullptr,
-            config::system::CATEGORY,
-            {
-                {melonds::config::values::NOT_FOUND, "None Found"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
             config::storage::HOMEBREW_SAVE_MODE,
