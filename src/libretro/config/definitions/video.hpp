@@ -106,7 +106,7 @@ namespace melonds::config::definitions {
             nullptr,
             "If enabled, the software renderer will run on a separate thread if possible. "
             "Otherwise, it will run on the main thread. "
-            "Ignored if using the OpenGL renderer ."
+            "Ignored if using the OpenGL renderer. "
             "Takes effect next time the core restarts. ",
             nullptr,
             config::video::CATEGORY,
