@@ -600,7 +600,7 @@ static void melonds::load_games(
         retro::task::push(melonds::power::PowerStatusUpdateTask());
     }
 
-    if (retro::message_interface_version()) {
+    if (optional<unsigned> version = retro::message_interface_version(); version && version >= 1) {
         // If the frontend supports on-screen notifications...
         retro::task::push(melonds::OnScreenDisplayTask());
     }
