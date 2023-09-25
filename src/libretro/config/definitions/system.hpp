@@ -34,7 +34,7 @@ namespace melonds::config::definitions {
             "a native DSi firmware image, "
             "and native BIOS images for the DS and DSi. "
             "Place them in the system directory or its \"melonDS DS\" subdirectory "
-            " and name them as follows:\n"
+            "and name them as follows:\n"
             "\n"
             "- DS BIOS: bios7.bin, bios9.bin\n"
             "- DSi BIOS: dsi_bios7.bin, dsi_bios9.bin\n"
