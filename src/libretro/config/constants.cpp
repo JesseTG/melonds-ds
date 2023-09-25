@@ -65,6 +65,18 @@ optional<bool> melonds::config::ParseBoolean(const char* value) noexcept {
     return nullopt;
 }
 
+optional<melonds::BootMode> melonds::config::ParseBootMode(const char *value) noexcept {
+    if (string_is_equal(value, values::NATIVE)) return BootMode::Native;
+    if (string_is_equal(value, values::DIRECT)) return BootMode::Direct;
+    return nullopt;
+}
+
+optional<melonds::SysfileMode> melonds::config::ParseSysfileMode(const char *value) noexcept {
+    if (string_is_equal(value, values::NATIVE)) return SysfileMode::Native;
+    if (string_is_equal(value, values::BUILT_IN)) return SysfileMode::BuiltIn;
+    return nullopt;
+}
+
 optional<melonds::AlarmMode> melonds::config::ParseAlarmMode(const char* value) noexcept {
     if (string_is_equal(value, values::DISABLED)) return AlarmMode::Disabled;
     if (string_is_equal(value, values::ENABLED)) return AlarmMode::Enabled;

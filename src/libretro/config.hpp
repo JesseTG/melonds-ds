@@ -134,6 +134,16 @@ namespace melonds {
         Disabled,
     };
 
+    enum class BootMode {
+        Direct,
+        Native,
+    };
+
+    enum class SysfileMode {
+        BuiltIn,
+        Native,
+    };
+
     enum class UsernameMode {
         MelonDSDS,
         Guess,

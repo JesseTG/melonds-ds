@@ -189,6 +189,7 @@ namespace melonds::config {
         static constexpr const char *const JOYSTICK = "joystick";
         static constexpr const char *const LEFT_RIGHT = "left-right";
         static constexpr const char *const LINEAR = "linear";
+        static constexpr const char *const NATIVE = "native";
         static constexpr const char *const NEAREST = "nearest";
         static constexpr const char *const MICROPHONE = "microphone";
         static constexpr const char *const MOUSE = "mouse";
@@ -213,6 +214,8 @@ namespace melonds::config {
     }
 
     std::optional<bool> ParseBoolean(const char *value) noexcept;
+    std::optional<BootMode> ParseBootMode(const char *value) noexcept;
+    std::optional<melonds::SysfileMode> ParseSysfileMode(const char *value) noexcept;
     std::optional<AlarmMode> ParseAlarmMode(const char *value) noexcept;
     std::optional<UsernameMode> ParseUsernameMode(const char* value) noexcept;
 
