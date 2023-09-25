@@ -32,8 +32,7 @@ namespace melonds::config::definitions {
             "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
             "DSi mode has some limits:\n"
             "\n"
-            "- All BIOS and firmware files must be native, including for the regular DS.\n"
-            "- A DSi NAND image must be provided.\n"
+            "- Native BIOS/firmware/NAND files must be provided, including for the regular DS.\n"
             "- Some features (such as savestates) are not available in DSi mode.\n"
             "\n"
             "See the DSi-specific options in this category for more information. "
@@ -157,12 +156,11 @@ namespace melonds::config::definitions {
             "Native: Load games through the system menu, "
             "similar to the real DS/DSi boot process. "
             "Requires native BIOS and firmware files in the system directory.\n"
-            "Direct: Skip the system menu and go straight to the game. "
-            "Required if native BIOS/firmware isn't available.\n"
+            "Direct: Skip the system menu and go straight to the game.\n"
             "\n"
-            "Ignored if loaded without a game, "
-            "the loaded game is DSiWare, "
-            "or native BIOS/firmware files weren't found. "
+            "Ignored if loaded without a game (Native is forced), "
+            "the loaded game is DSiWare (Native is forced), "
+            "or if using Built-In BIOS/Firmware (Direct is forced). "
             "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
