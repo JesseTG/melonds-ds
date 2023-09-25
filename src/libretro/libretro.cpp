@@ -501,7 +501,6 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::clear_memory_config();
     melonds::_loaded_nds_cart.reset();
     melonds::_loaded_gba_cart.reset();
-    GPU3D::CurrentRenderer = nullptr;
     Platform::DeInit();
     melonds::sram::deinit();
     melonds::mic_state_toggled = false;
