@@ -600,8 +600,10 @@ static void melonds::load_games(
         retro::task::push(melonds::power::PowerStatusUpdateTask());
     }
 
-    // TODO: Only push this if the frontend supports it
-    retro::task::push(melonds::OnScreenDisplayTask());
+    if (retro::message_interface_version()) {
+        // If the frontend supports on-screen notifications...
+        retro::task::push(melonds::OnScreenDisplayTask());
+    }
 
     using retro::environment;
     using retro::log;
