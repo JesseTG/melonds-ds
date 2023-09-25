@@ -802,7 +802,7 @@ static void melonds::config::parse_audio_options() noexcept {
         _micButtonMode = MicButtonMode::Hold;
     }
 
-    if (optional<MicInputMode> value = ParseMicInputMode(get_variable(MIC_INPUT))) {
+    if (optional<melonds::MicInputMode> value = ParseMicInputMode(get_variable(MIC_INPUT))) {
         _micInputMode = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", MIC_INPUT, values::SILENCE);
