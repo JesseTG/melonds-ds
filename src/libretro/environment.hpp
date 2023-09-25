@@ -59,7 +59,7 @@ namespace retro {
     [[gnu::format(printf, 2, 0)]]
     [[gnu::access(read_only, 2)]]
     void vlog(enum retro_log_level level, const char* fmt, va_list va) noexcept;
-    bool set_message(const struct retro_message_ext *message);
+    bool set_message(const struct retro_message_ext &message);
     [[gnu::access(read_only, 1)]]
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);

@@ -329,7 +329,7 @@ bool retro::set_error_message(const char* message, unsigned duration) {
         .progress = -1
     };
 
-    return set_message(&message_ext);
+    return set_message(message_ext);
 }
 
 bool retro::set_warn_message(const char* message, unsigned duration) {
@@ -353,7 +353,7 @@ bool retro::set_warn_message(const char* message, unsigned duration) {
         .progress = -1
     };
 
-    return set_message(&message_ext);
+    return set_message(message_ext);
 }
 
 bool retro::set_error_message(const char* message) {
@@ -364,18 +364,15 @@ bool retro::set_warn_message(const char* message) {
     return set_warn_message(message, retro::DEFAULT_ERROR_DURATION);
 }
 
-bool retro::set_message(const struct retro_message_ext* message) {
+bool retro::set_message(const struct retro_message_ext& message) {
     using std::numeric_limits;
-
-    if (message == nullptr)
-        return false;
 
     switch (_message_interface_version) {
         // Given that the frontend supports...
         case 0: { // ...the basic messaging interface...
             // Let's match the semantics of RETRO_ENVIRONMENT_SET_MESSAGE, since that's all we have
 
-            if (message->type == RETRO_MESSAGE_TYPE_STATUS || message->type == RETRO_MESSAGE_TYPE_PROGRESS) {
+            if (message.type == RETRO_MESSAGE_TYPE_STATUS || message.type == RETRO_MESSAGE_TYPE_PROGRESS) {
                 // retro_message doesn't support on-screen displays,
                 // just time-limited messages.
                 // So we don't fall back to retro_message in such cases.
@@ -385,32 +382,32 @@ bool retro::set_message(const struct retro_message_ext* message) {
             environment(RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE, &target_refresh_rate);
 
             struct retro_message msg {
-                .msg = message->msg,
+                .msg = message.msg,
                 // convert from ms to frames
-                .frames = static_cast<unsigned int>((message->duration / 1000) * target_refresh_rate)
+                .frames = static_cast<unsigned int>((message.duration / 1000) * target_refresh_rate)
             };
 
             return environment(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
         }
         case UINT_MAX: { // ...no messaging interface...
-            if (message->type == RETRO_MESSAGE_TYPE_STATUS || message->type == RETRO_MESSAGE_TYPE_PROGRESS) {
+            if (message.type == RETRO_MESSAGE_TYPE_STATUS || message.type == RETRO_MESSAGE_TYPE_PROGRESS) {
                 // retro_message doesn't support on-screen displays,
                 // just time-limited messages.
                 // So we don't fall back to retro_message in such cases.
                 return false;
             }
-            if (message->target == RETRO_MESSAGE_TARGET_OSD) {
+            if (message.target == RETRO_MESSAGE_TARGET_OSD) {
                 return false;
             }
 
-            log(message->level, "%s", message->msg);
+            log(message.level, "%s", message.msg);
             return true;
         }
         default:
             // ...a newer interface than we know about...
             // intentional fall-through
         case 1: { // ...the extended messaging interface...
-            return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void*) message);
+            return environment(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, (void*) &message);
         }
     }
 }

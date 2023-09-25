@@ -878,7 +878,7 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
                     .type = RETRO_MESSAGE_TYPE_STATUS,
                     .progress = -1
                 };
-                retro::set_message(&message);
+                retro::set_message(message);
             }
 
         },
