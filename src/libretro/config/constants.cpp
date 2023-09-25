@@ -159,6 +159,15 @@ std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(const ch
     return nullopt;
 }
 
+optional<melonds::MicInputMode> melonds::config::ParseMicInputMode(const char* value) noexcept {
+    if (string_is_equal(value, values::MICROPHONE)) return MicInputMode::HostMic;
+    if (string_is_equal(value, values::BLOW)) return MicInputMode::BlowNoise;
+    if (string_is_equal(value, values::NOISE)) return MicInputMode::WhiteNoise;
+    if (string_is_equal(value, values::SILENCE)) return MicInputMode::None;
+
+    return nullopt;
+}
+
 optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
     if (string_is_empty(value))
         return nullopt;

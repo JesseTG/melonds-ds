@@ -802,15 +802,8 @@ static void melonds::config::parse_audio_options() noexcept {
         _micButtonMode = MicButtonMode::Hold;
     }
 
-    if (const char* value = get_variable(MIC_INPUT); !string_is_empty(value)) {
-        if (string_is_equal(value, values::MICROPHONE))
-            _micInputMode = MicInputMode::HostMic;
-        else if (string_is_equal(value, values::BLOW))
-            _micInputMode = MicInputMode::BlowNoise;
-        else if (string_is_equal(value, values::NOISE))
-            _micInputMode = MicInputMode::WhiteNoise;
-        else
-            _micInputMode = MicInputMode::None;
+    if (optional<MicInputMode> value = ParseMicInputMode(get_variable(MIC_INPUT))) {
+        _micInputMode = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", MIC_INPUT, values::SILENCE);
         _micInputMode = MicInputMode::None;
