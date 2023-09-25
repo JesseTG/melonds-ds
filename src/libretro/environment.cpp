@@ -364,6 +364,15 @@ bool retro::set_warn_message(const char* message) {
     return set_warn_message(message, retro::DEFAULT_ERROR_DURATION);
 }
 
+optional<unsigned> retro::message_interface_version() noexcept {
+    unsigned version = UINT_MAX;
+    if (environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &version)) {
+        return version;
+    }
+
+    return nullopt;
+}
+
 bool retro::set_message(const struct retro_message_ext& message) {
     using std::numeric_limits;
 
