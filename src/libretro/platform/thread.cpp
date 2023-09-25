@@ -23,7 +23,6 @@
 using Platform::Thread;
 struct Platform::Thread {
     sthread_t *thread;
-    bool joined;
 };
 struct ThreadData {
     std::function<void()> fn;
@@ -38,8 +37,7 @@ static void function_trampoline(void *param) {
 Thread *Platform::Thread_Create(std::function<void()> func) {
 #if HAVE_THREADS
     return new Thread {
-        sthread_create(function_trampoline, new ThreadData{std::move(func)}),
-        false
+        sthread_create(function_trampoline, new ThreadData{std::move(func)})
     };
 #else
     return nullptr;
@@ -49,18 +47,17 @@ Thread *Platform::Thread_Create(std::function<void()> func) {
 void Platform::Thread_Wait(Thread *thread) {
 #if HAVE_THREADS
     sthread_join(thread->thread);
-    thread->joined = true;
+    thread->thread = nullptr;
 #endif
 }
 
 void Platform::Thread_Free(Thread *thread) {
 #if HAVE_THREADS
-    // sthread_join frees the thread once it finishes,
-    // so we don't want to detach a dead thread here
-    if (!thread->joined)
-        sthread_detach(thread->thread);
+    if (thread->thread) {
+        sthread_join(thread->thread);
+        thread->thread = nullptr;
+    }
 
-    thread->thread = nullptr;
     delete thread;
 #endif
 }
