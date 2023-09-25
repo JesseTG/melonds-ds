@@ -56,7 +56,7 @@ namespace retro {
     static bool _supportsNoGameMode;
     static bool isShuttingDown = false;
 
-    static unsigned _message_interface_version;
+    static unsigned _message_interface_version = UINT_MAX;
 
     // Cached so that the save directory won't change during a session
     static optional<string> _save_directory;
@@ -587,7 +587,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
     retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
 
-    if (!environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version)) {
+    if (retro::_message_interface_version == UINT_MAX && !environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version)) {
         retro::_message_interface_version = UINT_MAX;
     }
 
