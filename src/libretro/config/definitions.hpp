@@ -29,7 +29,6 @@
 #include "config/definitions/network.hpp"
 #include "config/definitions/osd.hpp"
 #include "config/definitions/screen.hpp"
-#include "config/definitions/storage.hpp"
 #include "config/definitions/system.hpp"
 #include "config/definitions/video.hpp"
 
@@ -44,7 +43,6 @@ namespace melonds::config::definitions {
         NetworkOptionDefinitions<L>,
         ScreenOptionDefinitions<L>,
         FirmwareOptionDefinitions<L>,
-        StorageOptionDefinitions<L>,
         SystemOptionDefinitions<L>,
         VideoOptionDefinitions<L>,
         OsdOptionDefinitions<L>,

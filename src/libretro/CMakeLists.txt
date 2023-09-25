@@ -19,7 +19,6 @@ add_library(libretro MODULE
     config/definitions/network.hpp
     config/definitions/osd.hpp
     config/definitions/screen.hpp
-    config/definitions/storage.hpp
     config/definitions/system.hpp
     config/definitions/video.hpp
     content.cpp

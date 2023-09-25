@@ -126,7 +126,6 @@ namespace melonds::config {
     }
 
     namespace storage {
-        static constexpr const char *const CATEGORY = "storage";
         static constexpr const char *const DSI_SD_READ_ONLY = "melonds_dsi_sdcard_readonly";
         static constexpr const char *const DSI_SD_SAVE_MODE = "melonds_dsi_sdcard";
         static constexpr const char *const DSI_SD_SYNC_TO_HOST = "melonds_dsi_sdcard_sync_sdcard_to_host";

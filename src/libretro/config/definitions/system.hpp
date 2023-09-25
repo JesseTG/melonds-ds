@@ -149,6 +149,131 @@ namespace melonds::config::definitions {
             melonds::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
+            config::storage::DSI_SD_SAVE_MODE,
+            "Virtual SD Card (DSi)",
+            nullptr,
+            "If enabled, a virtual SD card will be made available to the emulated DSi. "
+            "The card image must be within the frontend's system directory and be named dsi_sd_card.bin. "
+            "If no image exists, a 4GB virtual SD card will be created. "
+            "Ignored in DS mode. "
+            "Changes take effect at next boot.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::ENABLED
+        },
+        retro_core_option_v2_definition {
+            config::storage::DSI_SD_READ_ONLY,
+            "Read-Only Mode (DSi)",
+            nullptr,
+            "If enabled, the emulated DSi sees the virtual SD card as read-only. "
+            "Changes take effect with next restart.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::DISABLED
+        },
+        retro_core_option_v2_definition {
+            config::storage::DSI_SD_SYNC_TO_HOST,
+            "Sync SD Card to Host (DSi)",
+            nullptr,
+            "If enabled, the virtual SD card's files will be synced to this core's save directory. "
+            "Enable this if you want to add files to the virtual SD card from outside the core. "
+            "Syncing happens when loading and unloading a game, "
+            "so external changes won't have any effect while the core is running. "
+            "Takes effect at the next boot. "
+            "Adjusting this setting may overwrite existing save data.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::DISABLED
+        },
+        retro_core_option_v2_definition {
+            config::storage::DSI_NAND_PATH,
+            "DSi NAND Path",
+            nullptr,
+            "Select a DSi NAND image to use. "
+            "Files listed here must be:\n"
+            "\n"
+            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\" or \"melonDS\".\n"
+            "- Exactly 251,658,304 bytes (240MB) in size.\n"
+            "\n"
+            "DSi mode requires a NAND image, or else it won't start. "
+            "Ignored in DS mode. "
+            "Takes effect at the next boot (not reset).",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::NOT_FOUND, "None Found"},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::NOT_FOUND
+        },
+        retro_core_option_v2_definition {
+            config::storage::HOMEBREW_SAVE_MODE,
+            "Virtual SD Card",
+            nullptr,
+            "If enabled, a virtual SD card will be made available to homebrew DS games. "
+            "The card image must be within the frontend's system directory and be named dldi_sd_card.bin. "
+            "If no image exists, a 4GB virtual SD card will be created. "
+            "Ignored for retail games. "
+            "Changes take effect at next boot.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::ENABLED
+        },
+        retro_core_option_v2_definition {
+            config::storage::HOMEBREW_READ_ONLY,
+            "Read-Only Mode",
+            nullptr,
+            "If enabled, homebrew applications will see the virtual SD card as read-only. "
+            "Changes take effect with next restart.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::DISABLED
+        },
+        retro_core_option_v2_definition {
+            config::storage::HOMEBREW_SYNC_TO_HOST,
+            "Sync SD Card to Host",
+            nullptr,
+            "If enabled, the virtual SD card's files will be synced to this core's save directory. "
+            "Enable this if you want to add files to the virtual SD card from outside the core. "
+            "Syncing happens when loading and unloading a game, "
+            "so external changes won't have any effect while the core is running. "
+            "Takes effect at the next boot. "
+            "Adjusting this setting may overwrite existing save data.",
+            nullptr,
+            config::system::CATEGORY,
+            {
+                {melonds::config::values::DISABLED, nullptr},
+                {melonds::config::values::ENABLED, nullptr},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::DISABLED
+        },
+        retro_core_option_v2_definition {
             config::system::BATTERY_UPDATE_INTERVAL,
             "Battery Update Interval",
             nullptr,
