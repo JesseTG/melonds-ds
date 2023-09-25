@@ -33,7 +33,7 @@ namespace melonds::config::definitions {
             "\n"
             "Indirect: Use libslirp to emulate the DS's network stack. Simple and needs no setup.\n"
             #ifdef HAVE_NETWORKING_DIRECT_MODE
-            "Direct: Routes emulated Wi-fi packets to the host's network interface. "
+            "Direct: Routes emulated Wi-Fi packets to the host's network interface. "
             "Faster and more reliable, but requires an ethernet connection and "
             #ifdef _WIN32
             "that WinPcap or Npcap is installed. "
@@ -60,9 +60,9 @@ namespace melonds::config::definitions {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         retro_core_option_v2_definition {
             config::network::DIRECT_NETWORK_INTERFACE,
-            "Wi-fi Interface",
+            "Wi-Fi Interface",
             nullptr,
-            "TODO",
+            nullptr,
             nullptr,
             config::network::CATEGORY,
             {

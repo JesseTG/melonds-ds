@@ -35,16 +35,20 @@ namespace melonds::config::definitions {
             config::firmware::WFC_DNS,
             "DNS Override",
             nullptr,
-            "The DNS server to use instead of the default. "
-            "Use this to play online with custom servers that reimplement "
-            "the discontinued Nintendo Wi-Fi Connection service. "
+            "The DNS server to use for the emulated access point (\"melonAP\"). "
+            "Use this to play online with custom servers "
+            "that reimplement the discontinued Nintendo Wi-Fi Connection services. "
             "Supported games depends on the server. "
-            "If unsure, leave on Kaeru WFC. "
-            "Changes take effect at next restart.\n"
+            "To use other servers, open \"wfc.cfg\" in the \"melonDS DS\" system directory and follow the instructions.\n"
             "\n"
-            "To use other servers, open \"wfc.cfg\" in the \"melonDS DS\" system directory and follow the instructions. "
-            "The listed servers are not affiliated with libretro, Nintendo, the melonDS team, or the core's author. "
-            "Please respect other players and follow the server's rules.",
+            "Some internet service provides may block requests to these servers. "
+            "If this is the case for you, see https://tinyurl.com/393cb755 for a workaround.\n"
+            "\n"
+            "The listed servers are not affiliated with libretro, Nintendo, the melonDS team, or this core's author. "
+            "Please respect other players and follow the server's rules.\n"
+            "\n"
+            "If unsure, leave on Kaeru WFC. "
+            "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
             {
@@ -67,7 +71,7 @@ namespace melonds::config::definitions {
             "Don't Override: Doesn't override firmware defines.\n"
             "\n"
             "Not every game honors this setting. "
-            "Takes effect at next restart.",
+            "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
             {
@@ -143,7 +147,7 @@ namespace melonds::config::definitions {
             "Birth Month",
             nullptr,
             "The month of your birthday. "
-            "Takes effect at next restart.",
+            "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
             {
@@ -169,7 +173,7 @@ namespace melonds::config::definitions {
             "Birth Day",
             nullptr,
             "The day within the month of your birthday. "
-            "Takes effect at next restart.",
+            "Changes take effect at next restart.",
             nullptr,
             config::firmware::CATEGORY,
             {

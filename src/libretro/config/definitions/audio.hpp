@@ -72,7 +72,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::audio::AUDIO_BITDEPTH,
             "Audio Bit Depth",
-            nullptr,
+            "Bit Depth",
             "The audio playback bit depth. "
             "Automatic uses 10-bit audio for DS mode "
             "and 16-bit audio for DSi mode.\n"
@@ -92,7 +92,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::audio::AUDIO_INTERPOLATION,
             "Audio Interpolation",
-            nullptr,
+            "Interpolation",
             "Interpolates audio output for improved quality. "
             "Disable this to match the behavior of the original DS hardware.",
             nullptr,

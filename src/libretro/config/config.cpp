@@ -90,6 +90,10 @@ namespace melonds::config {
     static void set_core_options() noexcept;
     namespace visibility {
         static bool ShowMicButtonMode = true;
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        static bool ShowWifiInterface = true;
+#endif
+        static bool ShowDsOptions = true;
         static bool ShowDsiOptions = true;
         static bool ShowDsiSdCardOptions = true;
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -101,7 +105,6 @@ namespace melonds::config {
         static bool ShowCursorTimeout = true;
         static bool ShowAlarm = true;
         static unsigned NumberOfShownScreenLayouts = screen::MAX_SCREEN_LAYOUTS;
-
 #ifdef JIT_ENABLED
         static bool ShowJitOptions = true;
 #endif
@@ -512,7 +515,14 @@ bool melonds::update_option_visibility() {
     }
 
     bool oldShowAlarm = ShowAlarm;
+    optional<AlarmMode> alarmMode = ParseAlarmMode(get_variable(firmware::ENABLE_ALARM));
+    ShowAlarm = !alarmMode || *alarmMode == AlarmMode::Enabled;
+    if (ShowAlarm != oldShowAlarm) {
+        set_option_visible(firmware::ALARM_HOUR, ShowAlarm);
+        set_option_visible(firmware::ALARM_MINUTE, ShowAlarm);
 
+        updated = true;
+    }
 
 #ifdef JIT_ENABLED
     // Show/hide JIT core options
@@ -532,6 +542,17 @@ bool melonds::update_option_visibility() {
     }
 #endif
 
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    bool oldShowWifiInterface = ShowWifiInterface;
+    optional<NetworkMode> networkMode = ParseNetworkMode(get_variable(network::NETWORK_MODE));
+
+    ShowWifiInterface = !networkMode || *networkMode == NetworkMode::Direct;
+    if (ShowWifiInterface != oldShowWifiInterface) {
+        set_option_visible(network::DIRECT_NETWORK_INTERFACE, ShowWifiInterface);
+
+        updated = true;
+    }
+#endif
 
     return updated;
 }

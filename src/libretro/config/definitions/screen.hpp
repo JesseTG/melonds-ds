@@ -41,14 +41,18 @@ namespace melonds::config::definitions {
                 {melonds::config::values::ALWAYS, "Always"},
                 {nullptr, nullptr},
             },
+#if defined(ANDROID) || defined(IOS)
+            melonds::config::values::DISABLED // mobile users won't want to see a cursor by default
+#else
             melonds::config::values::ALWAYS
+#endif
         },
         retro_core_option_v2_definition {
             config::screen::CURSOR_TIMEOUT,
             "Cursor Timeout",
             nullptr,
             "If Cursor Mode is set to \"Until Timeout\", "
-            "then the cursor will be hidden if the pointer hasn't moved for a certain time.",
+            "then the cursor will be hidden if it hasn't been moved for a certain time.",
             nullptr,
             config::screen::CATEGORY,
             {
@@ -97,7 +101,8 @@ namespace melonds::config::definitions {
             config::screen::SCREEN_GAP,
             "Screen Gap",
             nullptr,
-            "Choose how large the gap between the 2 screens should be.",
+            "Choose how large the gap between the screens should be. "
+            "Vertical layouts (including rotations) only.",
             nullptr,
             config::screen::CATEGORY,
             {
@@ -141,7 +146,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT1,
             "Screen Layout #1",
-            nullptr,
+            "Layout #1",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -164,7 +169,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT2,
             "Screen Layout #2",
-            nullptr,
+            "Layout #2",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -187,7 +192,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT3,
             "Screen Layout #3",
-            nullptr,
+            "Layout #3",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -210,7 +215,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT4,
             "Screen Layout #4",
-            nullptr,
+            "Layout #4",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -233,7 +238,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT5,
             "Screen Layout #5",
-            nullptr,
+            "Layout #5",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -256,7 +261,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT6,
             "Screen Layout #6",
-            nullptr,
+            "Layout #6",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -279,7 +284,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT7,
             "Screen Layout #7",
-            nullptr,
+            "Layout #7",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
@@ -302,7 +307,7 @@ namespace melonds::config::definitions {
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT8,
             "Screen Layout #8",
-            nullptr,
+            "Layout #8",
             nullptr,
             nullptr,
             config::screen::CATEGORY,
