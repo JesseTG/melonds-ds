@@ -89,6 +89,7 @@ namespace Config {
 namespace melonds::config {
     static void set_core_options() noexcept;
     namespace visibility {
+        static bool ShowMicButtonMode = true;
         static bool ShowDsiOptions = true;
         static bool ShowDsiSdCardOptions = true;
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -413,6 +414,15 @@ bool melonds::update_option_visibility() {
     retro::debug("melonds::update_option_visibility");
 
     // Convention: if an option is not found, show any dependent options
+    bool oldShowMicButtonMode = ShowMicButtonMode;
+    optional<MicInputMode> micInputMode = ParseMicInputMode(get_variable(audio::MIC_INPUT));
+    ShowMicButtonMode = !micInputMode || *micInputMode != MicInputMode::None;
+    if (ShowMicButtonMode != oldShowMicButtonMode) {
+        set_option_visible(audio::MIC_INPUT_BUTTON, ShowMicButtonMode);
+
+        updated = true;
+    }
+
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Show/hide OpenGL core options
     bool oldShowOpenGlOptions = ShowOpenGlOptions;
