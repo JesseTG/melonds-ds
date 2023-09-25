@@ -540,17 +540,13 @@ PUBLIC_SYMBOL void retro_reset(void) {
         return false; // Keep looking...
     });
     retro::task::check();
+    melonds::clear_memory_config();
 
     const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
     melonds::InitConfig(header, melonds::screenLayout, melonds::input_state);
 
     melonds::InitFlushFirmwareTask();
-
-    {
-        ZoneScopedN("NDS::Reset");
-        NDS::Reset();
-    }
 
     if (nds_info) {
         // We need to reload the ROM because it might need to be encrypted with a different key,
@@ -570,14 +566,16 @@ PUBLIC_SYMBOL void retro_reset(void) {
             NDSCart::InsertROM(std::move(rom));
         }
         // TODO: Only reload the ROM if the BIOS mode, boot mode, or console mode has changed
-
-        retro_assert(NDSCart::Cart != nullptr);
-        if (NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
-            melonds::set_up_direct_boot(nds_info.value());
-        }
     }
 
+    {
+        ZoneScopedN("NDS::Reset");
+        NDS::Reset();
+    }
 
+    if (NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
+        melonds::set_up_direct_boot(nds_info.value());
+    }
 
     melonds::first_frame_run = false;
 }
