@@ -32,7 +32,7 @@ namespace melonds::config::definitions {
             "If enabled, a virtual SD card will be made available to the emulated DSi. "
             "The card image must be within the frontend's system directory and be named dsi_sd_card.bin. "
             "If no image exists, a 4GB virtual SD card will be created. "
-            "Ignored when in DS mode. "
+            "Ignored in DS mode. "
             "Changes take effect at next boot.",
             nullptr,
             config::storage::CATEGORY,
