@@ -181,28 +181,36 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
     if (string_ends_with(file.path, ".bak"))
         return false;
 
-    if (RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE)) {
-        u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
-        memset(headerBytes, 0, sizeof(headerBytes));
-        filestream_read(stream, headerBytes, sizeof(headerBytes));
-        filestream_close(stream);
+    RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!stream)
+        return false;
 
-        const SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<const SPI_Firmware::FirmwareHeader*>(headerBytes);
-        switch (header.ConsoleType) {
-            case SPI_Firmware::FirmwareConsoleType::DS:
-            case SPI_Firmware::FirmwareConsoleType::DSi:
-            case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
-            case SPI_Firmware::FirmwareConsoleType::iQueDS:
-            case SPI_Firmware::FirmwareConsoleType::DSLite:
-                return true;
-            default:
-                return false;
-        }
+    u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
+    memset(headerBytes, 0, sizeof(headerBytes));
+    filestream_read(stream, headerBytes, sizeof(headerBytes));
+    filestream_close(stream);
+
+    const SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<const SPI_Firmware::FirmwareHeader*>(headerBytes);
+    switch (header.ConsoleType) {
+        case SPI_Firmware::FirmwareConsoleType::DS:
+        case SPI_Firmware::FirmwareConsoleType::DSi:
+        case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
+        case SPI_Firmware::FirmwareConsoleType::iQueDS:
+        case SPI_Firmware::FirmwareConsoleType::DSLite:
+            break;
+        default:
+            return false;
     }
 
-    return false;
+    switch (header.WifiBoard) {
+        case SPI_Firmware::WifiBoard::W015:
+        case SPI_Firmware::WifiBoard::W024:
+        case SPI_Firmware::WifiBoard::W028:
+        case SPI_Firmware::WifiBoard::Unused:
+            break;
+        default:
+            return false;
+    }
 
-
-
-
+    return true;
 }
