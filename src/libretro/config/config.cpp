@@ -93,6 +93,7 @@ namespace melonds::config {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         static bool ShowWifiInterface = true;
 #endif
+        static bool ShowHomebrewSdOptions = true;
         static bool ShowDsOptions = true;
         static bool ShowDsiOptions = true;
         static bool ShowDsiSdCardOptions = true;
@@ -422,7 +423,6 @@ bool melonds::update_option_visibility() {
     ShowMicButtonMode = !micInputMode || *micInputMode != MicInputMode::None;
     if (ShowMicButtonMode != oldShowMicButtonMode) {
         set_option_visible(audio::MIC_INPUT_BUTTON, ShowMicButtonMode);
-
         updated = true;
     }
 
@@ -430,22 +430,18 @@ bool melonds::update_option_visibility() {
     // Show/hide OpenGL core options
     bool oldShowOpenGlOptions = ShowOpenGlOptions;
     bool oldShowSoftwareRenderOptions = ShowSoftwareRenderOptions;
-
     optional<Renderer> renderer = ParseRenderer(get_variable(video::RENDER_MODE));
     ShowOpenGlOptions = !renderer || *renderer == Renderer::OpenGl;
     ShowSoftwareRenderOptions = !ShowOpenGlOptions;
-
     if (ShowOpenGlOptions != oldShowOpenGlOptions) {
         set_option_visible(video::OPENGL_RESOLUTION, ShowOpenGlOptions);
         set_option_visible(video::OPENGL_FILTERING, ShowOpenGlOptions);
         set_option_visible(video::OPENGL_BETTER_POLYGONS, ShowOpenGlOptions);
-
         updated = true;
     }
 
     if (ShowSoftwareRenderOptions != oldShowSoftwareRenderOptions) {
         set_option_visible(video::THREADED_RENDERER, ShowSoftwareRenderOptions);
-
         updated = true;
     }
 #else
@@ -453,37 +449,57 @@ bool melonds::update_option_visibility() {
 #endif
 
     bool oldShowDsiOptions = ShowDsiOptions;
-    bool oldShowDsiSdCardOptions = ShowDsiSdCardOptions;
     optional<ConsoleType> consoleType = ParseConsoleType(get_variable(system::CONSOLE_MODE));
-
     ShowDsiOptions = !consoleType || *consoleType == ConsoleType::DSi;
     if (ShowDsiOptions != oldShowDsiOptions) {
+        set_option_visible(config::system::FIRMWARE_DSI_PATH, ShowDsiOptions);
+        set_option_visible(config::storage::DSI_NAND_PATH, ShowDsiOptions);
         set_option_visible(storage::DSI_SD_SAVE_MODE, ShowDsiOptions);
-        set_option_visible(storage::DSI_SD_READ_ONLY, ShowDsiOptions);
-        set_option_visible(storage::DSI_SD_SYNC_TO_HOST, ShowDsiOptions);
+        updated = true;
+    }
 
+    bool oldShowDsiSdCardOptions = ShowDsiSdCardOptions && ShowDsiOptions;
+    optional<bool> dsiSdEnable = ParseBoolean(get_variable(storage::DSI_SD_SAVE_MODE));
+    ShowDsiSdCardOptions = !dsiSdEnable || *dsiSdEnable;
+    if (ShowDsiSdCardOptions != oldShowDsiSdCardOptions) {
+        set_option_visible(storage::DSI_SD_READ_ONLY, ShowDsiSdCardOptions);
+        set_option_visible(storage::DSI_SD_SYNC_TO_HOST, ShowDsiSdCardOptions);
+        updated = true;
+    }
+
+    bool oldShowDsOptions = ShowDsOptions;
+    ShowDsOptions = !consoleType || *consoleType == ConsoleType::DS;
+    if (ShowDsOptions != oldShowDsOptions) {
+        set_option_visible(config::system::SYSFILE_MODE, ShowDsOptions);
+        set_option_visible(config::system::FIRMWARE_PATH, ShowDsOptions);
+        set_option_visible(config::system::DS_POWER_OK, ShowDsOptions);
+        updated = true;
+    }
+
+    bool oldShowHomebrewSdOptions = ShowHomebrewSdOptions;
+    optional<bool> homebrewSdCardEnabled = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE));
+    ShowHomebrewSdOptions = !homebrewSdCardEnabled || *homebrewSdCardEnabled;
+    if (ShowHomebrewSdOptions != oldShowHomebrewSdOptions) {
+        set_option_visible(storage::HOMEBREW_READ_ONLY, ShowHomebrewSdOptions);
+        set_option_visible(storage::HOMEBREW_SYNC_TO_HOST, ShowHomebrewSdOptions);
         updated = true;
     }
 
     bool oldShowCursorTimeout = ShowCursorTimeout;
     optional<melonds::CursorMode> cursorMode = ParseCursorMode(get_variable(screen::SHOW_CURSOR));
-
     ShowCursorTimeout = !cursorMode || *cursorMode == melonds::CursorMode::Timeout;
     if (ShowCursorTimeout != oldShowCursorTimeout) {
         set_option_visible(screen::CURSOR_TIMEOUT, ShowCursorTimeout);
-
         updated = true;
     }
 
     unsigned oldNumberOfShownScreenLayouts = NumberOfShownScreenLayouts;
     optional<unsigned> numberOfScreenLayouts = ParseIntegerInRange(get_variable(screen::NUMBER_OF_SCREEN_LAYOUTS), 1u, screen::MAX_SCREEN_LAYOUTS);
-
     NumberOfShownScreenLayouts = numberOfScreenLayouts ? *numberOfScreenLayouts : screen::MAX_SCREEN_LAYOUTS;
     if (NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
         for (unsigned i = 0; i < screen::MAX_SCREEN_LAYOUTS; ++i) {
             set_option_visible(screen::SCREEN_LAYOUTS[i], i < NumberOfShownScreenLayouts);
         }
-
         updated = true;
     }
 
@@ -494,7 +510,6 @@ bool melonds::update_option_visibility() {
     bool anyVerticalLayouts = false;
     for (unsigned i = 0; i < NumberOfShownScreenLayouts; i++) {
         optional<melonds::ScreenLayout> parsedLayout = ParseScreenLayout(get_variable(screen::SCREEN_LAYOUTS[i]));
-
         anyHybridLayouts |= !parsedLayout || IsHybridLayout(*parsedLayout);
         anyVerticalLayouts |= !parsedLayout || LayoutSupportsScreenGap(*parsedLayout);
     }
@@ -504,13 +519,11 @@ bool melonds::update_option_visibility() {
     if (ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(screen::HYBRID_SMALL_SCREEN, ShowHybridOptions);
         set_option_visible(screen::HYBRID_RATIO, ShowHybridOptions);
-
         updated = true;
     }
 
     if (ShowVerticalLayoutOptions != oldShowVerticalLayoutOptions) {
         set_option_visible(screen::SCREEN_GAP, ShowVerticalLayoutOptions);
-
         updated = true;
     }
 
@@ -520,7 +533,6 @@ bool melonds::update_option_visibility() {
     if (ShowAlarm != oldShowAlarm) {
         set_option_visible(firmware::ALARM_HOUR, ShowAlarm);
         set_option_visible(firmware::ALARM_MINUTE, ShowAlarm);
-
         updated = true;
     }
 
@@ -528,9 +540,7 @@ bool melonds::update_option_visibility() {
     // Show/hide JIT core options
     bool oldShowJitOptions = ShowJitOptions;
     optional<bool> jitEnabled = ParseBoolean(get_variable(cpu::JIT_ENABLE));
-
     ShowJitOptions = !jitEnabled || *jitEnabled;
-
     if (ShowJitOptions != oldShowJitOptions) {
         set_option_visible(cpu::JIT_BLOCK_SIZE, ShowJitOptions);
         set_option_visible(cpu::JIT_BRANCH_OPTIMISATIONS, ShowJitOptions);
@@ -549,7 +559,6 @@ bool melonds::update_option_visibility() {
     ShowWifiInterface = !networkMode || *networkMode == NetworkMode::Direct;
     if (ShowWifiInterface != oldShowWifiInterface) {
         set_option_visible(network::DIRECT_NETWORK_INTERFACE, ShowWifiInterface);
-
         updated = true;
     }
 #endif

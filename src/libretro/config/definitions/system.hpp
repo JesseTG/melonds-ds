@@ -27,23 +27,17 @@ namespace melonds::config::definitions {
     constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         retro_core_option_v2_definition {
             config::system::CONSOLE_MODE,
-            "Console Type",
+            "Console Mode",
             nullptr,
             "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
-            "DSi mode requires a native DSi NAND image, "
-            "a native DSi firmware image, "
-            "and native BIOS images for the DS and DSi. "
-            "Place them in the system directory or its \"melonDS DS\" subdirectory "
-            "and name them as follows:\n"
+            "DSi mode has some limits:\n"
             "\n"
-            "- DS BIOS: bios7.bin, bios9.bin\n"
-            "- DSi BIOS: dsi_bios7.bin, dsi_bios9.bin\n"
-            "- DSi firmware: Anything, set it with the \"DSi Firmware\" option.\n"
-            "- DSi NAND: Anything, set it with the \"DSi NAND Path\" option.\n"
+            "- All BIOS and firmware files must be native, including for the regular DS.\n"
+            "- A DSi NAND image must be provided.\n"
+            "- Some features (such as savestates) are not available in DSi mode.\n"
             "\n"
-            "Ignored if loading a DSiWare game (DSi mode will be forced). "
-            "Some features are not available in DSi mode. "
-            "If unsure, set to DS mode unless playing a DSi game."
+            "See the DSi-specific options in this category for more information. "
+            "If unsure, set to DS mode unless playing a DSi game. "
             "Changes take effect at the next restart.",
             nullptr,
             config::system::CATEGORY,
@@ -56,24 +50,33 @@ namespace melonds::config::definitions {
         },
         retro_core_option_v2_definition {
             config::system::SYSFILE_MODE,
-            "BIOS/Firmware Mode",
+            "BIOS/Firmware Mode (DS Mode)",
             nullptr,
             "Determines whether melonDS uses native BIOS/firmware dumps "
-            "or its own built-in replacements.\n"
+            "or its own built-in replacements. "
+            "Only applies to DS mode.\n"
             "\n"
-            "Native: Use the same BIOS and firmware files that would be used on a real DS. "
-            "Place these in the system directory or its \"melonDS DS\" subdirectory. "
-            "Falls back to Built-In if any BIOS/firmware file isn't found."
-            "Built-In: Use melonDS's built-in BIOS and firmware. "
+            "Native mode uses BIOS and firmware files from real DS. "
+            "Place your dumps of these in the system directory or its \"melonDS DS\" subdirectory "
+            "and name them as follows:\n"
+            "\n"
+            "- DS BIOS: bios7.bin, bios9.bin\n"
+            "- DSi BIOS: dsi_bios7.bin, dsi_bios9.bin\n"
+            "- Firmware: See the \"DS Firmware\" and \"DSi Firmware\" options.\n"
+            "- DSi NAND: See the \"DSi NAND \" option.\n"
+            "\n"
+            "Falls back to Built-In if any BIOS/firmware file isn't found.\n"
+            "\n"
+            "Built-In mode uses melonDS's built-in BIOS and firmware. "
             "Suitable for most games, "
-            "but some features (notably GBA connectivity and the DS menu) are not available.\n"
+            "but some features (notably GBA connectivity and the DS menu) are not available. "
+            "Also used as a fallback from Native mode if any required file isn't found.\n"
             "\n"
-            "Ignored in DSi mode, as that requires native BIOS and firmware files. "
             "Changes take effect at next restart.",
             nullptr,
             melonds::config::system::CATEGORY,
             {
-                {melonds::config::values::NATIVE, "Native (or Fallback)"},
+                {melonds::config::values::NATIVE, "Native"},
                 {melonds::config::values::BUILT_IN, "Built-In"},
                 {nullptr, nullptr},
             },
@@ -81,17 +84,18 @@ namespace melonds::config::definitions {
         },
         retro_core_option_v2_definition {
             config::system::FIRMWARE_PATH,
-            "Firmware Path",
+            "DS Firmware",
             nullptr,
             "Select a firmware image to use for DS mode. "
-            "Files listed here must be:\n"
+            "Files are listed here if they:\n"
             "\n"
-            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
-            "- Exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB).\n"
+            "- Are inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
+            "- Are exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB) long.\n"
+            "- Contain valid header data for DS firmware.\n"
             "\n"
             "Nintendo WFC IDs are saved to firmware, "
             "so switching firmware images may result in the loss of some WFC data. "
-            "Ignored in DSi mode or if BIOS/Firmware Mode is Built-In."
+            "Ignored in DSi mode or if BIOS/Firmware Mode is Built-In. "
             "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
@@ -103,17 +107,17 @@ namespace melonds::config::definitions {
         },
         retro_core_option_v2_definition {
             config::system::FIRMWARE_DSI_PATH,
-            "Firmware Path (DSi)",
+            "DSi Firmware",
             nullptr,
             "Select a firmware image to use for DSi mode. "
-            "Files listed here must be:\n"
+            "Files are listed here if they:\n"
             "\n"
-            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
-            "- Exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB).\n"
+            "- Are inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
+            "- Are exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB) long.\n"
+            "- Contain valid header data for DSi firmware.\n"
             "\n"
             "Nintendo WFC IDs are saved to firmware, "
             "so switching firmware images may result in the loss of some WFC data. "
-            "DSi mode only. "
             "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
@@ -128,18 +132,18 @@ namespace melonds::config::definitions {
             "DSi NAND Path",
             nullptr,
             "Select a DSi NAND image to use. "
-            "Files listed here must be:\n"
+            "Required when using DSi mode. "
+            "Files are listed here if they:\n"
             "\n"
-            "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\" or \"melonDS\".\n"
-            "- Exactly 251,658,304 bytes (240MB) in size.\n"
+            "- Are inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
+            "- Are exactly 251,658,304 bytes (240MB) long.\n"
+            "- Contain valid footer data for DSi NAND images.\n"
             "\n"
-            "DSi mode requires a NAND image, or else it won't start. "
-            "Ignored in DS mode. "
-            "Takes effect at the next boot (not reset).",
+            "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::NOT_FOUND, "None Found"},
+                {melonds::config::values::NOT_FOUND, "None found..."},
                 {nullptr, nullptr},
             },
             melonds::config::values::NOT_FOUND
