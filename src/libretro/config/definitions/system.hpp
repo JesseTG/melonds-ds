@@ -30,17 +30,20 @@ namespace melonds::config::definitions {
             "Console Type",
             nullptr,
             "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
-            "DSi mode requires a native DSi NAND image "
+            "DSi mode requires a native DSi NAND image, "
+            "a native DSi firmware image, "
             "and native BIOS images for the DS and DSi. "
             "Place them in the system directory or its \"melonDS DS\" subdirectory "
             " and name them as follows:\n"
             "\n"
             "- DS BIOS: bios7.bin, bios9.bin\n"
             "- DSi BIOS: dsi_bios7.bin, dsi_bios9.bin\n"
+            "- DSi firmware: Anything, set it with the \"DSi Firmware\" option.\n"
             "- DSi NAND: Anything, set it with the \"DSi NAND Path\" option.\n"
             "\n"
             "Ignored if loading a DSiWare game (DSi mode will be forced). "
-            "Some features may not be available in DSi mode. "
+            "Some features are not available in DSi mode. "
+            "If unsure, set to DS mode unless playing a DSi game."
             "Changes take effect at the next restart.",
             nullptr,
             config::system::CATEGORY,
@@ -52,43 +55,54 @@ namespace melonds::config::definitions {
             melonds::config::values::DS
         },
         retro_core_option_v2_definition {
-            config::system::BOOT_DIRECTLY,
-            "Boot Game Directly",
+            config::system::BOOT_MODE,
+            "Boot Mode",
             nullptr,
-            "If enabled, melonDS will bypass the native DS menu and boot the loaded game directly. "
-            "If disabled, native BIOS and firmware files must be provided in the system directory. "
-            "Ignored if any of the following is true:\n"
+            "Determines how melonDS boots games.\n"
             "\n"
-            "- The core is loaded without a game\n"
-            "- Native BIOS/firmware files weren't found\n"
-            "- The loaded game is a DSiWare game\n",
+            "Native: Load games through the system menu, "
+            "similar to the real DS/DSi boot process. "
+            "Requires native BIOS and firmware files in the system directory.\n"
+            "Direct: Skip the system menu and go straight to the game. "
+            "Required if native BIOS/firmware isn't available.\n"
+            "\n"
+            "Ignored if loaded without a game, "
+            "the loaded game is DSiWare, "
+            "or native BIOS/firmware files weren't found. "
+            "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {melonds::config::values::DIRECT, "Direct"},
+                {melonds::config::values::NATIVE, "Native"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            melonds::config::values::DIRECT
         },
         retro_core_option_v2_definition {
-            config::system::USE_EXTERNAL_BIOS,
-            "Use native BIOS if available",
+            config::system::SYSFILE_MODE,
+            "BIOS/Firmware Mode",
             nullptr,
-            "Use native BIOS files from the \"melonDS DS\" folder in the system directory if enabled and available, "
-            "falling back to the built-in FreeBIOS if not. "
-            "DS mode only; DSi mode and GBA connectivity each require a native BIOS. "
-            "Does not affect firmware. "
-            "Changes take effect at the next restart. "
-            "If unsure, leave this enabled.",
+            "Determines whether melonDS uses native BIOS/firmware dumps "
+            "or its own built-in replacements.\n"
+            "\n"
+            "Native: Use the same BIOS and firmware files that would be used on a real DS. "
+            "Place these in the system directory or its \"melonDS DS\" subdirectory. "
+            "Falls back to Built-In if any BIOS/firmware file isn't found."
+            "Built-In: Use melonDS's built-in BIOS and firmware. "
+            "Suitable for most games, "
+            "but some features (notably GBA connectivity and the DS menu) are not available.\n"
+            "\n"
+            "Ignored in DSi mode, as that requires native BIOS and firmware files. "
+            "Changes take effect at next restart.",
             nullptr,
             melonds::config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {melonds::config::values::NATIVE, "Native (or Fallback)"},
+                {melonds::config::values::BUILT_IN, "Built-In"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            melonds::config::values::NATIVE
         },
         retro_core_option_v2_definition {
             config::system::FIRMWARE_PATH,
@@ -100,19 +114,17 @@ namespace melonds::config::definitions {
             "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
             "- Exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB).\n"
             "\n"
-            "Defaults to Built-In if no firmware image is available. "
-            "Built-In firmware cannot be booted and lacks GBA connectivity support. "
             "Nintendo WFC IDs are saved to firmware, "
             "so switching firmware images may result in the loss of some WFC data. "
-            "Ignored in DSi mode. "
+            "Ignored in DSi mode or if BIOS/Firmware Mode is Built-In."
             "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::BUILT_IN, "Built-In"},
+                {melonds::config::values::NOT_FOUND, "None found..."},
                 {nullptr, nullptr},
             },
-            melonds::config::values::BUILT_IN
+            melonds::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
             config::system::FIRMWARE_DSI_PATH,
@@ -124,25 +136,24 @@ namespace melonds::config::definitions {
             "- Placed inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
             "- Exactly 131,072 bytes (128KB), 262,144 bytes (256KB), or 524,288 bytes (512KB).\n"
             "\n"
-            "Defaults to Built-In if no firmware image is available. "
-            "Built-In firmware cannot be booted. "
             "Nintendo WFC IDs are saved to firmware, "
             "so switching firmware images may result in the loss of some WFC data. "
-            "Ignored in DS mode. "
+            "DSi mode only. "
             "Changes take effect at next restart.",
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::BUILT_IN, "Built-In"},
+                {melonds::config::values::NOT_FOUND, "None found..."},
                 {nullptr, nullptr},
             },
-            melonds::config::values::BUILT_IN
+            melonds::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
             config::system::BATTERY_UPDATE_INTERVAL,
             "Battery Update Interval",
             nullptr,
-            "How often the emulated console's battery should be updated.",
+            "How often the emulated console's battery should be updated. "
+            "Ignored if the frontend can't get the device's battery level.",
             nullptr,
             config::system::CATEGORY,
             {

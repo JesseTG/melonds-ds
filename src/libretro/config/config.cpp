@@ -291,11 +291,11 @@ namespace melonds::config {
         static melonds::ConsoleType _consoleType;
         melonds::ConsoleType ConsoleType() noexcept { return _consoleType; }
 
-        static bool _directBoot;
-        bool DirectBoot() noexcept { return _directBoot; }
+        static BootMode _bootMode;
+        bool DirectBoot() noexcept { return _bootMode == BootMode::Direct; }
 
-        static bool _externalBiosEnable;
-        bool ExternalBiosEnable() noexcept { return _externalBiosEnable; }
+        static SysfileMode _sysfileMode;
+        bool ExternalBiosEnable() noexcept { return _sysfileMode == SysfileMode::Native; }
 
         static unsigned _dsPowerOkayThreshold = 20;
         unsigned DsPowerOkayThreshold() noexcept { return _dsPowerOkayThreshold; }
@@ -667,18 +667,18 @@ static void melonds::config::parse_system_options() noexcept {
         _consoleType = ConsoleType::DS;
     }
 
-    if (optional<bool> value = ParseBoolean(get_variable(BOOT_DIRECTLY))) {
-        _directBoot = *value;
+    if (optional<BootMode> value = ParseBootMode(get_variable(BOOT_MODE))) {
+        _bootMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", BOOT_DIRECTLY, values::ENABLED);
-        _directBoot = true;
+        retro::warn("Failed to get value for %s; defaulting to %s", BOOT_MODE, values::NATIVE);
+        _bootMode = BootMode::Direct;
     }
 
-    if (optional<bool> value  = ParseBoolean(get_variable(USE_EXTERNAL_BIOS))) {
-        _externalBiosEnable = *value;
+    if (optional<SysfileMode> value = ParseSysfileMode(get_variable(SYSFILE_MODE))) {
+        _sysfileMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", USE_EXTERNAL_BIOS, values::ENABLED);
-        _externalBiosEnable = true;
+        retro::warn("Failed to get value for %s; defaulting to %s", SYSFILE_MODE, values::BUILT_IN);
+        _sysfileMode = SysfileMode::BuiltIn;
     }
 
     if (optional<unsigned> value = ParseIntegerInList(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
@@ -1304,7 +1304,7 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
 // Then, fall back to other system files if needed and possible
 // If fallback is needed and not possible, throw an exception
 // Finally, install the system files
-static void InitNdsSystemConfig(const NDSHeader* header, bool tryNativeBios) {
+static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootMode, melonds::SysfileMode sysfileMode) {
     ZoneScopedN("melonds::config::InitNdsSystemConfig");
     using namespace melonds::config::system;
     using namespace melonds;
@@ -1312,11 +1312,10 @@ static void InitNdsSystemConfig(const NDSHeader* header, bool tryNativeBios) {
 
     // The rules are somewhat complicated.
     // - Bootable firmware is required if booting without content.
-    // - Both BIOS files must be native or both must be built-in.
+    // - All system files must be native or all must be built-in. (No mixing.)
     // - If BIOS files are built-in, then Direct Boot mode must be used
-    string_view firmwareName = FirmwarePath();
     unique_ptr<SPI_Firmware::Firmware> firmware;
-    if (firmwareName != melonds::config::values::BUILT_IN) {
+    if (sysfileMode == SysfileMode::Native) {
         optional<string> firmwarePath = retro::get_system_path(FirmwarePath());
         if (!firmwarePath) {
             retro::error("Failed to get system directory");
@@ -1325,41 +1324,40 @@ static void InitNdsSystemConfig(const NDSHeader* header, bool tryNativeBios) {
         firmware = firmwarePath ? LoadFirmware(*firmwarePath) : nullptr;
     }
 
-
     if (!header && !(firmware && firmware->IsBootable())) {
-        // If we're trying to boot into the NDS menu, but the firmware we loaded isn't bootable...
+        // If we're trying to boot into the NDS menu, but we didn't load bootable firmware...
         throw bios_exception("Booting to the NDS menu requires a bootable firmware dump.");
     }
 
     if (!firmware) {
         // If we haven't loaded any firmware...
-        if (firmwareName != melonds::config::values::BUILT_IN) {
+        if (sysfileMode == SysfileMode::Native) {
             // ...but we were trying to...
             retro::warn("Falling back to built-in firmware");
         }
         firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(melonds::ConsoleType::DS));
     }
 
-    if (!tryNativeBios) {
+    if (sysfileMode == SysfileMode::BuiltIn) {
         retro::debug("Not loading native ARM BIOS files");
     }
 
     // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
-    unique_ptr<u8[]> bios7 = tryNativeBios ? LoadBios(Bios7Path(), "ARM7", sizeof(NDS::ARM7BIOS)) : nullptr;
+    unique_ptr<u8[]> bios7 = (sysfileMode == SysfileMode::Native) ? LoadBios(Bios7Path(), "ARM7", sizeof(NDS::ARM7BIOS)) : nullptr;
     unique_ptr<u8[]> bios9 = bios7 ? LoadBios(Bios9Path(), "ARM9", sizeof(NDS::ARM9BIOS)) : nullptr;
 
-    if (tryNativeBios && !(bios7 && bios9)) {
+    if (sysfileMode == SysfileMode::Native && !(bios7 && bios9)) {
         // If we're trying to load native BIOS files, but at least one of them failed...
         retro::warn("Falling back to FreeBIOS");
     }
 
     // Now that we've loaded the system files, let's see if we can use them
 
-    if (!_directBoot && (!bios7 || !bios9 || !firmware->IsBootable())) {
+    if (bootMode == melonds::BootMode::Native && (!bios7 || !bios9 || !firmware->IsBootable())) {
         // If we want to try a native boot, but the BIOS files aren't all native or the firmware isn't bootable...
         retro::warn("Native boot requires bootable firmware and native BIOS files; forcing Direct Boot mode");
 
-        _directBoot = true;
+        _bootMode = melonds::BootMode::Direct;
     }
 
     if (!header && (!firmware || !firmware->IsBootable() || !bios7 || !bios9)) {
@@ -1399,17 +1397,15 @@ static void InitDsiSystemConfig() {
     }
 
     // TODO: Actually open the NAND file and keep it around
-    int statFlags = path_stat(nandPath->c_str());
-    if ((statFlags & RETRO_VFS_STAT_IS_VALID) == 0) {
+    int nandStatFlags = path_stat(nandPath->c_str());
+    if ((nandStatFlags & RETRO_VFS_STAT_IS_VALID) == 0) {
         // If this isn't a valid file...
         throw bios_exception("Failed to find a DSi NAND image at \"%s\"", nandPath->c_str());
     }
 
-#ifndef NDEBUG
     // If it weren't a regular file, it would've never been added to the config options
-    retro_assert((statFlags & RETRO_VFS_STAT_IS_DIRECTORY) == 0);
-    retro_assert((statFlags & RETRO_VFS_STAT_IS_CHARACTER_SPECIAL) == 0);
-#endif
+    retro_assert((nandStatFlags & RETRO_VFS_STAT_IS_DIRECTORY) == 0);
+    retro_assert((nandStatFlags & RETRO_VFS_STAT_IS_CHARACTER_SPECIAL) == 0);
 
     // DSi mode requires all native BIOS files
     unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), "DSi ARM7", sizeof(DSi::ARM7iBIOS));
@@ -1433,27 +1429,19 @@ static void InitDsiSystemConfig() {
     }
 
     string_view firmwareName = DsiFirmwarePath();
-    unique_ptr<SPI_Firmware::Firmware> firmware;
-    if (firmwareName != melonds::config::values::BUILT_IN) {
-        optional<string> firmwarePath = retro::get_system_path(firmwareName);
-        retro_assert(firmwarePath.has_value());
-        // If we couldn't get the system directory, we wouldn't have gotten this far
+    optional<string> firmwarePath = retro::get_system_path(firmwareName);
+    retro_assert(firmwarePath.has_value());
+    // If we couldn't get the system directory, we wouldn't have gotten this far
 
-        firmware = LoadFirmware(*firmwarePath);
-        if (firmware && firmware->Header().ConsoleType != SPI_Firmware::FirmwareConsoleType::DSi) {
-            retro::warn("Expected firmware of type DSi, got %s", ConsoleTypeName(firmware->Header().ConsoleType).data());
-            firmware = nullptr;
-        }
-        // DSi firmware isn't bootable, so we don't need to check for that here.
-
-        if (!firmware) {
-            retro::warn("Falling back to built-in DSi firmware");
-        }
+    unique_ptr<SPI_Firmware::Firmware> firmware = LoadFirmware(*firmwarePath);
+    if (firmware && firmware->Header().ConsoleType != SPI_Firmware::FirmwareConsoleType::DSi) {
+        retro::warn("Expected firmware of type DSi, got %s", ConsoleTypeName(firmware->Header().ConsoleType).data());
+        firmware = nullptr;
     }
+    // DSi firmware isn't bootable, so we don't need to check for that here.
 
     if (!firmware) {
-        // If we haven't loaded any firmware...
-        firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(melonds::ConsoleType::DSi));
+        throw bios_exception("Failed to load DSi BIOS file");
     }
 
     memcpy(DSi::ARM9iBIOS, bios9i.get(), sizeof(DSi::ARM9iBIOS));
@@ -1483,7 +1471,7 @@ static void melonds::config::apply_system_options(const NDSHeader* header) {
         InitDsiSystemConfig();
     } else {
         // If we're in DS mode...
-        InitNdsSystemConfig(header, _externalBiosEnable);
+        InitNdsSystemConfig(header, _bootMode, _sysfileMode);
     }
 }
 
@@ -1666,18 +1654,16 @@ static void melonds::config::set_core_options() noexcept {
         retro_assert(firmwarePathOption != definitions.end());
         retro_assert(firmwarePathDsiOption != definitions.end());
 
-        // Keep the first element, it's for built-in firmware
-        // We subtract 2 because we need room for the terminating element and the built-in firmware
-        int length = std::min((int)firmwarePaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 2);
+        int length = std::min((int)firmwarePaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
             retro::debug("Found a firmware image at \"%s\"", firmwarePaths[i].c_str());
             string_view path = firmwarePaths[i];
             path.remove_prefix(sysdir->size() + 1);
-            firmwarePathOption->values[i + 1] = { path.data(), nullptr };
-            firmwarePathDsiOption->values[i + 1] = { path.data(), nullptr };
+            firmwarePathOption->values[i] = { path.data(), nullptr };
+            firmwarePathDsiOption->values[i] = { path.data(), nullptr };
         }
-        firmwarePathOption->values[length + 2] = { nullptr, nullptr };
-        firmwarePathDsiOption->values[length + 2] = { nullptr, nullptr };
+        firmwarePathOption->values[length + 1] = { nullptr, nullptr };
+        firmwarePathDsiOption->values[length + 1] = { nullptr, nullptr };
 
         firmwarePathOption->default_value = firmwarePathOption->values[0].value;
         firmwarePathDsiOption->default_value = firmwarePathDsiOption->values[0].value;

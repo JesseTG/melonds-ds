@@ -223,15 +223,14 @@ add_emutest_test(
 )
 
 # See https://github.com/JesseTG/melonds-ds/issues/70
-add_emutest_test(
+add_retroarch_test(
     NAME "Core unloads with threaded software rendering"
     CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "loads-core.lua"
-    CORE_OPTION melonds_boot_directly="enabled"
-    CORE_OPTION melonds_use_external_bios="disabled"
-    CORE_OPTION melonds_firmware_nds_path="/builtin"
-    CORE_OPTION melonds_console_mode="ds"
-    CORE_OPTION melonds_threaded_renderer="enabled"
+    MAX_FRAMES 6
+    CORE_OPTION "melonds_boot_mode=direct"
+    CORE_OPTION "melonds_sysfile_mode=builtin"
+    CORE_OPTION "melonds_console_mode=ds"
+    CORE_OPTION "melonds_threaded_renderer=enabled"
 )
 
 # See https://github.com/JesseTG/melonds-ds/issues/62
@@ -239,10 +238,9 @@ add_emutest_test(
     NAME "Core resets when using built-in system files and direct boot (NDS)"
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "no-hang-on-reboot.lua"
-    CORE_OPTION melonds_boot_directly="enabled"
+    CORE_OPTION melonds_boot_mode="direct"
     CORE_OPTION melonds_show_cursor="disabled"
-    CORE_OPTION melonds_use_external_bios="disabled"
-    CORE_OPTION melonds_firmware_nds_path="/builtin"
+    CORE_OPTION melonds_sysfile_mode="builtin"
     CORE_OPTION melonds_console_mode="ds"
 )
 
@@ -254,8 +252,8 @@ add_emutest_test(
     ARM9_BIOS
     NDS_FIRMWARE
     CORE_OPTION melonds_firmware_nds_path='melonDS DS/${NDS_FIRMWARE_NAME}'
-    CORE_OPTION melonds_boot_directly="enabled"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_boot_mode="direct"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
     CORE_OPTION melonds_console_mode="ds"
 )
@@ -268,8 +266,8 @@ add_emutest_test(
     ARM9_BIOS
     NDS_FIRMWARE
     CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION melonds_boot_directly="disabled"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_boot_mode="native"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
@@ -286,8 +284,8 @@ add_emutest_test(
     CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
     CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
     CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_boot_directly="enabled"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_boot_mode="direct"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
@@ -304,42 +302,8 @@ add_emutest_test(
     CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
     CORE_OPTION melonds_console_mode="dsi"
     CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_boot_directly="disabled"
-    CORE_OPTION melonds_use_external_bios="enabled"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "Core resets when using native BIOS files, generated firmware, and direct boot (DSi)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="/builtin"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_boot_directly="enabled"
-    CORE_OPTION melonds_use_external_bios="enabled"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "Core resets when using native BIOS files, generated firmware, and native boot (DSi)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="/builtin"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_boot_directly="disabled"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_boot_mode="native"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
@@ -353,41 +317,11 @@ add_retroarch_test(
 ### Preventing Unneeded Loads
 
 add_retroarch_test(
-    NAME "Core doesn't try to load native firmware if using built-in firmware (NDS)"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
-    FAIL_REGULAR_EXPRESSION "[\\/]/builtin"
-    # "/builtin" is the value used to indicate the built-in firmware
-    # chosen because it's unlikely to be a valid path
-)
-
-add_retroarch_test(
-    NAME "Core doesn't try to load native firmware if using built-in firmware (DSi)"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=/builtin"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_NAND
-    FAIL_REGULAR_EXPRESSION "[\\/]/builtin"
-    # "/builtin" is the value used to indicate the built-in firmware
-    # chosen because it's unlikely to be a valid path
-)
-
-add_retroarch_test(
     NAME "Core doesn't try to load native BIOS if using FreeBIOS (NDS)"
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
+    CORE_OPTION "melonds_sysfile_mode=builtin"
     PASS_REGULAR_EXPRESSION "Not loading native ARM BIOS files"
 )
 
@@ -398,9 +332,8 @@ add_retroarch_test(
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
-    CORE_OPTION "melonds_boot_directly=enabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
+    CORE_OPTION "melonds_sysfile_mode=native"
+    CORE_OPTION "melonds_boot_mode=direct"
     ARM9_BIOS
     PASS_REGULAR_EXPRESSION "Falling back to FreeBIOS"
 )
@@ -410,9 +343,8 @@ add_retroarch_test(
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
-    CORE_OPTION "melonds_boot_directly=enabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
+    CORE_OPTION "melonds_sysfile_mode=native"
+    CORE_OPTION "melonds_boot_mode=direct"
     ARM7_BIOS
     PASS_REGULAR_EXPRESSION "Falling back to FreeBIOS"
 )
@@ -422,8 +354,8 @@ add_retroarch_test(
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_sysfile_mode=native"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
     ARM7_BIOS
     ARM9_BIOS
@@ -434,22 +366,21 @@ add_retroarch_test(
 ## Direct Boot of NDS game ####################################################
 
 add_retroarch_test(
-    NAME "Direct NDS boot with FreeBIOS and built-in firmware succeeds"
+    NAME "Direct NDS boot with built-in system files succeeds"
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
+    CORE_OPTION "melonds_sysfile_mode=builtin"
 )
 
 add_retroarch_test(
-    NAME "Direct NDS boot with native BIOS and native firmware succeeds"
+    NAME "Direct NDS boot with native system files succeeds"
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
+    CORE_OPTION "melonds_sysfile_mode=native"
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
     ARM7_BIOS
     ARM9_BIOS
@@ -462,39 +393,14 @@ add_retroarch_test(
     NAME "Direct NDS boot with native BIOS and non-bootable firmware succeeds"
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
+    CORE_OPTION "melonds_sysfile_mode=native"
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${DSI_FIRMWARE_NAME}"
     ARM7_BIOS
     ARM9_BIOS
     DSI_FIRMWARE
     FAIL_REGULAR_EXPRESSION "Failed to load ARM[79]"
-    FAIL_REGULAR_EXPRESSION "Failed to load the required firmware"
-)
-
-add_retroarch_test(
-    NAME "Direct NDS boot with native BIOS and built-in firmware succeeds"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_directly=enabled"
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
-    ARM7_BIOS
-    ARM9_BIOS
-    FAIL_REGULAR_EXPRESSION "Failed to load the required firmware"
-)
-
-add_retroarch_test(
-    NAME "Direct NDS boot with FreeBIOS and native firmware succeeds"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_directly=enabled"
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    NDS_FIRMWARE
     FAIL_REGULAR_EXPRESSION "Failed to load the required firmware"
 )
 
@@ -504,7 +410,8 @@ add_retroarch_test(
     NAME "NDS boot with no content, native BIOS, and bootable firmware succeeds"
     MAX_FRAMES 180
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
+    CORE_OPTION "melonds_sysfile_mode=native"
+    CORE_OPTION "melonds_boot_mode=native"
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
     NDS_FIRMWARE
     ARM7_BIOS
@@ -512,31 +419,10 @@ add_retroarch_test(
 )
 
 add_retroarch_test(
-    NAME "NDS boot with no content, FreeBIOS, and built-in firmware fails"
+    NAME "NDS boot with no content and built-in system files fails"
     MAX_FRAMES 180
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "NDS boot with no content, FreeBIOS, and native firmware fails"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    NDS_FIRMWARE
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "NDS boot with no content, native BIOS, and built-in firmware fails"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=enabled"
-    ARM7_BIOS
-    ARM9_BIOS
+    CORE_OPTION "melonds_sysfile_mode=builtin"
     WILL_FAIL
 )
 
@@ -544,7 +430,7 @@ add_retroarch_test(
     NAME "NDS boot with no content, native BIOS, and non-bootable firmware fails"
     MAX_FRAMES 180
     CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_use_external_bios=disabled"
+    CORE_OPTION "melonds_sysfile_mode=builtin"
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${DSI_FIRMWARE_NAME}"
     ARM7_BIOS
     ARM9_BIOS
@@ -595,7 +481,7 @@ add_retroarch_test(
 )
 
 add_retroarch_test(
-    NAME "DSi boot to menu with NDS firmware falls back to built-in firmware"
+    NAME "DSi boot to menu with NDS firmware fails"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${NDS_FIRMWARE_NAME}"
@@ -606,34 +492,20 @@ add_retroarch_test(
     ARM9_DSI_BIOS
     NDS_FIRMWARE
     DSI_NAND
-    PASS_REGULAR_EXPRESSION "Falling back to built-in DSi firmware"
+    WILL_FAIL
 )
 
 add_retroarch_test(
-    NAME "DSi boot to menu with no firmware falls back to built-in firmware"
+    NAME "DSi boot to menu with no firmware fails"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=/builtin"
     CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
     ARM7_BIOS
     ARM9_BIOS
     ARM7_DSI_BIOS
     ARM9_DSI_BIOS
     DSI_NAND
-    PASS_REGULAR_EXPRESSION "Installed firmware \\(Identifier: MELN\\)"
-)
-
-add_retroarch_test(
-    NAME "DSi boot to menu with built-in firmware succeeds"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=/builtin"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_NAND
+    WILL_FAIL
 )
 
 add_retroarch_test(
@@ -655,7 +527,7 @@ add_retroarch_test(
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
     CORE_OPTION "melonds_dsi_nand_path=/notfound"
     ARM7_BIOS
@@ -671,7 +543,7 @@ add_retroarch_test(
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
     CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
     ARM7_DSI_BIOS
@@ -686,7 +558,7 @@ add_retroarch_test(
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_boot_directly=enabled"
+    CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
     CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
     ARM7_BIOS
@@ -719,6 +591,8 @@ add_retroarch_test(
     MAX_FRAMES 6
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
+    CORE_OPTION "melonds_sysfile_mode=native"
+    CORE_OPTION "melonds_boot_mode=native"
     ARM7_BIOS
     ARM9_BIOS
     NDS_FIRMWARE
@@ -754,7 +628,7 @@ add_emutest_test(
     CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
     CORE_OPTION melonds_console_mode="ds"
     CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
@@ -774,7 +648,7 @@ add_emutest_test(
     CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
     CORE_OPTION melonds_console_mode="dsi"
     CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
@@ -794,7 +668,7 @@ add_emutest_test(
     CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
     CORE_OPTION melonds_console_mode="dsi"
     CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 
@@ -814,7 +688,7 @@ add_emutest_test(
     CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
     CORE_OPTION melonds_console_mode="dsi"
     CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_use_external_bios="enabled"
+    CORE_OPTION melonds_sysfile_mode="native"
     CORE_OPTION melonds_show_cursor="disabled"
 )
 

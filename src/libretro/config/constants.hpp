@@ -116,13 +116,13 @@ namespace melonds::config {
     namespace system {
         static constexpr const char *const CATEGORY = "system";
         static constexpr const char *const BATTERY_UPDATE_INTERVAL = "melonds_battery_update_interval";
-        static constexpr const char *const BOOT_DIRECTLY = "melonds_boot_directly";
+        static constexpr const char *const BOOT_MODE = "melonds_boot_mode";
         static constexpr const char *const CONSOLE_MODE = "melonds_console_mode";
         static constexpr const char *const DS_POWER_OK = "melonds_ds_battery_ok_threshold";
         static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
         static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
-        static constexpr const char *const USE_EXTERNAL_BIOS = "melonds_use_external_bios";
+        static constexpr const char *const SYSFILE_MODE = "melonds_sysfile_mode";
     }
 
     namespace storage {
@@ -166,7 +166,7 @@ namespace melonds::config {
         static constexpr const char *const BOTTOM_TOP = "bottom-top";
         static constexpr const char *const BOTH = "both";
         static constexpr const char *const BOTTOM = "bottom";
-        static constexpr const char *const BUILT_IN = "/builtin"; // leading slash so it's not a valid filename
+        static constexpr const char *const BUILT_IN = "builtin";
         static constexpr const char *const COSINE = "cosine";
         static constexpr const char *const CUBIC = "cubic";
         static constexpr const char *const DEDICATED = "dedicated";
