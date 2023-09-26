@@ -190,7 +190,7 @@ bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
     return file.is_regular_file() && file.size == DSI_NAND_SIZE;
 }
 
-bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
+bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::FirmwareHeader& header) noexcept {
     retro_assert(path_is_absolute(file.path));
 
     if (!file.is_regular_file())
@@ -206,13 +206,17 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
     if (!stream)
         return false;
 
-    u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
-    memset(headerBytes, 0, sizeof(headerBytes));
-    filestream_read(stream, headerBytes, sizeof(headerBytes));
+    char buffer[sizeof(header)];
+
+    int64_t bytesRead = filestream_read(stream, &buffer, sizeof(buffer));
     filestream_close(stream);
 
-    const SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<const SPI_Firmware::FirmwareHeader*>(headerBytes);
-    switch (header.ConsoleType) {
+    if (bytesRead < (int64_t)sizeof(buffer))
+        return false;
+
+    SPI_Firmware::FirmwareHeader& loadedHeader = *reinterpret_cast<SPI_Firmware::FirmwareHeader*>(&buffer);
+
+    switch (loadedHeader.ConsoleType) {
         case SPI_Firmware::FirmwareConsoleType::DS:
         case SPI_Firmware::FirmwareConsoleType::DSi:
         case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
@@ -223,7 +227,7 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
             return false;
     }
 
-    switch (header.WifiBoard) {
+    switch (loadedHeader.WifiBoard) {
         case SPI_Firmware::WifiBoard::W015:
         case SPI_Firmware::WifiBoard::W024:
         case SPI_Firmware::WifiBoard::W028:
@@ -233,5 +237,6 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file) noexcept {
             return false;
     }
 
+    memcpy(&header, &buffer, sizeof(buffer));
     return true;
 }

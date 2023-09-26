@@ -269,7 +269,7 @@ namespace melonds::config {
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
-    bool IsFirmwareImage(const retro::dirent &file) noexcept;
+    bool IsFirmwareImage(const retro::dirent &file, SPI_Firmware::FirmwareHeader& header) noexcept;
 }
 
 #endif //MELONDS_DS_CONSTANTS_HPP

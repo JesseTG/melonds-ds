@@ -27,6 +27,7 @@
 #include <memory>
 #include <string_view>
 #include <vector>
+#include <sys/stat.h>
 
 #include <file/file_path.h>
 #include <streams/file_stream.h>
@@ -1622,6 +1623,55 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
     inputState.SetMaxCursorTimeout(screen::CursorTimeout());
 }
 
+struct FirmwareEntry {
+    std::string path;
+    SPI_Firmware::FirmwareHeader header;
+    struct stat stat;
+};
+
+static time_t NewestTimestamp(const struct stat& statbuf) noexcept {
+    return std::max({statbuf.st_atime, statbuf.st_mtime, statbuf.st_ctime});
+}
+
+static bool ConsoleTypeMatches(const SPI_Firmware::FirmwareHeader& header, melonds::ConsoleType type) noexcept {
+    if (type == melonds::ConsoleType::DS) {
+        return header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DS || header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DSLite;
+    }
+    else {
+        return header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DSi;
+    }
+}
+
+static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, melonds::ConsoleType type) noexcept {
+    using namespace melonds;
+
+    const optional<string>& sysdir = retro::get_system_directory();
+
+    const auto& best = std::max_element(images.begin(), images.end(), [type](const FirmwareEntry& a, const FirmwareEntry& b) {
+        bool aMatches = ConsoleTypeMatches(a.header, type);
+        bool bMatches = ConsoleTypeMatches(b.header, type);
+
+        if (!aMatches && bMatches) {
+            // If the second image matches but the first doesn't, the second is automatically better
+            return true;
+        }
+        else if (aMatches && !bMatches) {
+            // If the first image matches but the second doesn't, the first is automatically better
+            return false;
+        }
+
+        // Both (or neither) images match the console type, so pick the one with the newest timestamp
+        return NewestTimestamp(a.stat) < NewestTimestamp(b.stat);
+    });
+
+    retro_assert(best != images.end());
+
+    string_view name = best->path;
+    name.remove_prefix(sysdir->size() + 1);
+
+    return name.data();
+}
+
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
 static void melonds::config::set_core_options() noexcept {
@@ -1632,20 +1682,25 @@ static void melonds::config::set_core_options() noexcept {
 
     optional<string> subdir = retro::get_system_subdirectory();
 
-    vector<string> dsiNandPaths, firmwarePaths;
-    optional<string> sysdir = retro::get_system_directory();
+    vector<string> dsiNandPaths;
+    vector<FirmwareEntry> firmware;
+    const optional<string>& sysdir = retro::get_system_directory();
 
     if (subdir) {
         retro_assert(sysdir.has_value());
-
+        u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
+        SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<SPI_Firmware::FirmwareHeader*>(headerBytes);
+        memset(headerBytes, 0, sizeof(headerBytes));
         array paths = {*sysdir, *subdir};
         for (const string& path: paths) {
             for (const retro::dirent& d : retro::readdir(path, true)) {
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
                 }
-                if (IsFirmwareImage(d)) {
-                    firmwarePaths.emplace_back(d.path);
+                if (IsFirmwareImage(d, header)) {
+                    struct stat statbuf;
+                    stat(d.path, &statbuf);
+                    firmware.emplace_back(FirmwareEntry {d.path, header, statbuf});
                 }
             }
         }
@@ -1675,7 +1730,7 @@ static void melonds::config::set_core_options() noexcept {
         dsiNandPathOption->default_value = dsiNandPaths[0].c_str();
     }
 
-    if (!firmwarePaths.empty()) {
+    if (!firmware.empty()) {
         // If we found at least one firmware image...
         retro_core_option_v2_definition* firmwarePathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
             return string_is_equal(def.key, melonds::config::system::FIRMWARE_PATH);
@@ -1687,10 +1742,10 @@ static void melonds::config::set_core_options() noexcept {
         retro_assert(firmwarePathOption != definitions.end());
         retro_assert(firmwarePathDsiOption != definitions.end());
 
-        int length = std::min((int)firmwarePaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
+        int length = std::min((int)firmware.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
-            retro::debug("Found a firmware image at \"%s\"", firmwarePaths[i].c_str());
-            string_view path = firmwarePaths[i];
+            retro::debug("Found a firmware image at \"%s\"", firmware[i].path.c_str());
+            string_view path = firmware[i].path;
             path.remove_prefix(sysdir->size() + 1);
             firmwarePathOption->values[i] = { path.data(), nullptr };
             firmwarePathDsiOption->values[i] = { path.data(), nullptr };
@@ -1698,11 +1753,11 @@ static void melonds::config::set_core_options() noexcept {
         firmwarePathOption->values[length + 1] = { nullptr, nullptr };
         firmwarePathDsiOption->values[length + 1] = { nullptr, nullptr };
 
-        firmwarePathOption->default_value = firmwarePathOption->values[0].value;
-        firmwarePathDsiOption->default_value = firmwarePathDsiOption->values[0].value;
+        firmwarePathOption->default_value = SelectDefaultFirmware(firmware, ConsoleType::DS);
+        firmwarePathDsiOption->default_value = SelectDefaultFirmware(firmware, ConsoleType::DSi);
 
-        retro_assert(firmwarePathOption->values[0].value != nullptr);
-        retro_assert(firmwarePathDsiOption->values[0].value != nullptr);
+        retro_assert(firmwarePathOption->default_value != nullptr);
+        retro_assert(firmwarePathDsiOption->default_value != nullptr);
     }
 
     retro_core_options_v2 optionsUs = {
