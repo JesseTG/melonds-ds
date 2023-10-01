@@ -105,28 +105,8 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
     }
 
     if (inputState.IsTouchingScreen()) {
-        uvec2 clampedTouch;
-        switch (screenLayout.Layout()) {
-            case ScreenLayout::HybridBottom:
-                if (screenLayout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
-                    // If the touch screen is only shown in the hybrid-screen position...
-                    clampedTouch = clamp(inputState.HybridTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-                    // ...then that's the only transformation we'll use for input.
-                    break;
-                } else if (!all(glm::openBounded(inputState.PointerTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int>))) {
-                    // The touch screen is shown in both the hybrid and secondary positions.
-                    // If the touch input is not within the secondary position's bounds...
-                    clampedTouch = clamp(inputState.HybridTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-                    break;
-                }
-                [[fallthrough]];
-            default:
-                clampedTouch = clamp(inputState.PointerTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-                break;
-
-        }
-
-        NDS::TouchScreen(clampedTouch.x, clampedTouch.y);
+        uvec2 touch = inputState.ConsoleTouchCoordinates(screenLayout);
+        NDS::TouchScreen(touch.x, touch.y);
     } else if (inputState.ScreenReleased()) {
         NDS::ReleaseScreen();
     }
@@ -217,6 +197,31 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     }
 
     cursorSettingsDirty = false;
+}
+
+glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept {
+    uvec2 clampedTouch;
+    switch (layout.Layout()) {
+        case ScreenLayout::HybridBottom:
+            if (layout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
+                // If the touch screen is only shown in the hybrid-screen position...
+                clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+                // ...then that's the only transformation we'll use for input.
+                break;
+            } else if (!all(glm::openBounded(pointerTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int>))) {
+                // The touch screen is shown in both the hybrid and secondary positions.
+                // If the touch input is not within the secondary position's bounds...
+                clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+                break;
+            }
+            [[fallthrough]];
+        default:
+            clampedTouch = clamp(pointerTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+            break;
+
+    }
+
+    return clampedTouch;
 }
 
 bool melonds::InputState::CursorVisible() const noexcept {

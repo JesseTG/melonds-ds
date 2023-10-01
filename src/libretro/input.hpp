@@ -47,6 +47,7 @@ namespace melonds {
         [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
         [[nodiscard]] unsigned MaxCursorTimeout() const noexcept { return maxCursorTimeout;}
         [[nodiscard]] uint32_t ConsoleButtons() const noexcept { return consoleButtons; }
+        [[nodiscard]] glm::uvec2 ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept;
         void SetMaxCursorTimeout(unsigned timeout) noexcept {
             if (timeout != maxCursorTimeout) cursorSettingsDirty = true;
             maxCursorTimeout = timeout;
