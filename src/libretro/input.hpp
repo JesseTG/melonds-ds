@@ -48,6 +48,7 @@ namespace melonds {
         [[nodiscard]] bool ToggleLidPressed() const noexcept { return toggleLidButton && !previousToggleLidButton; }
         [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
         [[nodiscard]] unsigned MaxCursorTimeout() const noexcept { return maxCursorTimeout;}
+        [[nodiscard]] uint32_t ConsoleButtons() const noexcept { return consoleButtons; }
         void SetMaxCursorTimeout(unsigned timeout) noexcept {
             if (timeout != maxCursorTimeout) cursorSettingsDirty = true;
             maxCursorTimeout = timeout;
@@ -83,6 +84,7 @@ namespace melonds {
         bool cycleLayoutButton;
         bool previousCycleLayoutButton;
         bool joystickTouchButton;
+        uint32_t consoleButtons;
 
     };
 

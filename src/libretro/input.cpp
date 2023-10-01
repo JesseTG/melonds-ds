@@ -97,6 +97,8 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
     // Read the input from the frontend
     inputState.Update(screenLayout);
 
+    NDS::SetKeyMask(inputState.ConsoleButtons());
+
     if (inputState.ToggleLidPressed()) {
         NDS::SetLidClosed(!NDS::IsLidClosed());
         retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
@@ -179,7 +181,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_X, 10, retroInputBits);
     ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_Y, 11, retroInputBits);
 
-    NDS::SetKeyMask(ndsInputBits);
+    consoleButtons = ndsInputBits;
 
     previousToggleLidButton = toggleLidButton;
     toggleLidButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_L3);
