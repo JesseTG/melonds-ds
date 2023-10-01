@@ -104,12 +104,6 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
         retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
     }
 
-    if (inputState.CycleLayoutPressed()) {
-        // If the user wants to change the active screen layout...
-        screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
-        retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
-    }
-
     if (inputState.IsTouchingScreen()) {
         uvec2 clampedTouch;
         switch (screenLayout.Layout()) {
@@ -135,6 +129,12 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
         NDS::TouchScreen(clampedTouch.x, clampedTouch.y);
     } else if (inputState.ScreenReleased()) {
         NDS::ReleaseScreen();
+    }
+
+    if (inputState.CycleLayoutPressed()) {
+        // If the user wants to change the active screen layout...
+        screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
+        retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
     }
 }
 
