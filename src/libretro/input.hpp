@@ -33,8 +33,6 @@ namespace melonds {
         [[nodiscard]] bool IsTouchingScreen() const noexcept { return isPointerTouching; }
         [[nodiscard]] bool ScreenTouched() const noexcept { return isPointerTouching && !previousIsPointerTouching; }
         [[nodiscard]] bool ScreenReleased() const noexcept { return !isPointerTouching && previousIsPointerTouching; }
-        [[nodiscard]] int TouchX() const noexcept { return pointerTouchPosition.x; }
-        [[nodiscard]] int TouchY() const noexcept { return pointerTouchPosition.y; }
         [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return pointerTouchPosition; }
         [[nodiscard]] glm::i16vec2 PointerInput() const noexcept { return pointerRawPosition; }
         [[nodiscard]] glm::ivec2 HybridTouchPosition() const noexcept { return hybridTouchPosition; }
