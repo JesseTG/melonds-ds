@@ -158,7 +158,7 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
                 existingFirmwareFileSize
             );
         }
-        retro_assert(!string_ends_with(firmwarePath.c_str(), "//builtin"));
+        retro_assert(!string_ends_with(firmwarePath.c_str(), "//notfound"));
         Firmware firmwareCopy(*firmware);
         // TODO: Apply the original values of the settings that were overridden
         if (filestream_write_file(firmwarePath.c_str(), firmware->Buffer(), firmware->Length())) {
