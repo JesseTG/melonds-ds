@@ -181,7 +181,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     if (state.CursorVisible()) {
         float cursorSize = melonds::config::screen::CursorSize();
-        ivec2 touch = state.TouchPosition();
+        ivec2 touch = state.PointerTouchPosition();
         GL_ShaderConfig.cursorPos[0] = ((float) touch.x - cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);
         GL_ShaderConfig.cursorPos[1] = (((float) touch.y - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
         GL_ShaderConfig.cursorPos[2] = ((float) touch.x + cursorSize) / (NDS_SCREEN_HEIGHT * 1.35f);

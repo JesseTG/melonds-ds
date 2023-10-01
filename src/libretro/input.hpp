@@ -30,14 +30,14 @@ namespace melonds {
     {
     public:
         [[nodiscard]] bool CursorVisible() const noexcept;
-        [[nodiscard]] bool IsTouchingScreen() const noexcept { return touching; }
-        [[nodiscard]] bool ScreenTouched() const noexcept { return touching && !previousTouching; }
-        [[nodiscard]] bool ScreenReleased() const noexcept { return !touching && previousTouching; }
-        [[nodiscard]] int TouchX() const noexcept { return touch.x; }
-        [[nodiscard]] int TouchY() const noexcept { return touch.y; }
-        [[nodiscard]] glm::ivec2 TouchPosition() const noexcept { return touch; }
-        [[nodiscard]] glm::i16vec2 PointerInput() const noexcept { return pointerInput; }
-        [[nodiscard]] glm::ivec2 HybridTouchPosition() const noexcept { return hybridTouch; }
+        [[nodiscard]] bool IsTouchingScreen() const noexcept { return isPointerTouching; }
+        [[nodiscard]] bool ScreenTouched() const noexcept { return isPointerTouching && !previousIsPointerTouching; }
+        [[nodiscard]] bool ScreenReleased() const noexcept { return !isPointerTouching && previousIsPointerTouching; }
+        [[nodiscard]] int TouchX() const noexcept { return pointerTouchPosition.x; }
+        [[nodiscard]] int TouchY() const noexcept { return pointerTouchPosition.y; }
+        [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return pointerTouchPosition; }
+        [[nodiscard]] glm::i16vec2 PointerInput() const noexcept { return pointerRawPosition; }
+        [[nodiscard]] glm::ivec2 HybridTouchPosition() const noexcept { return hybridTouchPosition; }
         [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutButton; }
         [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutButton && !previousCycleLayoutButton; }
         [[nodiscard]] bool CycleLayoutReleased() const noexcept { return !cycleLayoutButton && previousCycleLayoutButton; }
@@ -49,35 +49,40 @@ namespace melonds {
         [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
         [[nodiscard]] unsigned MaxCursorTimeout() const noexcept { return maxCursorTimeout;}
         void SetMaxCursorTimeout(unsigned timeout) noexcept {
-            if (timeout != maxCursorTimeout) dirty = true;
+            if (timeout != maxCursorTimeout) cursorSettingsDirty = true;
             maxCursorTimeout = timeout;
         }
         [[nodiscard]] enum CursorMode CursorMode() const noexcept { return cursorMode; }
         void SetCursorMode(melonds::CursorMode mode) noexcept {
-            if (mode != cursorMode) dirty = true;
+            if (mode != cursorMode) cursorSettingsDirty = true;
             cursorMode = mode;
         }
         void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
-        bool dirty = true;
-        bool touching;
-        bool previousTouching;
-        glm::ivec2 previousTouch;
-        glm::ivec2 touch;
-        glm::i16vec2 pointerInput;
-        glm::ivec2 hybridTouch;
-        glm::ivec2 joystickTouch;
+        bool cursorSettingsDirty = true;
+        bool isPointerTouching;
+        bool previousIsPointerTouching;
+        glm::ivec2 previousPointerTouchPosition;
+        glm::ivec2 pointerTouchPosition;
+        glm::i16vec2 pointerRawPosition;
+
+        /// Touch coordinates of the pointer on the hybrid screen,
+        /// in NDS pixel coordinates.
+        /// Only relevant if a hybrid layout is active
+        glm::ivec2 hybridTouchPosition;
+        glm::ivec2 joystickCursorPosition;
         enum CursorMode cursorMode;
 
         unsigned cursorTimeout = 0;
         unsigned maxCursorTimeout;
         bool toggleLidButton;
         bool previousToggleLidButton;
-        bool previousMicButton;
         bool micButton;
+        bool previousMicButton;
         bool cycleLayoutButton;
         bool previousCycleLayoutButton;
+        bool joystickTouchButton;
 
     };
 

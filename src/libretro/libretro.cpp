@@ -830,7 +830,7 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
 
             if (config::osd::ShowPointerCoordinates()) {
                 glm::i16vec2 pointerInput = input_state.PointerInput();
-                glm::ivec2 touch = input_state.TouchPosition();
+                glm::ivec2 touch = input_state.PointerTouchPosition();
                 text += "Pointer: (" + to_string(pointerInput.x) + ", " + to_string(pointerInput.y) + ") → (" + to_string(touch.x) + ", " + to_string(touch.y) + ")";
             }
 

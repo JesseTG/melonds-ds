@@ -117,7 +117,7 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
                     clampedTouch = clamp(inputState.HybridTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
                     // ...then that's the only transformation we'll use for input.
                     break;
-                } else if (!all(glm::openBounded(inputState.TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int>))) {
+                } else if (!all(glm::openBounded(inputState.PointerTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int>))) {
                     // The touch screen is shown in both the hybrid and secondary positions.
                     // If the touch input is not within the secondary position's bounds...
                     clampedTouch = clamp(inputState.HybridTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
@@ -125,7 +125,7 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
                 }
                 [[fallthrough]];
             default:
-                clampedTouch = clamp(inputState.TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+                clampedTouch = clamp(inputState.PointerTouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
                 break;
 
         }
@@ -151,7 +151,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     uint32_t retroInputBits; // Input bits from libretro
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 
-    if (dirty) {
+    if (cursorSettingsDirty) {
         cursorTimeout = maxCursorTimeout * 60;
     }
 
@@ -190,23 +190,23 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     previousCycleLayoutButton = cycleLayoutButton;
     cycleLayoutButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R2);
 
-    previousTouch = touch;
-    previousTouching = touching;
+    previousPointerTouchPosition = pointerTouchPosition;
+    previousIsPointerTouching = isPointerTouching;
 
     ScreenLayout layout = screen_layout_data.Layout();
     if (layout == ScreenLayout::TopOnly) {
-        touching = false;
+        isPointerTouching = false;
     } else {
-        touching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-        pointerInput.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-        pointerInput.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+        isPointerTouching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+        pointerRawPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+        pointerRawPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-        touch = screen_layout_data.TransformPointerInput(pointerInput);
-        hybridTouch = screen_layout_data.TransformPointerInputToHybridScreen(pointerInput);
+        pointerTouchPosition = screen_layout_data.TransformPointerInput(pointerRawPosition);
+        hybridTouchPosition = screen_layout_data.TransformPointerInputToHybridScreen(pointerRawPosition);
     }
 
     if (cursorMode == CursorMode::Timeout) {
-        if (touching != previousTouching || touch != previousTouch) {
+        if (isPointerTouching != previousIsPointerTouching || pointerTouchPosition != previousPointerTouchPosition) {
             // If the player moved, pressed, or released the pointer within the past frame...
             cursorTimeout = maxCursorTimeout * 60;
         } else if (cursorTimeout > 0) {
@@ -214,7 +214,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         }
     }
 
-    dirty = false;
+    cursorSettingsDirty = false;
 }
 
 bool melonds::InputState::CursorVisible() const noexcept {
@@ -227,14 +227,14 @@ bool melonds::InputState::CursorVisible() const noexcept {
             modeAllowsCursor = false;
             break;
         case CursorMode::Touching:
-            modeAllowsCursor = touching;
+            modeAllowsCursor = isPointerTouching;
             break;
         case CursorMode::Timeout:
             modeAllowsCursor = cursorTimeout > 0;
             break;
     }
 
-    return modeAllowsCursor && !NDS::IsLidClosed() && pointerInput != i16vec2(0);
+    return modeAllowsCursor && !NDS::IsLidClosed() && pointerRawPosition != i16vec2(0);
     // libretro's pointer API returns (0, 0) if the pointer is not over the play area (even if it's still over the window).
     // Theoretically means that the cursor is hidden if the player moves the pointer to the dead center of the screen,
     // but the screen's resolution probably isn't big enough for that to happen in practice.
