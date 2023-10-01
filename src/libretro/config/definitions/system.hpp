@@ -55,7 +55,7 @@ namespace melonds::config::definitions {
             "or its own built-in replacements. "
             "Only applies to DS mode.\n"
             "\n"
-            "Native mode uses BIOS and firmware files from real DS. "
+            "Native mode uses BIOS and firmware files from a real DS. "
             "Place your dumps of these in the system directory or its \"melonDS DS\" subdirectory "
             "and name them as follows:\n"
             "\n"
