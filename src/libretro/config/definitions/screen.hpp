@@ -44,7 +44,7 @@ namespace melonds::config::definitions {
 #if defined(ANDROID) || defined(IOS)
             melonds::config::values::DISABLED // mobile users won't want to see a cursor by default
 #else
-            melonds::config::values::ALWAYS
+            melonds::config::values::TIMEOUT
 #endif
         },
         retro_core_option_v2_definition {
