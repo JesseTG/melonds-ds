@@ -90,6 +90,12 @@ namespace melonds {
         Always,
     };
 
+    enum class TouchMode {
+        Auto,
+        Pointer,
+        Joystick,
+    };
+
     enum class Renderer {
         None = -1,
         Software = 0, // To match with values that melonDS expects
@@ -302,6 +308,7 @@ namespace melonds {
             [[nodiscard]] float CursorSize() noexcept;
             [[nodiscard]] CursorMode CursorMode() noexcept;
             [[nodiscard]] unsigned CursorTimeout() noexcept;
+            [[nodiscard]] enum TouchMode TouchMode() noexcept;
         }
 
         namespace video {

@@ -57,6 +57,10 @@ namespace melonds {
             if (mode != cursorMode) cursorSettingsDirty = true;
             cursorMode = mode;
         }
+        void SetTouchMode(TouchMode mode) noexcept {
+            if (mode != touchMode) cursorSettingsDirty = true;
+            touchMode = mode;
+        }
         void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
@@ -73,6 +77,7 @@ namespace melonds {
         glm::ivec2 hybridTouchPosition;
         glm::ivec2 joystickCursorPosition;
         enum CursorMode cursorMode;
+        enum TouchMode touchMode;
 
         unsigned cursorTimeout = 0;
         unsigned maxCursorTimeout;

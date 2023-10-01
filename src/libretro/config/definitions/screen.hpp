@@ -70,6 +70,28 @@ namespace melonds::config::definitions {
             "3"
         },
         retro_core_option_v2_definition {
+            config::screen::TOUCH_MODE,
+            "Touch Mode",
+            nullptr,
+            "Determines how the console's touch screen is emulated.\n"
+            "\n"
+            "Joystick: Use a joystick to control the cursor. "
+            "Recommended if you don't have a mouse or a real touch screen available.\n"
+            "Pointer: Use your mouse or touch screen to control the cursor.\n"
+            "Auto: Use either Joystick or Pointer, depending on which you last touched.\n"
+            "\n"
+            "If unsure, set to Auto.",
+            nullptr,
+            config::screen::CATEGORY,
+            {
+                {melonds::config::values::JOYSTICK, "Joystick"},
+                {melonds::config::values::TOUCH, "Pointer"},
+                {melonds::config::values::AUTO, "Auto"},
+                {nullptr, nullptr},
+            },
+            melonds::config::values::AUTO
+        },
+        retro_core_option_v2_definition {
             config::screen::HYBRID_RATIO,
             "Hybrid Ratio",
             nullptr,

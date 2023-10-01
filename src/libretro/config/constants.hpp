@@ -262,6 +262,7 @@ namespace melonds::config {
 
     std::optional<melonds::FirmwareLanguage> ParseLanguage(const char* value) noexcept;
     std::optional<melonds::MicInputMode> ParseMicInputMode(const char* value) noexcept;
+    std::optional<melonds::TouchMode> ParseTouchMode(const char* value) noexcept;
 
     std::optional<SPI_Firmware::IpAddress> ParseIpAddress(const char* value) noexcept;
 

@@ -291,6 +291,9 @@ namespace melonds::config {
 
         static unsigned _cursorTimeout;
         unsigned CursorTimeout() noexcept { return _cursorTimeout; }
+
+        static enum TouchMode _touchMode;
+        enum TouchMode TouchMode() noexcept { return _touchMode; }
     }
 
     namespace system {
@@ -975,6 +978,13 @@ static void melonds::config::parse_screen_options() noexcept {
         _cursorTimeout = 3;
     }
 
+    if (optional<TouchMode> value = ParseTouchMode(get_variable(TOUCH_MODE))) {
+        _touchMode = *value;
+    } else {
+        retro::warn("Failed to get value for %s; defaulting to %s", TOUCH_MODE, values::AUTO);
+        _touchMode = TouchMode::Auto;
+    }
+
     if (optional<melonds::CursorMode> value = ParseCursorMode(get_variable(SHOW_CURSOR))) {
         _cursorMode = *value;
     } else {
@@ -1621,6 +1631,7 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
 
     inputState.SetCursorMode(screen::CursorMode());
     inputState.SetMaxCursorTimeout(screen::CursorTimeout());
+    inputState.SetTouchMode(screen::TouchMode());
 }
 
 struct FirmwareEntry {

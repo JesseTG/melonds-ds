@@ -168,6 +168,14 @@ optional<melonds::MicInputMode> melonds::config::ParseMicInputMode(const char* v
     return nullopt;
 }
 
+std::optional<melonds::TouchMode> melonds::config::ParseTouchMode(const char* value) noexcept {
+    if (string_is_equal(value, values::AUTO)) return TouchMode::Auto;
+    if (string_is_equal(value, values::TOUCH)) return TouchMode::Pointer;
+    if (string_is_equal(value, values::JOYSTICK)) return TouchMode::Joystick;
+
+    return nullopt;
+}
+
 optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
     if (string_is_empty(value))
         return nullopt;
