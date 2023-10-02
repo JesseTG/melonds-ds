@@ -101,7 +101,7 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
     screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer);
 
     if (input_state.CursorVisible()) {
-        screen_layout_data.DrawCursor(input_state.PointerTouchPosition());
+        screen_layout_data.DrawCursor(input_state.TouchPosition());
     }
 
     retro::video_refresh(
