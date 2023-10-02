@@ -105,6 +105,27 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 
     Savestate savestate((u8 *) data, size, false);
 
+    if (savestate.Error) {
+        u16 major = savestate.MajorVersion();
+        u16 minor = savestate.MinorVersion();
+        retro::error("Expected a savestate of major version %u, got %u.%u", SAVESTATE_MAJOR, major, minor);
+
+        if (major < SAVESTATE_MAJOR) {
+            // If this savestate is too old...
+            retro::set_error_message(
+                "This savestate is too old, can't load it.\n"
+                "Save your game normally in the older version and import the save data.");
+        } else if (major > SAVESTATE_MAJOR) {
+            // If this savestate is too new...
+            retro::set_error_message(
+                "This savestate too new, can't load it.\n"
+                "Save your game normally in the newer version, "
+                "then update this core or import the save data.");
+        }
+
+        return false;
+    }
+
     return NDS::DoSavestate(&savestate) && !savestate.Error;
 }
 
