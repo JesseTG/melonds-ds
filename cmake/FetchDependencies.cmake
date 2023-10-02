@@ -40,12 +40,12 @@ endfunction()
 fetch_dependency("melonDS" "https://github.com/melonDS-emu/melonDS.git" "bb09ce7")
 fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "01c6122")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
-fetch_dependency(glm "https://github.com/g-truc/glm.git" "5c46b9c")
+fetch_dependency(glm "https://github.com/g-truc/glm.git" "47585fd")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7877")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
-fetch_dependency(zlib "https://github.com/madler/zlib.git" "v1.2.13")
+fetch_dependency(zlib "https://github.com/madler/zlib.git" "v1.3")
 
 if (TRACY_ENABLE)
     fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.9.1")
