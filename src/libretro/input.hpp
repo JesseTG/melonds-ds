@@ -68,6 +68,8 @@ namespace melonds {
         void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
+        bool IsCursorInputInBounds() const noexcept;
+
         bool cursorSettingsDirty = true;
         bool isPointerTouching;
         bool previousIsPointerTouching;

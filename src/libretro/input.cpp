@@ -253,6 +253,24 @@ glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& 
     return clampedTouch;
 }
 
+bool melonds::InputState::IsCursorInputInBounds() const noexcept {
+    switch (touchMode) {
+        case TouchMode::Pointer:
+            return pointerRawPosition != i16vec2(0);
+        case TouchMode::Joystick:
+            return true;
+        case TouchMode::Auto:
+            return (joystickTimestamp > pointerUpdateTimestamp) || (pointerRawPosition != i16vec2(0));
+        default:
+            return false;
+    }
+
+    // Why are we comparing pointerRawPosition against (0, 0)?
+    // libretro's pointer API returns (0, 0) if the pointer is not over the play area, even if it's still over the window.
+    // Theoretically means that the cursor will be hidden if the player moves the pointer to the dead center of the screen,
+    // but the screen's resolution probably isn't big enough for that to happen in practice.
+}
+
 bool melonds::InputState::CursorVisible() const noexcept {
     bool modeAllowsCursor = false;
     switch (cursorMode) {
@@ -270,10 +288,7 @@ bool melonds::InputState::CursorVisible() const noexcept {
             break;
     }
 
-    return modeAllowsCursor && !NDS::IsLidClosed() && pointerRawPosition != i16vec2(0);
-    // libretro's pointer API returns (0, 0) if the pointer is not over the play area (even if it's still over the window).
-    // Theoretically means that the cursor will be hidden if the player moves the pointer to the dead center of the screen,
-    // but the screen's resolution probably isn't big enough for that to happen in practice.
+    return modeAllowsCursor && !NDS::IsLidClosed() && IsCursorInputInBounds();
 }
 
 bool melonds::InputState::IsTouchingScreen() const noexcept {
