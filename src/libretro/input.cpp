@@ -18,6 +18,7 @@
 
 #include <NDS.h>
 #include <glm/gtx/common.hpp>
+#include <features/features_cpu.h>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -175,25 +176,52 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     previousPointerTouchPosition = pointerTouchPosition;
     previousIsPointerTouching = isPointerTouching;
 
+    previousJoystickTouchButton = joystickTouchButton;
+    previousJoystickCursorPosition = joystickCursorPosition;
+    retro_perf_tick_t now = cpu_features_get_perf_counter();
+
     ScreenLayout layout = screen_layout_data.Layout();
     if (layout == ScreenLayout::TopOnly) {
         isPointerTouching = false;
+        joystickTouchButton = false;
     } else {
-        isPointerTouching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-        pointerRawPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-        pointerRawPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+        if (touchMode == TouchMode::Pointer || touchMode == TouchMode::Auto) {
+            isPointerTouching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+            pointerRawPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+            pointerRawPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+            pointerTouchPosition = screen_layout_data.TransformPointerInput(pointerRawPosition);
+            hybridTouchPosition = screen_layout_data.TransformPointerInputToHybridScreen(pointerRawPosition);
 
-        pointerTouchPosition = screen_layout_data.TransformPointerInput(pointerRawPosition);
-        hybridTouchPosition = screen_layout_data.TransformPointerInputToHybridScreen(pointerRawPosition);
+            if (isPointerTouching != previousIsPointerTouching || pointerTouchPosition != previousPointerTouchPosition) {
+                // If the player moved, pressed, or released the pointer within the past frame...
+                cursorTimeout = maxCursorTimeout * 60;
+                pointerUpdateTimestamp = now;
+            }
+        }
+
+        if (touchMode == TouchMode::Joystick || touchMode == TouchMode::Auto) {
+            joystickTouchButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
+            joystickRawDirection.x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
+            joystickRawDirection.y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
+
+            if (joystickRawDirection != i16vec2(0)) {
+                if (pointerUpdateTimestamp > joystickTimestamp) {
+                    joystickCursorPosition = pointerTouchPosition;
+                }
+                joystickCursorPosition += joystickRawDirection / i16vec2(2048);
+                joystickCursorPosition = clamp(joystickCursorPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+            }
+
+            if (joystickTouchButton != previousJoystickTouchButton || joystickCursorPosition != previousJoystickCursorPosition) {
+                // If the player moved, pressed, or released the joystick within the past frame...
+                cursorTimeout = maxCursorTimeout * 60;
+                joystickTimestamp = now;
+            }
+        }
     }
 
-    if (cursorMode == CursorMode::Timeout) {
-        if (isPointerTouching != previousIsPointerTouching || pointerTouchPosition != previousPointerTouchPosition) {
-            // If the player moved, pressed, or released the pointer within the past frame...
-            cursorTimeout = maxCursorTimeout * 60;
-        } else if (cursorTimeout > 0) {
-            cursorTimeout--;
-        }
+    if (cursorMode == CursorMode::Timeout && cursorTimeout > 0) {
+        cursorTimeout--;
     }
 
     cursorSettingsDirty = false;
@@ -201,6 +229,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
 
 glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept {
     uvec2 clampedTouch;
+
     switch (layout.Layout()) {
         case ScreenLayout::HybridBottom:
             if (layout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
@@ -208,7 +237,7 @@ glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& 
                 clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
                 // ...then that's the only transformation we'll use for input.
                 break;
-            } else if (!all(glm::openBounded(pointerTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int>))) {
+            } else if (!all(glm::openBounded(TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int>))) {
                 // The touch screen is shown in both the hybrid and secondary positions.
                 // If the touch input is not within the secondary position's bounds...
                 clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
@@ -216,7 +245,7 @@ glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& 
             }
             [[fallthrough]];
         default:
-            clampedTouch = clamp(pointerTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
+            clampedTouch = clamp(TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
             break;
 
     }
@@ -226,7 +255,7 @@ glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& 
 
 bool melonds::InputState::CursorVisible() const noexcept {
     bool modeAllowsCursor = false;
-    switch (config::screen::CursorMode()) {
+    switch (cursorMode) {
         case CursorMode::Always:
             modeAllowsCursor = true;
             break;
@@ -243,6 +272,39 @@ bool melonds::InputState::CursorVisible() const noexcept {
 
     return modeAllowsCursor && !NDS::IsLidClosed() && pointerRawPosition != i16vec2(0);
     // libretro's pointer API returns (0, 0) if the pointer is not over the play area (even if it's still over the window).
-    // Theoretically means that the cursor is hidden if the player moves the pointer to the dead center of the screen,
+    // Theoretically means that the cursor will be hidden if the player moves the pointer to the dead center of the screen,
     // but the screen's resolution probably isn't big enough for that to happen in practice.
+}
+
+bool melonds::InputState::IsTouchingScreen() const noexcept {
+    switch (touchMode) {
+        case TouchMode::Joystick:
+            return joystickTouchButton;
+        case TouchMode::Pointer:
+            return isPointerTouching;
+        case TouchMode::Auto:
+            return isPointerTouching || joystickTouchButton;
+        default:
+            return false;
+    }
+}
+
+ivec2 melonds::InputState::TouchPosition() const noexcept {
+    if (touchMode == TouchMode::Joystick) {
+        return joystickCursorPosition;
+    }
+
+    if (touchMode == TouchMode::Pointer) {
+        return pointerTouchPosition;
+    }
+
+    if (isPointerTouching) {
+        return pointerTouchPosition;
+    }
+
+    if (joystickTouchButton) {
+        return joystickCursorPosition;
+    }
+
+    return pointerUpdateTimestamp > joystickTimestamp ? pointerTouchPosition : joystickCursorPosition;
 }

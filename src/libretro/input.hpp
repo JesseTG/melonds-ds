@@ -30,10 +30,14 @@ namespace melonds {
     {
     public:
         [[nodiscard]] bool CursorVisible() const noexcept;
-        [[nodiscard]] bool IsTouchingScreen() const noexcept { return isPointerTouching; }
+        [[nodiscard]] bool IsTouchingScreen() const noexcept;
         [[nodiscard]] bool ScreenTouched() const noexcept { return isPointerTouching && !previousIsPointerTouching; }
-        [[nodiscard]] bool ScreenReleased() const noexcept { return !isPointerTouching && previousIsPointerTouching; }
+        [[nodiscard]] bool ScreenReleased() const noexcept {
+            return (!isPointerTouching && previousIsPointerTouching) || (!joystickTouchButton && previousJoystickTouchButton);
+        }
+        [[nodiscard]] glm::ivec2 TouchPosition() const noexcept;
         [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return pointerTouchPosition; }
+        [[nodiscard]] glm::ivec2 JoystickTouchPosition() const noexcept { return joystickCursorPosition; }
         [[nodiscard]] glm::i16vec2 PointerInput() const noexcept { return pointerRawPosition; }
         [[nodiscard]] glm::ivec2 HybridTouchPosition() const noexcept { return hybridTouchPosition; }
         [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutButton; }
@@ -70,14 +74,19 @@ namespace melonds {
         glm::ivec2 previousPointerTouchPosition;
         glm::ivec2 pointerTouchPosition;
         glm::i16vec2 pointerRawPosition;
+        retro_perf_tick_t pointerUpdateTimestamp;
 
         /// Touch coordinates of the pointer on the hybrid screen,
         /// in NDS pixel coordinates.
         /// Only relevant if a hybrid layout is active
         glm::ivec2 hybridTouchPosition;
         glm::ivec2 joystickCursorPosition;
+        glm::ivec2 previousJoystickCursorPosition;
+        glm::i16vec2 joystickRawDirection;
+        retro_perf_tick_t joystickTimestamp;
         enum CursorMode cursorMode;
         enum TouchMode touchMode;
+        enum TouchMode mostRecentTouchMode;
 
         unsigned cursorTimeout = 0;
         unsigned maxCursorTimeout;
@@ -88,8 +97,8 @@ namespace melonds {
         bool cycleLayoutButton;
         bool previousCycleLayoutButton;
         bool joystickTouchButton;
+        bool previousJoystickTouchButton;
         uint32_t consoleButtons;
-
     };
 
     void HandleInput(InputState& inputState, ScreenLayoutData& screenLayout) noexcept;
