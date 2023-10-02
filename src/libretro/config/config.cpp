@@ -978,7 +978,7 @@ static void melonds::config::parse_screen_options() noexcept {
         _cursorTimeout = 3;
     }
 
-    if (optional<TouchMode> value = ParseTouchMode(get_variable(TOUCH_MODE))) {
+    if (optional<melonds::TouchMode> value = ParseTouchMode(get_variable(TOUCH_MODE))) {
         _touchMode = *value;
     } else {
         retro::warn("Failed to get value for %s; defaulting to %s", TOUCH_MODE, values::AUTO);
