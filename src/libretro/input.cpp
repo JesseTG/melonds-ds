@@ -18,6 +18,7 @@
 
 #include <NDS.h>
 #include <glm/gtx/common.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <features/features_cpu.h>
 
 #include "config.hpp"
@@ -62,6 +63,21 @@ const struct retro_input_descriptor melonds::input_descriptors[] = {
 
 static bool IsInNdsScreenBounds(ivec2 position) noexcept {
     return glm::all(glm::openBounded(position, ivec2(0), NDS_SCREEN_SIZE<int>));
+}
+
+constexpr float GetOrientationAngle(retro::ScreenOrientation orientation) noexcept {
+    switch (orientation) {
+        case retro::ScreenOrientation::Normal:
+            return 0;
+        case retro::ScreenOrientation::RotatedLeft:
+            return glm::radians(90.f);
+        case retro::ScreenOrientation::UpsideDown:
+            return glm::radians(180.f);
+        case retro::ScreenOrientation::RotatedRight:
+            return glm::radians(270.f);
+        default:
+            return 0;
+    }
 }
 
 static const char *device_name(unsigned device) {
@@ -200,9 +216,11 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
         }
 
         if (touchMode == TouchMode::Joystick || touchMode == TouchMode::Auto) {
+            retro::ScreenOrientation orientation = screen_layout_data.EffectiveOrientation();
             joystickTouchButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
             joystickRawDirection.x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
             joystickRawDirection.y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
+            joystickRawDirection = (i16vec2)glm::rotate(vec2(joystickRawDirection), GetOrientationAngle(orientation));
 
             if (joystickRawDirection != i16vec2(0)) {
                 if (pointerUpdateTimestamp > joystickTimestamp) {

@@ -191,6 +191,8 @@ namespace melonds {
         }
 
         [[nodiscard]] retro_game_geometry Geometry(Renderer renderer) const noexcept;
+
+        [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
     private:
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
@@ -200,6 +202,7 @@ namespace melonds {
 
         bool _dirty;
         unsigned resolutionScale;
+        retro::ScreenOrientation orientation;
         std::array<glm::vec2, 12> transformedScreenPoints;
 
         glm::mat3 joystickMatrix;

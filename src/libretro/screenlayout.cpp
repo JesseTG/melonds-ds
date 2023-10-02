@@ -41,6 +41,7 @@ using glm::mat3;
 
 melonds::ScreenLayoutData::ScreenLayoutData() :
     _dirty(true), // Uninitialized
+    orientation(retro::ScreenOrientation::Normal),
     joystickMatrix(1), // Identity matrix
     topScreenMatrix(1),
     bottomScreenMatrix(1),
@@ -298,12 +299,13 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
     pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
 
     ScreenLayout layout = Layout();
-    retro::ScreenOrientation orientation = LayoutOrientation(layout);
+    retro::ScreenOrientation newOrientation = LayoutOrientation(layout);
 
-    if (retro::set_screen_rotation(orientation)) {
+    if (retro::set_screen_rotation(newOrientation)) {
         // Try to rotate the screen. If that failed...
         pointerMatrix = glm::rotate(pointerMatrix, LayoutAngle(layout));
-    } else if (orientation != retro::ScreenOrientation::Normal) {
+        orientation = newOrientation;
+    } else if (newOrientation != retro::ScreenOrientation::Normal) {
         // A rotation to normal orientation may "fail", even though it's the default.
         // So only log an error if we're trying to rotate to something besides 0 degrees.
         retro::set_error_message("Failed to rotate screen.");
