@@ -88,7 +88,6 @@ namespace melonds {
         retro_perf_tick_t joystickTimestamp;
         enum CursorMode cursorMode;
         enum TouchMode touchMode;
-        enum TouchMode mostRecentTouchMode;
 
         unsigned cursorTimeout = 0;
         unsigned maxCursorTimeout;
