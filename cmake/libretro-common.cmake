@@ -10,7 +10,6 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/compat/compat_posix_string.c
     ${libretro-common_SOURCE_DIR}/compat/compat_strldup.c
     ${libretro-common_SOURCE_DIR}/compat/fopen_utf8.c
-    ${libretro-common_SOURCE_DIR}/dynamic/dylib.c
     ${libretro-common_SOURCE_DIR}/encodings/encoding_base64.c
     ${libretro-common_SOURCE_DIR}/encodings/encoding_crc32.c
     ${libretro-common_SOURCE_DIR}/encodings/encoding_utf.c
@@ -64,6 +63,13 @@ target_sources(libretro-common PRIVATE
 add_common_definitions(libretro-common)
 target_include_directories(libretro-common PRIVATE ${CMAKE_SOURCE_DIR}/src/libretro)
 target_compile_definitions(libretro-common PRIVATE HAVE_GLSYM_PRIVATE)
+
+if (HAVE_DYNAMIC)
+    target_sources(libretro-common PRIVATE
+        ${libretro-common_SOURCE_DIR}/dynamic/dylib.c
+    )
+endif ()
+
 if (HAVE_EGL)
     target_link_libraries(libretro-common PUBLIC OpenGL::EGL)
 endif ()
