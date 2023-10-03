@@ -120,14 +120,14 @@ check_symbol_exists(mmap "sys/mman.h" HAVE_MMAP)
 check_include_file("sys/mman.h" HAVE_MMAN)
 
 if (ENABLE_DYNAMIC)
-    set(HAVE_DYNAMIC ON)
+    get_cmake_property(HAVE_DYNAMIC TARGET_SUPPORTS_SHARED_LIBS)
 endif ()
 
 if (IOS)
     set(HAVE_COCOATOUCH ON)
 endif ()
 
-if (ENABLE_NETWORKING AND (WIN32 OR UNIX))
+if (ENABLE_NETWORKING AND (WIN32 OR UNIX) AND HAVE_DYNAMIC)
     set(HAVE_NETWORKING_DIRECT_MODE ON)
 endif()
 
