@@ -28,6 +28,8 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/formats/json/rjson.c
     ${libretro-common_SOURCE_DIR}/formats/logiqx_dat/logiqx_dat.c
     ${libretro-common_SOURCE_DIR}/formats/m3u/m3u_file.c
+    ${libretro-common_SOURCE_DIR}/formats/png/rpng.c
+    ${libretro-common_SOURCE_DIR}/formats/png/rpng_encode.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/pixconv.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/scaler.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/scaler_filter.c
@@ -62,7 +64,7 @@ target_sources(libretro-common PRIVATE
 
 add_common_definitions(libretro-common)
 target_include_directories(libretro-common PRIVATE ${CMAKE_SOURCE_DIR}/src/libretro)
-target_compile_definitions(libretro-common PRIVATE HAVE_GLSYM_PRIVATE)
+target_compile_definitions(libretro-common PRIVATE HAVE_GLSYM_PRIVATE HAVE_RPNG)
 
 if (HAVE_DYNAMIC)
     target_sources(libretro-common PRIVATE
