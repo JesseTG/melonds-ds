@@ -94,6 +94,12 @@ embed_binaries(libretro-assets
         PATH "assets/wfc.cfg"
         BYTE_TYPE char
         NULL_TERMINATE
+    ASSET
+        NAME "melondsds_graphic_error"
+        PATH "assets/melon-error.png"
+    ASSET
+        NAME "melondsds_graphic_sorry"
+        PATH "assets/melon-sorry.png"
 )
 
 add_common_definitions(libretro)
