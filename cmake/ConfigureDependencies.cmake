@@ -1,5 +1,6 @@
 include(cmake/libretro-common.cmake)
 include(cmake/libslirp.cmake)
+include(cmake/stb.cmake)
 
 if (HAVE_OPENGL OR HAVE_OPENGLES)
     # Upstream melonDS uses GLAD to load OpenGL, but we want to use libretro's loader.
