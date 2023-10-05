@@ -43,6 +43,7 @@ constexpr pntr_color TEXT_COLOR_BOTTOM = {.b = 0x77, .g = 0xDE, .r = 0xDF, .a = 
 
 static constexpr const char* const ERROR_TITLE = "Oh no! melonDS couldn't start...";
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
+static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
 
 // I intentionally fix the error message to the DS screen size to simplify the layout.
 melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
@@ -196,6 +197,16 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
         wrappedText.get(),
         MARGIN,
         titleTextSize.y + MARGIN * 2,
+        TEXT_COLOR_BOTTOM
+    );
+
+    pntr_vector thankYouTextSize = pntr_measure_text_ex(bodyFont, THANK_YOU);
+    pntr_draw_text(
+        bottomScreen,
+        bodyFont,
+        THANK_YOU,
+        NDS_SCREEN_WIDTH - thankYouTextSize.x - MARGIN,
+        NDS_SCREEN_HEIGHT - thankYouTextSize.y - MARGIN,
         TEXT_COLOR_BOTTOM
     );
 }
