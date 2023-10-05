@@ -42,6 +42,7 @@
 #include <Platform.h>
 #include <SPI.h>
 #include <SPU.h>
+#include <ARM.h>
 
 #include "config.hpp"
 #include "content.hpp"
@@ -173,7 +174,11 @@ static void InitErrorScreen(const melonds::config_exception& e) noexcept {
     _loaded_gba_cart.reset();
     Platform::DeInit();
     retro::task::reset();
+    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+    retro::environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt);
     melonds::_errorScreen = make_unique<error::ErrorScreen>(e);
+    screenLayout.Update(melonds::Renderer::Software);
+    retro::error("Error screen initialized");
 }
 
 static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
@@ -503,6 +508,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
         ZoneScopedN("NDS::Stop");
         NDS::Stop();
     }
+    if (NDS::ARM9)
     {
         ZoneScopedN("NDS::DeInit");
         NDS::DeInit();

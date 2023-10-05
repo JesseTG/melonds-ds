@@ -36,7 +36,7 @@ namespace melonds::error {
         ErrorScreen(ErrorScreen&&) = delete;
         ErrorScreen& operator=(ErrorScreen&&) = delete;
 
-        void Render(const ScreenLayoutData& screenLayout) noexcept;
+        void Render(ScreenLayoutData& screenLayout) noexcept;
     private:
         config_exception exception;
         nk_context ctx;

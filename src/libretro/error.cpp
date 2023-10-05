@@ -40,6 +40,17 @@ melonds::error::ErrorScreen::~ErrorScreen() {
     nk_free(&ctx);
 }
 
-void melonds::error::ErrorScreen::Render(const ScreenLayoutData& screenLayout) noexcept {
+void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) noexcept {
+    if (screenLayout.Dirty()) {
+        screenLayout.Update(melonds::Renderer::Software);
+    }
 
+    screenLayout.Clear();
+
+    retro::video_refresh(
+        screenLayout.Buffer()[0],
+        screenLayout.Buffer().Width(),
+        screenLayout.Buffer().Height(),
+        screenLayout.Buffer().Stride()
+    );
 }
