@@ -33,11 +33,15 @@ add_library(nuklear STATIC
     "${nuklear_SOURCE_DIR}/src/nuklear_style.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_table.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_text.c"
+    "${nuklear_SOURCE_DIR}/src/nuklear_text_editor.c"
+    "${nuklear_SOURCE_DIR}/src/nuklear_toggle.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_tooltip.c"
+    "${nuklear_SOURCE_DIR}/src/nuklear_tree.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_utf8.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_util.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_vertex.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_widget.c"
+    "${nuklear_SOURCE_DIR}/src/nuklear_window.c"
 )
 
 target_include_directories(nuklear SYSTEM PUBLIC
