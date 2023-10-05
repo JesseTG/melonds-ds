@@ -77,9 +77,8 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
             NDS::DoSavestate(&state);
             melonds::_savestate_size = state.Length();
 
-            retro::log(
-                RETRO_LOG_INFO,
-                "Savestate requires %dB = %.0fKiB = %.0fMiB (before compression)",
+            retro::info(
+                "Savestate requires %zdB = %.0fKiB = %.0fMiB (before compression)",
                 melonds::_savestate_size,
                 melonds::_savestate_size / 1024.0f,
                 melonds::_savestate_size / 1024.0f / 1024.0f
@@ -101,8 +100,8 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     ZoneScopedN("retro_unserialize");
-    retro::log(RETRO_LOG_DEBUG, "retro_unserialize(%p, %d)", data, size);
 
+    retro::debug("retro_unserialize(%p, %zu)", data, size);
     Savestate savestate((u8 *) data, size, false);
 
     if (savestate.Error) {
