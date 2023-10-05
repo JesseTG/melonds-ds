@@ -67,6 +67,8 @@ static const char *memory_type_name(unsigned type)
 /// if rewind mode is enabled
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
     ZoneScopedN("retro_serialize_size");
+    if (melonds::IsInErrorScreen())
+        return 0;
 #ifndef NDEBUG
     if (retro::content::get_loaded_nds_info() != std::nullopt) {
         // If we're booting with a ROM...
@@ -100,6 +102,9 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
 
 PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
     ZoneScopedN("retro_serialize");
+    if (melonds::IsInErrorScreen())
+        return false;
+
 #ifndef NDEBUG
     if (retro::content::get_loaded_nds_info() != std::nullopt) {
         // If we're booting with a ROM...
@@ -117,6 +122,8 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     ZoneScopedN("retro_unserialize");
     retro::debug("retro_unserialize(%p, %zu)", data, size);
+    if (melonds::IsInErrorScreen())
+        return false;
 #ifndef NDEBUG
     if (retro::content::get_loaded_nds_info() != std::nullopt) {
         // If we're booting with a ROM...
@@ -152,6 +159,8 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
     retro::log(RETRO_LOG_DEBUG, "retro_get_memory_data(%s)\n", memory_type_name(type));
+    if (melonds::IsInErrorScreen())
+        return nullptr;
     switch (type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             return NDS::MainRAM;
@@ -167,6 +176,8 @@ PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
 
 PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
     using namespace melonds;
+    if (melonds::IsInErrorScreen())
+        return 0;
     ConsoleType console_type = config::system::ConsoleType();
     switch (type) {
         case RETRO_MEMORY_SYSTEM_RAM:

@@ -38,6 +38,7 @@ using GbaCart = GBACart::CartCommon;
 namespace melonds {
     bool IsUnloadingGame() noexcept;
     bool IsInDeinit() noexcept;
+    bool IsInErrorScreen() noexcept;
 }
 
 #endif //MELONDS_DS_LIBRETRO_HPP

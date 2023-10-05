@@ -47,6 +47,7 @@
 #include "content.hpp"
 #include "dsi.hpp"
 #include "environment.hpp"
+#include "error.hpp"
 #include "exceptions.hpp"
 #include "file.hpp"
 #include "info.hpp"
@@ -66,6 +67,8 @@ using std::optional;
 using std::nullopt;
 using std::string;
 using std::string_view;
+using std::unique_ptr;
+using std::make_unique;
 using retro::task::TaskSpec;
 
 namespace melonds {
@@ -79,6 +82,7 @@ namespace melonds {
     static uint32_t flushTaskId = 0;
     static std::unique_ptr<NdsCart> _loaded_nds_cart;
     static std::unique_ptr<GbaCart> _loaded_gba_cart;
+    static unique_ptr<error::ErrorScreen> _errorScreen;
     static const char *const INTERNAL_ERROR_MESSAGE =
         "An internal error occurred with melonDS DS. "
         "Please contact the developer with the log file.";
@@ -126,6 +130,10 @@ namespace melonds {
     {
         return isInDeinit;
     }
+
+    bool IsInErrorScreen() noexcept {
+        return _errorScreen != nullptr;
+    }
     retro::task::TaskSpec OnScreenDisplayTask() noexcept;
 }
 
@@ -144,6 +152,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(!melonds::isUnloading);
     retro_assert(!melonds::mic_state_toggled);
     retro_assert(melonds::flushTaskId == 0);
+    retro_assert(melonds::_errorScreen == nullptr);
     srand(time(nullptr));
     melonds::input_state = melonds::InputState();
     melonds::sram::init();
@@ -154,6 +163,17 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro::task::init(false, nullptr);
 
     // ScreenLayoutData is initialized in its constructor
+}
+
+static void InitErrorScreen(const melonds::config_exception& e) noexcept {
+    using namespace melonds;
+    ZoneScopedN("melonds::InitErrorScreen");
+    retro_assert(melonds::_errorScreen == nullptr);
+    _loaded_nds_cart.reset();
+    _loaded_gba_cart.reset();
+    Platform::DeInit();
+    retro::task::reset();
+    melonds::_errorScreen = make_unique<error::ErrorScreen>(e);
 }
 
 static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
@@ -199,6 +219,12 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
 
     return true;
 }
+catch (const melonds::config_exception& e) {
+    retro::error("%s", e.what());
+
+    InitErrorScreen(e);
+    return true;
+}
 catch (const melonds::emulator_exception &e) {
     // Thrown for invalid ROMs
     retro::error("%s", e.what());
@@ -237,7 +263,11 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     ZoneScopedN("retro_get_system_av_info");
     using melonds::screenLayout;
 
-    retro_assert(melonds::render::CurrentRenderer() != melonds::Renderer::None);
+#ifndef NDEBUG
+    if (!melonds::_errorScreen) {
+        retro_assert(melonds::render::CurrentRenderer() != melonds::Renderer::None);
+    }
+#endif
 
     info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
     info->timing.sample_rate = 32.0f * 1024.0f;
@@ -261,6 +291,12 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
 
                 log(RETRO_LOG_DEBUG, "Completed deferred initialization");
             }
+            catch (const melonds::config_exception &e) {
+                retro::error("Deferred initialization failed; displaying error screen");
+                retro::error("%s", e.what());
+                retro::set_error_message(e.user_message());
+                InitErrorScreen(e);
+            }
             catch (const melonds::emulator_exception &e) {
                 log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
                 retro::error("%s", e.what());
@@ -280,6 +316,11 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
                 retro::shutdown();
                 return;
             }
+        }
+
+        if (_errorScreen) {
+            _errorScreen->Render(screenLayout);
+            return;
         }
 
         if (!first_frame_run) {
@@ -509,6 +550,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::first_frame_run = false;
     melonds::isInDeinit = false;
     melonds::flushTaskId = 0;
+    melonds::_errorScreen = nullptr;
     retro::env::deinit();
 }
 
@@ -528,6 +570,8 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
 PUBLIC_SYMBOL void retro_reset(void) {
     ZoneScopedN("retro_reset");
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
+
+    melonds::_errorScreen = nullptr;
 
     // Flush all data before resetting
     melonds::sram::reset();
