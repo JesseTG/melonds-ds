@@ -27,6 +27,8 @@ add_library(libretro MODULE
     dsi.hpp
     environment.cpp
     environment.hpp
+    error.cpp
+    error.hpp
     exceptions.cpp
     exceptions.hpp
     file.hpp
