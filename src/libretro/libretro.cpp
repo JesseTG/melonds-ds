@@ -180,7 +180,7 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
                     retro::content::set_loaded_content_info(info, info + 1, info + 2);
                     break;
                 default:
-                    retro::log(RETRO_LOG_ERROR, "Invalid number of ROMs (%u) for slot-1/2 boot", num);
+                    retro::error("Invalid number of ROMs (%zu) for slot-1/2 boot", num);
                     retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
             }
             break;
@@ -224,7 +224,7 @@ catch (...) {
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     ZoneScopedN("retro_load_game");
     if (info) {
-        retro::debug("retro_load_game(\"%s\", %d)", info->path, info->size);
+        retro::debug("retro_load_game(\"%s\", %zu)", info->path, info->size);
     }
     else {
         retro::debug("retro_load_game(<no content>)");
@@ -483,7 +483,7 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
     ZoneScopedN("retro_load_game_special");
-    retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %u)", melonds::get_game_type_name(type), info, num);
+    retro::log(RETRO_LOG_DEBUG, "retro_load_game_special(%s, %p, %zu)", melonds::get_game_type_name(type), info, num);
 
     return melonds::handle_load_game(type, info, num);
 }
