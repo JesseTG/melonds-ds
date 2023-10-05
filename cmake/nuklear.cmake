@@ -1,4 +1,6 @@
 add_library(nuklear STATIC
+    "${nuklear_SOURCE_DIR}/src/nuklear.h"
+    "${nuklear_SOURCE_DIR}/src/nuklear_internal.h"
     "${nuklear_SOURCE_DIR}/src/nuklear_9slice.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_buffer.c"
     "${nuklear_SOURCE_DIR}/src/nuklear_button.c"
@@ -42,4 +44,15 @@ target_include_directories(nuklear SYSTEM PUBLIC
     "${nuklear_SOURCE_DIR}/src"
 )
 
-target_compile_definitions(nuklear PUBLIC NK_INCLUDE_DEFAULT_FONT NK_INCLUDE_FIXED_TYPES NK_INCLUDE_DEFAULT_ALLOCATOR)
+target_compile_definitions(nuklear PUBLIC
+    NK_INCLUDE_DEFAULT_FONT
+    NK_INCLUDE_FIXED_TYPES
+    NK_INCLUDE_DEFAULT_ALLOCATOR
+    NK_INCLUDE_STANDARD_BOOL
+    NK_INCLUDE_FONT_BAKING
+    NK_INCLUDE_STANDARD_VARARGS
+    NK_MEMSET=memset
+    NK_MEMCPY=memcpy
+)
+
+set_target_properties(nuklear PROPERTIES COMPILE_OPTIONS "-include;string.h")

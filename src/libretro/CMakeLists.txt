@@ -184,7 +184,8 @@ endif()
 
 target_compile_definitions(libretro PUBLIC MELONDSDS_VERSION="${CMAKE_PROJECT_VERSION}")
 target_compile_definitions(libretro PUBLIC MELONDSDS_NAME="${CMAKE_PROJECT_NAME}")
-target_compile_definitions(libretro PUBLIC NK_INCLUDE_DEFAULT_FONT NK_INCLUDE_FIXED_TYPES NK_INCLUDE_DEFAULT_ALLOCATOR)
+get_target_property(NUKLEAR_DEFINES nuklear COMPILE_DEFINITIONS)
+target_compile_definitions(libretro PUBLIC ${NUKLEAR_DEFINES})
 
 target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static nuklear)
 
