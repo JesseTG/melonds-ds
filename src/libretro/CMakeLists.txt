@@ -70,12 +70,14 @@ add_library(libretro MODULE
     tracy.hpp
     utils.cpp
     utils.hpp
+    ../pntr/pntr.c
 )
 
 target_include_directories(libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
     "${glm_SOURCE_DIR}"
+    "${pntr_SOURCE_DIR}"
     )
 
 target_include_directories(libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
@@ -184,12 +186,17 @@ if (WIN32 AND MINGW)
     target_link_options(libretro PUBLIC -static-libgcc -static-libstdc++ -static)
 endif()
 
-target_compile_definitions(libretro PUBLIC MELONDSDS_VERSION="${CMAKE_PROJECT_VERSION}")
-target_compile_definitions(libretro PUBLIC MELONDSDS_NAME="${CMAKE_PROJECT_NAME}")
-get_target_property(NUKLEAR_DEFINES nuklear COMPILE_DEFINITIONS)
-target_compile_definitions(libretro PUBLIC ${NUKLEAR_DEFINES})
+target_compile_definitions(libretro PUBLIC
+    MELONDSDS_VERSION="${CMAKE_PROJECT_VERSION}"
+    MELONDSDS_NAME="${CMAKE_PROJECT_NAME}"
+    PNTR_ENABLE_DEFAULT_FONT
+    PNTR_ENABLE_FILTER_SMOOTH
+    PNTR_ENABLE_TTF
+    PNTR_ENABLE_VARGS
+    PNTR_PIXELFORMAT_ARGB
+)
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static nuklear)
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(libretro PUBLIC BUILDING_LIBSLIRP)

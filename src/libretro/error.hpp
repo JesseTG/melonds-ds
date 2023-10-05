@@ -17,7 +17,7 @@
 #ifndef MELONDS_DS_ERROR_HPP
 #define MELONDS_DS_ERROR_HPP
 
-#include <nuklear.h>
+#include <pntr.h>
 #include "exceptions.hpp"
 
 
@@ -39,11 +39,8 @@ namespace melonds::error {
         void Render(ScreenLayoutData& screenLayout) noexcept;
     private:
         config_exception exception;
-        nk_context ctx;
-        nk_font_atlas fonts;
-        nk_font* font;
-        nk_user_font userFont;
-        struct nk_font_config fontConfig;
+        pntr_image* bottomScreen = nullptr;
+        pntr_image* topScreen = nullptr;
     };
 }
 

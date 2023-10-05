@@ -166,10 +166,15 @@ PUBLIC_SYMBOL void retro_init(void) {
     // ScreenLayoutData is initialized in its constructor
 }
 
-static void InitErrorScreen(const melonds::config_exception& e) noexcept {
+static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
     using namespace melonds;
     ZoneScopedN("melonds::InitErrorScreen");
     retro_assert(melonds::_errorScreen == nullptr);
+    if (getenv("MELONDSDS_SKIP_ERROR_SCREEN")) {
+        retro::error("Skipping error screen due to the environment variable MELONDSDS_SKIP_ERROR_SCREEN");
+        return false;
+    }
+
     _loaded_nds_cart.reset();
     _loaded_gba_cart.reset();
     Platform::DeInit();
@@ -179,6 +184,7 @@ static void InitErrorScreen(const melonds::config_exception& e) noexcept {
     melonds::_errorScreen = make_unique<error::ErrorScreen>(e);
     screenLayout.Update(melonds::Renderer::Software);
     retro::error("Error screen initialized");
+    return true;
 }
 
 static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
@@ -227,8 +233,7 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
 catch (const melonds::config_exception& e) {
     retro::error("%s", e.what());
 
-    InitErrorScreen(e);
-    return true;
+    return InitErrorScreen(e);
 }
 catch (const melonds::emulator_exception &e) {
     // Thrown for invalid ROMs
@@ -300,7 +305,8 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
                 retro::error("Deferred initialization failed; displaying error screen");
                 retro::error("%s", e.what());
                 retro::set_error_message(e.user_message());
-                InitErrorScreen(e);
+                if (!InitErrorScreen(e))
+                    return;
             }
             catch (const melonds::emulator_exception &e) {
                 log(RETRO_LOG_ERROR, "Deferred initialization failed; exiting core");
