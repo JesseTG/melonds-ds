@@ -104,6 +104,12 @@ embed_binaries(libretro-assets
     ASSET
         NAME "melondsds_graphic_sorry"
         PATH "assets/melon-sorry.png"
+    ASSET
+        NAME "melondsds_error_title_font"
+        PATH "assets/OpenSans-ExtraBold.ttf"
+    ASSET
+        NAME "melondsds_error_body_font"
+        PATH "assets/OpenSans_Condensed-SemiBold.ttf"
 )
 
 add_common_definitions(libretro)

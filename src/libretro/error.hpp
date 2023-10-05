@@ -36,8 +36,10 @@ namespace melonds::error {
         ErrorScreen(ErrorScreen&&) = delete;
         ErrorScreen& operator=(ErrorScreen&&) = delete;
 
-        void Render(ScreenLayoutData& screenLayout) noexcept;
+        void Render(ScreenLayoutData& screenLayout) const noexcept;
     private:
+        void DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
+        void DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
         config_exception exception;
         pntr_image* bottomScreen = nullptr;
         pntr_image* topScreen = nullptr;

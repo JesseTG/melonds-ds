@@ -15,39 +15,63 @@
 */
 
 #include "error.hpp"
-#include "buffer.hpp"
 
+#include <memory>
+#include <cstring>
+
+#include <pntr.h>
+#include <string/stdstring.h>
+
+#include "buffer.hpp"
 #include "embedded/melondsds_graphic_error.h"
 #include "embedded/melondsds_graphic_sorry.h"
+#include "embedded/melondsds_error_title_font.h"
+#include "embedded/melondsds_error_body_font.h"
 #include "screenlayout.hpp"
-#include <pntr.h>
+#include "tracy.hpp"
 
-constexpr float ERROR_TEXT_HEIGHT = 14.0f;
-constexpr pntr_color BACKGROUND_COLOR_TOP =  { .b = 0xD2, .g = 0xCF, .r = 0xFC, .a = 0xFF }; // light pink
-constexpr pntr_color BACKGROUND_COLOR_BOTTOM =  { .b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF }; // dark green
+constexpr int TITLE_FONT_HEIGHT = 20; // in pixels
+constexpr int BODY_FONT_HEIGHT = 18; // in pixels
+constexpr int MARGIN = 8; // in pixels
+constexpr int LINE_WIDTH = 60; // in characters
+constexpr int WIDEGLYPH_WIDTH = 150;
+constexpr int MAX_LINES = 0;
+constexpr pntr_color BACKGROUND_COLOR_TOP = {.b = 0xBC, .g = 0xB7, .r = 0xFA, .a = 0xFF}; // light pink
+constexpr pntr_color TEXT_COLOR_TOP = {.b = 0x71, .g = 0x6B, .r = 0xF5, .a = 0xFF}; // dark pink
+constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}; // dark green
+constexpr pntr_color TEXT_COLOR_BOTTOM = {.b = 0x77, .g = 0xDE, .r = 0xDF, .a = 0xFF}; // light green
 
+static constexpr const char* const ERROR_TITLE = "Oh no! melonDS couldn't start...";
+static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
+
+// I intentionally fix the error message to the DS screen size to simplify the layout.
 melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
+    ZoneScopedN("melonds::error::ErrorScreen::ErrorScreen");
     topScreen = pntr_gen_image_color(NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT, BACKGROUND_COLOR_TOP);
     assert(topScreen != nullptr);
 
     bottomScreen = pntr_gen_image_color(NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT, BACKGROUND_COLOR_BOTTOM);
     assert(bottomScreen != nullptr);
 
-    pntr_image* errorIcon = pntr_load_image_from_memory(PNTR_IMAGE_TYPE_PNG, embedded_melondsds_graphic_error, sizeof(embedded_melondsds_graphic_error));
-    assert(errorIcon != nullptr);
+    pntr_font* titleFont = pntr_load_font_ttf_from_memory(
+        embedded_melondsds_error_title_font,
+        sizeof(embedded_melondsds_error_title_font),
+        TITLE_FONT_HEIGHT
+    );
+    assert(titleFont != nullptr);
 
-    pntr_image* sorryIcon = pntr_load_image_from_memory(PNTR_IMAGE_TYPE_PNG, embedded_melondsds_graphic_sorry, sizeof(embedded_melondsds_graphic_sorry));
-    assert(sorryIcon != nullptr);
+    pntr_font* bodyFont = pntr_load_font_ttf_from_memory(
+        embedded_melondsds_error_body_font,
+        sizeof(embedded_melondsds_error_body_font),
+        BODY_FONT_HEIGHT
+    );
+    assert(bodyFont != nullptr);
+    // Y coordinates go down, and the origin for all images is in their top-left corner.
+    DrawTopScreen(titleFont, bodyFont);
+    DrawBottomScreen(titleFont, bodyFont);
 
-    pntr_font* font = pntr_load_font_default();
-    assert(font != nullptr);
-
-    pntr_draw_image(bottomScreen, sorryIcon, NDS_SCREEN_WIDTH / 2, NDS_SCREEN_HEIGHT / 2);
-    pntr_draw_image(topScreen, errorIcon, NDS_SCREEN_WIDTH / 2, NDS_SCREEN_HEIGHT / 2);
-
-    pntr_unload_font(font);
-    pntr_unload_image(errorIcon);
-    pntr_unload_image(sorryIcon);
+    pntr_unload_font(titleFont);
+    pntr_unload_font(bodyFont);
 }
 
 melonds::error::ErrorScreen::~ErrorScreen() {
@@ -60,7 +84,123 @@ melonds::error::ErrorScreen::~ErrorScreen() {
     }
 }
 
-void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) noexcept {
+void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+    ZoneScopedN("melonds::error::ErrorScreen::DrawTopScreen");
+    assert(titleFont != nullptr);
+
+    pntr_image* errorIcon = pntr_load_image_from_memory(
+        PNTR_IMAGE_TYPE_PNG,
+        embedded_melondsds_graphic_error,
+        sizeof(embedded_melondsds_graphic_error)
+    );
+    assert(errorIcon != nullptr);
+    assert(errorIcon->height < NDS_SCREEN_HEIGHT);
+    assert(errorIcon->width < NDS_SCREEN_WIDTH);
+
+    // draw a little watermelon emoji in the bottom-right corner
+    pntr_draw_image(
+        topScreen,
+        errorIcon,
+        NDS_SCREEN_WIDTH - errorIcon->width - MARGIN,
+        NDS_SCREEN_HEIGHT - errorIcon->height - MARGIN
+    );
+    pntr_unload_image(errorIcon);
+
+    // now draw the title
+    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, ERROR_TITLE);
+    pntr_draw_text(
+        topScreen,
+        titleFont,
+        ERROR_TITLE,
+        (NDS_SCREEN_WIDTH - titleTextSize.x) / 2,
+        MARGIN,
+        TEXT_COLOR_TOP
+    );
+
+    // finally, draw the error summary (wrapping lines as needed)
+    size_t textLength = strlen(exception.what());
+    size_t wrappedTextLength = textLength * 1.5;
+    auto wrappedText = std::make_unique<char[]>(wrappedTextLength);
+    memset(wrappedText.get(), 0, wrappedTextLength);
+    word_wrap_wideglyph(
+        wrappedText.get(),
+        wrappedTextLength,
+        exception.what(),
+        textLength,
+        LINE_WIDTH,
+        WIDEGLYPH_WIDTH,
+        MAX_LINES
+    );
+
+    pntr_draw_text(
+        topScreen,
+        bodyFont,
+        wrappedText.get(),
+        MARGIN,
+        titleTextSize.y + MARGIN * 2,
+        TEXT_COLOR_TOP
+    );
+}
+
+void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+    ZoneScopedN("melonds::error::ErrorScreen::DrawBottomScreen");
+    assert(titleFont != nullptr);
+
+    pntr_image* sorryIcon = pntr_load_image_from_memory(
+        PNTR_IMAGE_TYPE_PNG,
+        embedded_melondsds_graphic_sorry,
+        sizeof(embedded_melondsds_graphic_sorry)
+    );
+    assert(sorryIcon != nullptr);
+    assert(sorryIcon->height < NDS_SCREEN_HEIGHT);
+    assert(sorryIcon->width < NDS_SCREEN_WIDTH);
+
+    // draw a little watermelon emoji in the bottom-left corner
+    pntr_draw_image(
+        bottomScreen,
+        sorryIcon,
+        MARGIN,
+        NDS_SCREEN_HEIGHT - sorryIcon->height - MARGIN
+    );
+    pntr_unload_image(sorryIcon);
+
+    // now draw the title
+    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, SOLUTION_TITLE);
+    pntr_draw_text(
+        bottomScreen,
+        titleFont,
+        SOLUTION_TITLE,
+        (NDS_SCREEN_WIDTH - titleTextSize.x) / 2,
+        MARGIN,
+        TEXT_COLOR_BOTTOM
+    );
+
+    // draw the solution details (wrapping lines as needed)
+    size_t textLength = strlen(exception.user_message());
+    size_t wrappedTextLength = textLength * 1.5;
+    auto wrappedText = std::make_unique<char[]>(wrappedTextLength);
+    memset(wrappedText.get(), 0, wrappedTextLength);
+    word_wrap_wideglyph(
+        wrappedText.get(),
+        wrappedTextLength,
+        exception.what(),
+        textLength,
+        LINE_WIDTH,
+        WIDEGLYPH_WIDTH,
+        MAX_LINES
+    );
+
+    pntr_draw_text(
+        bottomScreen,
+        bodyFont,
+        wrappedText.get(),
+        MARGIN,
+        titleTextSize.y + MARGIN * 2,
+        TEXT_COLOR_BOTTOM
+    );
+}
+
+void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
     if (screenLayout.Dirty()) {
         screenLayout.Update(melonds::Renderer::Software);
     }
@@ -70,7 +210,6 @@ void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) noexcep
         reinterpret_cast<const uint32_t*>(topScreen->data),
         reinterpret_cast<const uint32_t*>(bottomScreen->data)
     );
-    // TODO: Start rendering with pntr
 
     retro::video_refresh(
         screenLayout.Buffer()[0],
