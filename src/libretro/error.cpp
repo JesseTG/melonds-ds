@@ -33,7 +33,7 @@
 constexpr int TITLE_FONT_HEIGHT = 20; // in pixels
 constexpr int BODY_FONT_HEIGHT = 18; // in pixels
 constexpr int MARGIN = 8; // in pixels
-constexpr int LINE_WIDTH = 60; // in characters
+constexpr int LINE_WIDTH = 56; // in characters
 constexpr int WIDEGLYPH_WIDTH = 150;
 constexpr int MAX_LINES = 0;
 constexpr pntr_color BACKGROUND_COLOR_TOP = {.b = 0xBC, .g = 0xB7, .r = 0xFA, .a = 0xFF}; // light pink
@@ -41,7 +41,7 @@ constexpr pntr_color TEXT_COLOR_TOP = {.b = 0x71, .g = 0x6B, .r = 0xF5, .a = 0xF
 constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}; // dark green
 constexpr pntr_color TEXT_COLOR_BOTTOM = {.b = 0x77, .g = 0xDE, .r = 0xDF, .a = 0xFF}; // light green
 
-static constexpr const char* const ERROR_TITLE = "Oh no! melonDS couldn't start...";
+static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
 static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
 
@@ -184,7 +184,7 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
     word_wrap_wideglyph(
         wrappedText.get(),
         wrappedTextLength,
-        exception.what(),
+        exception.user_message(),
         textLength,
         LINE_WIDTH,
         WIDEGLYPH_WIDTH,
