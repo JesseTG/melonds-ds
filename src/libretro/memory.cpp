@@ -26,6 +26,7 @@
 #include "config.hpp"
 #include "info.hpp"
 #include <retro_assert.h>
+#include "content.hpp"
 
 #include "tracy.hpp"
 #include "sram.hpp"
@@ -62,8 +63,16 @@ static const char *memory_type_name(unsigned type)
 
 /// Savestates in melonDS can vary in size depending on the game,
 /// so we have to try saving the state first before we can know how big it'll be.
+/// RetroArch may try to call this function before the ROM is installed
+/// if rewind mode is enabled
 PUBLIC_SYMBOL size_t retro_serialize_size(void) {
     ZoneScopedN("retro_serialize_size");
+#ifndef NDEBUG
+    if (retro::content::get_loaded_nds_info() != std::nullopt) {
+        // If we're booting with a ROM...
+        retro_assert(NDSCart::Cart != nullptr);
+    }
+#endif
     using namespace melonds;
     if (melonds::_savestate_size < 0) {
         // If we haven't yet figured out how big the savestate should be...
@@ -91,6 +100,13 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
 
 PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
     ZoneScopedN("retro_serialize");
+#ifndef NDEBUG
+    if (retro::content::get_loaded_nds_info() != std::nullopt) {
+        // If we're booting with a ROM...
+        retro_assert(NDSCart::Cart != nullptr);
+    }
+#endif
+    retro_assert(size == melonds::_savestate_size);
     memset(data, 0, size);
 
     Savestate state(data, size, true);
@@ -100,8 +116,14 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     ZoneScopedN("retro_unserialize");
-
     retro::debug("retro_unserialize(%p, %zu)", data, size);
+#ifndef NDEBUG
+    if (retro::content::get_loaded_nds_info() != std::nullopt) {
+        // If we're booting with a ROM...
+        retro_assert(NDSCart::Cart != nullptr);
+    }
+#endif
+    retro_assert(size == melonds::_savestate_size);
     Savestate savestate((u8 *) data, size, false);
 
     if (savestate.Error) {

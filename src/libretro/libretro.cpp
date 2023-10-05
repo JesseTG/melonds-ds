@@ -680,43 +680,9 @@ static void melonds::load_games(
         throw std::runtime_error("Failed to initialize NDS emulator.");
     }
 
-    if (render::CurrentRenderer() == Renderer::OpenGl) {
-        log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
-        deferred_initialization_pending = true;
-    } else {
-        log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
-        load_games_deferred(nds_info, gba_info);
-    }
-}
-
-// melonDS tightly couples the renderer with the rest of the emulation code,
-// so we can't initialize the emulator until the OpenGL context is ready.
-static void melonds::load_games_deferred(
-    const optional<retro_game_info>& nds_info,
-    const optional<retro_game_info>& gba_info
-) {
-    ZoneScopedN("melonds::load_games_deferred");
-    using retro::log;
-
-    // GPU config must be initialized before NDS::Reset is called.
-    bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
-    {
-        ZoneScopedN("GPU::InitRenderer");
-        GPU::InitRenderer(isOpenGl);
-    }
-    {
-        GPU::RenderSettings render_settings = config::video::RenderSettings();
-        ZoneScopedN("GPU::SetRenderSettings");
-        GPU::SetRenderSettings(isOpenGl, render_settings);
-    }
-
-    {
-        ZoneScopedN("NDS::Reset");
-        NDS::Reset();
-    }
-
-    // The ROM must be inserted after NDS::Reset is called
-
+    // The ROM must be inserted in retro_load_game,
+    // as the frontend may try to query the savestate size
+    // in between retro_load_game and the first retro_run call.
     retro_assert(NDSCart::Cart == nullptr);
 
     if (_loaded_nds_cart) {
@@ -770,6 +736,41 @@ static void melonds::load_games_deferred(
         }
 
         retro_assert(_loaded_gba_cart == nullptr);
+    }
+
+    if (render::CurrentRenderer() == Renderer::OpenGl) {
+        log(RETRO_LOG_INFO, "Deferring initialization until the OpenGL context is ready");
+        deferred_initialization_pending = true;
+    } else {
+        log(RETRO_LOG_INFO, "No need to defer initialization, proceeding now");
+        load_games_deferred(nds_info, gba_info);
+    }
+}
+
+// melonDS tightly couples the renderer with the rest of the emulation code,
+// so we can't initialize the emulator until the OpenGL context is ready.
+static void melonds::load_games_deferred(
+    const optional<retro_game_info>& nds_info,
+    const optional<retro_game_info>& gba_info
+) {
+    ZoneScopedN("melonds::load_games_deferred");
+    using retro::log;
+
+    // GPU config must be initialized before NDS::Reset is called.
+    bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
+    {
+        ZoneScopedN("GPU::InitRenderer");
+        GPU::InitRenderer(isOpenGl);
+    }
+    {
+        GPU::RenderSettings render_settings = config::video::RenderSettings();
+        ZoneScopedN("GPU::SetRenderSettings");
+        GPU::SetRenderSettings(isOpenGl, render_settings);
+    }
+
+    {
+        ZoneScopedN("NDS::Reset");
+        NDS::Reset();
     }
 
     if (nds_info && NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
