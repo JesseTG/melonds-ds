@@ -147,7 +147,7 @@ retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskCallback& 
     _task->mute = true;
     _task->when = when;
     _task->handler = TaskHandlerWrapper;
-    _task->callback = callback ? TaskCallbackWrapper : nullptr;
+    _task->callback = callback ? &TaskCallbackWrapper : nullptr;
     _task->cleanup = TaskCleanupWrapper;
     _task->user_data = new TaskFunctions {
         .handler = handler,
