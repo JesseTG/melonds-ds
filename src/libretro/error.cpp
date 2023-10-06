@@ -20,7 +20,6 @@
 #include <cstring>
 
 #include <pntr.h>
-#include <pntr_nuklear.h>
 #include <string/stdstring.h>
 
 #include "buffer.hpp"
@@ -64,9 +63,6 @@ melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : e
     );
     assert(bodyFont != nullptr);
 
-    nk_context* context = pntr_load_nuklear(bodyFont);
-    assert(context != nullptr);
-
     topScreen = pntr_gen_image_color(NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT, BACKGROUND_COLOR_TOP);
     assert(topScreen != nullptr);
 
@@ -74,10 +70,9 @@ melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : e
     assert(bottomScreen != nullptr);
 
     // Y coordinates go down, and the origin for all images is in their top-left corner.
-    DrawTopScreen(context, titleFont, bodyFont);
-    DrawBottomScreen(context, titleFont, bodyFont);
+    DrawTopScreen(titleFont, bodyFont);
+    DrawBottomScreen(titleFont, bodyFont);
 
-    pntr_unload_nuklear(context);
     pntr_unload_font(titleFont);
     pntr_unload_font(bodyFont);
 }
@@ -87,7 +82,7 @@ melonds::error::ErrorScreen::~ErrorScreen() {
     pntr_unload_image(bottomScreen);
 }
 
-void melonds::error::ErrorScreen::DrawTopScreen(nk_context* context, pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
     ZoneScopedN("melonds::error::ErrorScreen::DrawTopScreen");
     assert(titleFont != nullptr);
 
@@ -101,15 +96,12 @@ void melonds::error::ErrorScreen::DrawTopScreen(nk_context* context, pntr_font* 
     assert(errorIcon->width < NDS_SCREEN_WIDTH);
 
     // draw a little watermelon emoji in the bottom-right corner
-    nk_begin(context, "Error", nk_rect(0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT), NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_NO_INPUT);
     pntr_draw_image(
         topScreen,
         errorIcon,
         NDS_SCREEN_WIDTH - errorIcon->width - MARGIN,
         NDS_SCREEN_HEIGHT - errorIcon->height - MARGIN
     );
-    nk_end(context);
-    pntr_draw_nuklear(topScreen, context);
     pntr_unload_image(errorIcon);
 
     // now draw the title
@@ -148,7 +140,7 @@ void melonds::error::ErrorScreen::DrawTopScreen(nk_context* context, pntr_font* 
     );
 }
 
-void melonds::error::ErrorScreen::DrawBottomScreen(nk_context* context, pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
     ZoneScopedN("melonds::error::ErrorScreen::DrawBottomScreen");
     assert(titleFont != nullptr);
 

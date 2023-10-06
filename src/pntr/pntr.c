@@ -16,6 +16,3 @@
 
 #define PNTR_IMPLEMENTATION
 #include "pntr.h"
-
-#define PNTR_NUKLEAR_IMPLEMENTATION
-#include "pntr_nuklear.h"

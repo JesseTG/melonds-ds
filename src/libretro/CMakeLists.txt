@@ -70,7 +70,7 @@ add_library(libretro MODULE
     tracy.hpp
     utils.cpp
     utils.hpp
-    ../pntr/pntr_nuklear.c
+    ../pntr/pntr.c
 )
 
 target_include_directories(libretro SYSTEM PUBLIC
@@ -202,7 +202,7 @@ target_compile_definitions(libretro PUBLIC
     PNTR_PIXELFORMAT_ARGB
 )
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr pntr_nuklear)
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(libretro PUBLIC BUILDING_LIBSLIRP)
