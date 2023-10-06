@@ -78,6 +78,7 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${melonDS_SOURCE_DIR}/src"
     "${glm_SOURCE_DIR}"
     "${pntr_SOURCE_DIR}"
+    "${fmt_SOURCE_DIR}/include"
     )
 
 target_include_directories(libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
@@ -202,7 +203,7 @@ target_compile_definitions(libretro PUBLIC
     PNTR_PIXELFORMAT_ARGB
 )
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr)
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr fmt)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(libretro PUBLIC BUILDING_LIBSLIRP)
