@@ -1221,10 +1221,10 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
     // We don't need to save the whole firmware, just the part that may actually change.
     optional<string> wfcsettingspath = retro::get_system_subdir_path(config::system::GeneratedFirmwareSettingsPath());
     if (!wfcsettingspath) {
-        throw std::runtime_error("Failed to get path to generated firmware settings");
+        throw environment_exception("Failed to get path to generated firmware settings");
     }
 
-    FirmwareHeader& header = firmware.Header();
+    const FirmwareHeader& header = firmware.Header();
 
     // If using generated firmware, we keep the wi-fi settings on the host disk separately.
     // Wi-fi access point data includes Nintendo WFC settings,
@@ -1435,6 +1435,7 @@ static void InitDsiSystemConfig() {
         throw bios_exception("DSi mode requires a valid NAND image, but none was found.");
     }
 
+    const optional<string>& systemSubdirPath = retro::get_system_subdirectory();
     optional<string> nandPath = retro::get_system_path(nandName);
     if (!nandPath) {
         throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
@@ -1454,7 +1455,10 @@ static void InitDsiSystemConfig() {
     // DSi mode requires all native BIOS files
     unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), "DSi ARM7", sizeof(DSi::ARM7iBIOS));
     if (!bios7i) {
-        throw bios_exception("Failed to load DSi ARM7 BIOS file, which is required in DSi mode");
+        throw bios_exception(
+            "Failed to load DSi ARM7 BIOS file, which is required in DSi mode",
+            "Ensure that your system directory contains a valid DSi ARM7 BIOS file at " + *systemSubdirPath
+        );
     }
 
     unique_ptr<u8[]> bios9i = LoadBios(DsiBios9Path(), "DSi ARM9", sizeof(DSi::ARM9iBIOS));

@@ -17,9 +17,11 @@
 #ifndef MELONDS_DS_ERROR_HPP
 #define MELONDS_DS_ERROR_HPP
 
-#include <pntr.h>
 #include "exceptions.hpp"
 
+struct nk_context;
+struct pntr_font;
+struct pntr_image;
 
 namespace melonds {
     class ScreenLayoutData;
@@ -38,8 +40,8 @@ namespace melonds::error {
 
         void Render(ScreenLayoutData& screenLayout) const noexcept;
     private:
-        void DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
-        void DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
+        void DrawTopScreen(nk_context* context, pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
+        void DrawBottomScreen(nk_context* context, pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
         config_exception exception;
         pntr_image* bottomScreen = nullptr;
         pntr_image* topScreen = nullptr;

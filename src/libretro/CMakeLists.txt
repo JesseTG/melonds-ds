@@ -70,7 +70,7 @@ add_library(libretro MODULE
     tracy.hpp
     utils.cpp
     utils.hpp
-    ../pntr/pntr.c
+    ../pntr/pntr_nuklear.c
 )
 
 target_include_directories(libretro SYSTEM PUBLIC

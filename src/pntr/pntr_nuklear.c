@@ -14,6 +14,8 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#define PNTR_NUKLEAR_IMPLEMENTATION
+#define PNTR_IMPLEMENTATION
+#include "pntr.h"
 
-#include <pntr_nuklear.h>
+#define PNTR_NUKLEAR_IMPLEMENTATION
+#include "pntr_nuklear.h"
