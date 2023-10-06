@@ -202,7 +202,7 @@ target_compile_definitions(libretro PUBLIC
     PNTR_PIXELFORMAT_ARGB
 )
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr)
+target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr pntr_nuklear)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(libretro PUBLIC BUILDING_LIBSLIRP)
