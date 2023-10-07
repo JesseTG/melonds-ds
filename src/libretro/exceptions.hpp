@@ -18,9 +18,12 @@
 #define MELONDS_DS_EXCEPTIONS_HPP
 
 #include <exception>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
+#include "config.hpp"
 
 namespace melonds
 {
@@ -65,6 +68,22 @@ namespace melonds
         using config_exception::config_exception;
     };
 
+    /// Thrown when attempting to load a required BIOS file that is missing.
+    class dsi_missing_bios_exception : public bios_exception {
+    public:
+        using bios_exception::bios_exception;
+        explicit dsi_missing_bios_exception(BiosType bios, std::string_view biosName) noexcept;
+    };
+
+    class dsi_no_nand_found_exception : public bios_exception {
+    public:
+        dsi_no_nand_found_exception() noexcept;
+    };
+
+    class dsi_nand_missing_exception : public bios_exception {
+    public:
+        explicit dsi_nand_missing_exception(std::string_view biosName) noexcept;
+    };
     /// Thrown when there's a problem with the BIOS, firmware, or NAND configuration.
     class unsupported_bios_exception : public bios_exception {
     public:

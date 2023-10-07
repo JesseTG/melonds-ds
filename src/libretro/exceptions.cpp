@@ -15,8 +15,49 @@
 */
 
 #include "exceptions.hpp"
+#include "format.hpp"
 
+#include <optional>
 #include <sstream>
+#include <fmt/core.h>
+
+using std::optional;
+using std::string;
+using std::string_view;
+
+melonds::dsi_missing_bios_exception::dsi_missing_bios_exception(melonds::BiosType bios, string_view biosName) noexcept
+    : bios_exception(
+    fmt::format(FMT_STRING("DSi mode requires the {} BIOS file, but none was found."), bios),
+    fmt::format(
+        FMT_STRING(
+            "Place your {} BIOS file in your frontend's system folder, name it \"{}\", then restart the core. "
+            "If you want to play a regular DS game, try disabling DSi mode in the core options."
+        ),
+        bios,
+        biosName
+    )
+) {
+}
+
+melonds::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
+    : bios_exception(
+    "DSi mode requires a NAND image, but none was found.",
+    "Place your NAND file in your frontend's system folder (any name works), then restart the core. "
+    "If you have multiple NAND files, you can choose one in the core options. "
+    "If you want to play a regular DS game, try disabling DSi mode in the core options."
+) {
+
+}
+melonds::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nandName) noexcept
+    : bios_exception(
+    fmt::format(FMT_STRING("The core is set to use the NAND file at \"{}\", but it wasn't there or it couldn't be loaded."), nandName),
+    fmt::format(
+        FMT_STRING("Place your NAND file in your frontend's system folder, name it \"{}\", then restart the core."),
+        nandName
+    )
+) {
+
+}
 
 static std::string construct_missing_bios_message(const std::vector<std::string>& bios_files) {
     std::stringstream error;

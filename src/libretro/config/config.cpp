@@ -1221,7 +1221,7 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
     // We don't need to save the whole firmware, just the part that may actually change.
     optional<string> wfcsettingspath = retro::get_system_subdir_path(config::system::GeneratedFirmwareSettingsPath());
     if (!wfcsettingspath) {
-        throw environment_exception("Failed to get path to generated firmware settings");
+        throw environment_exception("No system directory is available");
     }
 
     const FirmwareHeader& header = firmware.Header();
@@ -1432,10 +1432,9 @@ static void InitDsiSystemConfig() {
 
     string_view nandName = DsiNandPath();
     if (nandName == melonds::config::values::NOT_FOUND) {
-        throw bios_exception("DSi mode requires a valid NAND image, but none was found.");
+        throw dsi_no_nand_found_exception();
     }
 
-    const optional<string>& systemSubdirPath = retro::get_system_subdirectory();
     optional<string> nandPath = retro::get_system_path(nandName);
     if (!nandPath) {
         throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
@@ -1445,7 +1444,7 @@ static void InitDsiSystemConfig() {
     int nandStatFlags = path_stat(nandPath->c_str());
     if ((nandStatFlags & RETRO_VFS_STAT_IS_VALID) == 0) {
         // If this isn't a valid file...
-        throw bios_exception("Failed to find a DSi NAND image at \"%s\"", nandPath->c_str());
+        throw dsi_nand_missing_exception(nandName);
     }
 
     // If it weren't a regular file, it would've never been added to the config options
@@ -1455,25 +1454,22 @@ static void InitDsiSystemConfig() {
     // DSi mode requires all native BIOS files
     unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), "DSi ARM7", sizeof(DSi::ARM7iBIOS));
     if (!bios7i) {
-        throw bios_exception(
-            "Failed to load DSi ARM7 BIOS file, which is required in DSi mode",
-            "Ensure that your system directory contains a valid DSi ARM7 BIOS file at " + *systemSubdirPath
-        );
+        throw dsi_missing_bios_exception(BiosType::Arm7i, DsiBios7Path());
     }
 
     unique_ptr<u8[]> bios9i = LoadBios(DsiBios9Path(), "DSi ARM9", sizeof(DSi::ARM9iBIOS));
     if (!bios9i) {
-        throw bios_exception("Failed to load DSi ARM9 BIOS file, which is required in DSi mode");
+        throw dsi_missing_bios_exception(BiosType::Arm9i, DsiBios9Path());
     }
 
     unique_ptr<u8[]> bios7 = LoadBios(Bios7Path(), "DS ARM7", sizeof(NDS::ARM7BIOS));
     if (!bios7) {
-        throw bios_exception("Failed to load DS ARM7 BIOS file, which is required in DSi mode");
+        throw dsi_missing_bios_exception(BiosType::Arm7, Bios7Path());
     }
 
     unique_ptr<u8[]> bios9 = LoadBios(Bios9Path(), "DS ARM9", sizeof(NDS::ARM9BIOS));
     if (!bios9) {
-        throw bios_exception("Failed to load DS ARM9 BIOS file, which is required in DSi mode");
+        throw dsi_missing_bios_exception(BiosType::Arm9, Bios9Path());
     }
 
     string_view firmwareName = DsiFirmwarePath();
