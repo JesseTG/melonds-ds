@@ -53,6 +53,13 @@ namespace melonds {
         DSi = 1,
     };
 
+    enum class BiosType {
+        Arm7,
+        Arm9,
+        Arm7i,
+        Arm9i,
+    };
+
     constexpr std::string_view ConsoleTypeName(ConsoleType type) noexcept {
         switch (type) {
             case ConsoleType::DS:
