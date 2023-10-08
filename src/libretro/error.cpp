@@ -33,13 +33,10 @@
 constexpr int TITLE_FONT_HEIGHT = 20; // in pixels
 constexpr int BODY_FONT_HEIGHT = 18; // in pixels
 constexpr int MARGIN = 8; // in pixels
-constexpr int LINE_WIDTH = 56; // in characters
-constexpr int WIDEGLYPH_WIDTH = 150;
-constexpr int MAX_LINES = 0;
 constexpr pntr_color BACKGROUND_COLOR_TOP = {.b = 0xBC, .g = 0xB7, .r = 0xFA, .a = 0xFF}; // light pink
 constexpr pntr_color TEXT_COLOR_TOP = {.b = 0x71, .g = 0x6B, .r = 0xF5, .a = 0xFF}; // dark pink
 constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}; // dark green
-constexpr pntr_color TEXT_COLOR_BOTTOM = {.b = 0x77, .g = 0xDE, .r = 0xDF, .a = 0xFF}; // light green
+constexpr pntr_color TEXT_COLOR_BOTTOM = {.b = 51, .g = 199, .r = 188, .a = 0xFF}; // light green
 
 static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
@@ -105,7 +102,7 @@ void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font*
     pntr_unload_image(errorIcon);
 
     // now draw the title
-    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, ERROR_TITLE);
+    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, ERROR_TITLE, 0);
     pntr_draw_text(
         topScreen,
         titleFont,
@@ -116,26 +113,13 @@ void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font*
     );
 
     // finally, draw the error summary (wrapping lines as needed)
-    size_t textLength = strlen(exception.what());
-    size_t wrappedTextLength = textLength * 1.5;
-    auto wrappedText = std::make_unique<char[]>(wrappedTextLength);
-    memset(wrappedText.get(), 0, wrappedTextLength);
-    word_wrap_wideglyph(
-        wrappedText.get(),
-        wrappedTextLength,
-        exception.what(),
-        textLength,
-        LINE_WIDTH,
-        WIDEGLYPH_WIDTH,
-        MAX_LINES
-    );
-
-    pntr_draw_text(
+    pntr_draw_text_wrapped(
         topScreen,
         bodyFont,
-        wrappedText.get(),
+        exception.what(),
         MARGIN,
         titleTextSize.y + MARGIN * 2,
+        NDS_SCREEN_WIDTH - MARGIN * 2,
         TEXT_COLOR_TOP
     );
 }
@@ -163,7 +147,7 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
     pntr_unload_image(sorryIcon);
 
     // now draw the title
-    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, SOLUTION_TITLE);
+    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, SOLUTION_TITLE, 0);
     pntr_draw_text(
         bottomScreen,
         titleFont,
@@ -174,30 +158,17 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
     );
 
     // draw the solution details (wrapping lines as needed)
-    size_t textLength = strlen(exception.user_message());
-    size_t wrappedTextLength = textLength * 1.5;
-    auto wrappedText = std::make_unique<char[]>(wrappedTextLength);
-    memset(wrappedText.get(), 0, wrappedTextLength);
-    word_wrap_wideglyph(
-        wrappedText.get(),
-        wrappedTextLength,
-        exception.user_message(),
-        textLength,
-        LINE_WIDTH,
-        WIDEGLYPH_WIDTH,
-        MAX_LINES
-    );
-
-    pntr_draw_text(
+    pntr_draw_text_wrapped(
         bottomScreen,
         bodyFont,
-        wrappedText.get(),
+        exception.user_message(),
         MARGIN,
         titleTextSize.y + MARGIN * 2,
+        NDS_SCREEN_WIDTH - MARGIN * 2,
         TEXT_COLOR_BOTTOM
     );
 
-    pntr_vector thankYouTextSize = pntr_measure_text_ex(bodyFont, THANK_YOU);
+    pntr_vector thankYouTextSize = pntr_measure_text_ex(bodyFont, THANK_YOU, 0);
     pntr_draw_text(
         bottomScreen,
         bodyFont,
