@@ -275,6 +275,7 @@ catch (const std::exception& e) {
     context_initialized = false;
     retro::set_error_message(e.what());
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+    // TODO: Instead of shutting down, fall back to the software renderer
     retro::shutdown();
 }
 catch (...) {
