@@ -875,13 +875,14 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
 
             // TODO: If an on-screen display isn't supported, finish the task
             fmt::memory_buffer buf;
+            auto inserter = std::back_inserter(buf);
 
             if (config::osd::ShowPointerCoordinates()) {
                 glm::i16vec2 pointerInput = input_state.PointerInput();
                 glm::ivec2 joystick = input_state.JoystickTouchPosition();
                 glm::ivec2 touch = input_state.PointerTouchPosition();
                 fmt::format_to(
-                    std::back_inserter(buf),
+                    inserter,
                     "Pointer: ({}, {}) → ({}, {}) || Joystick: ({}, {})",
                     pointerInput.x, pointerInput.y,
                     touch.x, touch.y,
@@ -895,7 +896,7 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
                 if (mic_state && *mic_state) {
                     // If the microphone is open and turned on...
                     fmt::format_to(
-                        std::back_inserter(buf),
+                        inserter,
                         "{}{}",
                         buf.size() == 0 ? "" : OSD_DELIMITER,
                         (NDS::NumFrames % 120 > 60) ? "●" : "○"
@@ -907,7 +908,7 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
 
             if (config::osd::ShowCurrentLayout()) {
                 fmt::format_to(
-                    std::back_inserter(buf),
+                    inserter,
                     "{}Layout {}/{}",
                     buf.size() == 0 ? "" : OSD_DELIMITER,
                     screenLayout.LayoutIndex() + 1,
@@ -917,11 +918,15 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
 
             if (config::osd::ShowLidState() && NDS::IsLidClosed()) {
                 fmt::format_to(
-                    std::back_inserter(buf),
+                    inserter,
                     "{}Closed",
                     buf.size() == 0 ? "" : OSD_DELIMITER
                 );
             }
+
+            // fmt::format_to does not append a null terminator
+            buf.push_back('\0');
+
 
             if (buf.size() > 0) {
                 retro_message_ext message {
