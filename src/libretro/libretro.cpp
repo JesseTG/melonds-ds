@@ -43,6 +43,7 @@
 #include <SPI.h>
 #include <SPU.h>
 #include <ARM.h>
+#include <fmt/format.h>
 
 #include "config.hpp"
 #include "content.hpp"
@@ -873,17 +874,19 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
             constexpr const char* const OSD_NO = "✘";
 
             // TODO: If an on-screen display isn't supported, finish the task
-
-            std::string text;
-            text.reserve(1024);
+            fmt::memory_buffer buf;
 
             if (config::osd::ShowPointerCoordinates()) {
                 glm::i16vec2 pointerInput = input_state.PointerInput();
                 glm::ivec2 joystick = input_state.JoystickTouchPosition();
                 glm::ivec2 touch = input_state.PointerTouchPosition();
-                text += "Pointer: (" + to_string(pointerInput.x) + ", " + to_string(pointerInput.y) + ") → (" + to_string(touch.x) + ", " + to_string(touch.y) + ")";
-                text += OSD_DELIMITER;
-                text += "Joystick: (" + to_string(joystick.x) + ", " + to_string(joystick.y) + ")";
+                fmt::format_to(
+                    std::back_inserter(buf),
+                    "Pointer: ({}, {}) → ({}, {}) || Joystick: ({}, {})",
+                    pointerInput.x, pointerInput.y,
+                    touch.x, touch.y,
+                    joystick.x, joystick.y
+                );
             }
 
             if (config::osd::ShowMicState()) {
@@ -891,38 +894,38 @@ retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
 
                 if (mic_state && *mic_state) {
                     // If the microphone is open and turned on...
-                    if (!text.empty()) {
-                        text += OSD_DELIMITER;
-                    }
-
+                    fmt::format_to(
+                        std::back_inserter(buf),
+                        "{}{}",
+                        buf.size() == 0 ? "" : OSD_DELIMITER,
+                        (NDS::NumFrames % 120 > 60) ? "●" : "○"
+                    );
                     // Toggle between a filled circle and an empty one every 1.5 seconds
                     // (kind of like a blinking "recording" light)
-                    text += (NDS::NumFrames % 120 > 60) ? "●" : "○";
                 }
             }
 
             if (config::osd::ShowCurrentLayout()) {
-                if (!text.empty()) {
-                    text += OSD_DELIMITER;
-                }
-
-                unsigned layout = screenLayout.LayoutIndex();
-                unsigned numberOfLayouts = screenLayout.NumberOfLayouts();
-
-                text += "Layout " + to_string(layout + 1) + "/" + to_string(numberOfLayouts);
+                fmt::format_to(
+                    std::back_inserter(buf),
+                    "{}Layout {}/{}",
+                    buf.size() == 0 ? "" : OSD_DELIMITER,
+                    screenLayout.LayoutIndex() + 1,
+                    screenLayout.NumberOfLayouts()
+                );
             }
 
             if (config::osd::ShowLidState() && NDS::IsLidClosed()) {
-                if (!text.empty()) {
-                    text += OSD_DELIMITER;
-                }
-
-                text += "Closed";
+                fmt::format_to(
+                    std::back_inserter(buf),
+                    "{}Closed",
+                    buf.size() == 0 ? "" : OSD_DELIMITER
+                );
             }
 
-            if (!text.empty()) {
+            if (buf.size() > 0) {
                 retro_message_ext message {
-                    .msg = text.c_str(),
+                    .msg = buf.data(),
                     .duration = 60,
                     .priority = 0,
                     .level = RETRO_LOG_DEBUG,
