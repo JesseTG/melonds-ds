@@ -99,7 +99,6 @@ namespace melonds {
         const optional<retro_game_info> &gba_info,
         const optional<retro_game_info> &gba_save_info
     );
-    static void init_rendering();
     static void load_games_deferred(
         const optional<retro_game_info>& nds_info,
         const optional<retro_game_info>& gba_info
@@ -649,6 +648,10 @@ static void melonds::load_games(
     ZoneScopedN("melonds::load_games");
     melonds::clear_memory_config();
 
+    if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
+        throw environment_exception("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
+    }
+
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
     melonds::InitConfig(header, screenLayout, input_state);
 
@@ -729,7 +732,7 @@ static void melonds::load_games(
 
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
-    init_rendering();
+    render::Initialize(config::video::ConfiguredRenderer());
 
     bool ok;
     {
@@ -841,19 +844,6 @@ static void melonds::load_games_deferred(
     NDS::Start();
 
     log(RETRO_LOG_INFO, "Initialized emulated console and loaded emulated game");
-}
-
-static void melonds::init_rendering() {
-    ZoneScopedN("melonds::init_rendering");
-    using retro::environment;
-    using retro::log;
-
-    if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
-        throw std::runtime_error("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
-    }
-
-    melonds::render::Initialize(config::video::ConfiguredRenderer());
-
 }
 
 // Decrypts the ROM's secure area
