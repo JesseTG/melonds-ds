@@ -178,8 +178,6 @@ static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
     _loaded_gba_cart.reset();
     Platform::DeInit();
     retro::task::reset();
-    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
-    retro::environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt);
     melonds::_errorScreen = make_unique<error::ErrorScreen>(e);
     screenLayout.Update(melonds::Renderer::Software);
     retro::error("Error screen initialized");
