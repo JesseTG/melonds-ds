@@ -19,8 +19,10 @@
 #define MELONDS_DS_FORMAT_HPP
 
 #include <string_view>
+
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <SPI_Firmware.h>
 
 #include "config.hpp"
 
@@ -48,4 +50,52 @@ struct fmt::formatter<melonds::BiosType> : fmt::formatter<std::string_view> {
         return formatter<string_view>::format(name, ctx);
     }
 };
+
+template<>
+struct fmt::formatter<SPI_Firmware::FirmwareConsoleType> : fmt::formatter<std::string_view> {
+    // use inherited 'formatter<string_view>::parse'…
+    // … and only implement 'format':
+    template<typename FmtContext>
+    auto format(SPI_Firmware::FirmwareConsoleType c, FmtContext& ctx) {
+        string_view name = "unknown";
+        switch (c) {
+            case SPI_Firmware::FirmwareConsoleType::DS:
+                name = "DS";
+                break;
+            case SPI_Firmware::FirmwareConsoleType::DSLite:
+                name = "DS Lite";
+                break;
+            case SPI_Firmware::FirmwareConsoleType::DSi:
+                name = "DSi";
+                break;
+            case SPI_Firmware::FirmwareConsoleType::iQueDS:
+                name = "iQue DS";
+                break;
+            case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
+                name = "iQueue DS Lite";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<melonds::ConsoleType> : fmt::formatter<std::string_view> {
+    // use inherited 'formatter<string_view>::parse'…
+    // … and only implement 'format':
+    template<typename FmtContext>
+    auto format(melonds::ConsoleType c, FmtContext& ctx) {
+        string_view name = "unknown";
+        switch (c) {
+            case melonds::ConsoleType::DS:
+                name = "DS";
+                break;
+            case melonds::ConsoleType::DSi:
+                name = "DSi";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
 #endif //MELONDS_DS_FORMAT_HPP
