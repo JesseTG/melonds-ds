@@ -35,6 +35,7 @@ namespace retro {
     /// For use by other parts of the core
     bool environment(unsigned cmd, void *data) noexcept;
 
+    bool set_pixel_format(retro_pixel_format format) noexcept;
     bool set_screen_rotation(ScreenOrientation orientation) noexcept;
     bool set_core_options(const retro_core_options_v2& options) noexcept;
 

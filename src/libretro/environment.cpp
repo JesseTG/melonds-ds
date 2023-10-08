@@ -24,6 +24,7 @@
 #include <string_view>
 #include <vector>
 
+#include <fmt/core.h>
 #include <libretro.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
@@ -72,6 +73,10 @@ bool retro::environment(unsigned cmd, void* data) noexcept {
     } else {
         return false;
     }
+}
+
+bool retro::set_pixel_format(retro_pixel_format format) noexcept {
+    return environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &format);
 }
 
 int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsigned id) {

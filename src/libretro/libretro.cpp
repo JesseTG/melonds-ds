@@ -848,8 +848,7 @@ static void melonds::init_rendering() {
     using retro::environment;
     using retro::log;
 
-    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
-    if (!environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt)) {
+    if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
         throw std::runtime_error("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
