@@ -583,7 +583,12 @@ PUBLIC_SYMBOL void retro_reset(void) {
     ZoneScopedN("retro_reset");
     retro::log(RETRO_LOG_DEBUG, "retro_reset()\n");
 
-    melonds::_errorScreen = nullptr;
+    if (melonds::_errorScreen) {
+        retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
+        return;
+        // TODO: Allow the game to be reset from the error screen
+        // (gotta reinitialize the DS here)
+    }
 
     // Flush all data before resetting
     melonds::sram::reset();
