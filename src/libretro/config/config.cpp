@@ -1370,7 +1370,7 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
 
     if (!header && !(firmware && firmware->IsBootable())) {
         // If we're trying to boot into the NDS menu, but we didn't load bootable firmware...
-        throw bios_exception("Booting to the NDS menu requires a bootable firmware dump.");
+        throw nds_firmware_not_bootable_exception(FirmwarePath());
     }
 
     if (!firmware) {
@@ -1406,7 +1406,7 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
 
     if (!header && (!firmware || !firmware->IsBootable() || !bios7 || !bios9)) {
         // If we're trying to boot into the NDS menu, but we don't have all the required files...
-        throw bios_exception("Booting to the NDS menu requires native NDS BIOS files and bootable firmware.");
+        throw nds_sysfiles_incomplete_exception();
     }
 
     if (bios7 && bios9) {
@@ -1477,16 +1477,20 @@ static void InitDsiSystemConfig() {
     retro_assert(firmwarePath.has_value());
     // If we couldn't get the system directory, we wouldn't have gotten this far
 
+    if (firmwareName == melonds::config::values::NOT_FOUND) {
+        throw dsi_no_firmware_found_exception();
+    }
+
     unique_ptr<SPI_Firmware::Firmware> firmware = LoadFirmware(*firmwarePath);
+    if (!firmware) {
+        throw firmware_missing_exception(firmwareName);
+    }
+
     if (firmware && firmware->Header().ConsoleType != SPI_Firmware::FirmwareConsoleType::DSi) {
         retro::warn("Expected firmware of type DSi, got %s", ConsoleTypeName(firmware->Header().ConsoleType).data());
-        firmware = nullptr;
+        throw wrong_firmware_type_exception(firmwareName, melonds::ConsoleType::DSi, firmware->Header().ConsoleType);
     }
     // DSi firmware isn't bootable, so we don't need to check for that here.
-
-    if (!firmware) {
-        throw bios_exception("Failed to load DSi BIOS file");
-    }
 
     memcpy(DSi::ARM9iBIOS, bios9i.get(), sizeof(DSi::ARM9iBIOS));
     memcpy(DSi::ARM7iBIOS, bios7i.get(), sizeof(DSi::ARM7iBIOS));

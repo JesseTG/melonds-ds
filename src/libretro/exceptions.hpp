@@ -68,6 +68,36 @@ namespace melonds
         using config_exception::config_exception;
     };
 
+    class dsi_no_firmware_found_exception : public bios_exception {
+    public:
+        dsi_no_firmware_found_exception() noexcept;
+    };
+
+    class firmware_missing_exception : public bios_exception {
+    public:
+        firmware_missing_exception(std::string_view firmwareName) noexcept;
+    };
+
+    class wrong_firmware_type_exception: public bios_exception {
+    public:
+        wrong_firmware_type_exception(
+            std::string_view  firmwareName,
+            melonds::ConsoleType consoleType,
+            SPI_Firmware::FirmwareConsoleType firmwareConsoleType
+        ) noexcept;
+    };
+
+    class nds_firmware_not_bootable_exception : public bios_exception {
+    public:
+        explicit nds_firmware_not_bootable_exception(std::string_view firmwareName) noexcept;
+    };
+
+
+    class nds_sysfiles_incomplete_exception : public bios_exception {
+    public:
+        explicit nds_sysfiles_incomplete_exception() noexcept;
+    };
+
     /// Thrown when attempting to load a required BIOS file that is missing.
     class dsi_missing_bios_exception : public bios_exception {
     public:
