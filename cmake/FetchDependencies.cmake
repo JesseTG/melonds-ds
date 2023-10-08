@@ -42,7 +42,7 @@ fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm.git" "47585fd")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7877")
-fetch_dependency(pntr "https://github.com/robloach/pntr.git" "d2b451c")
+fetch_dependency(pntr "https://github.com/robloach/pntr.git" "3f9ecbc")
 fetch_dependency(fmt "https://github.com/fmtlib/fmt.git" "10.1.1")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library

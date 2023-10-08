@@ -202,6 +202,7 @@ target_compile_definitions(libretro PUBLIC
     PNTR_ENABLE_TTF
     PNTR_ENABLE_VARGS
     PNTR_PIXELFORMAT_ARGB
+    PNTR_ENABLE_MATH
 )
 
 target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr fmt::fmt)
