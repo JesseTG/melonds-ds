@@ -39,7 +39,6 @@ namespace melonds::config::definitions {
             "Use this to play online with custom servers "
             "that reimplement the discontinued Nintendo Wi-Fi Connection services. "
             "Supported games depends on the server. "
-            "To use other servers, open \"wfc.cfg\" in the \"melonDS DS\" system directory and follow the instructions.\n"
             "\n"
             "Some internet service providers may block requests to these servers. "
             "If this is the case for you, see https://tinyurl.com/393cb755 for a workaround.\n"
