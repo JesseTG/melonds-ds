@@ -16,11 +16,7 @@
 
 #include "error.hpp"
 
-#include <memory>
-#include <cstring>
-
 #include <pntr.h>
-#include <string/stdstring.h>
 
 #include "buffer.hpp"
 #include "embedded/melondsds_graphic_error.h"
