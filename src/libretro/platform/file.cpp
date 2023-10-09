@@ -90,7 +90,7 @@ namespace Platform {
 Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode) {
     if ((mode & FileMode::ReadWrite) == FileMode::None)
     { // If we aren't reading or writing, then we can't open the file
-        Log(LogLevel::Error, "Attempted to open \"%s\" in neither read nor write mode (FileMode 0x%x)\n", path.c_str(), mode);
+        retro::error("Attempted to open \"{}\" in neither read nor write mode (FileMode {:#x})\n", path, (unsigned)mode);
         return nullptr;
     }
 
@@ -98,7 +98,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
 
     if (!file_exists && (mode & FileMode::NoCreate)) {
         // If the file doesn't exist, and we're not allowed to create it...
-        retro::warn("Attempted to open \"%s\" in FileMode 0x%x, but the file doesn't exist and FileMode::NoCreate is set\n", path.c_str(), mode);
+        retro::warn("Attempted to open \"{}\" in FileMode {:#x}, but the file doesn't exist and FileMode::NoCreate is set\n", path, (unsigned)mode);
         return nullptr;
     }
 
@@ -107,12 +107,12 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
     handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode), handle->hints);
 
     if (!handle->file) {
-        retro::error("Attempted to open \"%s\" in FileMode 0x%x, but failed", path.c_str(), mode);
+        retro::error("Attempted to open \"{}\" in FileMode {:#x}, but failed", path, (unsigned)mode);
         delete handle;
         return nullptr;
     }
 
-    retro::debug("Opened \"%s\" in FileMode 0x%x", path.c_str(), mode);
+    retro::debug("Opened \"{}\" in FileMode {:#x}", path, (unsigned)mode);
 
     return handle;
 }
@@ -173,11 +173,11 @@ bool Platform::CloseFile(FileHandle* file)
 
     char path[PATH_MAX];
     strlcpy(path, filestream_get_path(file->file), sizeof(path));
-    retro::debug("Closing \"%s\"", path);
+    retro::debug("Closing \"{}\"", path);
     bool ok = (filestream_close(file->file) == 0);
 
     if (!ok) {
-        retro::error("Failed to close \"%s\"", path);
+        retro::error("Failed to close \"{}\"", path);
     }
     delete file;
 
@@ -222,9 +222,9 @@ u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
 
     int64_t bytesRead = filestream_read(file->file, data, size * count);
     if (bytesRead < 0) {
-        retro::error("Failed to read from file \"%s\"", filestream_get_path(file->file));
+        retro::error("Failed to read from file \"{}\"", filestream_get_path(file->file));
     } else if (bytesRead != size * count) {
-        retro::warn("Read %lld bytes from file \"%s\", expected %llu", bytesRead, filestream_get_path(file->file), size * count);
+        retro::warn("Read {} bytes from file \"{}\", expected {}", bytesRead, filestream_get_path(file->file), size * count);
     }
 
     return bytesRead;
@@ -270,7 +270,7 @@ u64 Platform::FileLength(FileHandle* file)
 
     int64_t size = filestream_get_size(file->file);
     if (filestream_error(file->file)) {
-        retro::error("Failed to get size of file \"%s\"", filestream_get_path(file->file));
+        retro::error("Failed to get size of file \"{}\"", filestream_get_path(file->file));
     }
     return size;
 }
@@ -328,14 +328,14 @@ retro::task::TaskSpec melonds::file::FlushTask() noexcept {
 #endif
 
                 if (syncResult == 0) {
-                    retro::debug("Flushed file \"%s\" to host disk", original_path);
+                    retro::debug("Flushed file \"{}\" to host disk", original_path);
                 } else {
                     int error = errno;
                     if (error == EBADF) {
-                        retro::info("File \"%s\" was closed behind our backs, no need to flush it to disk.", original_path);
+                        retro::info("File \"{}\" was closed behind our backs, no need to flush it to disk.", original_path);
                     }
                     else {
-                        retro::error("Failed to flush \"%s\" to host disk: %s (%x)", original_path, strerror(error), error);
+                        retro::error("Failed to flush \"{}\" to host disk: {} ({:#x})", original_path, strerror(error), error);
                     }
                 }
 

@@ -20,6 +20,7 @@
 #include <optional>
 #include <string>
 #include <libretro.h>
+#include <fmt/format.h>
 
 namespace retro {
     constexpr unsigned DEFAULT_ERROR_DURATION = 5000; // in ms
@@ -41,21 +42,27 @@ namespace retro {
 
     [[nodiscard]] bool is_variable_updated() noexcept;
 
-    [[gnu::access(read_only, 2)]]
-    [[gnu::format(printf, 2, 3)]]
-    void log(enum retro_log_level level, const char *fmt, ...) noexcept;
+    void fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_args args) noexcept;
 
-    [[gnu::format(printf, 1, 2)]]
-    void debug(const char *fmt, ...) noexcept;
+    template <typename... T>
+    void debug(fmt::format_string<T...> format, T&&... args) noexcept {
+        fmt_log(RETRO_LOG_DEBUG, format, fmt::make_format_args(args...));
+    }
 
-    [[gnu::format(printf, 1, 2)]]
-    void info(const char *fmt, ...) noexcept;
+    template <typename... T>
+    void info(fmt::format_string<T...> format, T&&... args) noexcept {
+        fmt_log(RETRO_LOG_INFO, format, fmt::make_format_args(args...));
+    }
 
-    [[gnu::format(printf, 1, 2)]]
-    void warn(const char *fmt, ...) noexcept;
+    template <typename... T>
+    void warn(fmt::format_string<T...> format, T&&... args) noexcept {
+        fmt_log(RETRO_LOG_WARN, format, fmt::make_format_args(args...));
+    }
 
-    [[gnu::format(printf, 1, 2)]]
-    void error(const char *fmt, ...) noexcept;
+    template <typename... T>
+    void error(fmt::format_string<T...> format, T&&... args) noexcept {
+        fmt_log(RETRO_LOG_ERROR, format, fmt::make_format_args(args...));
+    }
 
     [[gnu::format(printf, 2, 0)]]
     [[gnu::access(read_only, 2)]]
@@ -65,6 +72,13 @@ namespace retro {
     [[gnu::access(read_only, 1)]]
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);
+    bool fmt_error_message(fmt::string_view format, fmt::format_args args);
+
+    template <typename... T>
+    bool set_error_message(fmt::format_string<T...> format, T&&... args) {
+        return fmt_error_message(format, fmt::make_format_args(args...));
+    }
+
     bool set_warn_message(const char* message);
     bool set_warn_message(const char* message, unsigned duration);
     bool get_variable(struct retro_variable *variable);

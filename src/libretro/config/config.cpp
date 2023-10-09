@@ -34,6 +34,7 @@
 #include <libretro.h>
 #include <retro_assert.h>
 #include <string/stdstring.h>
+#include <fmt/ranges.h>
 
 #include <DSi.h>
 #include <NDS.h>
@@ -42,12 +43,15 @@
 #include <SPI.h>
 #include <SPI_Firmware.h>
 #include <FreeBIOS.h>
+#include <file/config_file.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
 #include "config/definitions/categories.hpp"
+#include "embedded/melondsds_default_wfc_config.h"
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "format.hpp"
 #include "input.hpp"
 #include "libretro.hpp"
 #include "microphone.hpp"
@@ -604,7 +608,7 @@ static void melonds::config::parse_osd_options() noexcept {
     if (optional<bool> value = ParseBoolean(get_variable(osd::POINTER_COORDINATES))) {
         showPointerCoordinates = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", POINTER_COORDINATES, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", POINTER_COORDINATES, values::DISABLED);
         showPointerCoordinates = false;
     }
 #endif
@@ -612,42 +616,42 @@ static void melonds::config::parse_osd_options() noexcept {
     if (optional<bool> value = ParseBoolean(get_variable(osd::UNSUPPORTED_FEATURES))) {
         showUnsupportedFeatureWarnings = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", UNSUPPORTED_FEATURES, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", UNSUPPORTED_FEATURES, values::ENABLED);
         showUnsupportedFeatureWarnings = true;
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(osd::MIC_STATE))) {
         showMicState = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", MIC_STATE, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", MIC_STATE, values::ENABLED);
         showMicState = true;
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(osd::CAMERA_STATE))) {
         showCameraState = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", CAMERA_STATE, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", CAMERA_STATE, values::ENABLED);
         showCameraState = true;
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(osd::BIOS_WARNINGS))) {
         showBiosWarnings = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", BIOS_WARNINGS, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", BIOS_WARNINGS, values::ENABLED);
         showBiosWarnings = true;
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(osd::CURRENT_LAYOUT))) {
         showCurrentLayout = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", CURRENT_LAYOUT, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", CURRENT_LAYOUT, values::ENABLED);
         showCurrentLayout = true;
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(osd::LID_STATE))) {
         showLidState = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", LID_STATE, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", LID_STATE, values::DISABLED);
         showLidState = false;
     }
 }
@@ -661,28 +665,28 @@ static void melonds::config::parse_jit_options() noexcept {
     if (const char* value = get_variable(cpu::JIT_ENABLE); !string_is_empty(value)) {
         _jitEnable = string_is_equal(value, values::ENABLED);
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", cpu::JIT_ENABLE, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_ENABLE, values::ENABLED);
         _jitEnable = true;
     }
 
     if (const char* value = get_variable(cpu::JIT_BLOCK_SIZE); !string_is_empty(value)) {
         _maxBlockSize = std::stoi(value);
     } else {
-        retro::warn("Failed to get value for %s; defaulting to 32", cpu::JIT_BLOCK_SIZE);
+        retro::warn("Failed to get value for {}; defaulting to 32", cpu::JIT_BLOCK_SIZE);
         _maxBlockSize = 32;
     }
 
     if (const char* value = get_variable(cpu::JIT_BRANCH_OPTIMISATIONS); !string_is_empty(value)) {
         _branchOptimizations = string_is_equal(value, values::ENABLED);
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", cpu::JIT_BRANCH_OPTIMISATIONS, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_BRANCH_OPTIMISATIONS, values::ENABLED);
         _branchOptimizations = true;
     }
 
     if (const char* value = get_variable(cpu::JIT_LITERAL_OPTIMISATIONS); !string_is_empty(value)) {
         _literalOptimizations = string_is_equal(value, values::ENABLED);
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", cpu::JIT_LITERAL_OPTIMISATIONS, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_LITERAL_OPTIMISATIONS, values::ENABLED);
         _literalOptimizations = true;
     }
 
@@ -690,7 +694,7 @@ static void melonds::config::parse_jit_options() noexcept {
     if (const char* value = get_variable(cpu::JIT_FAST_MEMORY); !string_is_empty(value)) {
         _fastMemory = string_is_equal(value, values::ENABLED);
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", cpu::JIT_FAST_MEMORY, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_FAST_MEMORY, values::ENABLED);
         _fastMemory = true;
     }
 #endif
@@ -707,21 +711,21 @@ static void melonds::config::parse_system_options() noexcept {
     if (optional<melonds::ConsoleType> type = ParseConsoleType(get_variable(CONSOLE_MODE))) {
         _consoleType = *type;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", CONSOLE_MODE, values::DS);
+        retro::warn("Failed to get value for {}; defaulting to {}", CONSOLE_MODE, values::DS);
         _consoleType = ConsoleType::DS;
     }
 
     if (optional<BootMode> value = ParseBootMode(get_variable(BOOT_MODE))) {
         _bootMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", BOOT_MODE, values::NATIVE);
+        retro::warn("Failed to get value for {}; defaulting to {}", BOOT_MODE, values::NATIVE);
         _bootMode = BootMode::Direct;
     }
 
     if (optional<SysfileMode> value = ParseSysfileMode(get_variable(SYSFILE_MODE))) {
         _sysfileMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", SYSFILE_MODE, values::BUILT_IN);
+        retro::warn("Failed to get value for {}; defaulting to {}", SYSFILE_MODE, values::BUILT_IN);
         _sysfileMode = SysfileMode::BuiltIn;
     }
 
@@ -729,7 +733,7 @@ static void melonds::config::parse_system_options() noexcept {
         _dsPowerOkayThreshold = *value;
     }
     else {
-        retro::warn("Failed to get value for %s; defaulting to 20%%", DS_POWER_OK);
+        retro::warn("Failed to get value for {}; defaulting to 20%", DS_POWER_OK);
         _dsPowerOkayThreshold = 20;
     }
 
@@ -737,7 +741,7 @@ static void melonds::config::parse_system_options() noexcept {
         _powerUpdateInterval = *value;
     }
     else {
-        retro::warn("Failed to get value for %s; defaulting to 15 seconds", BATTERY_UPDATE_INTERVAL);
+        retro::warn("Failed to get value for {}; defaulting to 15 seconds", BATTERY_UPDATE_INTERVAL);
         _powerUpdateInterval = 15;
     }
 }
@@ -750,7 +754,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     if (optional<melonds::FirmwareLanguage> value = ParseLanguage(get_variable(firmware::LANGUAGE))) {
         _language = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::LANGUAGE);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::LANGUAGE);
         _language = FirmwareLanguage::Default;
     }
 
@@ -760,7 +764,7 @@ static void melonds::config::parse_firmware_options() noexcept {
         _favoriteColor = static_cast<Color>(std::clamp(std::stoi(value), 0, 15));
         // TODO: Warn if invalid
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::FAVORITE_COLOR);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::FAVORITE_COLOR);
         _favoriteColor = Color::Default;
     }
 
@@ -774,7 +778,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     if (optional<AlarmMode> alarmMode = ParseAlarmMode(get_variable(firmware::ENABLE_ALARM))) {
         _alarmMode = *alarmMode;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::ENABLE_ALARM);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ENABLE_ALARM);
         _alarmHour = nullopt;
     }
 
@@ -783,7 +787,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     } else if (optional<unsigned> alarmHour = ParseIntegerInRange(alarmHourText, 0u, 23u)) {
         _alarmHour = alarmHour;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::ALARM_HOUR);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ALARM_HOUR);
         _alarmHour = nullopt;
     }
 
@@ -792,7 +796,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     } else if (optional<unsigned> alarmMinute = ParseIntegerInRange(alarmMinuteText, 0u, 59u)) {
         _alarmMinute = alarmMinute;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::ALARM_MINUTE);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ALARM_MINUTE);
         _alarmMinute = nullopt;
     }
 
@@ -801,7 +805,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     } else if (optional<unsigned> birthMonth = ParseIntegerInRange(birthMonthText, 1u, 12u)) {
         _birthdayMonth = *birthMonth;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::BIRTH_MONTH);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::BIRTH_MONTH);
         _birthdayMonth = 0;
     }
 
@@ -810,7 +814,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     } else if (optional<unsigned> birthDay = ParseIntegerInRange(birthDayText, 1u, 31u)) {
         _birthdayDay = *birthDay;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::BIRTH_DAY);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::BIRTH_DAY);
         _birthdayDay = 0;
     }
 
@@ -819,7 +823,7 @@ static void melonds::config::parse_firmware_options() noexcept {
     } else if (optional<SPI_Firmware::IpAddress> wfcDns = ParseIpAddress(wfcDnsText)) {
         _dnsServer = *wfcDns;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to existing firmware value", firmware::WFC_DNS);
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::WFC_DNS);
         _dnsServer = nullopt;
     }
 
@@ -842,14 +846,14 @@ static void melonds::config::parse_audio_options() noexcept {
             _micButtonMode = MicButtonMode::Hold;
         }
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", MIC_INPUT_BUTTON, values::HOLD);
+        retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT_BUTTON, values::HOLD);
         _micButtonMode = MicButtonMode::Hold;
     }
 
     if (optional<melonds::MicInputMode> value = ParseMicInputMode(get_variable(MIC_INPUT))) {
         _micInputMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", MIC_INPUT, values::SILENCE);
+        retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT, values::SILENCE);
         _micInputMode = MicInputMode::None;
     }
 
@@ -861,7 +865,7 @@ static void melonds::config::parse_audio_options() noexcept {
         else
             _bitDepth = BitDepth::Auto;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", AUDIO_BITDEPTH, values::AUTO);
+        retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_BITDEPTH, values::AUTO);
         _bitDepth = BitDepth::Auto;
     }
 
@@ -875,7 +879,7 @@ static void melonds::config::parse_audio_options() noexcept {
         else
             _interpolation = AudioInterpolation::None;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", AUDIO_INTERPOLATION, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_INTERPOLATION, values::DISABLED);
         _interpolation = AudioInterpolation::None;
     }
 }
@@ -888,7 +892,7 @@ static void melonds::config::parse_network_options() noexcept {
     if (optional<NetworkMode> networkMode = ParseNetworkMode(get_variable(network::NETWORK_MODE))) {
         net::_networkMode = *networkMode;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", network::NETWORK_MODE, values::INDIRECT);
+        retro::warn("Failed to get value for {}; defaulting to {}", network::NETWORK_MODE, values::INDIRECT);
         net::_networkMode = NetworkMode::Indirect;
     }
 }
@@ -905,7 +909,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
         // Only relevant for software-rendered 3D, so no OpenGL state reset needed
         _renderSettings.Soft_Threaded = string_is_equal(value, values::ENABLED);
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", THREADED_RENDERER, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", THREADED_RENDERER, values::ENABLED);
         _renderSettings.Soft_Threaded = true;
     }
 #endif
@@ -916,7 +920,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
         if (optional<Renderer> renderer = ParseRenderer(get_variable(RENDER_MODE))) {
             _configuredRenderer = *renderer;
         } else {
-            retro::warn("Failed to get value for %s; defaulting to %s", RENDER_MODE, values::SOFTWARE);
+            retro::warn("Failed to get value for {}; defaulting to {}", RENDER_MODE, values::SOFTWARE);
             _configuredRenderer = Renderer::Software;
         }
     }
@@ -929,7 +933,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
 
         _renderSettings.GL_ScaleFactor = newScaleFactor;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to 1", OPENGL_RESOLUTION);
+        retro::warn("Failed to get value for {}; defaulting to 1", OPENGL_RESOLUTION);
         _renderSettings.GL_ScaleFactor = 1;
     }
 
@@ -941,7 +945,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
 
         _renderSettings.GL_BetterPolygons = enabled;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", OPENGL_BETTER_POLYGONS, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_BETTER_POLYGONS, values::DISABLED);
         _renderSettings.GL_BetterPolygons = false;
     }
 
@@ -951,7 +955,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
         else
             _screenFilter = ScreenFilter::Nearest;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", OPENGL_FILTERING, values::NEAREST);
+        retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_FILTERING, values::NEAREST);
         _screenFilter = ScreenFilter::Nearest;
     }
 #endif
@@ -967,49 +971,49 @@ static void melonds::config::parse_screen_options() noexcept {
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(SCREEN_GAP), SCREEN_GAP_LENGTHS)) {
         _screenGap = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %d", SCREEN_GAP, 0);
+        retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_GAP, 0);
         _screenGap = 0;
     }
 
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
         _cursorTimeout = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %d", CURSOR_TIMEOUT, 3);
+        retro::warn("Failed to get value for {}; defaulting to {}", CURSOR_TIMEOUT, 3);
         _cursorTimeout = 3;
     }
 
     if (optional<melonds::TouchMode> value = ParseTouchMode(get_variable(TOUCH_MODE))) {
         _touchMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", TOUCH_MODE, values::AUTO);
+        retro::warn("Failed to get value for {}; defaulting to {}", TOUCH_MODE, values::AUTO);
         _touchMode = TouchMode::Auto;
     }
 
     if (optional<melonds::CursorMode> value = ParseCursorMode(get_variable(SHOW_CURSOR))) {
         _cursorMode = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", SHOW_CURSOR, values::ALWAYS);
+        retro::warn("Failed to get value for {}; defaulting to {}", SHOW_CURSOR, values::ALWAYS);
         _cursorMode = CursorMode::Always;
     }
 
     if (optional<unsigned> value = ParseIntegerInRange(get_variable(HYBRID_RATIO), 2u, 3u)) {
         _hybridRatio = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %d", HYBRID_RATIO, 2);
+        retro::warn("Failed to get value for {}; defaulting to {}", HYBRID_RATIO, 2);
         _hybridRatio = 2;
     }
 
     if (optional<HybridSideScreenDisplay> value = ParseHybridSideScreenDisplay(get_variable(HYBRID_SMALL_SCREEN))) {
         _smallScreenLayout = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", HYBRID_SMALL_SCREEN, values::BOTH);
+        retro::warn("Failed to get value for {}; defaulting to {}", HYBRID_SMALL_SCREEN, values::BOTH);
         _smallScreenLayout = HybridSideScreenDisplay::Both;
     }
 
     if (optional<unsigned> value = ParseIntegerInRange(get_variable(NUMBER_OF_SCREEN_LAYOUTS), 1u, MAX_SCREEN_LAYOUTS)) {
         _numberOfScreenLayouts = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %d", NUMBER_OF_SCREEN_LAYOUTS, 2);
+        retro::warn("Failed to get value for {}; defaulting to {}", NUMBER_OF_SCREEN_LAYOUTS, 2);
         _numberOfScreenLayouts = 2;
     }
 
@@ -1017,7 +1021,7 @@ static void melonds::config::parse_screen_options() noexcept {
         if (optional<melonds::ScreenLayout> value = ParseScreenLayout(get_variable(SCREEN_LAYOUTS[i]))) {
             _screenLayouts[i] = *value;
         } else {
-            retro::warn("Failed to get value for %s; defaulting to %s", SCREEN_LAYOUTS[i], values::TOP_BOTTOM);
+            retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_LAYOUTS[i], values::TOP_BOTTOM);
             _screenLayouts[i] = ScreenLayout::TopBottom;
         }
     }
@@ -1049,20 +1053,20 @@ static void melonds::config::parse_homebrew_save_options(const NDSHeader* header
         _dldiReadOnly = string_is_equal(value, values::ENABLED);
     } else {
         _dldiReadOnly = false;
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::HOMEBREW_READ_ONLY, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_READ_ONLY, values::DISABLED);
     }
 
     if (const char* value = get_variable(storage::HOMEBREW_SYNC_TO_HOST); !string_is_empty(value)) {
         _dldiFolderSync = string_is_equal(value, values::ENABLED);
     } else {
         _dldiFolderSync = true;
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::HOMEBREW_SYNC_TO_HOST, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_SYNC_TO_HOST, values::ENABLED);
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE))) {
         _dldiEnable = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::HOMEBREW_SAVE_MODE, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_SAVE_MODE, values::ENABLED);
         _dldiEnable = true;
     }
 }
@@ -1079,20 +1083,20 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
         _dsiSdReadOnly = string_is_equal(value, values::ENABLED);
     } else {
         _dsiSdReadOnly = false;
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_READ_ONLY, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_READ_ONLY, values::DISABLED);
     }
 
     if (const char* value = get_variable(storage::DSI_SD_SYNC_TO_HOST); !string_is_empty(value)) {
         _dsiSdFolderSync = string_is_equal(value, values::ENABLED);
     } else {
         _dsiSdFolderSync = true;
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_SYNC_TO_HOST, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SYNC_TO_HOST, values::ENABLED);
     }
 
     if (optional<bool> value = ParseBoolean(get_variable(storage::DSI_SD_SAVE_MODE))) {
         _dsiSdEnable = *value;
     } else {
-        retro::warn("Failed to get value for %s; defaulting to %s", storage::DSI_SD_SAVE_MODE, values::ENABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SAVE_MODE, values::ENABLED);
         _dsiSdEnable = true;
     }
 
@@ -1101,51 +1105,51 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
         strncpy(system::_dsiNandPath, value, sizeof(system::_dsiNandPath));
     } else {
         strncpy(system::_dsiNandPath, values::NOT_FOUND, sizeof(system::_dsiNandPath));
-        retro::warn("Failed to get value for %s", storage::DSI_NAND_PATH);
+        retro::warn("Failed to get value for {}", storage::DSI_NAND_PATH);
     }
 
     if (const char* value = get_variable(system::FIRMWARE_PATH); !string_is_empty(value)) {
         strncpy(system::_firmwarePath, value, sizeof(system::_firmwarePath));
     } else {
         strncpy(system::_firmwarePath, values::NOT_FOUND, sizeof(system::_firmwarePath));
-        retro::warn("Failed to get value for %s; defaulting to built-in firmware", system::FIRMWARE_PATH);
+        retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_PATH);
     }
 
     if (const char* value = get_variable(system::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
         strncpy(system::_dsiFirmwarePath, value, sizeof(system::_dsiFirmwarePath));
     } else {
         strncpy(system::_dsiFirmwarePath, values::NOT_FOUND, sizeof(system::_dsiFirmwarePath));
-        retro::warn("Failed to get value for %s; defaulting to built-in firmware", system::FIRMWARE_DSI_PATH);
+        retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_DSI_PATH);
     }
 }
 
-static unique_ptr<u8[]> LoadBios(const string_view& name, const string& type, size_t expectedLength) noexcept {
+static unique_ptr<u8[]> LoadBios(const string_view& name, melonds::BiosType type, size_t expectedLength) noexcept {
     ZoneScopedN("melonds::config::LoadBios");
 
     auto LoadBiosImpl = [&](const string& path) -> unique_ptr<u8[]> {
         RFILE* file = filestream_open(path.c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
         if (!file) {
-            retro::error("Failed to open %s file \"%s\" for reading", type.c_str(), path.c_str());
+            retro::error("Failed to open {} file \"{}\" for reading", type, path);
             return nullptr;
         }
 
         int64_t size = 0;
         if (size = filestream_get_size(file); size != (int64_t)expectedLength) {
-            retro::error("Expected %s file \"%s\" to be exactly %llu bytes long, got %lld bytes", type.c_str(), path.c_str(), expectedLength, size);
+            retro::error("Expected {} file \"{}\" to be exactly {} bytes long, got {} bytes", type, path, expectedLength, size);
             filestream_close(file);
             return nullptr;
         }
 
         unique_ptr<u8[]> result = make_unique<u8[]>(size);
         if (int64_t bytesRead = filestream_read(file, result.get(), expectedLength); bytesRead != (int64_t)expectedLength) {
-            retro::error("Failed to read %lluB bytes from %s file \"%s\"; got %lld bytes", expectedLength, type.c_str(), path.c_str(), bytesRead);
+            retro::error("Failed to read {} bytes from {} file \"{}\"; got {} bytes", expectedLength, type, path, bytesRead);
             filestream_close(file);
             return nullptr;
         }
 
         filestream_close(file);
-        retro::info("Successfully loaded %llu-byte %s file \"%s\"", expectedLength, type.c_str(), path.c_str());
+        retro::info("Successfully loaded {}-byte {} file \"{}\"", expectedLength, type, path);
 
         return result;
     };
@@ -1163,7 +1167,7 @@ static unique_ptr<u8[]> LoadBios(const string_view& name, const string& type, si
         return result;
     }
 
-    retro::error("Failed to load %s file \"%s\"", type.c_str(), name.data());
+    retro::error("Failed to load {} file \"{}\"", type, name);
 
     return nullptr;
 }
@@ -1180,7 +1184,7 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
     RFILE* file = filestream_open(firmwarePath.c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!file) {
         // If that fails...
-        retro::error("Failed to open firmware file \"%s\" for reading", firmwarePath.c_str());
+        retro::error("Failed to open firmware file \"{}\" for reading", firmwarePath);
         return nullptr;
     }
 
@@ -1191,7 +1195,7 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
 
     if (bytesRead != fileSize) {
         // If we couldn't read the firmware file...
-        retro::error("Failed to read firmware file \"%s\"; got %lld bytes, expected %lld bytes", firmwarePath.c_str(), bytesRead, fileSize);
+        retro::error("Failed to read firmware file \"{}\"; got {} bytes, expected {} bytes", firmwarePath, bytesRead, fileSize);
         return nullptr;
     }
 
@@ -1200,13 +1204,18 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
 
     if (!firmware->Buffer()) {
         // If we failed to load the firmware...
-        retro::error("Failed to read opened firmware file \"%s\"", firmwarePath.c_str());
+        retro::error("Failed to read opened firmware file \"{}\"", firmwarePath);
         return nullptr;
     }
 
     SPI_Firmware::FirmwareIdentifier id = firmware->Header().Identifier;
     FirmwareConsoleType type = firmware->Header().ConsoleType;
-    retro::info("Loaded %s firmware from \"%s\" (Identifier: %c%c%c%c)", ConsoleTypeName(type).data(), firmwarePath.c_str(), id[0], id[1], id[2], id[3]);
+    retro::info(
+        "Loaded {} firmware from \"{}\" (Identifier: {})",
+        type,
+        firmwarePath,
+        string_view(reinterpret_cast<const char*>(id.data()), 4)
+    );
 
     return firmware;
 }
@@ -1241,7 +1250,7 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
 
         if (filestream_read(file, userdata, TOTAL_WFC_SETTINGS_SIZE) != TOTAL_WFC_SETTINGS_SIZE) {
             // If we couldn't read the Wi-fi settings from this file...
-            retro::warn("Failed to read Wi-fi settings from \"%s\"; using defaults instead\n", wfcsettingspath->c_str());
+            retro::warn("Failed to read Wi-fi settings from \"{}\"; using defaults instead\n", *wfcsettingspath);
 
             firmware.AccessPoints() = {
                 WifiAccessPoint(header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DSi ? 1 : 0),
@@ -1387,8 +1396,8 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
     }
 
     // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
-    unique_ptr<u8[]> bios7 = (sysfileMode == SysfileMode::Native) ? LoadBios(Bios7Path(), "ARM7", sizeof(NDS::ARM7BIOS)) : nullptr;
-    unique_ptr<u8[]> bios9 = bios7 ? LoadBios(Bios9Path(), "ARM9", sizeof(NDS::ARM9BIOS)) : nullptr;
+    unique_ptr<u8[]> bios7 = (sysfileMode == SysfileMode::Native) ? LoadBios(Bios7Path(), BiosType::Arm7, sizeof(NDS::ARM7BIOS)) : nullptr;
+    unique_ptr<u8[]> bios9 = bios7 ? LoadBios(Bios9Path(), BiosType::Arm9, sizeof(NDS::ARM9BIOS)) : nullptr;
 
     if (sysfileMode == SysfileMode::Native && !(bios7 && bios9)) {
         // If we're trying to load native BIOS files, but at least one of them failed...
@@ -1452,22 +1461,22 @@ static void InitDsiSystemConfig() {
     retro_assert((nandStatFlags & RETRO_VFS_STAT_IS_CHARACTER_SPECIAL) == 0);
 
     // DSi mode requires all native BIOS files
-    unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), "DSi ARM7", sizeof(DSi::ARM7iBIOS));
+    unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), BiosType::Arm7i, sizeof(DSi::ARM7iBIOS));
     if (!bios7i) {
         throw dsi_missing_bios_exception(BiosType::Arm7i, DsiBios7Path());
     }
 
-    unique_ptr<u8[]> bios9i = LoadBios(DsiBios9Path(), "DSi ARM9", sizeof(DSi::ARM9iBIOS));
+    unique_ptr<u8[]> bios9i = LoadBios(DsiBios9Path(), BiosType::Arm9i, sizeof(DSi::ARM9iBIOS));
     if (!bios9i) {
         throw dsi_missing_bios_exception(BiosType::Arm9i, DsiBios9Path());
     }
 
-    unique_ptr<u8[]> bios7 = LoadBios(Bios7Path(), "DS ARM7", sizeof(NDS::ARM7BIOS));
+    unique_ptr<u8[]> bios7 = LoadBios(Bios7Path(), BiosType::Arm7, sizeof(NDS::ARM7BIOS));
     if (!bios7) {
         throw dsi_missing_bios_exception(BiosType::Arm7, Bios7Path());
     }
 
-    unique_ptr<u8[]> bios9 = LoadBios(Bios9Path(), "DS ARM9", sizeof(NDS::ARM9BIOS));
+    unique_ptr<u8[]> bios9 = LoadBios(Bios9Path(), BiosType::Arm9, sizeof(NDS::ARM9BIOS));
     if (!bios9) {
         throw dsi_missing_bios_exception(BiosType::Arm9, Bios9Path());
     }
@@ -1487,7 +1496,7 @@ static void InitDsiSystemConfig() {
     }
 
     if (firmware && firmware->Header().ConsoleType != SPI_Firmware::FirmwareConsoleType::DSi) {
-        retro::warn("Expected firmware of type DSi, got %s", ConsoleTypeName(firmware->Header().ConsoleType).data());
+        retro::warn("Expected firmware of type DSi, got {}", firmware->Header().ConsoleType);
         throw wrong_firmware_type_exception(firmwareName, melonds::ConsoleType::DSi, firmware->Header().ConsoleType);
     }
     // DSi firmware isn't bootable, so we don't need to check for that here.
@@ -1532,7 +1541,7 @@ static void melonds::config::apply_audio_options() noexcept {
         bool ok = retro::microphone::set_open(is_using_host_mic);
         if (!ok) {
             // If we couldn't open or close the microphone...
-            retro::warn("Failed to %s microphone", is_using_host_mic ? "open" : "close");
+            retro::warn("Failed to {} microphone", is_using_host_mic ? "open" : "close");
         }
     } else {
         if (is_using_host_mic && osd::ShowUnsupportedFeatureWarnings()) {
@@ -1568,10 +1577,10 @@ static void melonds::config::apply_save_options(const NDSHeader* header) {
 
         if (path_is_valid(_dldiImagePath.c_str())) {
             // If the SD card image exists...
-            retro::info("Using existing homebrew SD card image \"%s\"", _dldiImagePath.c_str());
+            retro::info("Using existing homebrew SD card image \"{}\"", _dldiImagePath);
             _dldiImageSize = AUTO_SDCARD_SIZE;
         } else {
-            retro::info("No homebrew SD card image found at \"%s\"; will create an image.", _dldiImagePath.c_str());
+            retro::info("No homebrew SD card image found at \"{}\"; will create an image.", _dldiImagePath);
             _dldiImageSize = DEFAULT_SDCARD_SIZE;
         }
 
@@ -1582,7 +1591,7 @@ static void melonds::config::apply_save_options(const NDSHeader* header) {
                 throw emulator_exception("Failed to create homebrew save directory at " + _dldiFolderPath);
             }
 
-            retro::info("Created (or using existing) homebrew save directory \"%s\"", _dldiFolderPath.c_str());
+            retro::info("Created (or using existing) homebrew save directory \"{}\"", _dldiFolderPath);
         }
     } else {
         retro::info("Not using homebrew SD card");
@@ -1600,10 +1609,10 @@ static void melonds::config::apply_save_options(const NDSHeader* header) {
 
         if (path_is_valid(_dsiSdImagePath.c_str())) {
             // If the SD card image exists...
-            retro::info("Using existing DSi SD card image \"%s\"", _dsiSdImagePath.c_str());
+            retro::info("Using existing DSi SD card image \"{}\"", _dsiSdImagePath);
             _dsiSdImageSize = AUTO_SDCARD_SIZE;
         } else {
-            retro::info("No DSi SD card image found at \"%s\"; will create an image.", _dsiSdImagePath.c_str());
+            retro::info("No DSi SD card image found at \"{}\"; will create an image.", _dsiSdImagePath);
             _dsiSdImageSize = DEFAULT_SDCARD_SIZE;
         }
 
@@ -1614,7 +1623,7 @@ static void melonds::config::apply_save_options(const NDSHeader* header) {
                 throw emulator_exception("Failed to create DSi SD card save directory at " + _dsiSdFolderPath);
             }
 
-            retro::info("Created (or using existing) DSi SD card save directory \"%s\"", _dsiSdFolderPath.c_str());
+            retro::info("Created (or using existing) DSi SD card save directory \"{}\"", _dsiSdFolderPath);
         }
     } else {
         retro::info("Not using DSi SD card");
@@ -1735,7 +1744,7 @@ static void melonds::config::set_core_options() noexcept {
         memset(dsiNandPathOption->values, 0, sizeof(dsiNandPathOption->values));
         int length = std::min((int)dsiNandPaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
-            retro::debug("Found a DSi NAND image at \"%s\"", dsiNandPaths[i].c_str());
+            retro::debug("Found a DSi NAND image at \"{}\"", dsiNandPaths[i]);
             string_view path = dsiNandPaths[i];
             path.remove_prefix(sysdir->size() + 1);
             dsiNandPathOption->values[i].value = path.data();
@@ -1759,7 +1768,7 @@ static void melonds::config::set_core_options() noexcept {
 
         int length = std::min((int)firmware.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
-            retro::debug("Found a firmware image at \"%s\"", firmware[i].path.c_str());
+            retro::debug("Found a firmware image at \"{}\"", firmware[i].path);
             string_view path = firmware[i].path;
             path.remove_prefix(sysdir->size() + 1);
             firmwarePathOption->values[i] = { path.data(), nullptr };

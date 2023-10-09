@@ -115,7 +115,7 @@ static void CaptureImage(const uint32_t *buffer, unsigned width, unsigned height
 // TODO: Remove this, move the logic to retro_load_game
 void Platform::Init(int, char **) {
     // these args are not used in libretro
-    retro::log(RETRO_LOG_DEBUG, "Platform::Init\n");
+    retro::debug("Platform::Init\n");
 
     if (melonds::config::system::ConsoleType() != melonds::ConsoleType::DSi) {
         retro::info("Camera is only supported in DSi mode.\n");
@@ -131,13 +131,13 @@ void Platform::Init(int, char **) {
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &_camera)) {
         retro::warn("Camera interface not available.");
     } else {
-        retro::info("Got a camera with images of (%d x %d) pixels", _camera.width, _camera.height);
+        retro::info("Got a camera with images of ({} x {}) pixels", _camera.width, _camera.height);
     }
 }
 
 // TODO: Remove this, move the logic to retro_unload_game or retro_deinit
 void Platform::DeInit() {
-    retro::log(RETRO_LOG_DEBUG, "Platform::DeInit\n");
+    retro::debug("Platform::DeInit\n");
 
     if (_camera.stop) {
         _camera.stop();
@@ -210,9 +210,9 @@ void Platform::Sleep(u64 usecs) {
 void Platform::Camera_Start(int num) {
     if (_camera.start) {
         if (_camera.start()) {
-            retro::debug("Started camera #%d", num);
+            retro::debug("Started camera #{}", num);
         } else {
-            retro::error("Failed to start camera #%d", num);
+            retro::error("Failed to start camera #{}", num);
         }
     }
 }
@@ -220,7 +220,7 @@ void Platform::Camera_Start(int num) {
 void Platform::Camera_Stop(int num) {
     if (_camera.stop) {
         _camera.stop();
-        retro::debug("Stopped camera #%d", num);
+        retro::debug("Stopped camera #{}", num);
     }
 }
 

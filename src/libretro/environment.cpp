@@ -239,54 +239,21 @@ bool retro::is_variable_updated() noexcept {
     return updated;
 }
 
-void retro::log(enum retro_log_level level, const char* fmt, ...) noexcept {
-    if (fmt == nullptr)
-        return;
+void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_args args) noexcept {
+    if (_log) {
+        fmt::basic_memory_buffer<char, 1024> buffer;
+        fmt::vformat_to(std::back_inserter(buffer), fmt, args);
+        // We can't pass the va_list directly to the libretro callback,
+        // so we have to construct the string and print that
 
-    va_list va;
-    va_start(va, fmt);
-    vlog(level, fmt, va);
-    va_end(va);
-}
+        if (buffer[buffer.size() - 1] == '\n')
+            buffer[buffer.size() - 1] = '\0';
 
-void retro::debug(const char* fmt, ...) noexcept {
-    if (fmt == nullptr)
-        return;
-
-    va_list va;
-    va_start(va, fmt);
-    vlog(RETRO_LOG_DEBUG, fmt, va);
-    va_end(va);
-}
-
-void retro::info(const char* fmt, ...) noexcept {
-    if (fmt == nullptr)
-        return;
-
-    va_list va;
-    va_start(va, fmt);
-    vlog(RETRO_LOG_INFO, fmt, va);
-    va_end(va);
-}
-
-void retro::warn(const char* fmt, ...) noexcept {
-    if (fmt == nullptr)
-        return;
-
-    va_list va;
-    va_start(va, fmt);
-    vlog(RETRO_LOG_WARN, fmt, va);
-    va_end(va);
-}
-
-void retro::error(const char* fmt, ...) noexcept {
-    if (fmt == nullptr)
-        return;
-
-    va_list va;
-    va_start(va, fmt);
-    vlog(RETRO_LOG_ERROR, fmt, va);
-    va_end(va);
+        buffer.push_back('\0');
+        _log(level, "%s\n", buffer.data());
+    } else {
+        fmt::vprint(stderr, fmt, args);
+    }
 }
 
 void retro_vlog(enum retro_log_level level, const char* fmt, va_list va) {
@@ -315,12 +282,12 @@ void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexce
 
 bool retro::set_error_message(const char* message, unsigned duration) {
     if (message == nullptr) {
-        log(RETRO_LOG_ERROR, "set_error_message: message is null");
+        error("set_error_message: message is null");
         return false;
     }
 
     if (duration == 0) {
-        log(RETRO_LOG_ERROR, "set_error_message: duration is 0");
+        error("set_error_message: duration is 0");
         return false;
     }
 
@@ -337,14 +304,29 @@ bool retro::set_error_message(const char* message, unsigned duration) {
     return set_message(message_ext);
 }
 
+bool retro::fmt_error_message(fmt::string_view format, fmt::format_args arg) {
+    string message = fmt::vformat(format, arg);
+    struct retro_message_ext message_ext {
+        .msg = message.c_str(),
+        .duration = retro::DEFAULT_ERROR_DURATION,
+        .priority = retro::DEFAULT_ERROR_PRIORITY,
+        .level = RETRO_LOG_ERROR,
+        .target = RETRO_MESSAGE_TARGET_ALL,
+        .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
+        .progress = -1
+    };
+
+    return set_message(message_ext);
+}
+
 bool retro::set_warn_message(const char* message, unsigned duration) {
     if (message == nullptr) {
-        log(RETRO_LOG_ERROR, "set_warn_message: message is null");
+        error("set_warn_message: message is null");
         return false;
     }
 
     if (duration == 0) {
-        log(RETRO_LOG_ERROR, "set_warn_message: duration is 0");
+        error("set_warn_message: duration is 0");
         return false;
     }
 
@@ -414,7 +396,7 @@ bool retro::set_message(const struct retro_message_ext& message) {
                 return false;
             }
 
-            log(message.level, "%s", message.msg);
+            fmt_log(message.level, "%s", fmt::make_format_args(message.msg));
             return true;
         }
         default:
@@ -595,7 +577,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
         retro::_log = log_callback.log;
-        retro::log(RETRO_LOG_DEBUG, "retro_set_environment(%p)", cb);
+        retro::debug("retro_set_environment({})", fmt::ptr(cb));
     }
 
     retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
@@ -607,7 +589,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     const char* save_dir = nullptr;
     if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
-        retro::log(RETRO_LOG_INFO, "Save directory: \"%s\"", save_dir);
+        retro::info("Save directory: \"{}\"", save_dir);
         retro::_save_directory = save_dir;
     }
 
@@ -616,7 +598,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         char melon_dir[PATH_MAX];
         strlcpy(melon_dir, system_dir, sizeof(melon_dir));
         pathname_make_slashes_portable(melon_dir);
-        retro::log(RETRO_LOG_INFO, "System directory: \"%s\"", &melon_dir);
+        retro::info("System directory: \"{}\"", melon_dir);
         retro::_system_directory = melon_dir;
 
         memset(melon_dir, 0, sizeof(melon_dir));
@@ -627,10 +609,10 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::_system_subdir = melon_dir;
 
         if (path_mkdir(melon_dir)) {
-            retro::info("melonDS DS system directory: \"%s\"", melon_dir);
+            retro::info("melonDS DS system directory: \"{}\"", melon_dir);
         }
         else {
-            retro::error("Failed to create melonDS DS system subdirectory at \"%s\"", melon_dir);
+            retro::error("Failed to create melonDS DS system subdirectory at \"{}\"", melon_dir);
         }
     }
 

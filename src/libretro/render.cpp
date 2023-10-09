@@ -43,7 +43,6 @@ namespace melonds::render {
 
 void melonds::render::Initialize(Renderer renderer) {
     ZoneScopedN("melonds::render::Initialize");
-    using retro::log;
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Initialize the opengl state if needed
@@ -52,19 +51,19 @@ void melonds::render::Initialize(Renderer renderer) {
         case Renderer::OpenGl:
             if (melonds::opengl::Initialize()) {
                 _CurrentRenderer = Renderer::OpenGl;
-                log(RETRO_LOG_DEBUG, "Requested OpenGL context");
+                retro::debug("Requested OpenGL context");
             } else {
                 _CurrentRenderer = Renderer::Software;
-                log(RETRO_LOG_ERROR, "Failed to initialize OpenGL renderer, falling back to software rendering");
+                retro::error("Failed to initialize OpenGL renderer, falling back to software rendering");
                 // TODO: Display a message stating that we're falling back to software rendering
             }
             break;
         default:
-            log(RETRO_LOG_WARN, "Unknown renderer %d, falling back to software rendering", static_cast<int>(renderer));
+            retro::warn("Unknown renderer {}, falling back to software rendering", static_cast<int>(renderer));
             // Intentional fall-through
         case Renderer::Software:
             _CurrentRenderer = Renderer::Software;
-            log(RETRO_LOG_INFO, "Using software renderer");
+            retro::info("Using software renderer");
             break;
     }
 #else

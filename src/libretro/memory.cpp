@@ -17,6 +17,7 @@
 #include "memory.hpp"
 
 #include <cstring>
+#include <fmt/core.h>
 #include <NDS.h>
 #include <NDSCart.h>
 #include <ARCodeFile.h>
@@ -30,6 +31,7 @@
 
 #include "tracy.hpp"
 #include "sram.hpp"
+#include "format.hpp"
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
@@ -89,7 +91,7 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
             melonds::_savestate_size = state.Length();
 
             retro::info(
-                "Savestate requires %zdB = %.0fKiB = %.0fMiB (before compression)",
+                "Savestate requires {}B = {}KiB = {}MiB (before compression)",
                 melonds::_savestate_size,
                 melonds::_savestate_size / 1024.0f,
                 melonds::_savestate_size / 1024.0f / 1024.0f
@@ -121,7 +123,7 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     ZoneScopedN("retro_unserialize");
-    retro::debug("retro_unserialize(%p, %zu)", data, size);
+    retro::debug("retro_unserialize({}, {})", data, size);
     if (melonds::IsInErrorScreen())
         return false;
 #ifndef NDEBUG
@@ -136,7 +138,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     if (savestate.Error) {
         u16 major = savestate.MajorVersion();
         u16 minor = savestate.MinorVersion();
-        retro::error("Expected a savestate of major version %u, got %u.%u", SAVESTATE_MAJOR, major, minor);
+        retro::error("Expected a savestate of major version {}, got {}.{}", SAVESTATE_MAJOR, major, minor);
 
         if (major < SAVESTATE_MAJOR) {
             // If this savestate is too old...
@@ -158,7 +160,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
-    retro::log(RETRO_LOG_DEBUG, "retro_get_memory_data(%s)\n", memory_type_name(type));
+    retro::debug("retro_get_memory_data({})\n", memory_type_name(type));
     if (melonds::IsInErrorScreen())
         return nullptr;
     switch (type) {
@@ -183,9 +185,7 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
         case RETRO_MEMORY_SYSTEM_RAM:
             switch (console_type) {
                 default:
-                    retro::log(RETRO_LOG_WARN,
-                               "Unknown console type %d, returning memory size of 4MB (as used by the DS).",
-                               console_type);
+                    retro::warn("Unknown console type {}, returning memory size of 4MB (as used by the DS).", console_type);
                     // Intentional fall-through
                 case melonds::ConsoleType::DS:
                     return DS_MEMORY_SIZE; // 4MB, the size of the DS system RAM
@@ -220,7 +220,6 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
     pch = strtok(pch, " +");
     while (pch != nullptr) {
         curcode.Code.push_back((u32) strtol(pch, nullptr, 16));
-        retro::log(RETRO_LOG_INFO, "Adding Code %s (%d) \n", pch, curcode.Code.back());
         pch = strtok(nullptr, " +");
     }
     AREngine::RunCheat(curcode);

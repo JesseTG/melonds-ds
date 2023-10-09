@@ -122,10 +122,10 @@ static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& g
     }
 
     if (!filestream_write_file(save_data_path, gba_sram, gba_sram_length)) {
-        retro::error("Failed to write %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
+        retro::error("Failed to write {}-byte GBA SRAM to \"{}\"", gba_sram_length, save_data_path);
         // TODO: Report this to the user
     } else {
-        retro::debug("Flushed %u-byte GBA SRAM to \"%s\"", gba_sram_length, save_data_path);
+        retro::debug("Flushed {}-byte GBA SRAM to \"{}\"", gba_sram_length, save_data_path);
     }
 }
 
@@ -148,13 +148,13 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
         // If this is a native firmware blob...
         int32_t existingFirmwareFileSize = path_get_size(firmwarePath.c_str());
         if (existingFirmwareFileSize == -1)  {
-            retro::warn("Expected firmware \"%s\" to exist before updating, but it doesn't", firmwarePath.c_str());
+            retro::warn("Expected firmware \"{}\" to exist before updating, but it doesn't", firmwarePath);
         }
         else if (existingFirmwareFileSize != firmware->Length()) {
             retro::warn(
-                "In-memory firmware is %u bytes, but destination file \"%s\" has %u bytes",
+                "In-memory firmware is {} bytes, but destination file \"{}\" has {} bytes",
                 firmware->Length(),
-                firmwarePath.c_str(),
+                firmwarePath,
                 existingFirmwareFileSize
             );
         }
@@ -163,21 +163,21 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
         // TODO: Apply the original values of the settings that were overridden
         if (filestream_write_file(firmwarePath.c_str(), firmware->Buffer(), firmware->Length())) {
             // ...then write the whole thing back.
-            retro::debug("Flushed %u-byte firmware to \"%s\"", firmware->Length(), firmwarePath.c_str());
+            retro::debug("Flushed {}-byte firmware to \"{}\"", firmware->Length(), firmwarePath);
         } else {
-            retro::error("Failed to write %u-byte firmware to \"%s\"", firmware->Length(), firmwarePath.c_str());
+            retro::error("Failed to write {}-byte firmware to \"{}\"", firmware->Length(), firmwarePath);
         }
     } else {
         u32 expectedWfcSettingsSize = sizeof(firmware->ExtendedAccessPoints()) + sizeof(firmware->AccessPoints());
         int32_t existingWfcSettingsSize = path_get_size(wfcSettingsPath.c_str());
         if (existingWfcSettingsSize == -1)  {
-            retro::debug("Wi-Fi settings file at \"%s\" doesn't exist, creating it", wfcSettingsPath.c_str());
+            retro::debug("Wi-Fi settings file at \"{}\" doesn't exist, creating it", wfcSettingsPath);
         }
         else if (existingWfcSettingsSize != expectedWfcSettingsSize) {
             retro::warn(
-                "In-memory WFC settings is %u bytes, but destination file \"%s\" has %u bytes",
+                "In-memory WFC settings is {} bytes, but destination file \"{}\" has {} bytes",
                 expectedWfcSettingsSize,
-                wfcSettingsPath.c_str(),
+                wfcSettingsPath,
                 existingWfcSettingsSize
             );
         }
@@ -191,9 +191,9 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
 
         const u8* buffer = firmware->ExtendedAccessPointPosition();
         if (filestream_write_file(wfcSettingsPath.c_str(), buffer, expectedWfcSettingsSize)) {
-            retro::debug("Flushed %u-byte WFC settings to \"%s\"", expectedWfcSettingsSize, wfcSettingsPath.c_str());
+            retro::debug("Flushed {}-byte WFC settings to \"{}\"", expectedWfcSettingsSize, wfcSettingsPath);
         } else {
-            retro::error("Failed to write %u-byte WFC settings to \"%s\"", expectedWfcSettingsSize, wfcSettingsPath.c_str());
+            retro::error("Failed to write {}-byte WFC settings to \"{}\"", expectedWfcSettingsSize, wfcSettingsPath);
         }
     }
 }
@@ -227,14 +227,14 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
 retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName) noexcept {
     optional<string> firmwarePath = retro::get_system_path(firmwareName);
     if (!firmwarePath) {
-        retro::error("Failed to get system path for firmware named \"%s\", firmware changes won't be saved.", firmwareName.data());
+        retro::error("Failed to get system path for firmware named \"{}\", firmware changes won't be saved.", firmwareName);
         return retro::task::TaskSpec();
     }
 
     string_view wfcSettingsName = config::system::GeneratedFirmwareSettingsPath();
     optional<string> wfcSettingsPath = retro::get_system_path(wfcSettingsName);
     if (!wfcSettingsPath) {
-        retro::error("Failed to get system path for WFC settings at \"%s\", firmware changes won't be saved.", wfcSettingsName.data());
+        retro::error("Failed to get system path for WFC settings at \"{}\", firmware changes won't be saved.", wfcSettingsName);
         return retro::task::TaskSpec();
     }
 
@@ -286,9 +286,9 @@ void melonds::sram::InitNdsSave(const NdsCart &nds_cart) {
 
         if (sram_length > 0) {
             sram::NdsSaveManager = make_unique<SaveManager>(sram_length);
-            retro::log(RETRO_LOG_DEBUG, "Allocated %u-byte SRAM buffer for loaded NDS ROM.", sram_length);
+            retro::debug("Allocated {}-byte SRAM buffer for loaded NDS ROM.", sram_length);
         } else {
-            retro::log(RETRO_LOG_DEBUG, "Loaded NDS ROM does not use SRAM.");
+            retro::debug("Loaded NDS ROM does not use SRAM.");
         }
         // The actual SRAM file is installed later; it's loaded into the core via retro_get_memory_data,
         // and it's applied in the first frame of retro_run.
@@ -363,7 +363,7 @@ void melonds::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info&
     // LoadSave's subclasses will call Platform::WriteGBASave.
     // The data will be in the buffer soon enough.
     gba_cart.LoadSave(static_cast<const u8*>(gba_save_data), gba_save_file_size);
-    retro::debug("Allocated %u-byte GBA SRAM", gba_cart.GetSaveMemoryLength());
+    retro::debug("Allocated {}-byte GBA SRAM", gba_cart.GetSaveMemoryLength());
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);

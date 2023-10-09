@@ -103,7 +103,7 @@ static const char *device_name(unsigned device) {
 
 // Not really needed, but libretro requires all retro_* functions to be defined
 PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned device) {
-    retro::log(RETRO_LOG_DEBUG, "retro_set_controller_port_device(%d, %s)", port, device_name(device));
+    retro::debug("retro_set_controller_port_device({}, {})", port, device_name(device));
 }
 
 void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
@@ -118,7 +118,7 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
 
     if (inputState.ToggleLidPressed()) {
         NDS::SetLidClosed(!NDS::IsLidClosed());
-        retro::log(RETRO_LOG_DEBUG, "%s the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
+        retro::debug("{} the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
     }
 
     if (inputState.IsTouchingScreen()) {
@@ -131,7 +131,7 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
     if (inputState.CycleLayoutPressed()) {
         // If the user wants to change the active screen layout...
         screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
-        retro::debug("Switched to screen layout %d of %d", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
+        retro::debug("Switched to screen layout {} of {}", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
     }
 }
 

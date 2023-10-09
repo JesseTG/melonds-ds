@@ -70,7 +70,7 @@ namespace melonds::dsi {
 
 void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCart &cart) try {
     ZoneScopedN("melonds::dsi::install_dsiware");
-    info("Temporarily installing DSiWare title \"%s\" onto DSi NAND image", nds_info.path);
+    info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", nds_info.path);
     const NDSHeader &header = cart.GetHeader();
     retro_assert(header.IsDSiWare());
     retro_assert(DSi_NAND::GetFile() == nullptr);
@@ -153,11 +153,11 @@ bool melonds::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noex
     ZoneScopedN("melonds::dsi::get_cached_tmd");
     RFILE *tmd_file = filestream_open(tmd_path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!tmd_file) {
-        info("Could not find local copy of title metadata at \"%s\"", tmd_path);
+        info("Could not find local copy of title metadata at \"{}\"", tmd_path);
         return false;
     }
 
-    info("Found title metadata at \"%s\"", tmd_path);
+    info("Found title metadata at \"{}\"", tmd_path);
     int64_t bytes_read = filestream_read(tmd_file, &tmd, sizeof(TitleMetadata));
     filestream_close(tmd_file); // Not null, so it always succeeds
 
@@ -187,7 +187,7 @@ bool melonds::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noex
 
 bool melonds::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
     if (tmd.SignatureType != RSA256_SIGNATURE_TYPE) {
-        error("Invalid signature type %08x", tmd.SignatureType);
+        error("Invalid signature type {:#x}", tmd.SignatureType);
         return false;
     }
 
@@ -202,7 +202,7 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
              header.DSiTitleIDHigh, header.DSiTitleIDLow);
     // The URL comes from here https://problemkaputt.de/gbatek.htm#dsisdmmcdsiwarefilesfromnintendosserver
 
-    info("Downloading title metadata from \"%s\"", url);
+    info("Downloading title metadata from \"{}\"", url);
 
     // Create the HTTP request
     struct http_connection_t *connection = net_http_connection_new(url, "GET", nullptr);
@@ -247,7 +247,7 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
         int status = net_http_status(http);
         if (status > 0) {
             // ...but we did manage to get a status code...
-            retro::error("HTTP request failed with %d", net_http_status(http));
+            retro::error("HTTP request failed with {}", net_http_status(http));
         } else {
             retro::error("HTTP request failed with unknown error");
         }
@@ -264,12 +264,12 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
 
     if (payload_length < sizeof(TitleMetadata)) {
         // Or if the payload was too small...
-        retro::error("Expected a payload of at least %u bytes, got %u bytes", sizeof(TitleMetadata), payload_length);
+        retro::error("Expected a payload of at least {} bytes, got {} bytes", sizeof(TitleMetadata), payload_length);
         goto done;
     }
 
     // It's okay if the payload is too big; we don't need the entire TMD
-    retro::info("HTTP request succeeded with %u bytes", payload_length);
+    retro::info("HTTP request succeeded with {} bytes", payload_length);
     memcpy(&tmd, payload, sizeof(TitleMetadata));
 
     if (!validate_tmd(tmd)) {
@@ -297,14 +297,14 @@ void melonds::dsi::cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noe
     path_basedir(tmd_dir);
 
     if (!path_mkdir(tmd_dir)) {
-        error("Error creating TMD directory \"%s\"", tmd_dir);
+        error("Error creating TMD directory \"{}\"", tmd_dir);
         return;
     }
 
     if (filestream_write_file(tmd_path, &tmd, sizeof(TitleMetadata))) {
-        info("Cached title metadata to \"%s\"", tmd_path);
+        info("Cached title metadata to \"{}\"", tmd_path);
     } else {
-        error("Error writing title metadata to \"%s\"", tmd_path);
+        error("Error writing title metadata to \"{}\"", tmd_path);
     }
 }
 
@@ -335,7 +335,7 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
             strlcat(sav_name, ".banner.sav", sizeof(sav_name)); // "game.banner.sav"
             break;
         default:
-            error("Unknown save type %d", type);
+            error("Unknown save type {}", type);
             return false;
     }
 
@@ -370,11 +370,11 @@ void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHea
 
     if (path_stat(sav_file) != RETRO_VFS_STAT_IS_VALID) {
         // If this path is not a valid file...
-        info("No DSiWare save data found at \"%s\"", sav_file);
+        info("No DSiWare save data found at \"{}\"", sav_file);
     } else if (DSi_NAND::ImportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
-        info("Imported DSiWare save data from \"%s\"", sav_file);
+        info("Imported DSiWare save data from \"{}\"", sav_file);
     } else {
-        warn("Couldn't import DSiWare save data from \"%s\"", sav_file);
+        warn("Couldn't import DSiWare save data from \"{}\"", sav_file);
     }
 }
 
@@ -403,16 +403,16 @@ void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHea
     }
 
     if (DSi_NAND::ExportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
-        info("Exported DSiWare save data to \"%s\"", sav_file);
+        info("Exported DSiWare save data to \"{}\"", sav_file);
     } else {
-        warn("Couldn't export DSiWare save data to \"%s\"", sav_file);
+        warn("Couldn't export DSiWare save data to \"{}\"", sav_file);
     }
 }
 
 // Reset for the next time
 void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsCart &cart) noexcept {
     ZoneScopedN("melonds::dsi::uninstall_dsiware");
-    info("Removing temporarily-installed DSiWare title \"%s\" from NAND image", nds_info.path);
+    info("Removing temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
     const NDSHeader &header = cart.GetHeader();
     retro_assert(header.IsDSiWare());
     retro_assert(DSi_NAND::GetFile() == nullptr);
@@ -426,7 +426,7 @@ void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsC
         export_savedata(nds_info, header, DSi_NAND::TitleData_BannerSav);
 
         DSi_NAND::DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
-        info("Removed temporarily-installed DSiWare title \"%s\" from NAND image", nds_info.path);
+        info("Removed temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
     }
 
     DSi_NAND::DeInit();

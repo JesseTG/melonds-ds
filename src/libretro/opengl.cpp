@@ -137,7 +137,7 @@ void melonds::opengl::RequestOpenGlRefresh() {
 
 bool melonds::opengl::Initialize() noexcept {
     ZoneScopedN("melonds::opengl::Initialize");
-    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::Initialize()");
+    retro::debug("melonds::opengl::Initialize()");
     glsm_ctx_params_t params = {};
 
     // melonds wants an opengl 3.1 context, so glcore is required for mesa compatibility
@@ -232,7 +232,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 }
 
 void melonds::opengl::deinitialize() {
-    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::deinitialize()");
+    retro::debug("melonds::opengl::deinitialize()");
     GPU::DeInitRenderer();
     GPU::InitRenderer(false);
 }
@@ -287,7 +287,7 @@ catch (...) {
 
 static void melonds::opengl::context_destroy() {
     ZoneScopedN("melonds::opengl::context_destroy");
-    retro::log(RETRO_LOG_DEBUG, "melonds::opengl::context_destroy()");
+    retro::debug("melonds::opengl::context_destroy()");
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     glDeleteTextures(1, &screen_framebuffer_texture);
 
