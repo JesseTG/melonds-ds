@@ -68,7 +68,7 @@ void melonds::render::Initialize(Renderer renderer) {
     }
 #else
     _CurrentRenderer = Renderer::Software;
-    log(RETRO_LOG_INFO, "OpenGL is not supported by this build, using software renderer");
+    retro::info("OpenGL is not supported by this build, using software renderer");
 #endif
 }
 
