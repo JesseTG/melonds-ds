@@ -38,8 +38,6 @@ if (HAVE_OPENGL OR HAVE_OPENGLES)
         target_include_directories(core SYSTEM PRIVATE "${OpenGLES_V32_INCLUDE_DIR}")
     endif ()
 
-    add_common_definitions(core)
-
     # Ensure that the header that includes GLAD is *excluded* (PLATFORMOGL_H),
     # and that melonDS itself uses OpenGL (or OpenGL ES).
     target_compile_definitions(core PUBLIC PLATFORMOGL_H OGLRENDERER_ENABLED ENABLE_OGLRENDERER)
@@ -53,6 +51,8 @@ if (HAVE_OPENGL OR HAVE_OPENGLES)
         COMPILE_OPTIONS "-include;PlatformOGLPrivate.h")
     # TODO: Adapt for GLES2 and GLES3
 endif ()
+
+add_common_definitions(core)
 
 if (HAVE_NETWORKING)
     # Ensure that the visibility attributes are defined
