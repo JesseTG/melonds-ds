@@ -40,6 +40,16 @@ melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exceptio
 ) {
 }
 
+melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception() noexcept
+    : bios_exception(
+    "The built-in firmware can't be used to boot to the DS menu.",
+    "Ensure you have native DS (not DSi) firmware in your frontend's system folder. "
+    "Pick it in the core options, then restart the core. "
+    "If you just want to play a DS game, try setting Boot Mode to \"Direct\" "
+    "or BIOS/Firmware Mode to \"Built-In\" in the core options."
+) {
+}
+
 melonds::wrong_firmware_type_exception::wrong_firmware_type_exception(
     std::string_view firmwareName,
     melonds::ConsoleType consoleType,

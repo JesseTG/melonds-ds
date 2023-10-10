@@ -1379,7 +1379,11 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
 
     if (!header && !(firmware && firmware->IsBootable())) {
         // If we're trying to boot into the NDS menu, but we didn't load bootable firmware...
-        throw nds_firmware_not_bootable_exception(FirmwarePath());
+        if (sysfileMode == SysfileMode::Native) {
+            throw nds_firmware_not_bootable_exception(FirmwarePath());
+        } else {
+            throw nds_firmware_not_bootable_exception();
+        }
     }
 
     if (!firmware) {
