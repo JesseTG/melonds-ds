@@ -132,6 +132,12 @@ if (NINTENDO_SWITCH OR (${CMAKE_SYSTEM_NAME} STREQUAL "NintendoSwitch"))
     message(STATUS "Building for Nintendo Switch")
 endif()
 
+if (CMAKE_ANDROID_ARM_NEON OR HAVE_LIBNX OR ("arm64" IN_LIST ${CMAKE_OSX_ARCHITECTURES}) OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64"))
+    # The Switch's CPU supports NEON, as does iOS
+    set(HAVE_NEON ON)
+    message(STATUS "Building with ARM NEON optimizations")
+endif ()
+
 if (ENABLE_NETWORKING AND (WIN32 OR UNIX) AND HAVE_DYNAMIC)
     set(HAVE_NETWORKING_DIRECT_MODE ON)
 endif()
@@ -142,6 +148,14 @@ function(add_common_definitions TARGET)
         target_compile_definitions(${TARGET} PUBLIC GL_SILENCE_DEPRECATION)
         # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
     endif()
+
+    if (HAVE_NEON)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_NEON)
+    endif ()
+
+    if (HAVE_ARM_NEON_ASM_OPTIMIZATIONS)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_ARM_NEON_ASM_OPTIMIZATIONS)
+    endif ()
 
     if (HAVE_COCOATOUCH)
         target_compile_definitions(${TARGET} PUBLIC HAVE_COCOATOUCH)
