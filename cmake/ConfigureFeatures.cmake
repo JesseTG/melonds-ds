@@ -242,5 +242,4 @@ function(add_common_definitions TARGET)
     endif ()
 endfunction()
 
-# TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
 # TODO: Detect if SSL is available; if so, define HAVE_SSL
