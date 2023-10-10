@@ -127,6 +127,11 @@ if (IOS)
     set(HAVE_COCOATOUCH ON)
 endif ()
 
+if (NINTENDO_SWITCH OR (${CMAKE_SYSTEM_NAME} STREQUAL "NintendoSwitch"))
+    set(HAVE_LIBNX ON)
+    message(STATUS "Building for Nintendo Switch")
+endif()
+
 if (ENABLE_NETWORKING AND (WIN32 OR UNIX) AND HAVE_DYNAMIC)
     set(HAVE_NETWORKING_DIRECT_MODE ON)
 endif()
@@ -156,6 +161,10 @@ function(add_common_definitions TARGET)
 
     if (HAVE_GLSM_DEBUG)
         target_compile_definitions(${TARGET} PUBLIC GLSM_DEBUG)
+    endif ()
+
+    if (HAVE_LIBNX)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_LIBNX)
     endif ()
 
     if (HAVE_MMAP)
@@ -220,5 +229,4 @@ function(add_common_definitions TARGET)
 endfunction()
 
 # TODO: Detect if ARM NEON is available; if so, define HAVE_NEON and HAVE_ARM_NEON_ASM_OPTIMIZATIONS
-# TODO: Detect if libnx is available and we're building for Switch; if so, define HAVE_LIBNX
 # TODO: Detect if SSL is available; if so, define HAVE_SSL
