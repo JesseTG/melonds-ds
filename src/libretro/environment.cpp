@@ -304,13 +304,13 @@ bool retro::set_error_message(const char* message, unsigned duration) {
     return set_message(message_ext);
 }
 
-bool retro::fmt_error_message(fmt::string_view format, fmt::format_args arg) {
+bool retro::fmt_message(retro_log_level level, fmt::string_view format, fmt::format_args arg) noexcept {
     string message = fmt::vformat(format, arg);
     struct retro_message_ext message_ext {
         .msg = message.c_str(),
         .duration = retro::DEFAULT_ERROR_DURATION,
         .priority = retro::DEFAULT_ERROR_PRIORITY,
-        .level = RETRO_LOG_ERROR,
+        .level = level,
         .target = RETRO_MESSAGE_TARGET_ALL,
         .type = RETRO_MESSAGE_TYPE_NOTIFICATION,
         .progress = -1

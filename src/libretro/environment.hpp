@@ -72,11 +72,16 @@ namespace retro {
     [[gnu::access(read_only, 1)]]
     bool set_error_message(const char* message, unsigned duration);
     bool set_error_message(const char* message);
-    bool fmt_error_message(fmt::string_view format, fmt::format_args args);
+    bool fmt_message(retro_log_level level, fmt::string_view format, fmt::format_args args) noexcept;
 
     template <typename... T>
-    bool set_error_message(fmt::format_string<T...> format, T&&... args) {
-        return fmt_error_message(format, fmt::make_format_args(args...));
+    bool set_error_message(fmt::format_string<T...> format, T&&... args) noexcept {
+        return fmt_message(RETRO_LOG_ERROR, format, fmt::make_format_args(args...));
+    }
+
+    template <typename... T>
+    bool set_warn_message(fmt::format_string<T...> format, T&&... args) noexcept {
+        return fmt_message(RETRO_LOG_WARN, format, fmt::make_format_args(args...));
     }
 
     bool set_warn_message(const char* message);
