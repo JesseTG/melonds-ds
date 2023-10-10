@@ -7,6 +7,8 @@ add_library(libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     buffer.cpp
     buffer.hpp
+    cheats.cpp
+    cheats.hpp
     config.hpp
     config/config.cpp
     config/constants.cpp

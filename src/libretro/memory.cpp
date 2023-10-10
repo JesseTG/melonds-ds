@@ -17,10 +17,10 @@
 #include "memory.hpp"
 
 #include <cstring>
+#include <regex>
 #include <fmt/core.h>
 #include <NDS.h>
 #include <NDSCart.h>
-#include <ARCodeFile.h>
 #include <AREngine.h>
 #include "libretro.hpp"
 #include "environment.hpp"
@@ -36,10 +36,6 @@
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 constexpr ssize_t SAVESTATE_SIZE_UNKNOWN = -1;
-
-namespace AREngine {
-    extern void RunCheat(ARCode &arcode);
-}
 
 namespace melonds {
     static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
@@ -200,29 +196,6 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
         default:
             return 0;
     }
-}
-
-PUBLIC_SYMBOL void retro_cheat_reset(void) {}
-
-PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *code) {
-    ZoneScopedN("retro_cheat_set");
-    if (!enabled)
-        return;
-    std::string str(code);
-    char *pch = &*str.begin();
-    ARCode curcode {
-        .Name = code,
-        .Enabled = true,
-        .Code = {}
-    };
-    curcode.Name = code;
-    curcode.Enabled = enabled;
-    pch = strtok(pch, " +");
-    while (pch != nullptr) {
-        curcode.Code.push_back((u32) strtol(pch, nullptr, 16));
-        pch = strtok(nullptr, " +");
-    }
-    AREngine::RunCheat(curcode);
 }
 
 void melonds::clear_memory_config() {

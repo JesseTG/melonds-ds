@@ -45,6 +45,7 @@
 #include <ARM.h>
 #include <fmt/format.h>
 
+#include "cheats.hpp"
 #include "config.hpp"
 #include "content.hpp"
 #include "dsi.hpp"
@@ -560,6 +561,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::isInDeinit = false;
     melonds::flushTaskId = 0;
     melonds::_errorScreen = nullptr;
+    melonds::cheats::deinit();
     retro::env::deinit();
 }
 
