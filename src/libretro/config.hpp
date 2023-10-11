@@ -249,6 +249,12 @@ namespace melonds {
 #else
             [[nodiscard]] NetworkMode NetworkMode() noexcept { return NetworkMode::None; }
 #endif
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+            [[nodiscard]] std::string_view NetworkInterface() noexcept;
+#else
+            [[nodiscard]] constexpr std::string_view NetworkInterface() noexcept { return ""; }
+#endif
         }
 
         namespace osd {

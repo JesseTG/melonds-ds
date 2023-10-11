@@ -14,16 +14,23 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
+#include <string>
+#include <string_view>
 #include <Platform.h>
 #include <dynamic/dylib.h>
 #include <frontend/qt_sdl/LAN_PCap.h>
 #include <frontend/qt_sdl/LAN_Socket.h>
 #include <retro_assert.h>
+#include <pcap/pcap.h>
 
+#include "../config/constants.hpp"
 #include "../config.hpp"
 #include "../environment.hpp"
 #include "tracy.hpp"
+#include "pcap.hpp"
 
+using std::string;
+using std::string_view;
 static melonds::NetworkMode _activeNetworkMode;
 struct Slirp;
 
@@ -39,6 +46,67 @@ namespace LAN_PCap
 }
 #endif
 
+namespace Config {
+    // Needed by melonDS's wi-fi implementation;
+    // must be set to some value of Adapter::DeviceName
+    string LANDevice;
+}
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) noexcept {
+    using namespace melonds;
+
+
+    if (config::net::NetworkInterface() != config::values::AUTO) {
+        const auto* selected = std::find_if(adapters, adapters + numAdapters, [](const LAN_PCap::AdapterData& a) {
+
+            string mac = fmt::format("{:02x}", fmt::join(a.MAC, ":"));
+            return config::net::NetworkInterface() == mac;
+        });
+
+        retro_assert(selected != nullptr);
+        return selected;
+    }
+
+    const auto* best = std::max_element(adapters, adapters + numAdapters, [](const LAN_PCap::AdapterData& a, const LAN_PCap::AdapterData& b) {
+        retro_assert(a.Internal != nullptr);
+        retro_assert(b.Internal != nullptr);
+
+        const pcap_if_t& a_if = *static_cast<const pcap_if_t*>(a.Internal);
+        const pcap_if_t& b_if = *static_cast<const pcap_if_t*>(b.Internal);
+
+        int a_score = 0;
+        int b_score = 0;
+
+        // Prefer interfaces that are connected
+        if ((a_if.flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
+            a_score += 1000;
+
+        if ((b_if.flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
+            b_score += 1000;
+
+        // Prefer wired interfaces
+        if (!(a_if.flags & PCAP_IF_WIRELESS))
+            a_score += 100;
+
+        if (!(b_if.flags & PCAP_IF_WIRELESS))
+            b_score += 100;
+
+        if (!melonds::IsAdapterAcceptable(a))
+            a_score = INT_MIN;
+
+        if (!melonds::IsAdapterAcceptable(b))
+            b_score = INT_MIN;
+
+        return a_score < b_score;
+    });
+
+    retro_assert(best != adapters + numAdapters);
+
+    return best;
+}
+#endif
+
 bool Platform::LAN_Init() {
     ZoneScopedN("Platform::LAN_Init");
     using namespace melonds::config::net;
@@ -49,15 +117,26 @@ bool Platform::LAN_Init() {
     // as it was necessary to query the available interfaces for the core options
     switch (NetworkMode()) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-        case melonds::NetworkMode::Direct:
+        case melonds::NetworkMode::Direct: {
+            const LAN_PCap::AdapterData* adapter = SelectNetworkInterface(LAN_PCap::Adapters, LAN_PCap::NumAdapters);
+            Config::LANDevice = adapter->DeviceName;
             if (LAN_PCap::Init(true)) {
-                retro::debug("Initialized direct-mode Wi-fi support");
+                retro::debug(
+                    "Initialized direct-mode Wi-fi support with adapter {} ({:02x})\n",
+                    adapter->FriendlyName,
+                    fmt::join(adapter->MAC, ":")
+                );
                 _activeNetworkMode = melonds::NetworkMode::Direct;
                 return true;
             } else {
-                retro::warn("Failed to initialize direct-mode Wi-fi support; falling back to indirect mode");
+                retro::warn(
+                    "Failed to initialize direct-mode Wi-fi support with adapter {} ({:02x}); falling back to indirect mode\n",
+                    adapter->FriendlyName,
+                    fmt::join(adapter->MAC, ":")
+                );
             }
             [[fallthrough]];
+        }
 #endif
         case melonds::NetworkMode::Indirect:
             if (LAN_Socket::Init()) {

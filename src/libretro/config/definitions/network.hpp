@@ -64,8 +64,9 @@ namespace melonds::config::definitions {
             "Network Interface (Direct Mode)",
             "Interface (Direct Mode)",
             "Select a network interface to use with Direct Mode. "
-            "If unsure, set to Automatic. "
-            "Changes take effect at next restart.",
+            "If unsure, set to Automatic, "
+            "which selects a suitable interface for you. "
+            "Changes take effect at next core restart.",
             nullptr,
             config::network::CATEGORY,
             {

@@ -46,6 +46,7 @@
 #include <FreeBIOS.h>
 #include <file/config_file.h>
 #include <LAN_PCap.h>
+#include <pcap/pcap.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
@@ -62,6 +63,7 @@
 #include "retro/dirent.hpp"
 #include "screenlayout.hpp"
 #include "tracy.hpp"
+#include "pcap.hpp"
 
 using std::array;
 using std::find_if;
@@ -76,6 +78,7 @@ using std::string;
 using std::string_view;
 using std::unique_ptr;
 using std::vector;
+using LAN_PCap::AdapterData;
 
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
 constexpr unsigned DEFAULT_SDCARD_SIZE = 4096;
@@ -84,16 +87,10 @@ const char* const DEFAULT_HOMEBREW_SDCARD_DIR_NAME = "dldi_sd_card";
 const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
-constexpr array<u8, 6> BAD_MAC = {0, 0, 0, 0, 0, 0};
 const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
-
-namespace Config {
-    // Needed by melonDS's wi-fi implementation
-    std::string LANDevice;
-}
 
 namespace melonds::config {
     static void set_core_options() noexcept;
@@ -138,6 +135,7 @@ namespace melonds::config {
     static void apply_audio_options() noexcept;
     static void apply_save_options(const NDSHeader* header);
     static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
+    static void apply_network_options() noexcept;
 
     namespace audio {
         melonds::MicButtonMode _micButtonMode = melonds::MicButtonMode::Hold;
@@ -203,6 +201,12 @@ namespace melonds::config {
 #ifdef HAVE_NETWORKING
         static enum NetworkMode _networkMode;
         enum NetworkMode NetworkMode() noexcept { return _networkMode; }
+#endif
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        static bool _interfacesInitialized = false;
+        static char _networkInterface[PATH_MAX];
+        string_view NetworkInterface() noexcept { return _networkInterface; }
 #endif
     }
 
@@ -383,6 +387,7 @@ void melonds::InitConfig(
     config::apply_save_options(header);
     config::apply_audio_options();
     config::apply_screen_options(screenLayout, inputState);
+    config::apply_network_options();
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
@@ -894,11 +899,27 @@ static void melonds::config::parse_network_options() noexcept {
     using retro::get_variable;
 
     if (optional<NetworkMode> networkMode = ParseNetworkMode(get_variable(network::NETWORK_MODE))) {
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        if (*networkMode == NetworkMode::Direct && !net::_interfacesInitialized) {
+            // If we're using direct mode, but we couldn't enumerate the interfaces when we tried...
+            retro::warn("Failed to enumerate network devices, falling back to Indirect mode.");
+            networkMode = NetworkMode::Indirect;
+        }
+#endif
         net::_networkMode = *networkMode;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", network::NETWORK_MODE, values::INDIRECT);
         net::_networkMode = NetworkMode::Indirect;
     }
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    if (const char* value = get_variable(network::DIRECT_NETWORK_INTERFACE); !string_is_empty(value)) {
+        strlcpy(net::_networkInterface, value, sizeof(net::_networkInterface));
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", network::DIRECT_NETWORK_INTERFACE, values::AUTO);
+        strlcpy(net::_networkInterface, values::AUTO, sizeof(net::_networkInterface));
+    }
+#endif
 }
 #endif
 
@@ -1656,6 +1677,12 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
     inputState.SetTouchMode(screen::TouchMode());
 }
 
+static void melonds::config::apply_network_options() noexcept {
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    // TODO: Pick one default adapter
+#endif
+}
+
 struct FirmwareEntry {
     std::string path;
     SPI_Firmware::FirmwareHeader header;
@@ -1704,6 +1731,53 @@ static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, me
 
     return name.data();
 }
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+struct AdapterOption {
+    AdapterData adapter;
+    string value;
+    string label;
+};
+
+
+static vector<string_view> fmt_flags(const pcap_if_t& interface) noexcept {
+    fmt::memory_buffer buffer;
+
+    vector<string_view> flagNames;
+    if (interface.flags & PCAP_IF_LOOPBACK) {
+        flagNames.push_back("Loopback");
+    }
+
+    if (interface.flags & PCAP_IF_UP) {
+        flagNames.push_back("Up");
+    }
+
+    if (interface.flags & PCAP_IF_RUNNING) {
+        flagNames.push_back("Running");
+    }
+
+    if (interface.flags & PCAP_IF_WIRELESS) {
+        flagNames.push_back("Wireless");
+    }
+
+    switch (interface.flags & PCAP_IF_CONNECTION_STATUS) {
+        case PCAP_IF_CONNECTION_STATUS_UNKNOWN:
+            flagNames.push_back("UnknownStatus");
+            break;
+        case PCAP_IF_CONNECTION_STATUS_CONNECTED:
+            flagNames.push_back("Connected");
+            break;
+        case PCAP_IF_CONNECTION_STATUS_DISCONNECTED:
+            flagNames.push_back("Disconnected");
+            break;
+        case PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE:
+            flagNames.push_back("ConnectionStatusNotApplicable");
+            break;
+    }
+
+    return flagNames;
+}
+#endif
 
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
@@ -1799,8 +1873,9 @@ static void melonds::config::set_core_options() noexcept {
         pcapOk = LAN_PCap::Init(false);
     }
 
+#ifdef HAVE_NETWORKING_DIRECT_MODE
     // holds on to strings used in dynamic options until we finish submitting the options to the frontend
-    vector<pair<string, string>> adapters;
+    vector<AdapterOption> adapters;
     if (pcapOk) {
         // If we successfully initialized PCap and got some adapters...
         retro_core_option_v2_definition* wifiAdapterOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
@@ -1813,26 +1888,40 @@ static void melonds::config::set_core_options() noexcept {
         int length = std::min<int>(LAN_PCap::NumAdapters, RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
             const LAN_PCap::AdapterData& adapter = LAN_PCap::Adapters[i];
-            if (memcmp(adapter.MAC, BAD_MAC.data(), BAD_MAC.size()) != 0) {
-                // If this is a MAC address that we can use...
+            if (IsAdapterAcceptable(adapter)) {
+                // If this interface would potentially work...
 
                 string mac = fmt::format("{:02x}", fmt::join(adapter.MAC, ":"));
-                string ip = fmt::format("{}", fmt::join(adapter.IP_v4, "."));
-                retro::debug("Found a \"{}\" ({}) interface named {} at {} bound to {}", adapter.FriendlyName, adapter.Description, adapter.DeviceName, mac, ip);
-                string name = fmt::format("{} ({})", string_is_empty(adapter.FriendlyName) ? adapter.DeviceName : adapter.FriendlyName, mac);
-                adapters.emplace_back(std::move(mac), std::move(name));
+                retro::debug(
+                    "Found a \"{}\" ({}) interface with ID {} at {} bound to {} ({})",
+                    adapter.FriendlyName,
+                    adapter.Description,
+                    adapter.DeviceName,
+                    mac,
+                    fmt::join(adapter.IP_v4, "."),
+                    fmt::join(fmt_flags(*static_cast<const pcap_if_t*>(adapter.Internal)), "|")
+                );
+                string label = fmt::format("{} ({})", string_is_empty(adapter.FriendlyName) ? adapter.DeviceName : adapter.FriendlyName, mac);
+                adapters.emplace_back(AdapterOption {
+                    .adapter = adapter,
+                    .value = std::move(mac),
+                    .label = std::move(label),
+                });
             }
         }
 
         int numAdapters = std::min<int>(RETRO_NUM_CORE_OPTION_VALUES_MAX - 2, adapters.size());
         for (int i = 0; i < numAdapters; ++i) {
-            wifiAdapterOption->values[i + 1] = { adapters[i].first.c_str(), adapters[i].second.c_str() };
+            const AdapterOption& adapter = adapters[i];
+            wifiAdapterOption->values[i + 1] = { adapter.value.c_str(), adapter.label.c_str() };
         }
         wifiAdapterOption->values[numAdapters + 1] = { nullptr, nullptr };
-
+        net::_interfacesInitialized = true;
     } else {
         retro::warn("Failed to enumerate Wi-fi adapters; falling back to indirect mode");
+        net::_interfacesInitialized = false;
     }
+#endif
 
     retro_core_options_v2 optionsUs = {
         .categories = categories.data(),
