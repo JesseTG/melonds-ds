@@ -22,6 +22,7 @@
 
 #include "../constants.hpp"
 
+#ifdef HAVE_NETWORKING
 namespace melonds::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> NetworkOptionDefinitions {
@@ -73,5 +74,6 @@ namespace melonds::config::definitions {
 #endif
     };
 }
+#endif
 
 #endif //MELONDS_DS_NETWORK_HPP

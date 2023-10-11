@@ -32,18 +32,24 @@ namespace LAN_Socket
     extern Slirp* Ctx;
 }
 
+#ifdef HAVE_NETWORKING_DIRECT_MODE
 namespace LAN_PCap
 {
     extern Platform::DynamicLibrary* PCapLib;
 }
+#endif
 
 bool Platform::LAN_Init() {
     ZoneScopedN("Platform::LAN_Init");
     using namespace melonds::config::net;
     retro_assert(_activeNetworkMode == melonds::NetworkMode::None);
     retro_assert(LAN_Socket::Ctx == nullptr);
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
     retro_assert(LAN_PCap::PCapLib == nullptr);
+#endif
     switch (NetworkMode()) {
+#ifdef HAVE_NETWORKING_DIRECT_MODE
         case melonds::NetworkMode::Direct:
             if (LAN_PCap::Init(true)) {
                 retro::debug("Initialized direct-mode Wi-fi support");
@@ -53,6 +59,7 @@ bool Platform::LAN_Init() {
                 retro::warn("Failed to initialize direct-mode Wi-fi support; falling back to indirect mode");
             }
             [[fallthrough]];
+#endif
         case melonds::NetworkMode::Indirect:
             if (LAN_Socket::Init()) {
                 retro::debug("Initialized indirect-mode Wi-fi support\n");
@@ -70,18 +77,23 @@ bool Platform::LAN_Init() {
 
 void Platform::LAN_DeInit() {
     ZoneScopedN("Platform::LAN_DeInit");
+#ifdef HAVE_NETWORKING_DIRECT_MODE
     LAN_PCap::DeInit();
-    LAN_Socket::DeInit();
-    _activeNetworkMode = melonds::NetworkMode::None;
-    retro_assert(LAN_Socket::Ctx == nullptr);
     retro_assert(LAN_PCap::PCapLib == nullptr);
+#endif
+    LAN_Socket::DeInit();
+    retro_assert(LAN_Socket::Ctx == nullptr);
+
+    _activeNetworkMode = melonds::NetworkMode::None;
 }
 
 int Platform::LAN_SendPacket(u8 *data, int len) {
     ZoneScopedN("Platform::LAN_SendPacket");
     switch (_activeNetworkMode) {
+#ifdef HAVE_NETWORKING_DIRECT_MODE
         case melonds::NetworkMode::Direct:
             return LAN_PCap::SendPacket(data, len);
+#endif
         case melonds::NetworkMode::Indirect:
             return LAN_Socket::SendPacket(data, len);
         default:
@@ -92,8 +104,10 @@ int Platform::LAN_SendPacket(u8 *data, int len) {
 int Platform::LAN_RecvPacket(u8 *data) {
     ZoneScopedN("Platform::LAN_RecvPacket");
     switch (_activeNetworkMode) {
+#ifdef HAVE_NETWORKING_DIRECT_MODE
         case melonds::NetworkMode::Direct:
             return LAN_PCap::RecvPacket(data);
+#endif
         case melonds::NetworkMode::Indirect:
             return LAN_Socket::RecvPacket(data);
         default:
