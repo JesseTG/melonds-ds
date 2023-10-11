@@ -101,6 +101,7 @@ int Platform::LAN_RecvPacket(u8 *data) {
     }
 }
 
+#ifdef HAVE_DYLIB
 Platform::DynamicLibrary *Platform::DynamicLibrary_Load(const char *lib) {
     ZoneScopedN("Platform::DynamicLibrary_Load");
     return static_cast<DynamicLibrary *>(dylib_load(lib));
@@ -115,3 +116,4 @@ void *Platform::DynamicLibrary_LoadFunction(Platform::DynamicLibrary *lib, const
     ZoneScopedN("Platform::DynamicLibrary_LoadFunction");
     return reinterpret_cast<void *>(dylib_proc(lib, name));
 }
+#endif

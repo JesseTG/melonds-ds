@@ -129,6 +129,7 @@ endif ()
 
 if (NINTENDO_SWITCH OR (${CMAKE_SYSTEM_NAME} STREQUAL "NintendoSwitch"))
     set(HAVE_LIBNX ON)
+    set(SWITCH ON)
     message(STATUS "Building for Nintendo Switch")
 endif()
 
@@ -239,6 +240,10 @@ function(add_common_definitions TARGET)
 
     if (HAVE_ZLIB)
         target_compile_definitions(${TARGET} PUBLIC HAVE_ZLIB)
+    endif ()
+
+    if (SWITCH)
+        target_compile_definitions(${TARGET} PUBLIC SWITCH __SWITCH__)
     endif ()
 endfunction()
 

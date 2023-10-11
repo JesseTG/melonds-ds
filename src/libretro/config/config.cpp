@@ -884,7 +884,7 @@ static void melonds::config::parse_audio_options() noexcept {
     }
 }
 
-
+#ifdef HAVE_NETWORKING
 static void melonds::config::parse_network_options() noexcept {
     ZoneScopedN("melonds::config::parse_network_options");
     using retro::get_variable;
@@ -896,6 +896,7 @@ static void melonds::config::parse_network_options() noexcept {
         net::_networkMode = NetworkMode::Indirect;
     }
 }
+#endif
 
 static bool melonds::config::parse_video_options(bool initializing) noexcept {
     ZoneScopedN("melonds::config::parse_video_options");
