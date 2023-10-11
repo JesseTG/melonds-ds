@@ -26,6 +26,7 @@
 #include <initializer_list>
 #include <memory>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include <sys/stat.h>
 
@@ -44,6 +45,7 @@
 #include <SPI_Firmware.h>
 #include <FreeBIOS.h>
 #include <file/config_file.h>
+#include <LAN_PCap.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
@@ -69,6 +71,7 @@ using std::initializer_list;
 using std::make_unique;
 using std::nullopt;
 using std::optional;
+using std::pair;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
@@ -81,6 +84,7 @@ const char* const DEFAULT_HOMEBREW_SDCARD_DIR_NAME = "dldi_sd_card";
 const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
+constexpr array<u8, 6> BAD_MAC = {0, 0, 0, 0, 0, 0};
 const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -1787,6 +1791,47 @@ static void melonds::config::set_core_options() noexcept {
 
         retro_assert(firmwarePathOption->default_value != nullptr);
         retro_assert(firmwarePathDsiOption->default_value != nullptr);
+    }
+
+    bool pcapOk;
+    {
+        ZoneScopedN("LAN_PCap::Init");
+        pcapOk = LAN_PCap::Init(false);
+    }
+
+    // holds on to strings used in dynamic options until we finish submitting the options to the frontend
+    vector<pair<string, string>> adapters;
+    if (pcapOk) {
+        // If we successfully initialized PCap and got some adapters...
+        retro_core_option_v2_definition* wifiAdapterOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
+            return string_is_equal(def.key, melonds::config::network::DIRECT_NETWORK_INTERFACE);
+        });
+        retro_assert(wifiAdapterOption != definitions.end());
+
+        // Zero all option values except for the first (Automatic)
+        memset(wifiAdapterOption->values + 1, 0, sizeof(retro_core_option_value) * (RETRO_NUM_CORE_OPTION_VALUES_MAX - 1));
+        int length = std::min<int>(LAN_PCap::NumAdapters, RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
+        for (int i = 0; i < length; ++i) {
+            const LAN_PCap::AdapterData& adapter = LAN_PCap::Adapters[i];
+            if (memcmp(adapter.MAC, BAD_MAC.data(), BAD_MAC.size()) != 0) {
+                // If this is a MAC address that we can use...
+
+                string mac = fmt::format("{:02x}", fmt::join(adapter.MAC, ":"));
+                string ip = fmt::format("{}", fmt::join(adapter.IP_v4, "."));
+                retro::debug("Found a \"{}\" ({}) interface named {} at {} bound to {}", adapter.FriendlyName, adapter.Description, adapter.DeviceName, mac, ip);
+                string name = fmt::format("{} ({})", string_is_empty(adapter.FriendlyName) ? adapter.DeviceName : adapter.FriendlyName, mac);
+                adapters.emplace_back(std::move(mac), std::move(name));
+            }
+        }
+
+        int numAdapters = std::min<int>(RETRO_NUM_CORE_OPTION_VALUES_MAX - 2, adapters.size());
+        for (int i = 0; i < numAdapters; ++i) {
+            wifiAdapterOption->values[i + 1] = { adapters[i].first.c_str(), adapters[i].second.c_str() };
+        }
+        wifiAdapterOption->values[numAdapters + 1] = { nullptr, nullptr };
+
+    } else {
+        retro::warn("Failed to enumerate Wi-fi adapters; falling back to indirect mode");
     }
 
     retro_core_options_v2 optionsUs = {

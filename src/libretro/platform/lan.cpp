@@ -45,9 +45,8 @@ bool Platform::LAN_Init() {
     retro_assert(_activeNetworkMode == melonds::NetworkMode::None);
     retro_assert(LAN_Socket::Ctx == nullptr);
 
-#ifdef HAVE_NETWORKING_DIRECT_MODE
-    retro_assert(LAN_PCap::PCapLib == nullptr);
-#endif
+    // LAN::PCap may already be initialized if we're using direct mode,
+    // as it was necessary to query the available interfaces for the core options
     switch (NetworkMode()) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case melonds::NetworkMode::Direct:
