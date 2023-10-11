@@ -61,9 +61,11 @@ namespace melonds::config::definitions {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         retro_core_option_v2_definition {
             config::network::DIRECT_NETWORK_INTERFACE,
-            "Wi-Fi Interface",
-            nullptr,
-            nullptr,
+            "Network Interface (Direct Mode)",
+            "Interface (Direct Mode)",
+            "Select a network interface to use with Direct Mode. "
+            "If unsure, set to Automatic. "
+            "Changes take effect at next restart.",
             nullptr,
             config::network::CATEGORY,
             {
