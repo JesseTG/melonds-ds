@@ -166,7 +166,7 @@ namespace melonds::config {
         static unsigned _birthdayDay = 1;
         static Color _favoriteColor;
         static UsernameMode _usernameMode;
-        static string _message;
+        [[deprecated("Make this a flat array instead")]] static string _message;
         static optional<SPI_Firmware::MacAddress> _macAddress;
         static optional<SPI_Firmware::IpAddress> _dnsServer;
     }
@@ -241,13 +241,13 @@ namespace melonds::config {
         bool _dldiFolderSync;
         bool DldiFolderSync() noexcept { return _dldiFolderSync; }
 
-        string _dldiFolderPath;
+        [[deprecated("Make this a flat array instead")]] string _dldiFolderPath;
         string DldiFolderPath() noexcept { return _dldiFolderPath; }
 
         bool _dldiReadOnly;
         bool DldiReadOnly() noexcept { return _dldiReadOnly; }
 
-        string _dldiImagePath;
+        [[deprecated("Make this a flat array instead")]] string _dldiImagePath;
         string DldiImagePath() noexcept { return _dldiImagePath; }
 
         unsigned _dldiImageSize;
@@ -259,13 +259,13 @@ namespace melonds::config {
         bool _dsiSdFolderSync;
         bool DsiSdFolderSync() noexcept { return _dsiSdFolderSync; }
 
-        string _dsiSdFolderPath;
+        [[deprecated("Make this a flat array instead")]] string _dsiSdFolderPath;
         string DsiSdFolderPath() noexcept { return _dsiSdFolderPath; }
 
         bool _dsiSdReadOnly;
         bool DsiSdReadOnly() noexcept { return _dsiSdReadOnly; }
 
-        string _dsiSdImagePath;
+        [[deprecated("Make this a flat array instead")]] string _dsiSdImagePath;
         string DsiSdImagePath() noexcept { return _dsiSdImagePath; }
 
         unsigned _dsiSdImageSize;
