@@ -53,6 +53,23 @@ namespace Config {
 }
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
+bool melonds::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
+    const SPI_Firmware::MacAddress& mac = *reinterpret_cast<const SPI_Firmware::MacAddress*>(adapter.MAC);
+
+    if (mac == BAD_MAC || mac == BROADCAST_MAC)
+        return false;
+
+    const pcap_if_t* iface = static_cast<const pcap_if_t*>(adapter.Internal);
+    if (iface == nullptr)
+        return false;
+
+    if (iface->flags & PCAP_IF_LOOPBACK)
+        // If this is a loopback interface...
+        return false;
+
+    return true;
+}
+
 static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) noexcept {
     using namespace melonds;
 

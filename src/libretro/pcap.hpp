@@ -32,23 +32,7 @@ namespace melonds {
     constexpr std::array<u8, 6> BAD_MAC = {0, 0, 0, 0, 0, 0};
     constexpr std::array<u8, 6> BROADCAST_MAC = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-    constexpr bool IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
-        const SPI_Firmware::MacAddress& mac = *reinterpret_cast<const SPI_Firmware::MacAddress*>(adapter.MAC);
-
-        if (mac == BAD_MAC || mac == BROADCAST_MAC)
-            return false;
-
-        const pcap_if_t* iface = static_cast<const pcap_if_t*>(adapter.Internal);
-        if (iface == nullptr)
-            return false;
-
-        if (iface->flags & PCAP_IF_LOOPBACK)
-            // If this is a loopback interface...
-            return false;
-
-        return true;
-    }
-
+    bool IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept;
 }
 #endif
 #endif //MELONDS_DS_PCAP_HPP
