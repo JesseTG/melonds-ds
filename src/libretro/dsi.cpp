@@ -18,6 +18,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 
 #ifdef HAVE_NETWORKING
 #include <net/net_http.h>
@@ -38,6 +39,7 @@
 
 using std::nullopt;
 using std::optional;
+using std::string_view;
 using std::string;
 
 using retro::info;
@@ -56,30 +58,36 @@ namespace melonds::dsi {
     bool validate_tmd(const TitleMetadata &tmd) noexcept;
 
 #ifdef HAVE_NETWORKING
-    bool download_tmd(const NDSHeader &header, TitleMetadata &tmd) noexcept;
+    /// Downloads the TMD from Nintendo's servers and caches it locally
+    bool get_tmd(const NDSHeader &header, TitleMetadata &tmd, const char* tmd_path) noexcept;
 #endif
 
-    void cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noexcept;
+    bool cache_tmd(const char *tmd_path, const void *tmd, size_t tmd_length) noexcept;
 
-    void import_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
+    void import_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
 
-    void export_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
+    void export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
 }
 
-void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCart &cart) try {
+void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info, const NdsCart &cart) {
     ZoneScopedN("melonds::dsi::install_dsiware");
     info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", nds_info.path);
     const NDSHeader &header = cart.GetHeader();
     retro_assert(header.IsDSiWare());
-    retro_assert(DSi_NAND::GetFile() == nullptr);
+    retro_assert(nand);
+    // The NAND should've been installed in InitConfig by this point
 
-    if (!DSi_NAND::Init(&DSi::ARM7iBIOS[0x8308])) {
-        throw emulator_exception("Failed to open DSi NAND for installation");
+    DSi_NAND::NANDMount mount(nand);
+
+    if (!mount) {
+        // TODO: Make this a bios_exception subclass instead
+        throw emulator_exception("Failed to mount the DSi NAND for installing files");
     }
 
-    if (DSi_NAND::TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
+    if (mount.TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
         retro::info("Title already exists on loaded NAND; skipping installation, and won't uninstall it later.");
         // TODO: Allow player to forcibly install the title anyway
+        // TODO: Install a sentinel file in the NAND to indicate that it's temporarily installed
 
         // TODO: Import Game.public.sav if it exists, unless the internal save file is newer
         // TODO: Import Game.private.sav if it exists, unless the internal save file is newer
@@ -96,10 +104,8 @@ void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCar
             // If the TMD isn't available locally...
 
 #ifdef HAVE_NETWORKING
-            if (download_tmd(header, tmd)) {
-                // ...then download it. If that worked...
-                cache_tmd(tmd_path, tmd);
-            } else {
+            if (!get_tmd(header, tmd, tmd_path)) {
+                // ...then download it and save it to disk. If that didn't work...
                 throw missing_metadata_exception("Cannot get title metadata for installation");
             }
 #else
@@ -107,20 +113,14 @@ void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCar
 #endif
         }
 
-        if (!DSi_NAND::ImportTitle(static_cast<const u8 *>(nds_info.data), nds_info.size, tmd, false)) {
+        if (!mount.ImportTitle(static_cast<const u8 *>(nds_info.data), nds_info.size, tmd, false)) {
             throw emulator_exception("Failed to import DSiWare title into NAND image");
         }
 
-        import_savedata(nds_info, header, DSi_NAND::TitleData_PublicSav);
-        import_savedata(nds_info, header, DSi_NAND::TitleData_PrivateSav);
-        import_savedata(nds_info, header, DSi_NAND::TitleData_BannerSav);
+        import_savedata(mount, nds_info, header, DSi_NAND::TitleData_PublicSav);
+        import_savedata(mount, nds_info, header, DSi_NAND::TitleData_PrivateSav);
+        import_savedata(mount, nds_info, header, DSi_NAND::TitleData_BannerSav);
     }
-
-    DSi_NAND::DeInit();
-}
-catch (...) {
-    DSi_NAND::DeInit();
-    throw;
 }
 
 static void melonds::dsi::get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length) {
@@ -133,7 +133,7 @@ static void melonds::dsi::get_tmd_path(const retro_game_info &nds_info, char *bu
 
     const optional<string> &system_subdir = retro::get_system_subdirectory();
     if (!system_subdir) {
-        throw std::runtime_error("System directory not set");
+        throw emulator_exception("System directory not set");
     }
 
     char tmd_dir[PATH_MAX];
@@ -192,8 +192,8 @@ bool melonds::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
 }
 
 #ifdef HAVE_NETWORKING
-bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noexcept {
-    ZoneScopedN("melonds::dsi::download_tmd");
+bool melonds::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const char* tmd_path) noexcept {
+    ZoneScopedN("melonds::dsi::get_tmd");
     char url[256];
     snprintf(url, sizeof(url), "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd",
              header.DSiTitleIDHigh, header.DSiTitleIDLow);
@@ -283,6 +283,7 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
     retro::info("Downloaded TMD successfully");
     ok = true;
 
+    cache_tmd(tmd_path, payload, payload_length);
 done:
     net_http_delete(http);
     net_http_connection_free(connection);
@@ -291,22 +292,23 @@ done:
 }
 #endif
 
-// TODO: Cache the whole file, not just the TitleMetadata object
-void melonds::dsi::cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noexcept {
+bool melonds::dsi::cache_tmd(const char *tmd_path, const void *tmd, size_t tmd_length) noexcept {
     ZoneScopedN("melonds::dsi::cache_tmd");
     char tmd_dir[PATH_MAX];
     strlcpy(tmd_dir, tmd_path, sizeof(tmd_dir));
     path_basedir(tmd_dir);
 
     if (!path_mkdir(tmd_dir)) {
-        return;
         error("Error creating title metadata directory \"{}\"", tmd_dir);
+        return false;
     }
 
-    if (filestream_write_file(tmd_path, &tmd, sizeof(TitleMetadata))) {
+    if (filestream_write_file(tmd_path, tmd, tmd_length)) {
         info("Cached title metadata to \"{}\"", tmd_path);
+        return true;
     } else {
         error("Error writing title metadata to \"{}\"", tmd_path);
+        return false;
     }
 }
 
@@ -346,9 +348,8 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
     return true;
 }
 
-void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+void melonds::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
     ZoneScopedN("melonds::dsi::import_savedata");
-    retro_assert(DSi_NAND::GetFile() != nullptr);
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
@@ -373,7 +374,7 @@ void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHea
     if (path_stat(sav_file) != RETRO_VFS_STAT_IS_VALID) {
         // If this path is not a valid file...
         info("No DSiWare save data found at \"{}\"", sav_file);
-    } else if (DSi_NAND::ImportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
+    } else if (nand.ImportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
         info("Imported DSiWare save data from \"{}\"", sav_file);
     } else {
         warn("Couldn't import DSiWare save data from \"{}\"", sav_file);
@@ -381,9 +382,8 @@ void melonds::dsi::import_savedata(const retro_game_info &nds_info, const NDSHea
 }
 
 
-void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+void melonds::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
     ZoneScopedN("melonds::dsi::export_savedata");
-    retro_assert(DSi_NAND::GetFile() != nullptr);
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
@@ -404,7 +404,7 @@ void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHea
         return;
     }
 
-    if (DSi_NAND::ExportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
+    if (nand.ExportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
         info("Exported DSiWare save data to \"{}\"", sav_file);
     } else {
         warn("Couldn't export DSiWare save data to \"{}\"", sav_file);
@@ -412,22 +412,22 @@ void melonds::dsi::export_savedata(const retro_game_info &nds_info, const NDSHea
 }
 
 // Reset for the next time
-void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsCart &cart) noexcept {
+void melonds::dsi::uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info, const NdsCart &cart) noexcept {
     ZoneScopedN("melonds::dsi::uninstall_dsiware");
     info("Removing temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
     const NDSHeader &header = cart.GetHeader();
     retro_assert(header.IsDSiWare());
-    retro_assert(DSi_NAND::GetFile() == nullptr);
+    retro_assert(nand);
 
-    if (!DSi_NAND::Init(&DSi::ARM7iBIOS[0x8308])) {
-        retro::error("Failed to open DSi NAND for uninstallation");
-    } else {
+    if (DSi_NAND::NANDMount mount = DSi_NAND::NANDMount(nand)) {
         // TODO: Report an error if the title doesn't exist
-        export_savedata(nds_info, header, DSi_NAND::TitleData_PublicSav);
-        export_savedata(nds_info, header, DSi_NAND::TitleData_PrivateSav);
-        export_savedata(nds_info, header, DSi_NAND::TitleData_BannerSav);
+        export_savedata(mount, nds_info, header, DSi_NAND::TitleData_PublicSav);
+        export_savedata(mount, nds_info, header, DSi_NAND::TitleData_PrivateSav);
+        export_savedata(mount, nds_info, header, DSi_NAND::TitleData_BannerSav);
 
-        DSi_NAND::DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
+        mount.DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
         info("Removed temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
+    } else {
+        retro::error("Failed to open DSi NAND for uninstallation");
     }
 }

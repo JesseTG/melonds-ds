@@ -512,15 +512,25 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
         ZoneScopedN("NDS::Stop");
         NDS::Stop();
     }
-    if (NDS::ARM9)
-    {
-        ZoneScopedN("NDS::DeInit");
-        NDS::DeInit();
+
+    // Must uninstall the DSiWare between NDS::Stop and NDS::DeInit;
+    // before NDS::Stop the NAND may still be in use,
+    // and after NDS::DeInit the NANDImage is destroyed.
+    if (const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info()) {
+        // If this session involved a loaded DS game...
+        retro_assert(melonds::_loaded_nds_cart != nullptr); // cart shouldn't have been cleaned up yet
+
+        if (melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
+            // And that game was a DSiWare game...
+            retro_assert(DSi::NANDImage != nullptr); // NAND shouldn't have been cleaned up yet
+            melonds::dsi::uninstall_dsiware(*DSi::NANDImage, *nds_info, *melonds::_loaded_nds_cart);
+        }
     }
 
-    const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
-    if (nds_info && melonds::_loaded_nds_cart && melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
-        melonds::dsi::uninstall_dsiware(*nds_info, *melonds::_loaded_nds_cart);
+    if (NDS::ARM9)
+    { // Deallocate the DS's resources if they haven't been already
+        ZoneScopedN("NDS::DeInit");
+        NDS::DeInit();
     }
 
     melonds::_loaded_nds_cart = nullptr;
@@ -696,7 +706,6 @@ static void melonds::load_games(
 
     if (gba_info) {
         if (config::system::ConsoleType() == ConsoleType::DSi) {
-            // TODO: What if I force DS mode when using GBA SRAM?
             retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
         } else {
             {
