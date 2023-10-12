@@ -30,6 +30,7 @@
 #include "../memory.hpp"
 #include "../environment.hpp"
 #include "../config.hpp"
+#include "../format.hpp"
 #include "retro/scaler.hpp"
 #include "sram.hpp"
 
@@ -160,6 +161,7 @@ void Platform::SignalStop(Platform::StopReason reason) {
             break;
             // no-op; not every stop reason needs a message shown to the user
     }
+    retro::debug("Platform::SignalStop({})\n", reason);
     retro::shutdown();
 }
 

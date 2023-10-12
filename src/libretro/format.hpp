@@ -23,6 +23,7 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <SPI_Firmware.h>
+#include <Platform.h>
 
 #include "config.hpp"
 
@@ -45,6 +46,34 @@ struct fmt::formatter<melonds::BiosType> : fmt::formatter<std::string_view> {
                 break;
             case melonds::BiosType::Arm9i:
                 name = "DSi ARM9";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<Platform::StopReason> : fmt::formatter<std::string_view> {
+    // use inherited 'formatter<string_view>::parse'…
+    // … and only implement 'format':
+    template<typename FmtContext>
+    auto format(Platform::StopReason c, FmtContext& ctx) {
+        string_view name = "???";
+        switch (c) {
+            case Platform::StopReason::Unknown:
+                name = "Unknown";
+                break;
+            case Platform::StopReason::External:
+                name = "External";
+                break;
+            case Platform::StopReason::GBAModeNotSupported:
+                name = "GBAModeNotSupported";
+                break;
+            case Platform::StopReason::BadExceptionRegion:
+                name = "BadExceptionRegion";
+                break;
+            case Platform::StopReason::PowerOff:
+                name = "PowerOff";
                 break;
         }
         return formatter<string_view>::format(name, ctx);
