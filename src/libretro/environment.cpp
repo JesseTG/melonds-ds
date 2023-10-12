@@ -533,6 +533,8 @@ void retro::env::init() noexcept {
     ZoneScopedN("retro::env::init");
     retro_assert(_environment != nullptr);
 
+    isShuttingDown = false;
+
     if (_supportsNoGameMode)
         retro::debug("Frontend supports no-game mode.\n");
 
