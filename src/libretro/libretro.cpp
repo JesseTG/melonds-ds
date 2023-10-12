@@ -518,11 +518,12 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     // and after NDS::DeInit the NANDImage is destroyed.
     if (const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info()) {
         // If this session involved a loaded DS game...
-        retro_assert(melonds::_loaded_nds_cart != nullptr); // cart shouldn't have been cleaned up yet
 
-        if (melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
+        if (melonds::_loaded_nds_cart && melonds::_loaded_nds_cart->GetHeader().IsDSiWare()) {
             // And that game was a DSiWare game...
             retro_assert(DSi::NANDImage != nullptr); // NAND shouldn't have been cleaned up yet
+            // DSiWare "cart" shouldn't have been cleaned up yet
+            // (a regular DS cart would've been moved-from at the start of the session)
             melonds::dsi::uninstall_dsiware(*DSi::NANDImage, *nds_info, *melonds::_loaded_nds_cart);
         }
     }
