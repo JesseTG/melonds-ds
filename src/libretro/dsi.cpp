@@ -209,7 +209,8 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
     }
 
     // Parse the URL (always succeeds since connection is not NULL)
-    net_http_connection_iterate(connection);
+    bool url_parsed = net_http_connection_iterate(connection);
+    retro_assert(url_parsed);
 
     // Variable declarations; we use goto for error handling here,
     // but goto can't skip variable initializations
@@ -223,14 +224,14 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
     // Signify that we're ready to send the request
     if (!net_http_connection_done(connection)) {
         // If initializing the connection failed...
-        error("Failed to initialize HTTP connection");
+        error("Failed to initialize HTTP connection to {}", url);
         goto done;
     }
 
     // And send it
     http = net_http_new(connection);
     if (!http) {
-        error("Failed to open HTTP connection");
+        error("Failed to open HTTP connection to {}", url);
         goto done;
     }
 
@@ -241,12 +242,11 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
 
     if (net_http_error(http)) {
         // If there was a problem...
-        int status = net_http_status(http);
-        if (status > 0) {
+        if (int status = net_http_status(http); status > 0) {
             // ...but we did manage to get a status code...
-            retro::error("HTTP request failed with {}", net_http_status(http));
+            retro::error("HTTP request to {} failed with {}", url, net_http_status(http));
         } else {
-            retro::error("HTTP request failed with unknown error");
+            retro::error("HTTP request to {} failed with unknown error", url);
         }
         goto done;
     }
@@ -255,13 +255,18 @@ bool melonds::dsi::download_tmd(const NDSHeader &header, TitleMetadata &tmd) noe
     payload = net_http_data(http, &payload_length, false);
     if (payload == nullptr || payload_length == 0) {
         // If there was no payload...
-        retro::error("HTTP request succeeded, but it sent no data");
+        retro::error("HTTP request to {} succeeded, but it sent no data", url);
         goto done;
     }
 
     if (payload_length < sizeof(TitleMetadata)) {
         // Or if the payload was too small...
-        retro::error("Expected a payload of at least {} bytes, got {} bytes", sizeof(TitleMetadata), payload_length);
+        retro::error(
+            "HTTP request to {} returned a response of {} bytes, expected one at least {} bytes long",
+            url,
+            payload_length,
+            sizeof(TitleMetadata)
+        );
         goto done;
     }
 
@@ -294,8 +299,8 @@ void melonds::dsi::cache_tmd(const char *tmd_path, const TitleMetadata &tmd) noe
     path_basedir(tmd_dir);
 
     if (!path_mkdir(tmd_dir)) {
-        error("Error creating TMD directory \"{}\"", tmd_dir);
         return;
+        error("Error creating title metadata directory \"{}\"", tmd_dir);
     }
 
     if (filestream_write_file(tmd_path, &tmd, sizeof(TitleMetadata))) {
@@ -425,6 +430,4 @@ void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsC
         DSi_NAND::DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
         info("Removed temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
     }
-
-    DSi_NAND::DeInit();
 }
