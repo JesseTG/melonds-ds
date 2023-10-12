@@ -115,6 +115,12 @@ namespace melonds
     public:
         explicit dsi_nand_missing_exception(std::string_view biosName) noexcept;
     };
+
+    class dsi_nand_corrupted_exception : public bios_exception {
+    public:
+        explicit dsi_nand_corrupted_exception(std::string_view biosName) noexcept;
+    };
+
     /// Thrown when there's a problem with the BIOS, firmware, or NAND configuration.
     class unsupported_bios_exception : public bios_exception {
     public:

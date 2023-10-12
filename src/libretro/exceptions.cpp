@@ -141,6 +141,19 @@ melonds::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nand
 
 }
 
+melonds::dsi_nand_corrupted_exception::dsi_nand_corrupted_exception(string_view nandName) noexcept
+    : bios_exception(
+    fmt::format(
+        "The core managed to load the configured NAND file at \"{}\", "
+        "but it seems to be corrupted or invalid.",
+        nandName
+    ),
+    "Make sure that you're using the right NAND file, "
+    "and restore it from a backup copy if necessary. "
+    "Check to see if this NAND file works in the original melonDS emulator."
+) {
+}
+
 static std::string construct_missing_bios_message(const std::vector<std::string>& bios_files) {
     std::stringstream error;
 
