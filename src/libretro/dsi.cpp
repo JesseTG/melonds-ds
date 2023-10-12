@@ -49,8 +49,6 @@ using DSi_TMD::TitleMetadata;
 const char *TMD_DIR_NAME = "tmd";
 constexpr u32 RSA256_SIGNATURE_TYPE = 16777472;
 namespace melonds::dsi {
-    static bool _was_dsiware_title_installed;
-
     static void get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length);
 
     bool get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept;
@@ -81,7 +79,6 @@ void melonds::dsi::install_dsiware(const retro_game_info &nds_info, const NdsCar
 
     if (DSi_NAND::TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
         retro::info("Title already exists on loaded NAND; skipping installation, and won't uninstall it later.");
-        _was_dsiware_title_installed = true;
         // TODO: Allow player to forcibly install the title anyway
 
         // TODO: Import Game.public.sav if it exists, unless the internal save file is newer
@@ -430,5 +427,4 @@ void melonds::dsi::uninstall_dsiware(const retro_game_info &nds_info, const NdsC
     }
 
     DSi_NAND::DeInit();
-    _was_dsiware_title_installed = false;
 }
