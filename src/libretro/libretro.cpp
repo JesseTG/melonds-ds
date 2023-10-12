@@ -176,8 +176,8 @@ static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
         return false;
     }
 
-    _loaded_nds_cart.reset();
-    _loaded_gba_cart.reset();
+    _loaded_nds_cart = nullptr;
+    _loaded_gba_cart = nullptr;
     Platform::DeInit();
     retro::task::reset();
     melonds::_errorScreen = make_unique<error::ErrorScreen>(e);
@@ -238,21 +238,21 @@ catch (const melonds::emulator_exception &e) {
     // Thrown for invalid ROMs
     retro::error("{}", e.what());
     retro::set_error_message(e.user_message());
-    _loaded_nds_cart.reset();
-    _loaded_gba_cart.reset();
+    _loaded_nds_cart = nullptr;
+    _loaded_gba_cart = nullptr;
     return false;
 }
 catch (const std::exception &e) {
     retro::error("{}", e.what());
     retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
-    _loaded_nds_cart.reset();
-    _loaded_gba_cart.reset();
+    _loaded_nds_cart = nullptr;
+    _loaded_gba_cart = nullptr;
     return false;
 }
 catch (...) {
     retro::set_error_message(melonds::UNKNOWN_ERROR_MESSAGE);
-    _loaded_nds_cart.reset();
-    _loaded_gba_cart.reset();
+    _loaded_nds_cart = nullptr;
+    _loaded_gba_cart = nullptr;
     return false;
 }
 
@@ -523,8 +523,8 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
         melonds::dsi::uninstall_dsiware(*nds_info, *melonds::_loaded_nds_cart);
     }
 
-    melonds::_loaded_nds_cart.reset();
-    melonds::_loaded_gba_cart.reset();
+    melonds::_loaded_nds_cart = nullptr;
+    melonds::_loaded_gba_cart = nullptr;
     melonds::isUnloading = false;
 }
 
@@ -550,8 +550,8 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::file::deinit();
     retro::content::clear();
     melonds::clear_memory_config();
-    melonds::_loaded_nds_cart.reset();
-    melonds::_loaded_gba_cart.reset();
+    melonds::_loaded_nds_cart = nullptr;
+    melonds::_loaded_gba_cart = nullptr;
     Platform::DeInit();
     melonds::sram::deinit();
     melonds::mic_state_toggled = false;
