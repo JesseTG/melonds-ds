@@ -781,15 +781,9 @@ static void melonds::load_games(
         }
         else {
             // We're running a DSiWare game, then
-            bool ok;
-            {
-                ZoneScopedN("DSi::LoadNAND");
-                ok = DSi::LoadNAND();
-            }
-            if (!ok) {
-                throw std::runtime_error("Failed to load NAND. Please report this issue.");
-            }
-            melonds::dsi::install_dsiware(*nds_info, *_loaded_nds_cart);
+            retro_assert(DSi::NANDImage != nullptr); // should've been loaded in InitConfig
+            melonds::dsi::install_dsiware(*DSi::NANDImage, *nds_info, *_loaded_nds_cart);
+
         }
     }
 
@@ -843,6 +837,19 @@ static void melonds::load_games_deferred(
     {
         ZoneScopedN("NDS::Reset");
         NDS::Reset();
+    }
+
+    if (NDS::ConsoleType == (int)ConsoleType::DSi) {
+        // If we're emulating a DSi...
+        bool ok;
+        {
+            ZoneScopedN("DSi::LoadNAND");
+            // Must not be called until after NDS::Reset!
+            ok = DSi::LoadNAND();
+        }
+        if (!ok) {
+            throw std::runtime_error("Failed to load NAND. Please report this issue.");
+        }
     }
 
     if (nds_info && NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
