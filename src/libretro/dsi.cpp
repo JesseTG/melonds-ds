@@ -69,12 +69,12 @@ namespace melonds::dsi {
     void export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
 }
 
-void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info, const NdsCart &cart) {
+void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) {
     ZoneScopedN("melonds::dsi::install_dsiware");
     info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", nds_info.path);
-    const NDSHeader &header = cart.GetHeader();
-    retro_assert(header.IsDSiWare());
     retro_assert(nand);
+    const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(nds_info.data);
+    retro_assert(header.IsDSiWare());
     // The NAND should've been installed in InitConfig by this point
 
     DSi_NAND::NANDMount mount(nand);
@@ -85,7 +85,7 @@ void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_i
     }
 
     if (mount.TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
-        retro::info("Title already exists on loaded NAND; skipping installation, and won't uninstall it later.");
+        retro::info("Title \"{}\" already exists on loaded NAND; skipping installation, and won't uninstall it later.", nds_info.path);
         // TODO: Allow player to forcibly install the title anyway
         // TODO: Install a sentinel file in the NAND to indicate that it's temporarily installed
 
@@ -93,7 +93,7 @@ void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_i
         // TODO: Import Game.private.sav if it exists, unless the internal save file is newer
         // TODO: Import Game.banner.sav if it exists, unless the internal save file is newer
     } else {
-        retro::info("Title is not on loaded NAND; will install it for the duration of this session.");
+        retro::info("Title \"{}\" is not on loaded NAND; will install it for the duration of this session.", nds_info.path);
 
         char tmd_path[PATH_MAX];
         get_tmd_path(nds_info, tmd_path, sizeof(tmd_path));
@@ -412,12 +412,12 @@ void melonds::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game_i
 }
 
 // Reset for the next time
-void melonds::dsi::uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info, const NdsCart &cart) noexcept {
+void melonds::dsi::uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) noexcept {
     ZoneScopedN("melonds::dsi::uninstall_dsiware");
-    info("Removing temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
-    const NDSHeader &header = cart.GetHeader();
-    retro_assert(header.IsDSiWare());
+
     retro_assert(nand);
+    const NDSHeader& header = *reinterpret_cast<const NDSHeader*>(nds_info.data);
+    retro_assert(header.IsDSiWare());
 
     if (DSi_NAND::NANDMount mount = DSi_NAND::NANDMount(nand)) {
         // TODO: Report an error if the title doesn't exist

@@ -18,9 +18,6 @@
 #define MELONDS_DS_DSI_HPP
 
 #include <libretro.h>
-#include <NDS_Header.h>
-#include <NDSCart.h>
-
 #include "libretro.hpp"
 
 namespace DSi_NAND {
@@ -28,7 +25,7 @@ namespace DSi_NAND {
 }
 
 namespace melonds::dsi {
-    void install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info& nds_info, const NdsCart& cart);
-    void uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info& nds_info, const NdsCart& cart) noexcept;
+    void install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info& nds_info);
+    void uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info& nds_info) noexcept;
 }
 #endif //MELONDS_DS_DSI_HPP
