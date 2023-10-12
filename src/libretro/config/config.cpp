@@ -38,6 +38,7 @@
 #include <fmt/ranges.h>
 
 #include <DSi.h>
+#include <DSi_NAND.h>
 #include <NDS.h>
 #include <GPU.h>
 #include <SPU.h>
@@ -1389,6 +1390,9 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
     using namespace melonds;
     retro_assert(!(header && header->IsDSiWare()));
 
+    // No need for the NAND on the regular DS
+    DSi::NANDImage = nullptr;
+
     // The rules are somewhat complicated.
     // - Bootable firmware is required if booting without content.
     // - All system files must be native or all must be built-in. (No mixing.)
@@ -1474,22 +1478,6 @@ static void InitDsiSystemConfig() {
         throw dsi_no_nand_found_exception();
     }
 
-    optional<string> nandPath = retro::get_system_path(nandName);
-    if (!nandPath) {
-        throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
-    }
-
-    // TODO: Actually open the NAND file and keep it around
-    int nandStatFlags = path_stat(nandPath->c_str());
-    if ((nandStatFlags & RETRO_VFS_STAT_IS_VALID) == 0) {
-        // If this isn't a valid file...
-        throw dsi_nand_missing_exception(nandName);
-    }
-
-    // If it weren't a regular file, it would've never been added to the config options
-    retro_assert((nandStatFlags & RETRO_VFS_STAT_IS_DIRECTORY) == 0);
-    retro_assert((nandStatFlags & RETRO_VFS_STAT_IS_CHARACTER_SPECIAL) == 0);
-
     // DSi mode requires all native BIOS files
     unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), BiosType::Arm7i, sizeof(DSi::ARM7iBIOS));
     if (!bios7i) {
@@ -1539,6 +1527,26 @@ static void InitDsiSystemConfig() {
 
     CustomizeFirmware(*firmware);
     SPI_Firmware::InstallFirmware(std::move(firmware));
+
+    optional<string> nandPath = retro::get_system_path(nandName);
+    if (!nandPath) {
+        throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
+    }
+
+    if (Platform::FileHandle* nandFile = Platform::OpenLocalFile(nandPath->c_str(), Platform::FileMode::ReadWriteExisting)) {
+        // If the NAND file was opened...
+        retro::debug("Opened the DSi NAND image file at {}", *nandPath);
+        if (DSi_NAND::NANDImage nand(nandFile, &DSi::ARM7iBIOS[0x8308]); nand) {
+            // ...and it was loaded and parsed correctly...
+            DSi::NANDImage = make_unique<DSi_NAND::NANDImage>(std::move(nand));
+            retro::debug("Installed the DSi NAND image file at {}", *nandPath);
+        } else {
+            throw dsi_nand_corrupted_exception(nandName);
+        }
+    } else {
+        throw dsi_nand_missing_exception(nandName);
+    }
+
     // TODO: Customize the equivalent firmware config on the DSi NAND
 }
 
@@ -2005,8 +2013,6 @@ std::string Platform::GetConfigString(ConfigEntry entry)
     using std::string;
     switch (entry)
     {
-        case DSi_NANDPath: return string(system::DsiNandPath());
-
         case DLDI_ImagePath: return save::DldiImagePath();
         case DLDI_FolderPath: return save::DldiFolderPath();
 
