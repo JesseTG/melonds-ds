@@ -67,12 +67,7 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
     ZoneScopedN("retro_serialize_size");
     if (melonds::IsInErrorScreen())
         return 0;
-#ifndef NDEBUG
-    if (retro::content::get_loaded_nds_info() != std::nullopt) {
-        // If we're booting with a ROM...
-        retro_assert(NDSCart::Cart != nullptr);
-    }
-#endif
+
     using namespace melonds;
     if (melonds::_savestate_size < 0) {
         // If we haven't yet figured out how big the savestate should be...
@@ -82,6 +77,18 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
             melonds::_savestate_size = 0;
             // TODO: When DSi mode supports savestates, remove this conditional block
         } else {
+            #ifndef NDEBUG
+            if (retro::content::get_loaded_nds_info() != std::nullopt) {
+                // If we're booting with a ROM...
+
+                // Savestate size varies by several factors, but SRAM length is the big one.
+                // We won't know the size of the cart's SRAM until it's loaded,
+                // so we can't know the savestate size until then.
+                // We must ensure the cart is loaded before the frontend starts to ask about the savestate size!
+                retro_assert(NDSCart::Cart != nullptr);
+            }
+            #endif
+
             Savestate state;
             NDS::DoSavestate(&state);
             melonds::_savestate_size = state.Length();
