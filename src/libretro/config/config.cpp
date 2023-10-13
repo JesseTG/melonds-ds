@@ -1247,6 +1247,23 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
     return firmware;
 }
 
+/// Loads the DSi NAND, does not patch it
+static DSi_NAND::NANDImage LoadNANDImage(const string& nandPath, const u8* es_keyY) {
+    using namespace melonds;
+    Platform::FileHandle* nandFile = Platform::OpenLocalFile(nandPath, Platform::FileMode::ReadWriteExisting);
+    if (!nandFile) {
+        throw dsi_nand_missing_exception(nandPath);
+    }
+
+    DSi_NAND::NANDImage nand(nandFile, es_keyY);
+    if (!nand) {
+        throw dsi_nand_corrupted_exception(nandPath);
+    }
+    retro::debug("Opened the DSi NAND image file at {}", nandPath);
+
+    return nand;
+}
+
 static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
     ZoneScopedN("melonds::config::CustomizeFirmware");
     using namespace melonds;
