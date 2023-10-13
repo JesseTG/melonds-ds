@@ -23,6 +23,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <memory>
+#include <DSi_NAND.h>
 #include "config.hpp"
 
 namespace melonds
@@ -66,6 +68,11 @@ namespace melonds
     class bios_exception : public config_exception {
     public:
         using config_exception::config_exception;
+    };
+
+    class dsi_region_mismatch_exception : public config_exception {
+    public:
+        dsi_region_mismatch_exception(std::string_view nandName, DSi_NAND::ConsoleRegion nandRegion, RegionMask gameRegionMask) noexcept;
     };
 
     class dsi_no_firmware_found_exception : public bios_exception {

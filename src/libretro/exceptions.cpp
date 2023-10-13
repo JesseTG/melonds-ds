@@ -72,30 +72,40 @@ melonds::wrong_firmware_type_exception::wrong_firmware_type_exception(
 ) {
 }
 
-melonds::dsi_no_firmware_found_exception::dsi_no_firmware_found_exception() noexcept
-    : bios_exception(
-    "DSi mode requires a native firmware file, but none could be found.",
-    "Place your DSi firmware file in your frontend's system folder (any name works), then restart the core. "
-    "If you want to play a regular DS game, try disabling DSi mode in the core options."
+
+melonds::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
+    string_view nandName,
+    DSi_NAND::ConsoleRegion nandRegion,
+    RegionMask gameRegionMask
+) noexcept
+    : config_exception(
+    fmt::format(
+        "The NAND file at \"{}\" has the region {}, "
+        "but the selected game can only be installed on the following regions: {}",
+        nandName,
+        nandRegion,
+        gameRegionMask
+    ),
+    "Double-check that you're using the right NAND file "
+    "and the right copy of your game."
 ) {
 }
 
 melonds::firmware_missing_exception::firmware_missing_exception(std::string_view firmwareName) noexcept
     : bios_exception(
     fmt::format(
-        FMT_STRING("The core is set to use the firmware file at \"{}\", but it wasn't there or it couldn't be loaded."),
-        firmwareName),
+        "The core is set to use the firmware file at \"{}\", but it wasn't there or it couldn't be loaded.",
+        firmwareName
+    ),
     fmt::format(
-        FMT_STRING(
-            "Place your DSi firmware file in your frontend's system folder, name it \"{}\", then restart the core."
-        ),
+        "Place your DSi firmware file in your frontend's system folder, name it \"{}\", then restart the core.",
         firmwareName
     )
 ) {
 }
 
 melonds::nds_sysfiles_incomplete_exception::nds_sysfiles_incomplete_exception() noexcept
-: bios_exception(
+    : bios_exception(
     "Booting to the native DS menu requires native DS firmware and BIOS files, "
     "but some of them were missing or couldn't be loaded.",
     "Place your DS system files in your frontend's system folder, then restart the core. "
@@ -131,14 +141,15 @@ melonds::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
 melonds::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nandName) noexcept
     : bios_exception(
     fmt::format(
-        FMT_STRING("The core is set to use the NAND file at \"{}\", but it wasn't there or it couldn't be loaded."),
-        nandName),
+        "The core is set to use the NAND file at \"{}\", but it wasn't there or it couldn't be loaded.",
+        nandName
+    ),
     fmt::format(
-        FMT_STRING("Place your NAND file in your frontend's system folder, name it \"{}\", then restart the core."),
+        "Place your NAND file in your frontend's system folder, name it \"{}\", then restart the core. "
+        "If you've already done that, ensure that you're using the right NAND file.",
         nandName
     )
 ) {
-
 }
 
 melonds::dsi_nand_corrupted_exception::dsi_nand_corrupted_exception(string_view nandName) noexcept
