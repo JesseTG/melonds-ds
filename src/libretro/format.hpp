@@ -161,32 +161,32 @@ struct fmt::formatter<DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view
 };
 
 template<>
-struct fmt::formatter<melonds::RegionMask> : fmt::formatter<std::vector<string_view>> {
+struct fmt::formatter<RegionMask> : fmt::formatter<std::vector<string_view>> {
     template<typename FmtContext>
-    auto format(melonds::RegionMask mask, FmtContext& ctx) {
+    auto format(RegionMask mask, FmtContext& ctx) {
         std::vector<string_view> regions;
-        if (mask == melonds::RegionMask::RegionFree) {
+        if (mask == RegionMask::RegionFree) {
             regions.push_back("RegionFree");
         } else {
-            if (mask & melonds::RegionMask::Japan)
+            if (mask & RegionMask::Japan)
                 regions.push_back("Japan");
 
-            if (mask & melonds::RegionMask::USA)
+            if (mask & RegionMask::USA)
                 regions.push_back("USA");
 
-            if (mask & melonds::RegionMask::Europe)
+            if (mask & RegionMask::Europe)
                 regions.push_back("Europe");
 
-            if (mask & melonds::RegionMask::Australia)
+            if (mask & RegionMask::Australia)
                 regions.push_back("Australia");
 
-            if (mask & melonds::RegionMask::China)
+            if (mask & RegionMask::China)
                 regions.push_back("China");
 
-            if (mask & melonds::RegionMask::Korea)
+            if (mask & RegionMask::Korea)
                 regions.push_back("Korea");
 
-            if (mask & melonds::RegionMask::Reserved)
+            if (mask & RegionMask::Reserved)
                 regions.push_back("Reserved");
         }
 
