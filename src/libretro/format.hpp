@@ -22,7 +22,9 @@
 
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <SPI_Firmware.h>
+#include <DSi_NAND.h>
 #include <Platform.h>
 
 #include "config.hpp"
@@ -124,6 +126,71 @@ struct fmt::formatter<melonds::ConsoleType> : fmt::formatter<std::string_view> {
                 break;
         }
         return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view> {
+    // use inherited 'formatter<string_view>::parse'…
+    // … and only implement 'format':
+    template<typename FmtContext>
+    auto format(DSi_NAND::ConsoleRegion c, FmtContext& ctx) {
+        string_view name = "<unknown>";
+        switch (c) {
+            case DSi_NAND::ConsoleRegion::Japan:
+                name = "Japan";
+                break;
+            case DSi_NAND::ConsoleRegion::USA:
+                name = "USA";
+                break;
+            case DSi_NAND::ConsoleRegion::Europe:
+                name = "Europe";
+                break;
+            case DSi_NAND::ConsoleRegion::Australia:
+                name = "Australia";
+                break;
+            case DSi_NAND::ConsoleRegion::China:
+                name = "China";
+                break;
+            case DSi_NAND::ConsoleRegion::Korea:
+                name = "Korea";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<melonds::RegionMask> : fmt::formatter<std::vector<string_view>> {
+    template<typename FmtContext>
+    auto format(melonds::RegionMask mask, FmtContext& ctx) {
+        std::vector<string_view> regions;
+        if (mask == melonds::RegionMask::RegionFree) {
+            regions.push_back("RegionFree");
+        } else {
+            if (mask & melonds::RegionMask::Japan)
+                regions.push_back("Japan");
+
+            if (mask & melonds::RegionMask::USA)
+                regions.push_back("USA");
+
+            if (mask & melonds::RegionMask::Europe)
+                regions.push_back("Europe");
+
+            if (mask & melonds::RegionMask::Australia)
+                regions.push_back("Australia");
+
+            if (mask & melonds::RegionMask::China)
+                regions.push_back("China");
+
+            if (mask & melonds::RegionMask::Korea)
+                regions.push_back("Korea");
+
+            if (mask & melonds::RegionMask::Reserved)
+                regions.push_back("Reserved");
+        }
+
+        return formatter<decltype(regions)>::format(regions, ctx);
     }
 };
 
