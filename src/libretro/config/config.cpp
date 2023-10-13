@@ -1542,6 +1542,7 @@ static void InitDsiSystemConfig() {
     memcpy(NDS::ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
     retro::debug("Installed native ARM7, ARM9, DSi ARM7, and DSi ARM9 BIOS images.");
 
+    // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
     CustomizeFirmware(*firmware);
     SPI_Firmware::InstallFirmware(std::move(firmware));
 
