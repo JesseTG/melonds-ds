@@ -221,6 +221,17 @@ namespace melonds {
         Indirect,
     };
 
+    enum RegionMask : uint32_t {
+        Japan = 1 << 0,
+        USA = 1 << 1,
+        Europe = 1 << 2,
+        Australia = 1 << 3,
+        China = 1 << 4,
+        Korea = 1 << 5,
+        Reserved = ~(Japan | USA | Europe | Australia | China | Korea),
+        RegionFree = 0xFFFFFFFF,
+    };
+
     namespace config {
         namespace audio {
             [[nodiscard]] BitDepth BitDepth() noexcept;
