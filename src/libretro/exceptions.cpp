@@ -91,6 +91,16 @@ melonds::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
 ) {
 }
 
+melonds::dsi_no_firmware_found_exception::dsi_no_firmware_found_exception() noexcept
+    : bios_exception(
+    "DSi mode requires a firmware file from a DSi, but none was found.",
+    "Place your DSi firmware file in your frontend's system folder, "
+    "then restart the core. "
+    "If you just want to play a DS game, "
+    "try disabling DSi mode in the core options."
+) {
+}
+
 melonds::firmware_missing_exception::firmware_missing_exception(std::string_view firmwareName) noexcept
     : bios_exception(
     fmt::format(
