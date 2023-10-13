@@ -584,28 +584,28 @@ bool melonds::update_option_visibility() {
     return updated;
 }
 
-static melonds::FirmwareLanguage get_firmware_language(const optional<retro_language>& language) {
-    using melonds::FirmwareLanguage;
-
-    if (!language)
-        return FirmwareLanguage::English;
-
-    switch (*language) {
+static SPI_Firmware::Language get_firmware_language(retro_language language) noexcept {
+    switch (language) {
         case RETRO_LANGUAGE_ENGLISH:
         case RETRO_LANGUAGE_BRITISH_ENGLISH:
-            return FirmwareLanguage::English;
+            return SPI_Firmware::Language::English;
         case RETRO_LANGUAGE_JAPANESE:
-            return FirmwareLanguage::Japanese;
+            return SPI_Firmware::Language::Japanese;
         case RETRO_LANGUAGE_FRENCH:
-            return FirmwareLanguage::French;
+            return SPI_Firmware::Language::French;
         case RETRO_LANGUAGE_GERMAN:
-            return FirmwareLanguage::German;
+            return SPI_Firmware::Language::German;
         case RETRO_LANGUAGE_ITALIAN:
-            return FirmwareLanguage::Italian;
+            return SPI_Firmware::Language::Italian;
         case RETRO_LANGUAGE_SPANISH:
-            return FirmwareLanguage::Spanish;
+            return SPI_Firmware::Language::Spanish;
+        case RETRO_LANGUAGE_CHINESE_SIMPLIFIED:
+        case RETRO_LANGUAGE_CHINESE_TRADITIONAL:
+            // The DS/DSi itself doesn't seem to distinguish between the two variants;
+            // different regions just have one or the other.
+            return SPI_Firmware::Language::Chinese;
         default:
-            return FirmwareLanguage::English;
+            return SPI_Firmware::Language::English;
     }
 }
 
