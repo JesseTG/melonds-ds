@@ -80,8 +80,8 @@ melonds::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
 ) noexcept
     : config_exception(
     fmt::format(
-        "The NAND file at \"{}\" has the region {}, "
-        "but the selected game can only be installed on the following regions: {}",
+        "The NAND file at \"{}\" has the region \"{}\", "
+        "but the loaded DSiWare game will only run in the following regions: {}",
         nandName,
         nandRegion,
         gameRegionMask
