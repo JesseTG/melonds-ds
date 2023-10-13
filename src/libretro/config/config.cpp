@@ -1248,7 +1248,7 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
 }
 
 static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
-    ZoneScopedN("melonds::config::InitFirmware");
+    ZoneScopedN("melonds::config::CustomizeFirmware");
     using namespace melonds;
     using namespace melonds::config::firmware;
     using namespace SPI_Firmware;
