@@ -1356,8 +1356,13 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
 
     switch (_language) {
         case FirmwareLanguage::Auto:
-            currentData.Settings &= ~Language::Reserved; // clear the existing language bits
-            currentData.Settings |= static_cast<SPI_Firmware::Language>(get_firmware_language(retro::get_language()));
+
+            if (optional<retro_language> retroLanguage = retro::get_language()) {
+                currentData.Settings &= ~Language::Reserved; // clear the existing language bits
+                currentData.Settings |= static_cast<SPI_Firmware::Language>(get_firmware_language(*retroLanguage));
+            } else {
+                retro::warn("Failed to get language from frontend; defaulting to existing firmware value");
+            }
             break;
         case FirmwareLanguage::Default:
             // do nothing, leave the existing language in place
@@ -1483,9 +1488,10 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
     SPI_Firmware::InstallFirmware(std::move(firmware));
 }
 
-static void InitDsiSystemConfig() {
+static void InitDsiSystemConfig(const NDSHeader* header) {
     ZoneScopedN("melonds::config::InitDsiSystemConfig");
     using namespace melonds::config::system;
+    using namespace melonds::config::firmware;
     using namespace melonds;
 
     retro_assert(_consoleType == ConsoleType::DSi);
@@ -1551,21 +1557,142 @@ static void InitDsiSystemConfig() {
         throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
     }
 
-    if (Platform::FileHandle* nandFile = Platform::OpenLocalFile(nandPath->c_str(), Platform::FileMode::ReadWriteExisting)) {
-        // If the NAND file was opened...
-        retro::debug("Opened the DSi NAND image file at {}", *nandPath);
-        if (DSi_NAND::NANDImage nand(nandFile, &DSi::ARM7iBIOS[0x8308]); nand) {
-            // ...and it was loaded and parsed correctly...
-            DSi::NANDImage = make_unique<DSi_NAND::NANDImage>(std::move(nand));
-            retro::debug("Installed the DSi NAND image file at {}", *nandPath);
-        } else {
-            throw dsi_nand_corrupted_exception(nandName);
-        }
-    } else {
+    DSi_NAND::NANDImage nand = LoadNANDImage(*nandPath, &DSi::ARM7iBIOS[0x8308]);
+    if (!nand) {
         throw dsi_nand_missing_exception(nandName);
     }
 
-    // TODO: Customize the equivalent firmware config on the DSi NAND
+    DSi_NAND::NANDMount mount(nand);
+    if (!mount) {
+        throw dsi_nand_corrupted_exception(nandName);
+    }
+
+    retro::debug("Opened and mounted the DSi NAND image file at {}", *nandPath);
+
+    DSi_NAND::DSiSerialData dataS {};
+    memset(&dataS, 0, sizeof(dataS));
+    if (!mount.ReadSerialData(dataS)) {
+        throw environment_exception("Failed to read serial data from NAND image");
+    }
+
+    if (header && header->IsDSiWare()) {
+        // If we're loading a DSiWare game...
+
+        u32 consoleRegionMask = (1 << (int)dataS.Region);
+        if (!(consoleRegionMask & header->DSiRegionMask)) {
+            // If the console's region isn't compatible with the game's regions...
+            throw dsi_region_mismatch_exception(nandName, dataS.Region, header->DSiRegionMask);
+        }
+
+        retro::debug("Console region ({}) and game regions ({}) match", dataS.Region, header->DSiRegionMask);
+    }
+
+    DSi_NAND::DSiFirmwareSystemSettings settings;
+    if (!mount.ReadUserData(settings)) {
+        throw environment_exception("Failed to read user data from NAND image");
+    }
+
+    // Right now, I only modify the user data with the firmware overrides defined by core options
+    // If there are any problems, I may want to completely synchronize the user data and firmware myself.
+
+    // setting up username
+    if (_usernameMode != UsernameMode::Firmware) {
+        // If we want to override the existing username...
+        string username = melonds::config::GetUsername(_usernameMode);
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+        std::u16string convertedUsername = converter.from_bytes(username);
+        size_t usernameLength = std::min(convertedUsername.length(), (size_t) melonds::config::DS_NAME_LIMIT);
+
+        memcpy(settings.Nickname, convertedUsername.data(), usernameLength * sizeof(char16_t));
+    }
+
+    switch (_language) {
+        case FirmwareLanguage::Auto:
+            if (optional<retro_language> retroLanguage = retro::get_language()) {
+                // If we can't query the frontend's language, just leave that part of the firmware alone
+                SPI_Firmware::Language firmwareLanguage = get_firmware_language(*retroLanguage);
+                if (dataS.SupportedLanguages & (1 << firmwareLanguage)) {
+                    // If the NAND supports the frontend's language...
+                    settings.Language = firmwareLanguage;
+                    settings.ConfigFlags |= (1 << 2); // LanguageSet? (usually 1) flag
+                } else {
+                    retro::warn("The frontend's preferred language ({}) isn't supported by this NAND image; not overriding it.", *retroLanguage);
+                }
+            } else {
+                retro::warn("Can't query the frontend's preferred language, not overriding it.");
+            }
+
+            break;
+
+        case FirmwareLanguage::Default:
+            // do nothing, leave the existing language in place
+            break;
+        default: {
+            SPI_Firmware::Language firmwareLanguage = static_cast<SPI_Firmware::Language>(_language);
+            if (dataS.SupportedLanguages & (1 << firmwareLanguage)) {
+                // If the NAND supports the core option's specified language...
+                settings.Language = firmwareLanguage;
+                settings.ConfigFlags |= (1 << 2); // LanguageSet? (usually 1) flag
+            } else {
+                retro::warn("The configured language ({}) this NAND image; not overriding it.", firmwareLanguage);
+            }
+
+        }
+            break;
+    }
+    settings.ConfigFlags |= (1 << 24); // EULA flag (agreed)
+
+    if (_favoriteColor != Color::Default) {
+        settings.FavoriteColor = static_cast<u8>(_favoriteColor);
+    }
+
+    if (_birthdayMonth != 0) {
+        // If the frontend specifies a birth month (rather than using the existing value)...
+        settings.BirthdayMonth = _birthdayMonth;
+    }
+
+    if (_birthdayDay != 0) {
+        // If the frontend specifies a birthday (rather than using the existing value)...
+        settings.BirthdayDay = _birthdayDay;
+    }
+
+    switch (_alarmMode) {
+        case AlarmMode::Disabled:
+            settings.AlarmEnable = false;
+            break;
+        case AlarmMode::Default:
+            // do nothing, leave the existing alarm in place
+            break;
+        case AlarmMode::Enabled:
+            settings.AlarmEnable = true;
+            if (_alarmHour) {
+                settings.AlarmHour = *_alarmHour;
+            }
+            if (_alarmMinute) {
+                settings.AlarmMinute = *_alarmMinute;
+            }
+            break;
+    }
+
+    // TODO: If playing a temp-installed DSi game, navigate to its position on the menu
+
+    // The DNS entries and MAC address aren't stored on the NAND,
+    // so we don't need to try to update them here.
+
+    // fix touchscreen coords
+    settings.TouchCalibrationADC1 = {0, 0};
+    settings.TouchCalibrationPixel1 = {0, 0};
+    settings.TouchCalibrationADC2 = {255 << 4, 191 << 4};
+    settings.TouchCalibrationPixel2 = {255, 191};
+
+    settings.UpdateHash();
+
+    if (!mount.ApplyUserData(settings)) {
+        throw environment_exception("Failed to write user data to NAND image");
+    }
+
+    DSi::NANDImage = make_unique<DSi_NAND::NANDImage>(std::move(nand));
+    retro::debug("Installed the DSi NAND image file at {}", *nandPath);
 }
 
 static void melonds::config::apply_system_options(const NDSHeader* header) {
@@ -1581,7 +1708,7 @@ static void melonds::config::apply_system_options(const NDSHeader* header) {
 
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        InitDsiSystemConfig();
+        InitDsiSystemConfig(header);
     } else {
         // If we're in DS mode...
         InitNdsSystemConfig(header, _bootMode, _sysfileMode);
