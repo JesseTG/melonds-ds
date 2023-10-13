@@ -38,6 +38,7 @@ option(BUILD_TESTING "Build test suite." OFF)
 include(CTest)
 
 add_subdirectory(src/libretro)
+include(cmake/GenerateAttributions.cmake)
 if (BUILD_TESTING)
     message(STATUS "Enabling test suite.")
     enable_testing()
