@@ -26,6 +26,7 @@
 #include <SPI_Firmware.h>
 #include <DSi_NAND.h>
 #include <Platform.h>
+#include <libretro.h>
 
 #include "config.hpp"
 
@@ -154,6 +155,152 @@ struct fmt::formatter<DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view
                 break;
             case DSi_NAND::ConsoleRegion::Korea:
                 name = "Korea";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<SPI_Firmware::Language> : fmt::formatter<std::string_view> {
+    // use inherited 'formatter<string_view>::parse'…
+    // … and only implement 'format':
+    template<typename FmtContext>
+    auto format(SPI_Firmware::Language c, FmtContext& ctx) {
+        string_view name = "<unknown>";
+        switch (c) {
+            case SPI_Firmware::Language::Japanese:
+                name = "Japanese";
+                break;
+            case SPI_Firmware::Language::English:
+                name = "English";
+                break;
+            case SPI_Firmware::Language::French:
+                name = "French";
+                break;
+            case SPI_Firmware::Language::German:
+                name = "German";
+                break;
+            case SPI_Firmware::Language::Italian:
+                name = "Italian";
+                break;
+            case SPI_Firmware::Language::Spanish:
+                name = "Spanish";
+                break;
+            case SPI_Firmware::Language::Chinese:
+                name = "Chinese";
+                break;
+            case SPI_Firmware::Language::Reserved:
+                name = "Reserved";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<retro_language> : fmt::formatter<std::string_view> {
+    // use inherited 'formatter<string_view>::parse'…
+    // … and only implement 'format':
+    template<typename FmtContext>
+    auto format(retro_language lang, FmtContext& ctx) {
+        string_view name = "<unknown>";
+        switch (lang) {
+            case RETRO_LANGUAGE_ENGLISH:
+                name = "English";
+                break;
+            case RETRO_LANGUAGE_JAPANESE:
+                name = "Japanese";
+                break;
+            case RETRO_LANGUAGE_FRENCH:
+                name = "French";
+                break;
+            case RETRO_LANGUAGE_SPANISH:
+                name = "Spanish";
+                break;
+            case RETRO_LANGUAGE_GERMAN:
+                name = "German";
+                break;
+            case RETRO_LANGUAGE_ITALIAN:
+                name = "Italian";
+                break;
+            case RETRO_LANGUAGE_DUTCH:
+                name = "Dutch";
+                break;
+            case RETRO_LANGUAGE_PORTUGUESE_BRAZIL:
+                name = "Portuguese (Brazil)";
+                break;
+            case RETRO_LANGUAGE_PORTUGUESE_PORTUGAL:
+                name = "Portuguese (Portugal)";
+                break;
+            case RETRO_LANGUAGE_RUSSIAN:
+                name = "Russian";
+                break;
+            case RETRO_LANGUAGE_KOREAN:
+                name = "Korean";
+                break;
+            case RETRO_LANGUAGE_CHINESE_TRADITIONAL:
+                name = "Chinese (Traditional)";
+                break;
+            case RETRO_LANGUAGE_CHINESE_SIMPLIFIED:
+                name = "Chinese (Simplified)";
+                break;
+            case RETRO_LANGUAGE_ESPERANTO:
+                name = "Esperanto";
+                break;
+            case RETRO_LANGUAGE_POLISH:
+                name = "Polish";
+                break;
+            case RETRO_LANGUAGE_VIETNAMESE:
+                name = "Vietnamese";
+                break;
+            case RETRO_LANGUAGE_ARABIC:
+                name = "Arabic";
+                break;
+            case RETRO_LANGUAGE_GREEK:
+                name = "Greek";
+                break;
+            case RETRO_LANGUAGE_TURKISH:
+                name = "Turkish";
+                break;
+            case RETRO_LANGUAGE_SLOVAK:
+                name = "Slovak";
+                break;
+            case RETRO_LANGUAGE_PERSIAN:
+                name = "Persian";
+                break;
+            case RETRO_LANGUAGE_HEBREW:
+                name = "Hebrew";
+                break;
+            case RETRO_LANGUAGE_ASTURIAN:
+                name = "Asturian";
+                break;
+            case RETRO_LANGUAGE_FINNISH:
+                name = "Finnish";
+                break;
+            case RETRO_LANGUAGE_INDONESIAN:
+                name = "Indonesian";
+                break;
+            case RETRO_LANGUAGE_SWEDISH:
+                name = "Swedish";
+                break;
+            case RETRO_LANGUAGE_UKRAINIAN:
+                name = "Ukrainian";
+                break;
+            case RETRO_LANGUAGE_CZECH:
+                name = "Czech";
+                break;
+            case RETRO_LANGUAGE_CATALAN_VALENCIA:
+                name = "Catalan (Valencia)";
+                break;
+            case RETRO_LANGUAGE_CATALAN:
+                name = "Catalan";
+                break;
+            case RETRO_LANGUAGE_BRITISH_ENGLISH:
+                name = "British English";
+                break;
+            case RETRO_LANGUAGE_HUNGARIAN:
+                name = "Hungarian";
                 break;
         }
         return formatter<string_view>::format(name, ctx);
