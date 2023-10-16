@@ -29,8 +29,6 @@ add_library(libretro MODULE
     dsi.hpp
     environment.cpp
     environment.hpp
-    error.cpp
-    error.hpp
     exceptions.cpp
     exceptions.hpp
     file.hpp
@@ -44,6 +42,8 @@ add_library(libretro MODULE
     libretro.cpp
     libretro.hpp
     math.hpp
+    message/error.cpp
+    message/error.hpp
     microphone.cpp
     microphone.hpp
     memory.cpp

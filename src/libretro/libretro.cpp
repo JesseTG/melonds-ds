@@ -50,7 +50,7 @@
 #include "content.hpp"
 #include "dsi.hpp"
 #include "environment.hpp"
-#include "error.hpp"
+#include "message/error.hpp"
 #include "exceptions.hpp"
 #include "file.hpp"
 #include "info.hpp"
