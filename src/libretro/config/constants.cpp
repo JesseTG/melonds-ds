@@ -195,7 +195,13 @@ optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* va
 
 bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
     // TODO: Validate the NoCash footer
-    return file.is_regular_file() && file.size == DSI_NAND_SIZE;
+    if (!file.is_regular_file())
+        return false;
+
+    if (find(DSI_NAND_SIZES.begin(), DSI_NAND_SIZES.end(), file.size) == DSI_NAND_SIZES.end())
+        return false;
+
+    return true;
 }
 
 bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::FirmwareHeader& header) noexcept {

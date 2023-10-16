@@ -266,7 +266,7 @@ namespace melonds::config {
 
     std::optional<SPI_Firmware::IpAddress> ParseIpAddress(const char* value) noexcept;
 
-    constexpr size_t DSI_NAND_SIZE = 251658304;
+    constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
     bool IsDsiNandImage(const retro::dirent &file) noexcept;

@@ -135,7 +135,7 @@ namespace melonds::config::definitions {
             "Files are listed here if they:\n"
             "\n"
             "- Are inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
-            "- Are exactly 251,658,304 bytes (240MB) long.\n"
+            "- Are exactly 251,658,304 bytes (240MB) or 257,425,472 bytes (245.5MB) long.\n"
             "- Contain valid footer data for DSi NAND images.\n"
             "\n"
             "Changes take effect at next restart.",
