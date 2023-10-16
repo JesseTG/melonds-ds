@@ -1681,8 +1681,6 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
         memcpy(&settings.SystemMenuMostRecentTitleID[4], &header->DSiTitleIDHigh, sizeof(header->DSiTitleIDHigh));
     }
 
-    // TODO: If playing a temp-installed DSi game, navigate to its position on the menu
-
     // The DNS entries and MAC address aren't stored on the NAND,
     // so we don't need to try to update them here.
 
