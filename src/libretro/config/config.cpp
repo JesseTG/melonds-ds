@@ -1634,7 +1634,7 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
                 settings.Language = firmwareLanguage;
                 settings.ConfigFlags |= (1 << 2); // LanguageSet? (usually 1) flag
             } else {
-                retro::warn("The configured language ({}) this NAND image; not overriding it.", firmwareLanguage);
+                retro::warn("The configured language ({}) is not supported by this NAND image; not overriding it.", firmwareLanguage);
             }
 
         }
