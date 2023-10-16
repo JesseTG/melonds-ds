@@ -147,7 +147,7 @@ namespace melonds::config {
 
     namespace values {
         namespace firmware {
-            static constexpr const char *const FIRMWARE_USERNAME = "default_username"; // longer than 10 chars so it's not a valid DS username
+            static constexpr const char *const FIRMWARE_USERNAME = "existing_username"; // longer than 10 chars so it's not a valid DS username
             static constexpr const char *const GUESS_USERNAME = "guess_username";
             static constexpr const char *const DEFAULT_USERNAME = "melonDS DS";
         }

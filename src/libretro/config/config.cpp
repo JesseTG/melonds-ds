@@ -1603,6 +1603,7 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
         std::u16string convertedUsername = converter.from_bytes(username);
         size_t usernameLength = std::min(convertedUsername.length(), (size_t) melonds::config::DS_NAME_LIMIT);
 
+        memset(settings.Nickname, 0, sizeof(settings.Nickname));
         memcpy(settings.Nickname, convertedUsername.data(), usernameLength * sizeof(char16_t));
     }
 
