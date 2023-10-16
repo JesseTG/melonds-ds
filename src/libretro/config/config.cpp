@@ -2112,11 +2112,6 @@ int Platform::GetConfigInt(ConfigEntry entry)
 
         case DSiSD_ImageSize: return save::DsiSdImageSize();
 
-        case Firm_Language: return static_cast<int>(firmware::_language);
-        case Firm_BirthdayMonth: return firmware::_birthdayMonth;
-        case Firm_BirthdayDay: return firmware::_birthdayDay;
-        case Firm_Color: return static_cast<int>(firmware::_favoriteColor);
-
         case AudioBitDepth: return static_cast<int>(audio::BitDepth());
         default: return 0;
     }
@@ -2147,8 +2142,6 @@ bool Platform::GetConfigBool(ConfigEntry entry)
         case DSiSD_Enable: return save::DsiSdEnable();
         case DSiSD_ReadOnly: return save::DsiSdReadOnly();
         case DSiSD_FolderSync: return save::DsiSdFolderSync();
-
-        case Firm_OverrideSettings: return false;
         default: return false;
     }
 }
@@ -2164,9 +2157,6 @@ std::string Platform::GetConfigString(ConfigEntry entry)
         case DSiSD_ImagePath: return save::DsiSdImagePath();
         case DSiSD_FolderPath: return save::DsiSdFolderPath();
         case WifiSettingsPath: return "wfcsettings.bin";
-
-        case Firm_Username: return GetUsername(melonds::config::firmware::_usernameMode);
-        case Firm_Message: return "";
         default: return "";
     }
 }
