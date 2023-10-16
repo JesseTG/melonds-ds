@@ -66,8 +66,10 @@ namespace melonds::config::definitions {
             nullptr,
             "Overrides the language mode of the emulated console.\n"
             "\n"
-            "Use Host: Uses the frontend's language if supported by the DS, or English if not.\n"
-            "Don't Override: Doesn't override firmware defines.\n"
+            "Use Host: Uses the frontend's language if supported by the console.\n"
+            "Don't Override: Use whatever language is already set on the firmware. "
+            "Fallback behavior if frontend the emulated DS (or DSi NAND) "
+            "doesn't support the frontend's language.\n"
             "\n"
             "Not every game honors this setting. "
             "Changes take effect at next restart.",
