@@ -511,9 +511,9 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
 
         retro_assert(nds_info->data != nullptr);
         const NDSHeader& header = *reinterpret_cast<const NDSHeader*>(nds_info->data);
-        if (header.IsDSiWare()) {
-            // And that game was a DSiWare game...
-            retro_assert(DSi::NANDImage != nullptr); // NAND shouldn't have been cleaned up yet
+        if (header.IsDSiWare() && DSi::NANDImage) {
+            // And that game was a DSiWare game, and the NAND was installed...
+            retro_assert(*DSi::NANDImage); // NAND image itself should be valid
             // DSiWare "cart" shouldn't have been cleaned up yet
             // (a regular DS cart would've been moved-from at the start of the session)
             melonds::dsi::uninstall_dsiware(*DSi::NANDImage, *nds_info);
