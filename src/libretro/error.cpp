@@ -39,7 +39,7 @@ static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
 static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
 
 // I intentionally fix the error message to the DS screen size to simplify the layout.
-melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
+melonds::error::MessageScreen::MessageScreen(const config_exception& e) noexcept : exception(e) {
     ZoneScopedN("melonds::error::ErrorScreen::ErrorScreen");
 
     pntr_font* titleFont = pntr_load_font_ttf_from_memory(
@@ -70,12 +70,12 @@ melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : e
     pntr_unload_font(bodyFont);
 }
 
-melonds::error::ErrorScreen::~ErrorScreen() {
+melonds::error::MessageScreen::~MessageScreen() {
     pntr_unload_image(topScreen);
     pntr_unload_image(bottomScreen);
 }
 
-void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+void melonds::error::MessageScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
     ZoneScopedN("melonds::error::ErrorScreen::DrawTopScreen");
     assert(titleFont != nullptr);
 
@@ -120,7 +120,7 @@ void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font*
     );
 }
 
-void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+void melonds::error::MessageScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
     ZoneScopedN("melonds::error::ErrorScreen::DrawBottomScreen");
     assert(titleFont != nullptr);
 
@@ -175,7 +175,7 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
     );
 }
 
-void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
+void melonds::error::MessageScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
     if (screenLayout.Dirty()) {
         screenLayout.Update(melonds::Renderer::Software);
     }

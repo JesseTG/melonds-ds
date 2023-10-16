@@ -83,7 +83,7 @@ namespace melonds {
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
     static uint32_t flushTaskId = 0;
-    static unique_ptr<error::ErrorScreen> _errorScreen;
+    static unique_ptr<error::MessageScreen> _messageScreen;
     static const char *const INTERNAL_ERROR_MESSAGE =
         "An internal error occurred with melonDS DS. "
         "Please contact the developer with the log file.";
@@ -132,7 +132,7 @@ namespace melonds {
     }
 
     bool IsInErrorScreen() noexcept {
-        return _errorScreen != nullptr;
+        return _messageScreen != nullptr;
     }
     retro::task::TaskSpec OnScreenDisplayTask() noexcept;
 }
@@ -152,7 +152,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(!melonds::isUnloading);
     retro_assert(!melonds::mic_state_toggled);
     retro_assert(melonds::flushTaskId == 0);
-    retro_assert(melonds::_errorScreen == nullptr);
+    retro_assert(melonds::_messageScreen == nullptr);
     srand(time(nullptr));
     melonds::input_state = melonds::InputState();
     melonds::sram::init();
@@ -168,7 +168,7 @@ PUBLIC_SYMBOL void retro_init(void) {
 static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
     using namespace melonds;
     ZoneScopedN("melonds::InitErrorScreen");
-    retro_assert(melonds::_errorScreen == nullptr);
+    retro_assert(melonds::_messageScreen == nullptr);
     if (getenv("MELONDSDS_SKIP_ERROR_SCREEN")) {
         retro::error("Skipping error screen due to the environment variable MELONDSDS_SKIP_ERROR_SCREEN");
         return false;
@@ -176,7 +176,7 @@ static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
 
     Platform::DeInit();
     retro::task::reset();
-    melonds::_errorScreen = make_unique<error::ErrorScreen>(e);
+    melonds::_messageScreen = make_unique<error::MessageScreen>(e);
     screenLayout.Update(melonds::Renderer::Software);
     retro::error("Error screen initialized");
     return true;
@@ -263,7 +263,7 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     using melonds::screenLayout;
 
 #ifndef NDEBUG
-    if (!melonds::_errorScreen) {
+    if (!melonds::_messageScreen) {
         retro_assert(melonds::render::CurrentRenderer() != melonds::Renderer::None);
     }
 #endif
@@ -317,8 +317,8 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             }
         }
 
-        if (_errorScreen) {
-            _errorScreen->Render(screenLayout);
+        if (_messageScreen) {
+            _messageScreen->Render(screenLayout);
             return;
         }
 
@@ -559,7 +559,7 @@ PUBLIC_SYMBOL void retro_deinit(void) {
     melonds::first_frame_run = false;
     melonds::isInDeinit = false;
     melonds::flushTaskId = 0;
-    melonds::_errorScreen = nullptr;
+    melonds::_messageScreen = nullptr;
     melonds::cheats::deinit();
     retro::env::deinit();
 }
@@ -581,7 +581,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
     ZoneScopedN("retro_reset");
     retro::debug("retro_reset()\n");
 
-    if (melonds::_errorScreen) {
+    if (melonds::_messageScreen) {
         retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
         return;
         // TODO: Allow the game to be reset from the error screen
