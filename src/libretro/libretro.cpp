@@ -83,7 +83,7 @@ namespace melonds {
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
     static uint32_t flushTaskId = 0;
-    static unique_ptr<error::MessageScreen> _messageScreen;
+    static unique_ptr<error::ErrorScreen> _messageScreen;
     static const char *const INTERNAL_ERROR_MESSAGE =
         "An internal error occurred with melonDS DS. "
         "Please contact the developer with the log file.";
@@ -176,7 +176,7 @@ static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
 
     Platform::DeInit();
     retro::task::reset();
-    melonds::_messageScreen = make_unique<error::MessageScreen>(e);
+    melonds::_messageScreen = make_unique<error::ErrorScreen>(e);
     screenLayout.Update(melonds::Renderer::Software);
     retro::error("Error screen initialized");
     return true;

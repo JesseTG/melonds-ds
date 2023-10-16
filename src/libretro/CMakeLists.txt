@@ -44,6 +44,8 @@ add_library(libretro MODULE
     math.hpp
     message/error.cpp
     message/error.hpp
+    message/shutdown.cpp
+    message/shutdown.hpp
     microphone.cpp
     microphone.hpp
     memory.cpp

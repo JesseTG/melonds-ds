@@ -28,14 +28,14 @@ namespace melonds {
 }
 
 namespace melonds::error {
-    class MessageScreen {
+    class ErrorScreen {
     public:
-        explicit MessageScreen(const config_exception& e) noexcept;
-        ~MessageScreen();
-        MessageScreen(const MessageScreen&) = delete;
-        MessageScreen& operator=(const MessageScreen&) = delete;
-        MessageScreen(MessageScreen&&) = delete;
-        MessageScreen& operator=(MessageScreen&&) = delete;
+        explicit ErrorScreen(const config_exception& e) noexcept;
+        ~ErrorScreen();
+        ErrorScreen(const ErrorScreen&) = delete;
+        ErrorScreen& operator=(const ErrorScreen&) = delete;
+        ErrorScreen(ErrorScreen&&) = delete;
+        ErrorScreen& operator=(ErrorScreen&&) = delete;
 
         void Render(ScreenLayoutData& screenLayout) const noexcept;
     private:
