@@ -67,6 +67,8 @@ add_library(libretro MODULE
     retro/scaler.hpp
     retro/task_queue.cpp
     retro/task_queue.hpp
+    retro/threads.cpp
+    retro/threads.hpp
     screenlayout.cpp
     screenlayout.hpp
     sram.cpp
