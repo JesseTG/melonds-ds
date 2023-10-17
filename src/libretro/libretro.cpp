@@ -141,6 +141,7 @@ PUBLIC_SYMBOL void retro_init(void) {
 #ifdef HAVE_TRACY
     tracy::StartupProfiler();
 #endif
+    TracySetProgramName(MELONDSDS_NAME);
     ZoneScopedN("retro_init");
     retro::env::init();
     retro::debug("retro_init");
