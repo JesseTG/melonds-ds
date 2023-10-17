@@ -1959,8 +1959,7 @@ static void melonds::config::set_core_options() noexcept {
             for (const retro::dirent& d : retro::readdir(path, true)) {
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
-                }
-                if (IsFirmwareImage(d, header)) {
+                } else if (IsFirmwareImage(d, header)) {
                     struct stat statbuf;
                     stat(d.path, &statbuf);
                     firmware.emplace_back(FirmwareEntry {d.path, header, statbuf});
