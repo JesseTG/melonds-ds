@@ -1956,7 +1956,9 @@ static void melonds::config::set_core_options() noexcept {
         memset(headerBytes, 0, sizeof(headerBytes));
         array paths = {*sysdir, *subdir};
         for (const string& path: paths) {
+            ZoneScopedN("melonds::config::set_core_options::find_system_files::paths");
             for (const retro::dirent& d : retro::readdir(path, true)) {
+                ZoneScopedN("melonds::config::set_core_options::find_system_files::paths::dirent");
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
                 } else if (IsFirmwareImage(d, header)) {

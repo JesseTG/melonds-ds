@@ -26,6 +26,7 @@
 
 #include "environment.hpp"
 #include "retro/dirent.hpp"
+#include "tracy.hpp"
 
 using std::find;
 using std::optional;
@@ -60,6 +61,7 @@ optional<melonds::NetworkMode> melonds::config::ParseNetworkMode(const char* val
 }
 
 optional<bool> melonds::config::ParseBoolean(const char* value) noexcept {
+    ZoneScopedN("melonds::config::ParseBoolean");
     if (string_is_equal(value, values::ENABLED)) return true;
     if (string_is_equal(value, values::DISABLED)) return false;
     return nullopt;
@@ -92,6 +94,7 @@ optional<melonds::UsernameMode> melonds::config::ParseUsernameMode(const char* v
 }
 
 string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
+    ZoneScopedN("melonds::config::GetUsername");
     char result[DS_NAME_LIMIT + 1];
     result[DS_NAME_LIMIT] = '\0';
 
@@ -122,6 +125,7 @@ string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
 }
 
 optional<melonds::ScreenLayout> melonds::config::ParseScreenLayout(const char* value) noexcept {
+    ZoneScopedN("melonds::config::ParseScreenLayout");
     using melonds::ScreenLayout;
     if (string_is_equal(value, values::TOP_BOTTOM)) return ScreenLayout::TopBottom;
     if (string_is_equal(value, values::BOTTOM_TOP)) return ScreenLayout::BottomTop;
@@ -177,6 +181,7 @@ std::optional<melonds::TouchMode> melonds::config::ParseTouchMode(const char* va
 }
 
 optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
+    ZoneScopedN("melonds::config::ParseIpAddress");
     if (string_is_empty(value))
         return nullopt;
 
@@ -194,6 +199,9 @@ optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* va
 }
 
 bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
+    ZoneScopedN("melonds::config::IsDsiNandImage");
+    ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
+
     // TODO: Validate the NoCash footer
     if (!file.is_regular_file())
         return false;
@@ -205,6 +213,9 @@ bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
 }
 
 bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::FirmwareHeader& header) noexcept {
+    ZoneScopedN("melonds::config::IsFirmwareImage");
+    ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
+
     retro_assert(path_is_absolute(file.path));
 
     if (!file.is_regular_file())

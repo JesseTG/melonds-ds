@@ -28,6 +28,7 @@
 #include <libretro.h>
 
 #include "../config.hpp"
+#include "../tracy.hpp"
 
 namespace retro {
     struct dirent;
@@ -221,6 +222,7 @@ namespace melonds::config {
     std::string GetUsername(UsernameMode mode) noexcept;
     template<typename T>
     std::optional<T> ParseIntegerInRange(const char *value, T min, T max) noexcept {
+        ZoneScopedN("melonds::config::ParseIntegerInRange");
         if (min > max) return std::nullopt;
         if (!value) return std::nullopt;
 
@@ -235,6 +237,7 @@ namespace melonds::config {
 
     template<typename T>
     std::optional<T> ParseIntegerInList(const char *value, const std::initializer_list<T> &list) noexcept {
+        ZoneScopedN("melonds::config::ParseIntegerInList");
         if (!value) return std::nullopt;
 
         T parsed_number = 0;
