@@ -406,6 +406,7 @@ void melonds::InitConfig(
 }
 
 void melonds::UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
+    ZoneScopedN("melonds::config::UpdateConfig");
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     config::parse_screen_options();
@@ -425,6 +426,7 @@ void melonds::UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputStat
 }
 
 bool melonds::update_option_visibility() {
+    ZoneScopedN("melonds::update_option_visibility");
     using namespace melonds::config;
     using namespace melonds::config::visibility;
     using retro::environment;
@@ -1855,6 +1857,7 @@ static bool ConsoleTypeMatches(const SPI_Firmware::FirmwareHeader& header, melon
 }
 
 static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, melonds::ConsoleType type) noexcept {
+    ZoneScopedN("melonds::config::SelectDefaultFirmware");
     using namespace melonds;
 
     const optional<string>& sysdir = retro::get_system_directory();
@@ -1934,7 +1937,7 @@ static vector<string_view> fmt_flags(const pcap_if_t& interface) noexcept {
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
 static void melonds::config::set_core_options() noexcept {
-    ZoneScopedN("retro::set_core_options");
+    ZoneScopedN("melonds::config::set_core_options");
 
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
     array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
@@ -1946,6 +1949,7 @@ static void melonds::config::set_core_options() noexcept {
     const optional<string>& sysdir = retro::get_system_directory();
 
     if (subdir) {
+        ZoneScopedN("melonds::config::set_core_options::find_system_files");
         retro_assert(sysdir.has_value());
         u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
         SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<SPI_Firmware::FirmwareHeader*>(headerBytes);
@@ -1969,6 +1973,7 @@ static void melonds::config::set_core_options() noexcept {
     }
 
     if (!dsiNandPaths.empty()) {
+        ZoneScopedN("melonds::config::set_core_options::init_dsi_nand_options");
         // If we found at least one DSi NAND image...
         retro_core_option_v2_definition* dsiNandPathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
             return string_is_equal(def.key, melonds::config::storage::DSI_NAND_PATH);
@@ -1990,6 +1995,7 @@ static void melonds::config::set_core_options() noexcept {
     }
 
     if (!firmware.empty()) {
+        ZoneScopedN("melonds::config::set_core_options::init_firmware_options");
         // If we found at least one firmware image...
         retro_core_option_v2_definition* firmwarePathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
             return string_is_equal(def.key, melonds::config::system::FIRMWARE_PATH);
@@ -2029,6 +2035,7 @@ static void melonds::config::set_core_options() noexcept {
     // holds on to strings used in dynamic options until we finish submitting the options to the frontend
     vector<AdapterOption> adapters;
     if (pcapOk) {
+        ZoneScopedN("melonds::config::set_core_options::init_adapter_options");
         // If we successfully initialized PCap and got some adapters...
         retro_core_option_v2_definition* wifiAdapterOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
             return string_is_equal(def.key, melonds::config::network::DIRECT_NETWORK_INTERFACE);

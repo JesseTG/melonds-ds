@@ -317,7 +317,10 @@ static void melonds::opengl::SetupOpenGl() {
     TracyGpuZone("melonds::opengl::SetupOpenGl");
     retro::debug("melonds::opengl::SetupOpenGl()");
 
-    openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
+    {
+        ZoneScopedN("gl_check_capability");
+        openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
+    }
     if (openGlDebugAvailable) {
         retro::debug("OpenGL debugging extensions are available");
     }

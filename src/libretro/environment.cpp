@@ -76,6 +76,7 @@ bool retro::environment(unsigned cmd, void* data) noexcept {
 }
 
 bool retro::set_pixel_format(retro_pixel_format format) noexcept {
+    ZoneScopedN("retro::set_pixel_format");
     return environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &format);
 }
 
@@ -112,6 +113,7 @@ void retro::video_refresh(const void* data, unsigned width, unsigned height, siz
 }
 
 bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
+    ZoneScopedN("retro::set_screen_rotation");
     bool rotated = false;
     rotated = environment(RETRO_ENVIRONMENT_SET_ROTATION, &orientation);
     return rotated;
@@ -120,6 +122,7 @@ bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
 // reminder: std::string_views are NOT null-terminated!
 // Even if they're created from null-terminated strings, the null byte is outside the view
 bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
+    ZoneScopedN("retro::set_core_options");
     unsigned version = 0;
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
         version = 0;

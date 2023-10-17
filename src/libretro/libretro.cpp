@@ -252,6 +252,7 @@ catch (...) {
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     ZoneScopedN("retro_load_game");
+    ZoneText(info->path, strlen(info->path));
     if (info) {
         retro::debug("retro_load_game(\"{}\", {})", info->path, info->size);
     }

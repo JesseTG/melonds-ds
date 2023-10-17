@@ -107,7 +107,7 @@ void melonds::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writ
 }
 
 static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& gba_save_info) noexcept {
-    ZoneScopedN("melonds::sram::FlushSram");
+    ZoneScopedN("melonds::sram::FlushGbaSram");
     using namespace melonds;
     const char* save_data_path = gba_save_info.path;
     if (save_data_path == nullptr || sram::GbaSaveManager == nullptr) {

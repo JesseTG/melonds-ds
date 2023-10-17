@@ -16,6 +16,7 @@
 
 #include "buffer.hpp"
 #include "screenlayout.hpp"
+#include "tracy.hpp"
 
 #include <cstring>
 
@@ -88,10 +89,12 @@ void melonds::PixelBuffer::Clear() noexcept {
 }
 
 void melonds::PixelBuffer::CopyDirect(const uint32_t* source, uvec2 destination) noexcept {
+    ZoneScopedN("melonds::PixelBuffer::CopyDirect");
     memcpy(&this->operator[](destination), source, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
 }
 
 void melonds::PixelBuffer::CopyRows(const uint32_t* source, uvec2 destination, uvec2 destinationSize) noexcept {
+    ZoneScopedN("melonds::PixelBuffer::CopyRows");
     for (unsigned y = 0; y < destinationSize.y; y++) {
         // For each row of the rendered screen...
         memcpy(

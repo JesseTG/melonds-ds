@@ -88,6 +88,7 @@ namespace Platform {
 
 
 Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode) {
+    ZoneScopedN("Platform::OpenFile");
     if ((mode & FileMode::ReadWrite) == FileMode::None)
     { // If we aren't reading or writing, then we can't open the file
         retro::error("Attempted to open \"{}\" in neither read nor write mode (FileMode {:#x})\n", path, (unsigned)mode);
@@ -118,6 +119,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
 }
 
 Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode mode) {
+    ZoneScopedN("Platform::OpenLocalFile");
     if (path_is_absolute(path.c_str())) {
         return OpenFile(path, mode);
     }
@@ -141,6 +143,7 @@ bool Platform::FileExists(const std::string& name)
 
 bool Platform::LocalFileExists(const std::string& name)
 {
+    ZoneScopedN("Platform::LocalFileExists");
     if (name.empty()) {
         return false;
     }
@@ -165,6 +168,7 @@ bool Platform::LocalFileExists(const std::string& name)
 /// @returns \c true if the file was closed successfully, false otherwise.
 bool Platform::CloseFile(FileHandle* file)
 {
+    ZoneScopedN("Platform::CloseFile");
     if (!file) {
         return false;
     }
@@ -187,6 +191,7 @@ bool Platform::CloseFile(FileHandle* file)
 /// Returns true if there is no more data left to read in this file.
 bool Platform::IsEndOfFile(FileHandle* file)
 {
+    ZoneScopedN("Platform::IsEndOfFile");
     if (!file)
         return false;
 
@@ -195,6 +200,7 @@ bool Platform::IsEndOfFile(FileHandle* file)
 
 bool Platform::FileReadLine(char* str, int count, FileHandle* file)
 {
+    ZoneScopedN("Platform::FileReadLine");
     if (!file || !str)
         return false;
 
@@ -203,6 +209,7 @@ bool Platform::FileReadLine(char* str, int count, FileHandle* file)
 
 bool Platform::FileSeek(FileHandle* file, s64 offset, FileSeekOrigin origin)
 {
+    ZoneScopedN("Platform::FileSeek");
     if (!file)
         return false;
 
@@ -211,12 +218,14 @@ bool Platform::FileSeek(FileHandle* file, s64 offset, FileSeekOrigin origin)
 
 void Platform::FileRewind(FileHandle* file)
 {
+    ZoneScopedN("Platform::Rewind");
     if (file)
         filestream_rewind(file->file);
 }
 
 u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
 {
+    ZoneScopedN("Platform::FileRead");
     if (!file || !data)
         return 0;
 
@@ -232,6 +241,7 @@ u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
 
 bool Platform::FileFlush(FileHandle* file)
 {
+    ZoneScopedN("Platform::FileFlush");
     if (!file)
         return false;
 
@@ -240,6 +250,7 @@ bool Platform::FileFlush(FileHandle* file)
 
 u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
 {
+    ZoneScopedN("Platform::FileWrite");
     if (!file || !data)
         return 0;
 
@@ -253,6 +264,7 @@ u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
 
 u64 Platform::FileWriteFormatted(FileHandle* file, const char* fmt, ...)
 {
+    ZoneScopedN("Platform::FileWriteFormatted");
     if (!file || !fmt)
         return 0;
 
@@ -265,6 +277,7 @@ u64 Platform::FileWriteFormatted(FileHandle* file, const char* fmt, ...)
 
 u64 Platform::FileLength(FileHandle* file)
 {
+    ZoneScopedN("Platform::FileLength");
     if (!file)
         return 0;
 
@@ -296,7 +309,7 @@ void melonds::file::deinit() {
 
 retro::task::TaskSpec melonds::file::FlushTask() noexcept {
     retro::task::TaskSpec task([](retro::task::TaskHandle &task) {
-        ZoneScopedN("melonds::fat::FlushTask");
+        ZoneScopedN("melonds::file::FlushTask");
         using namespace melonds::file;
         if (task.IsCancelled()) {
             // If it's time to stop...
