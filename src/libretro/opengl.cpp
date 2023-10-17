@@ -38,6 +38,10 @@
 #include "render.hpp"
 #include "tracy.hpp"
 
+#ifdef TRACY_ENABLE
+#include <tracy/TracyOpenGL.hpp>
+#endif
+
 using std::array;
 using glm::ivec2;
 using glm::vec2;
@@ -167,6 +171,7 @@ bool melonds::opengl::Initialize() noexcept {
 
 void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("melonds::opengl::Render");
+    TracyGpuZone("melonds::opengl::Render");
     retro_assert(melonds::render::CurrentRenderer() == melonds::Renderer::OpenGl);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
@@ -228,7 +233,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
         screenLayout.BufferHeight(),
         0
     );
-
+    TracyGpuCollect;
 }
 
 void melonds::opengl::deinitialize() {
@@ -247,14 +252,22 @@ static void melonds::opengl::ContextReset() noexcept try {
 
     // Initialize all OpenGL function pointers
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
+    TracyGpuContext; // Must be called AFTER the function pointers are bound!
 
     // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
     glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
 
     // Start using global OpenGL structures
-    glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
+    {
+        TracyGpuZone("GLSM_CTL_STATE_BIND");
+        glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
+    }
 
-    GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
+    {
+        ZoneScopedN("GPU::InitRenderer");
+        TracyGpuZone("GPU::InitRenderer");
+        GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
+    }
 
     SetupOpenGl();
     context_initialized = true;
@@ -301,6 +314,7 @@ static void melonds::opengl::context_destroy() {
 // Sets up OpenGL resources specific to melonDS
 static void melonds::opengl::SetupOpenGl() {
     ZoneScopedN("melonds::opengl::SetupOpenGl");
+    TracyGpuZone("melonds::opengl::SetupOpenGl");
     retro::debug("melonds::opengl::SetupOpenGl()");
 
     openGlDebugAvailable = gl_check_capability(GL_CAPS_DEBUG);
@@ -541,6 +555,7 @@ static void melonds::opengl::InitializeVertices(const ScreenLayoutData& screenLa
 
 void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("melonds::opengl::InitializeFrameState");
+    TracyGpuZone("melonds::opengl::InitializeFrameState");
     refresh_opengl = false;
     GPU::RenderSettings render_settings = melonds::config::video::RenderSettings();
     GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
