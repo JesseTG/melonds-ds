@@ -15,43 +15,32 @@
 */
 
 #include <Platform.h>
-#include <rthreads/rthreads.h>
+
+#include "retro/threads.hpp"
+#include "tracy.hpp"
 
 using Platform::Mutex;
 
+struct Platform::Mutex {
+    TracyLockable(retro::slock, mutex);
+};
+
 Mutex* Platform::Mutex_Create()
 {
-#ifdef HAVE_THREADS
-    return (Mutex*)slock_new();
-#endif
-    return nullptr;
+    return new Mutex;
 }
 
 void Platform::Mutex_Free(Mutex* mutex)
 {
-#ifdef HAVE_THREADS
-    slock_free((slock_t*)mutex);
-#endif
+    delete mutex;
 }
 
 void Platform::Mutex_Lock(Mutex* mutex)
 {
-#ifdef HAVE_THREADS
-    slock_lock((slock_t*)mutex);
-#endif
+    mutex->mutex.lock();
 }
 
 void Platform::Mutex_Unlock(Mutex* mutex)
 {
-#ifdef HAVE_THREADS
-    slock_unlock((slock_t*)mutex);
-#endif
-}
-
-bool Platform::Mutex_TryLock(Mutex* mutex)
-{
-#ifdef HAVE_THREADS
-    slock_try_lock((slock_t*)mutex);
-#endif
-    return true;
+    mutex->mutex.unlock();
 }
