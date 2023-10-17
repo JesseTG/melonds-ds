@@ -561,7 +561,8 @@ void retro::env::deinit() noexcept {
 // This function might be called multiple times by the frontend,
 // and not always with the same value of cb.
 PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
-    ZoneScopedN("retro_set_environment");
+    // Do NOT call Tracy code here, it hasn't been initialized yet.
+    //ZoneScopedN("retro_set_environment");
     retro_assert(cb != nullptr);
     using retro::environment;
     retro::_environment = cb;

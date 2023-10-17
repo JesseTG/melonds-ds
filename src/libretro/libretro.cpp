@@ -138,6 +138,9 @@ namespace melonds {
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
+#ifdef HAVE_TRACY
+    tracy::StartupProfiler();
+#endif
     ZoneScopedN("retro_init");
     retro::env::init();
     retro::debug("retro_init");
@@ -544,24 +547,30 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 // It might be keeping the library around for debugging purposes,
 // or it might just be buggy.
 PUBLIC_SYMBOL void retro_deinit(void) {
-    ZoneScopedN("retro_deinit");
-    melonds::isInDeinit = true;
-    retro::debug("retro_deinit()");
-    retro::task::deinit();
-    melonds::file::deinit();
-    retro::content::clear();
-    melonds::clear_memory_config();
-    Platform::DeInit();
-    melonds::sram::deinit();
-    melonds::mic_state_toggled = false;
-    melonds::isUnloading = false;
-    melonds::deferred_initialization_pending = false;
-    melonds::first_frame_run = false;
-    melonds::isInDeinit = false;
-    melonds::flushTaskId = 0;
-    melonds::_messageScreen = nullptr;
-    melonds::cheats::deinit();
-    retro::env::deinit();
+    {
+        ZoneScopedN("retro_deinit");
+        melonds::isInDeinit = true;
+        retro::debug("retro_deinit()");
+        retro::task::deinit();
+        melonds::file::deinit();
+        retro::content::clear();
+        melonds::clear_memory_config();
+        Platform::DeInit();
+        melonds::sram::deinit();
+        melonds::mic_state_toggled = false;
+        melonds::isUnloading = false;
+        melonds::deferred_initialization_pending = false;
+        melonds::first_frame_run = false;
+        melonds::isInDeinit = false;
+        melonds::flushTaskId = 0;
+        melonds::_messageScreen = nullptr;
+        melonds::cheats::deinit();
+        retro::env::deinit();
+    }
+
+#ifdef HAVE_TRACY
+    tracy::ShutdownProfiler();
+#endif
 }
 
 PUBLIC_SYMBOL unsigned retro_api_version(void) {
