@@ -239,6 +239,23 @@ bool retro::is_variable_updated() noexcept {
     return updated;
 }
 
+#ifdef TRACY_ENABLE
+constexpr uint32_t GetLogColor(retro_log_level level) noexcept {
+    switch (level) {
+        case RETRO_LOG_DEBUG:
+            return tracy::Color::DimGrey;
+        case RETRO_LOG_INFO:
+            return tracy::Color::White;
+        case RETRO_LOG_WARN:
+            return tracy::Color::Yellow;
+        case RETRO_LOG_ERROR:
+            return tracy::Color::Red;
+        default:
+            return tracy::Color::White;
+    }
+}
+#endif
+
 void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_args args) noexcept {
     if (_log) {
         fmt::basic_memory_buffer<char, 1024> buffer;
@@ -251,6 +268,11 @@ void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_arg
 
         buffer.push_back('\0');
         _log(level, "%s\n", buffer.data());
+#ifdef TRACY_ENABLE
+        if (tracy::ProfilerAvailable()) {
+            TracyMessageCS(buffer.data(), buffer.size() - 1, GetLogColor(level), 8);
+        }
+#endif
     } else {
         fmt::vprint(stderr, fmt, args);
     }
