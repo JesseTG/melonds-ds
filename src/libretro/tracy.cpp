@@ -31,9 +31,6 @@ void* operator new(std::size_t count)
 
 void operator delete(void* ptr) noexcept
 {
-    if (ptr == nullptr)
-        return;
-
     TracySecureFree(ptr);
     std::free(ptr);
 }
