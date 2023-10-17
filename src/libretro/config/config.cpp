@@ -388,7 +388,6 @@ void melonds::InitConfig(
     config::apply_save_options(header);
     config::apply_audio_options();
     config::apply_screen_options(screenLayout, inputState);
-    config::apply_network_options();
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
@@ -1834,12 +1833,6 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
     inputState.SetCursorMode(screen::CursorMode());
     inputState.SetMaxCursorTimeout(screen::CursorTimeout());
     inputState.SetTouchMode(screen::TouchMode());
-}
-
-static void melonds::config::apply_network_options() noexcept {
-#ifdef HAVE_NETWORKING_DIRECT_MODE
-    // TODO: Pick one default adapter
-#endif
 }
 
 struct FirmwareEntry {
