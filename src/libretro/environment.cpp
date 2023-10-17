@@ -274,7 +274,7 @@ void retro::vlog(enum retro_log_level level, const char* fmt, va_list va) noexce
         if (text[text_length - 1] == '\n')
             text[text_length - 1] = '\0';
 
-        _log(level, "%s\n", text);
+        fmt_log(level, "{}", fmt::make_format_args(text));
     } else {
         vfprintf(stderr, fmt, va);
     }
