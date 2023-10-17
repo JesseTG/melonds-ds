@@ -136,6 +136,10 @@ if (HAVE_NETWORKING)
     endif()
 endif ()
 
+if (TRACY_ENABLE)
+    target_sources(libretro PRIVATE tracy.cpp)
+endif ()
+
 if (HAVE_OPENGL OR HAVE_OPENGLES)
     target_sources(libretro PRIVATE opengl.cpp)
 endif()
