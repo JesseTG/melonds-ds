@@ -17,3 +17,6 @@ cmake-build-*
 
 # Build System
 artifact
+
+# Tracy
+*.tracy
