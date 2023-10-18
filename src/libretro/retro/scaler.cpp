@@ -18,6 +18,10 @@
 
 #include <stdexcept>
 #include <retro_assert.h>
+#include <fmt/format.h>
+
+#include "format.hpp"
+#include "tracy.hpp"
 
 constexpr unsigned PixelSize(scaler_pix_fmt fmt) noexcept {
     switch (fmt) {
@@ -33,27 +37,6 @@ constexpr unsigned PixelSize(scaler_pix_fmt fmt) noexcept {
             return 3;
         default:
             return 0;
-    }
-}
-
-const char* PixelFormatName(scaler_pix_fmt fmt) noexcept {
-    switch (fmt) {
-        case SCALER_FMT_ARGB8888:
-            return "ARGB8888";
-        case SCALER_FMT_ABGR8888:
-            return "ABGR8888";
-        case SCALER_FMT_0RGB1555:
-            return "0RGB1555";
-        case SCALER_FMT_RGB565:
-            return "RGB565";
-        case SCALER_FMT_RGBA4444:
-            return "RGBA4444";
-        case SCALER_FMT_BGR24:
-            return "BGR24";
-        case SCALER_FMT_YUYV:
-            return "YUYV";
-        default:
-            return "<unknown>";
     }
 }
 
@@ -82,25 +65,28 @@ retro::Scaler::Scaler(
 
     scaler.scaler_type = type;
 
-    if (!scaler_ctx_gen_filter(&scaler)) {
-        char error[256];
-        snprintf(
-            error,
-            sizeof(error),
-            "Failed to generate scaler filter from %ux%u %s to %ux%u %s",
+    bool ok;
+    {
+        ZoneScopedN("scaler_ctx_gen_filter");
+        ok = scaler_ctx_gen_filter(&scaler);
+    }
+    if (!ok) {
+        std::string error = fmt::format(
+            "Failed to generate scaler filter from {}x{} {} to {}x{} {}",
             in_width,
             in_height,
-            PixelFormatName(in_fmt),
+            in_fmt,
             out_width,
             out_height,
-            PixelFormatName(out_fmt)
+            out_fmt
         );
+
         throw std::runtime_error(error);
     }
 }
 
 retro::Scaler::Scaler(scaler_ctx&& ctx) noexcept {
-    scaler = ctx;
+    scaler = std::move(ctx);
     ctx = {};
 
     retro_assert(ctx.input.frame == nullptr);
@@ -111,10 +97,12 @@ retro::Scaler::Scaler(scaler_ctx&& ctx) noexcept {
 }
 
 retro::Scaler::~Scaler() noexcept {
+    ZoneScopedN("scaler_ctx_gen_reset");
     scaler_ctx_gen_reset(&scaler);
 }
 
 retro::Scaler::Scaler(Scaler&& other) noexcept {
+    ZoneScopedN("scaler_ctx_gen_reset");
     scaler_ctx_gen_reset(&scaler);
     scaler = other.scaler;
     other.scaler = {};
@@ -122,6 +110,7 @@ retro::Scaler::Scaler(Scaler&& other) noexcept {
 
 retro::Scaler& retro::Scaler::operator=(Scaler&& other) noexcept {
     if (this != &other) {
+        ZoneScopedN("scaler_ctx_gen_reset");
         scaler_ctx_gen_reset(&scaler);
         scaler = other.scaler;
         other.scaler = {};
@@ -131,6 +120,7 @@ retro::Scaler& retro::Scaler::operator=(Scaler&& other) noexcept {
 
 
 void retro::Scaler::Scale(void *output, const void *input) noexcept {
+    ZoneScopedN("scaler_ctx_scale");
     if (output == nullptr || input == nullptr)
         return;
 

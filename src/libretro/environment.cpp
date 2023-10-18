@@ -237,6 +237,8 @@ bool retro::shutdown() noexcept {
 }
 
 bool retro::is_variable_updated() noexcept {
+    ZoneScopedN("retro::is_variable_updated");
+
     bool updated = false;
     environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated);
     return updated;
@@ -386,6 +388,7 @@ optional<unsigned> retro::message_interface_version() noexcept {
 }
 
 bool retro::set_message(const struct retro_message_ext& message) {
+    ZoneScopedN("retro::set_message");
     using std::numeric_limits;
 
     switch (_message_interface_version) {
@@ -442,6 +445,7 @@ bool retro::get_variable(struct retro_variable* var) {
 }
 
 const char* retro::get_variable(const char* key) {
+    ZoneScopedN("retro::get_variable");
     struct retro_variable var = {key, nullptr};
     if (!environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var)) {
         // Get the requested variable. If that failed...
@@ -481,6 +485,7 @@ optional<retro_language> retro::get_language() noexcept {
 }
 
 optional<string> retro::username() noexcept {
+    ZoneScopedN("retro::username");
     const char* username = nullptr;
     if (!environment(RETRO_ENVIRONMENT_GET_USERNAME, &username)) {
         return nullopt;
@@ -495,6 +500,7 @@ optional<string> retro::username() noexcept {
 
 void retro::set_option_visible(const char* key, bool visible) noexcept
 {
+    ZoneScopedN("retro::set_option_visible");
     struct retro_core_option_display optionDisplay { key, visible };
     if (key) {
         environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &optionDisplay);
@@ -507,6 +513,7 @@ bool retro::supports_power_status() noexcept {
 
 optional<retro_device_power> retro::get_device_power() noexcept
 {
+    ZoneScopedN("retro::get_device_power");
     struct retro_device_power power;
     if (!environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, &power)) {
         return nullopt;
@@ -524,6 +531,7 @@ const optional<string>& retro::get_system_directory() {
 }
 
 optional<string> retro::get_system_subdir_path(const std::string_view& name) noexcept {
+    ZoneScopedN("retro::get_system_subdir_path");
     char path[PATH_MAX];
     size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
     pathname_make_slashes_portable(path);
@@ -532,6 +540,7 @@ optional<string> retro::get_system_subdir_path(const std::string_view& name) noe
 }
 
 optional<string> retro::get_system_path(const string_view& name) noexcept {
+    ZoneScopedN("retro::get_system_path");
     optional<string> sysdir = retro::get_system_directory();
     if (!sysdir) {
         // If no system directory is available, or the name is empty or not null-terminated...
@@ -666,21 +675,26 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {
+    ZoneScopedN("retro_set_video_refresh");
     retro::_video_refresh = video_refresh;
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample(retro_audio_sample_t) {
+    ZoneScopedN("retro_set_audio_sample");
     // Noop, we don't use this callback
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample_batch(retro_audio_sample_batch_t audio_sample_batch) {
+    ZoneScopedN("retro_set_audio_sample_batch");
     retro::_audio_sample_batch = audio_sample_batch;
 }
 
 PUBLIC_SYMBOL void retro_set_input_poll(retro_input_poll_t input_poll) {
+    ZoneScopedN("retro_set_input_poll");
     retro::_input_poll = input_poll;
 }
 
 PUBLIC_SYMBOL void retro_set_input_state(retro_input_state_t input_state) {
+    ZoneScopedN("retro_set_input_state");
     retro::_input_state = input_state;
 }

@@ -27,6 +27,7 @@
 #include <DSi_NAND.h>
 #include <Platform.h>
 #include <libretro.h>
+#include <gfx/scaler/scaler.h>
 
 #include "config.hpp"
 
@@ -338,6 +339,32 @@ struct fmt::formatter<RegionMask> : fmt::formatter<std::vector<string_view>> {
         }
 
         return formatter<decltype(regions)>::format(regions, ctx);
+    }
+};
+
+template<>
+struct fmt::formatter<scaler_pix_fmt> : fmt::formatter<std::string_view> {
+    template<typename FmtContext>
+    auto format(scaler_pix_fmt c, FmtContext& ctx) {
+        string_view name = "<unknown>";
+        switch (c) {
+            case SCALER_FMT_ARGB8888:
+                name = "ARGB8888";
+                break;
+            case SCALER_FMT_ABGR8888:
+                name = "ABGR8888";
+                break;
+            case SCALER_FMT_0RGB1555:
+                name = "0RGB1555";
+                break;
+            case SCALER_FMT_RGB565:
+                name = "RGB565";
+                break;
+            case SCALER_FMT_RGBA4444:
+                name = "RGBA4444";
+                break;
+        }
+        return formatter<string_view>::format(name, ctx);
     }
 };
 

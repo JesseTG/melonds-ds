@@ -33,27 +33,27 @@ struct TaskFunctions {
 };
 
 void retro::task::init(bool threaded, retro_task_queue_msg_t msg_push) noexcept {
-    ZoneScopedN("retro::task::init");
+    ZoneScopedN("task_queue_init");
     task_queue_init(threaded, msg_push);
 }
 
 
 void retro::task::push(TaskSpec&& task) noexcept {
-    ZoneScopedN("retro::task::push");
     if (task.Valid()) {
+        ZoneScopedN("task_queue_push");
         task_queue_push(task._task);
         task._task = nullptr;
     }
 }
 
 bool retro::task::find(const UnaryTaskFinder& finder) noexcept {
-    ZoneScopedN("retro::task::find");
     if (finder == nullptr) {
         return false;
     }
 
     task_finder_data_t finder_data {
         .func = [](retro_task_t* task, void* data) noexcept {
+            ZoneScopedN("task_queue_find::func");
             const UnaryTaskFinder& finder = *(const UnaryTaskFinder*)data;
             TaskHandle task_handle(task);
             return finder(task_handle);
@@ -61,30 +61,32 @@ bool retro::task::find(const UnaryTaskFinder& finder) noexcept {
         .userdata = (void*) &finder,
     };
 
+    ZoneScopedN("task_queue_find");
     return task_queue_find(&finder_data);
 }
 
 void retro::task::wait() noexcept {
-    ZoneScopedN("retro::task::wait");
+    ZoneScopedN("task_queue_wait");
     task_queue_wait(nullptr, nullptr); // wait for all tasks to finish
 }
 
 void retro::task::deinit() noexcept {
-    ZoneScopedN("retro::task::deinit");
+    ZoneScopedN("task_queue_deinit");
     task_queue_deinit();
 }
 
 void retro::task::reset() noexcept {
-    ZoneScopedN("retro::task::reset");
+    ZoneScopedN("task_queue_reset");
     task_queue_reset(); // cancel all outstanding tasks
 }
 
 void retro::task::check() noexcept {
-    ZoneScopedN("retro::task::check");
+    ZoneScopedN("task_queue_check");
     task_queue_check();
 }
 
 void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
+    ZoneScopedN("retro::task::TaskSpec::TaskHandlerWrapper");
     retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
 
@@ -105,6 +107,7 @@ void retro::task::TaskSpec::TaskCallbackWrapper(
     void *user_data,
     const char *error
 ) noexcept {
+    ZoneScopedN("retro::task::TaskSpec::TaskCallbackWrapper");
     TaskFunctions* functions = static_cast<TaskFunctions*>(user_data);
 
     retro_assert(task != nullptr);
@@ -120,6 +123,7 @@ void retro::task::TaskSpec::TaskCallbackWrapper(
 }
 
 void retro::task::TaskSpec::TaskCleanupWrapper(retro_task_t* task) noexcept {
+    ZoneScopedN("retro::task::TaskSpec::TaskCleanupWrapper");
     retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
     retro_assert(functions != nullptr);
@@ -197,18 +201,22 @@ retro::task::TaskHandle::TaskHandle(retro_task_t* task) noexcept : _task(task) {
 }
 
 void retro::task::TaskHandle::Finish() noexcept {
+    ZoneScopedN("task_set_finished");
     task_set_finished(_task, true);
 }
 
 void retro::task::TaskHandle::Cancel() noexcept {
+    ZoneScopedN("task_set_cancelled");
     task_set_cancelled(_task, true);
 }
 
 bool retro::task::TaskHandle::IsCancelled() const noexcept {
+    ZoneScopedN("task_get_cancelled");
     return task_get_cancelled(_task);
 }
 
 bool retro::task::TaskHandle::IsFinished() const noexcept {
+    ZoneScopedN("task_get_finished");
     return task_get_finished(_task);
 }
 
