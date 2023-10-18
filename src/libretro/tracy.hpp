@@ -121,6 +121,21 @@
 
 #define TracyFiberEnter(x)
 #define TracyFiberLeave
+
+#define TracyGpuContext
+#define TracyGpuContextName(x,y)
+#define TracyGpuNamedZone(x,y,z)
+#define TracyGpuNamedZoneC(x,y,z,w)
+#define TracyGpuZone(x)
+#define TracyGpuZoneC(x,y)
+#define TracyGpuZoneTransient(x,y,z)
+#define TracyGpuCollect
+
+#define TracyGpuNamedZoneS(x,y,z,w)
+#define TracyGpuNamedZoneCS(x,y,z,w,a)
+#define TracyGpuZoneS(x,y)
+#define TracyGpuZoneCS(x,y,z)
+#define TracyGpuZoneTransientS(x,y,z,w)
 #endif
 
 #endif //MELONDS_DS_TRACY_HPP
