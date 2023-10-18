@@ -16,6 +16,7 @@
 
 #include "threads.hpp"
 
+#include <new>
 #include <stdexcept>
 
 retro::slock::slock() {
