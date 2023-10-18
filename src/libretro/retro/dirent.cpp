@@ -79,7 +79,11 @@ retro::dirent_tree::dirent_iterator &retro::dirent_tree::dirent_iterator::operat
     bool done = false;
     do {
         ZoneScopedN("retro::dirent_tree::dirent_iterator::operator++::do");
-        bool hasNext = retro_readdir(m_ptr->dir);
+        bool hasNext;
+        {
+            ZoneScopedN("retro_readdir");
+            hasNext = retro_readdir(m_ptr->dir);
+        }
         if (!hasNext) {
             m_ptr = nullptr;
             memset((void *) current.path, 0, sizeof(current.path));
@@ -88,20 +92,35 @@ retro::dirent_tree::dirent_iterator &retro::dirent_tree::dirent_iterator::operat
             break;
         }
 
-        const char *fileName = retro_dirent_get_name(m_ptr->dir);
-        char filePath[PATH_MAX];
-        size_t filePathLength = fill_pathname_join_special(filePath, m_ptr->originalPath.c_str(), fileName, sizeof(filePath));
-        if (filePathLength >= sizeof(filePath)) {
-            // If the path is too long...
-            // TODO: Log that this path is being skipped
-            continue;
+        const char *fileName;
+        {
+            ZoneScopedN("retro_dirent_get_name");
+            fileName = retro_dirent_get_name(m_ptr->dir);
         }
-        int flags = path_stat(filePath);
+        char filePath[PATH_MAX];
+        {
+            ZoneScopedN("fill_pathname_join_special");
+            size_t filePathLength = fill_pathname_join_special(filePath, m_ptr->originalPath.c_str(), fileName, sizeof(filePath));
+            if (filePathLength >= sizeof(filePath)) {
+                // If the path is too long...
+                // TODO: Log that this path is being skipped
+                continue;
+            }
+        }
+
+        int flags;
+        {
+            ZoneScopedN("path_stat");
+            flags = path_stat(filePath);
+        }
         if (is_regular_file(flags)) {
             // If we've found the next file to return to whoever's using this iterator...
             strlcpy(current.path, filePath, sizeof(current.path));
             current.flags = flags;
-            current.size = path_get_size(filePath);
+            {
+                ZoneScopedN("path_get_size");
+                current.size = path_get_size(filePath);
+            }
             done = true;
         }
     } while (!done);
