@@ -90,6 +90,7 @@ namespace retro {
     const char* get_variable(const char *key);
     bool set_variable(const char* key, const char* value);
     std::optional<retro_language> get_language() noexcept;
+    bool set_geometry(const retro_game_geometry& geometry) noexcept;
     std::optional<std::string> username() noexcept;
     void set_option_visible(const char* key, bool visible) noexcept;
     bool supports_power_status() noexcept;

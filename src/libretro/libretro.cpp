@@ -377,8 +377,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
                 screenLayout.Update(renderer);
 
                 // And update the geometry
-                retro_game_geometry geometry = screenLayout.Geometry(renderer);
-                if (!retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry)) {
+                if (!retro::set_geometry(screenLayout.Geometry(renderer))) {
                     retro::warn("Failed to update geometry after screen layout change");
                 }
 

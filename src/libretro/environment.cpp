@@ -484,6 +484,11 @@ optional<retro_language> retro::get_language() noexcept {
     return language;
 }
 
+bool retro::set_geometry(const retro_game_geometry& geometry) noexcept {
+    ZoneScopedN("RETRO_ENVIRONMENT_SET_GEOMETRY");
+    return retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, (void*) &geometry);
+}
+
 optional<string> retro::username() noexcept {
     ZoneScopedN("retro::username");
     const char* username = nullptr;
