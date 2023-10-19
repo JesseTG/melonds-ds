@@ -347,7 +347,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
 
             // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
             // but is not processed by retro_get_memory (again due to libretro limits).
-            if (retro::content::get_loaded_nds_info() && GbaSaveManager && GbaSaveManager->SramLength() > 0) {
+            if (retro::content::get_loaded_gba_info() && GbaSaveManager && GbaSaveManager->SramLength() > 0) {
                 // If we're loading a GBA game that has existing SRAM...
                 ZoneScopedN("GBACart::LoadSave");
                 // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
