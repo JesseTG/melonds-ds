@@ -640,6 +640,9 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         char melon_dir[PATH_MAX];
         strlcpy(melon_dir, system_dir, sizeof(melon_dir));
         pathname_make_slashes_portable(melon_dir);
+        size_t basePathLength = strnlen(melon_dir, sizeof(melon_dir));
+        if (basePathLength > 0 && melon_dir[basePathLength - 1] == '/')
+            melon_dir[basePathLength - 1] = '\0';
         retro::info("System directory: \"{}\"", melon_dir);
         retro::_system_directory = melon_dir;
 
