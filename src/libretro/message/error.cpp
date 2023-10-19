@@ -176,6 +176,7 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
 }
 
 void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
+    ZoneScopedN("melonds::error::ErrorScreen::Render");
     if (screenLayout.Dirty()) {
         screenLayout.Update(melonds::Renderer::Software);
     }

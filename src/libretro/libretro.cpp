@@ -284,6 +284,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
         using namespace melonds;
 
         if (deferred_initialization_pending) {
+            ZoneScopedN("retro_run::deferred_initialization");
             try {
                 retro::debug("Starting deferred initialization");
                 melonds::load_games_deferred(
@@ -328,6 +329,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
         }
 
         if (!first_frame_run) {
+            ZoneScopedN("retro_run::first_frame");
             using namespace sram;
             // Apply the save data from the core's SRAM buffer to the cart's SRAM;
             // we need to do this in the first frame of retro_run because
@@ -339,6 +341,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             // This is where we install the SRAM data into the emulated DS.
             if (retro::content::get_loaded_nds_info() && NdsSaveManager && NdsSaveManager->SramLength() > 0) {
                 // If we're loading a NDS game that has SRAM...
+                ZoneScopedN("NDS::LoadSave");
                 NDS::LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
             }
 
@@ -346,6 +349,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             // but is not processed by retro_get_memory (again due to libretro limits).
             if (retro::content::get_loaded_nds_info() && GbaSaveManager && GbaSaveManager->SramLength() > 0) {
                 // If we're loading a GBA game that has existing SRAM...
+                ZoneScopedN("GBACart::LoadSave");
                 // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
                 GBACart::LoadSave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
             }
@@ -365,11 +369,13 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
 
         if (melonds::render::ReadyToRender()) {
             // If the global state needed for rendering is ready...
+            ZoneScopedN("retro_run::render");
             HandleInput(input_state, screenLayout);
             read_microphone(input_state);
 
             if (screenLayout.Dirty()) {
                 // If the active screen layout has changed (either by settings or by hotkey)...
+                ZoneScopedN("retro_run::render::dirty");
                 Renderer renderer = melonds::render::CurrentRenderer();
                 retro_assert(renderer != Renderer::None);
 
