@@ -21,15 +21,19 @@
 using std::optional;
 using std::nullopt;
 using std::string;
+using std::unique_ptr;
+using std::make_unique;
 using std::make_optional;
 
 namespace retro::content {
     // We maintain copies of some of the strings in retro_game_info
     // just in case the frontend frees them at the end of retro_load/retro_load_special.
     static optional<struct retro_game_info> _loaded_nds_info;
+    static unique_ptr<uint8_t[]> _loaded_nds_rom;
     static optional<struct retro_game_info_ext> _loaded_nds_info_ext;
     static optional<string> _loaded_nds_path;
     static optional<struct retro_game_info> _loaded_gba_info;
+    static unique_ptr<uint8_t[]> _loaded_gba_rom;
     static optional<struct retro_game_info_ext> _loaded_gba_info_ext;
     static optional<string> _loaded_gba_path;
     static optional<struct retro_game_info> _loaded_gba_save_info;
@@ -69,37 +73,49 @@ void retro::content::set_loaded_content_info(
     const struct retro_game_info *gba_save_info
 ) noexcept {
     retro_assert(_loaded_nds_info == nullopt);
+    retro_assert(_loaded_nds_rom == nullptr);
     retro_assert(_loaded_nds_info_ext == nullopt);
     retro_assert(_loaded_nds_path == nullopt);
     retro_assert(_loaded_gba_info == nullopt);
     retro_assert(_loaded_gba_info_ext == nullopt);
+    retro_assert(_loaded_gba_rom == nullptr);
     retro_assert(_loaded_gba_path == nullopt);
     retro_assert(_loaded_gba_save_info == nullopt);
     retro_assert(_loaded_gba_save_path == nullopt);
 
     if (nds_info) {
         _loaded_nds_path = nds_info->path ? make_optional(nds_info->path) : nullopt;
+        _loaded_nds_rom = nds_info->data ? make_unique<uint8_t[]>(nds_info->size) : nullptr;
+        if (_loaded_nds_rom) {
+            memcpy(_loaded_nds_rom.get(), nds_info->data, nds_info->size);
+        }
         _loaded_nds_info = retro_game_info {
             .path = _loaded_nds_path ? _loaded_nds_path->c_str() : nullptr,
-            .data = nds_info->data,
+            .data = _loaded_nds_rom ? _loaded_nds_rom.get() : nullptr,
             .size = nds_info->size,
             .meta = nds_info->meta,
         };
     } else {
         _loaded_nds_info = nullopt;
+        _loaded_nds_rom = nullptr;
         _loaded_nds_path = nullopt;
     }
 
     if (gba_info) {
         _loaded_gba_path = gba_info->path ? make_optional(gba_info->path) : nullopt;
+        _loaded_gba_rom = gba_info->data ? make_unique<uint8_t[]>(gba_info->size) : nullptr;
+        if (_loaded_gba_rom) {
+            memcpy(_loaded_gba_rom.get(), gba_info->data, gba_info->size);
+        }
         _loaded_gba_info = retro_game_info {
             .path = _loaded_gba_path ? _loaded_gba_path->c_str() : nullptr,
-            .data = gba_info->data,
+            .data = _loaded_gba_rom ? _loaded_gba_rom.get() : nullptr,
             .size = gba_info->size,
             .meta = gba_info->meta,
         };
     } else {
         _loaded_gba_info = nullopt;
+        _loaded_gba_rom = nullptr;
         _loaded_gba_path = nullopt;
     }
 
@@ -131,8 +147,10 @@ void retro::content::set_loaded_content_info(
 void retro::content::clear() noexcept {
     _loaded_nds_info = nullopt;
     _loaded_nds_info_ext = nullopt;
+    _loaded_nds_rom = nullptr;
     _loaded_gba_info = nullopt;
     _loaded_gba_info_ext = nullopt;
+    _loaded_gba_rom = nullptr;
     _loaded_nds_path = nullopt;
     _loaded_gba_path = nullopt;
     _loaded_gba_save_info = nullopt;
