@@ -279,7 +279,7 @@ static void melonds::opengl::ContextReset() noexcept try {
 }
 catch (const melonds::emulator_exception& e) {
     context_initialized = false;
-    retro::error(e.what());
+    retro::error("{}", e.what());
     retro::set_error_message(e.user_message());
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
     retro::shutdown();
