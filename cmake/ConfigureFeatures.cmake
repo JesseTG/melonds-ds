@@ -7,12 +7,19 @@ else ()
     set(DEFAULT_OPENGL_PROFILE OpenGL)
 endif ()
 
+if (ANDROID OR IOS OR APPLE)
+    set(DEFAULT_ENABLE_OPENGL OFF)
+else ()
+    set(DEFAULT_ENABLE_OPENGL ON)
+endif ()
+
 option(ENABLE_DYNAMIC "Build with dynamic library support, if supported by the target." ON)
 option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
 option(ENABLE_NETWORKING "Build with networking support, if supported by the target." ON)
 option(ENABLE_SCCACHE "Build with sccache instead of ccache, if available." OFF)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_GLSM_DEBUG "Enable debug output for GLSM." OFF)
+option(ENABLE_OPENGL "Enable OpenGL support. Not supported on all platforms; defaults to OFF in such case." ${})
 set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL', 'OpenGLES2', 'OpenGLES3', 'OpenGLES31', and 'OpenGLES32'.")
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
@@ -41,7 +48,7 @@ if (ENABLE_GLSM_DEBUG)
     set(HAVE_GLSM_DEBUG ON)
 endif ()
 
-if (ENABLE_OGLRENDERER)
+if (ENABLE_OPENGL)
     # ENABLE_OGLRENDERER is defined by melonDS's CMakeLists.txt
     if (OPENGL_PROFILE STREQUAL "OpenGL")
         if (ENABLE_EGL)
@@ -98,6 +105,10 @@ if (ENABLE_OGLRENDERER)
     endif ()
 
     check_include_files("GL3/gl3.h;GL3/gl3ext.h" HAVE_OPENGL_MODERN)
+
+    if (HAVE_OPENGL OR HAVE_OPENGLES)
+        set(ENABLE_OGLRENDERER ON)
+    endif ()
 endif()
 
 if (ENABLE_NETWORKING)
