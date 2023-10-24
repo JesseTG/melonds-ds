@@ -19,7 +19,7 @@ option(ENABLE_NETWORKING "Build with networking support, if supported by the tar
 option(ENABLE_SCCACHE "Build with sccache instead of ccache, if available." OFF)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_GLSM_DEBUG "Enable debug output for GLSM." OFF)
-option(ENABLE_OPENGL "Enable OpenGL support. Not supported on all platforms; defaults to OFF in such case." ${})
+option(ENABLE_OPENGL "Enable OpenGL support. Not supported on all platforms; defaults to OFF in such case." ${DEFAULT_ENABLE_OPENGL})
 set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL', 'OpenGLES2', 'OpenGLES3', 'OpenGLES31', and 'OpenGLES32'.")
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
