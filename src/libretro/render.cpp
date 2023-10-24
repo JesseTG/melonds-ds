@@ -21,6 +21,7 @@
 
 #include <optional>
 
+#include <gfx/scaler/pixconv.h>
 #include <retro_assert.h>
 #include <GPU3D.h>
 
@@ -103,12 +104,18 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
         screen_layout_data.DrawCursor(input_state.TouchPosition());
     }
 
-    retro::video_refresh(
-        screen_layout_data.Buffer()[0],
-        screen_layout_data.Buffer().Width(),
-        screen_layout_data.Buffer().Height(),
-        screen_layout_data.Buffer().Stride()
-    );
+    auto& buffer = screen_layout_data.Buffer();
+    retro::video_refresh(buffer[0], buffer.Width(), buffer.Height(), buffer.Stride());
+
+#ifdef HAVE_TRACY
+    if (tracy::ProfilerAvailable()) {
+        // If Tracy is connected...
+        std::unique_ptr<u8 []> frame = std::make_unique<u8[]>(buffer.Width() * buffer.Height() * 4);
+        conv_argb8888_abgr8888(frame.get(), buffer[0], buffer.Width(), buffer.Height(), buffer.Stride(), buffer.Stride());
+
+        FrameImage(frame.get(), buffer.Width(), buffer.Height(), 0, false);
+    }
+#endif
 }
 
 melonds::Renderer melonds::render::CurrentRenderer() noexcept {
