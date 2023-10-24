@@ -66,6 +66,10 @@
 #include "tracy.hpp"
 #include "pcap.hpp"
 
+#ifdef interface
+#undef interface
+#endif
+
 using std::array;
 using std::find_if;
 using std::from_chars;
