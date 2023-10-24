@@ -112,6 +112,8 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
         // If Tracy is connected...
         std::unique_ptr<u8 []> frame = std::make_unique<u8[]>(buffer.Width() * buffer.Height() * 4);
         conv_argb8888_abgr8888(frame.get(), buffer[0], buffer.Width(), buffer.Height(), buffer.Stride(), buffer.Stride());
+        // libretro wants pixels in XRGB8888 format,
+        // but Tracy wants them in XBGR8888 format.
 
         FrameImage(frame.get(), buffer.Width(), buffer.Height(), 0, false);
     }
