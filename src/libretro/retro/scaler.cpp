@@ -85,6 +85,10 @@ retro::Scaler::Scaler(
     }
 }
 
+retro::Scaler::Scaler(scaler_pix_fmt in_fmt, scaler_pix_fmt out_fmt, unsigned width, unsigned height) :
+    Scaler(in_fmt, out_fmt, SCALER_TYPE_POINT, width, height, width, height) {
+}
+
 retro::Scaler::Scaler(scaler_ctx&& ctx) noexcept {
     scaler = std::move(ctx);
     ctx = {};
