@@ -109,6 +109,8 @@ if (ENABLE_OPENGL)
     if (HAVE_OPENGL OR HAVE_OPENGLES)
         set(ENABLE_OGLRENDERER ON)
     endif ()
+else()
+    set(ENABLE_OGLRENDERER OFF CACHE BOOL "Enable OpenGL renderer" FORCE)
 endif()
 
 if (ENABLE_NETWORKING)
