@@ -53,10 +53,6 @@ if (TRACY_ENABLE)
     fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.10")
 endif()
 
-if (NOT ENABLE_OPENGL)
-    set(ENABLE_OGLRENDERER OFF CACHE BOOL "Enable OpenGL renderer")
-endif ()
-
 set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTENT_BASE_DIR}/embed-binaries-src/cmake" "${CMAKE_MODULE_PATH}")
 set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
