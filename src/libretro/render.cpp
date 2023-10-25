@@ -110,8 +110,12 @@ void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayout
 #ifdef HAVE_TRACY
     if (tracy::ProfilerAvailable()) {
         // If Tracy is connected...
+        ZoneScopedN("melonds::render::RenderSoftware::SendFrameToTracy");
         std::unique_ptr<u8 []> frame = std::make_unique<u8[]>(buffer.Width() * buffer.Height() * 4);
-        conv_argb8888_abgr8888(frame.get(), buffer[0], buffer.Width(), buffer.Height(), buffer.Stride(), buffer.Stride());
+        {
+            ZoneScopedN("conv_argb8888_abgr8888");
+            conv_argb8888_abgr8888(frame.get(), buffer[0], buffer.Width(), buffer.Height(), buffer.Stride(), buffer.Stride());
+        }
         // libretro wants pixels in XRGB8888 format,
         // but Tracy wants them in XBGR8888 format.
 
