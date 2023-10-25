@@ -117,7 +117,6 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
     }
 #endif
     retro_assert(size == melonds::_savestate_size);
-    memset(data, 0, size);
 
     Savestate state(data, size, true);
 
