@@ -27,20 +27,24 @@ struct Platform::Mutex {
 
 Mutex* Platform::Mutex_Create()
 {
+    ZoneScopedN(TracyFunction);
     return new Mutex;
 }
 
 void Platform::Mutex_Free(Mutex* mutex)
 {
+    ZoneScopedN(TracyFunction);
     delete mutex;
 }
 
 void Platform::Mutex_Lock(Mutex* mutex)
 {
+    ZoneScopedN(TracyFunction);
     mutex->mutex.lock();
 }
 
 void Platform::Mutex_Unlock(Mutex* mutex)
 {
+    ZoneScopedN(TracyFunction);
     mutex->mutex.unlock();
 }
