@@ -17,6 +17,7 @@
 #include <retro_assert.h>
 #include "content.hpp"
 #include "environment.hpp"
+#include "tracy.hpp"
 
 using std::optional;
 using std::nullopt;
@@ -72,6 +73,7 @@ void retro::content::set_loaded_content_info(
     const struct retro_game_info *gba_info,
     const struct retro_game_info *gba_save_info
 ) noexcept {
+    ZoneScopedN(TracyFunction);
     retro_assert(_loaded_nds_info == nullopt);
     retro_assert(_loaded_nds_rom == nullptr);
     retro_assert(_loaded_nds_info_ext == nullopt);
