@@ -176,13 +176,6 @@ if (ENABLE_JIT)
     endif ()
 endif ()
 
-if (HAVE_THREADS)
-    target_sources(libretro PRIVATE
-        ../rthreads/rsemaphore.c
-        ../rthreads/rsemaphore.h
-        )
-endif ()
-
 # libretro cores do not start with "lib"
 set_target_properties(libretro PROPERTIES PREFIX "")
 
