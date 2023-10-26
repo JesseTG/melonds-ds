@@ -14,9 +14,15 @@ cmake-build-*
 
 # JetBrains
 .idea/
+fileList*.txt
 
 # Build System
 artifact
 
 # Tracy
 *.tracy
+
+# Archives
+*.7z
+*.zip
+*.tar
