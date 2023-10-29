@@ -1403,6 +1403,16 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
         firmware.Header().MacAddress = mac;
     }
 
+    // fix touchscreen coords
+    currentData.TouchCalibrationADC1[0] = 0;
+    currentData.TouchCalibrationADC1[1] = 0;
+    currentData.TouchCalibrationPixel1[0] = 0;
+    currentData.TouchCalibrationPixel1[1] = 0;
+    currentData.TouchCalibrationADC2[0] = 255 << 4;
+    currentData.TouchCalibrationADC2[1] = 191 << 4;
+    currentData.TouchCalibrationPixel2[0] = 255;
+    currentData.TouchCalibrationPixel2[1] = 191;
+
     firmware.UpdateChecksums();
 }
 
