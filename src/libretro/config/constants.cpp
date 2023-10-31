@@ -218,14 +218,25 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::F
 
     retro_assert(path_is_absolute(file.path));
 
-    if (!file.is_regular_file())
+    if (!file.is_regular_file()) {
+        retro::debug("{} is not a regular file, it's not firmware", file.path);
         return false;
+    }
 
-    if (find(FIRMWARE_SIZES.begin(), FIRMWARE_SIZES.end(), file.size) == FIRMWARE_SIZES.end())
+    if (find(FIRMWARE_SIZES.begin(), FIRMWARE_SIZES.end(), file.size) == FIRMWARE_SIZES.end()) {
+        retro::debug(
+            "{} is not a known firmware size (found {} bytes, must be one of {})",
+            file.path,
+            file.size,
+            fmt::join(FIRMWARE_SIZES, ", ")
+        );
         return false;
+    }
 
-    if (string_ends_with(file.path, ".bak"))
+    if (string_ends_with(file.path, ".bak")) {
+        retro::debug("{} is a backup file, not counting it as firmware", file.path);
         return false;
+    }
 
     RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!stream)
@@ -236,8 +247,15 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::F
     int64_t bytesRead = filestream_read(stream, &buffer, sizeof(buffer));
     filestream_close(stream);
 
-    if (bytesRead < (int64_t)sizeof(buffer))
+    if (bytesRead < (int64_t)sizeof(buffer)) {
+        if (bytesRead < 0) {
+            retro::warn("Failed to read {}", file.path);
+        } else {
+            retro::warn("Failed to read {} (expected {} bytes, got {})", file.path, sizeof(buffer), bytesRead);
+        }
+
         return false;
+    }
 
     SPI_Firmware::FirmwareHeader& loadedHeader = *reinterpret_cast<SPI_Firmware::FirmwareHeader*>(&buffer);
 
