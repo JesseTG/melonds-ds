@@ -1,0 +1,44 @@
+name: Feature Request
+description: Is there something you'd like to see in melonDS DS?
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for taking the time to help improve melonDS DS!
+        Please answer the following questions to the best of your ability.
+
+  - type: textarea
+    id: info
+    attributes:
+      label: What would you like to see?
+      description: >
+        Describe the feature you'd like to see added to melonDS DS.
+        Explain how it would improve your experience.
+        If you can provide screenshots or videos, that would be great!
+      placeholder: >
+        I want to see Waluigi in melonDS DS.
+        It's always Waluigi Time,
+        so his presence as the guest of honor
+        would greatly improve the chaos.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      description: >
+        You must understand and agree to the following terms in order to submit this feature request.
+        If your behavior indicates otherwise, your request may be closed.
+      options:
+        - label: I agree to follow the [code of conduct](../blob/main/CODE_OF_CONDUCT.md).
+          required: true
+        - label: I understand that melonDS DS is not developed or maintained by the authors of melonDS.
+          required: true
+        - label: >
+            I understand that the author develops this core in his spare time,
+            and that he is under no obligation to respond to this feature request.
+          required: true
+
+  - type: markdown
+    attributes:
+      value: Thank you very much!
