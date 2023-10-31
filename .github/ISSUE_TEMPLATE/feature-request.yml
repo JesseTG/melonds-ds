@@ -21,6 +21,8 @@ body:
         It's always Waluigi Time,
         so his presence as the guest of honor
         would greatly improve the chaos.
+    validations:
+      required: true
 
   - type: checkboxes
     id: terms
