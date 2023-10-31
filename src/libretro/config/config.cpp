@@ -462,11 +462,13 @@ bool melonds::update_option_visibility() {
         set_option_visible(video::OPENGL_BETTER_POLYGONS, ShowOpenGlOptions);
         updated = true;
     }
-
+#ifdef HAVE_THREADED_RENDERER
     if (ShowSoftwareRenderOptions != oldShowSoftwareRenderOptions) {
         set_option_visible(video::THREADED_RENDERER, ShowSoftwareRenderOptions);
         updated = true;
     }
+#endif
+
 #else
     set_option_visible(video::RENDER_MODE, false);
 #endif
@@ -936,7 +938,7 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
 
     bool needsOpenGlRefresh = false;
 
-#ifdef HAVE_THREADS
+#if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
     if (const char* value = get_variable(THREADED_RENDERER); !string_is_empty(value)) {
         // Only relevant for software-rendered 3D, so no OpenGL state reset needed
         _renderSettings.Soft_Threaded = string_is_equal(value, values::ENABLED);
@@ -944,6 +946,8 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
         retro::warn("Failed to get value for {}; defaulting to {}", THREADED_RENDERER, values::ENABLED);
         _renderSettings.Soft_Threaded = true;
     }
+#else
+    _renderSettings.Soft_Threaded = false;
 #endif
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)

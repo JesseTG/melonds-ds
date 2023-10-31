@@ -121,6 +121,10 @@ embed_binaries(libretro-assets
 
 add_common_definitions(libretro)
 
+if (ENABLE_THREADED_RENDERER)
+    target_compile_definitions(libretro PUBLIC ENABLE_THREADED_RENDERER HAVE_THREADED_RENDERER)
+endif ()
+
 if (HAVE_NETWORKING)
     target_sources(libretro PRIVATE
         ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_Socket.cpp

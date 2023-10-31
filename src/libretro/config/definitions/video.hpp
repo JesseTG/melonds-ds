@@ -99,7 +99,7 @@ namespace melonds::config::definitions {
             melonds::config::values::NEAREST
         },
 #endif
-#ifdef HAVE_THREADS
+#if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
         retro_core_option_v2_definition {
             config::video::THREADED_RENDERER,
             "Threaded Software Renderer",

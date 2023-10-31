@@ -203,6 +203,11 @@ If you want to see them, you should contribute to the upstream project!
   but it cannot actually emulate the GBA.
   GBA emulation is not within the scope of melonDS;
   use a GBA emulator instead.
+- **Threaded Software Renderer:**
+  melonDS supports offloading its software renderer to a separate thread,
+  but rewinding while using it [can crash RetroArch](https://github.com/JesseTG/melonds-ds/issues/81).
+  This was holding up the release,
+  so the threaded renderer is disabled until this bug is fixed.
 - **Slot-2 Accessories:**
   Except for the [solar sensor][solar-sensor] and
   [Memory Expansion Pak][memory-pak],

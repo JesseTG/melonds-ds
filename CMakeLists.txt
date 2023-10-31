@@ -34,6 +34,9 @@ include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
 
+# Disabled by default due to https://github.com/JesseTG/melonds-ds/issues/81
+# Enable it if you're going to work on it.
+option(ENABLE_THREADED_RENDERER "Enable the threaded software renderer." OFF)
 option(BUILD_TESTING "Build test suite." OFF)
 include(CTest)
 
