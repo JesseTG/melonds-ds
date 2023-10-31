@@ -28,14 +28,14 @@ body:
         This core closely follows standalone melonDS,
         so any bugs present there may affect melonDS DS as well.
         **If the problem occurs on standalone melonDS,
-        please [open a ticket or comment on an existing one](https://github.com/melonDS-emu/melonDS/issues)
-        in its repository.**
+        please [report it or comment on an existing report](https://github.com/melonDS-emu/melonDS/issues)
+        in its issue tracker.**
         You may continue to submit this bug report,
         and it will be considered resolved when a fix upstream is integrated.
       options:
         - I don't know.
-        - Yes, in the [latest stable release](https://github.com/melonDS-emu/melonDS/releases).
-        - Yes, in the [latest `master` build](https://github.com/melonDS-emu/melonDS).
+        - Yes, in the latest stable release.
+        - Yes, in the latest commit on master.
         - No, it's a bug specific to melonDS DS.
         - Not applicable, the bug involves features not present in standalone melonDS.
       default: 0
@@ -74,6 +74,7 @@ body:
       placeholder: >
         Waluigi should not be in my computer!
         His constant screaming is making the emulator unusable.
+        Here's a screenshot of my computer without Waluigi.
     validations:
       required: true
 
@@ -81,6 +82,7 @@ body:
     id: platform
     attributes:
       label: Which platforms do you see the problem on?
+      description: Check all that apply.
       options:
         - label: Windows
         - label: macOS
