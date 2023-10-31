@@ -249,17 +249,14 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::F
         case SPI_Firmware::FirmwareConsoleType::DSLite:
             break;
         default:
+            retro::debug("{} doesn't look like valid firmware (unrecognized ConsoleType 0x{:02X})", file.path, (u8)loadedHeader.ConsoleType);
             return false;
     }
 
-    switch (loadedHeader.WifiBoard) {
-        case SPI_Firmware::WifiBoard::W015:
-        case SPI_Firmware::WifiBoard::W024:
-        case SPI_Firmware::WifiBoard::W028:
-        case SPI_Firmware::WifiBoard::Unused:
-            break;
-        default:
-            return false;
+    if (loadedHeader.Unused0[0] != 0xFF || loadedHeader.Unused0[1] != 0xFF) {
+        // Primarily used to eliminate Sega CD BIOS files (same size but these bytes are different)
+        retro::debug("{} doesn't look like valid firmware (unused 2-byte region at 0x1E is 0x{:02X})", file.path, fmt::join(loadedHeader.Unused0, ""));
+        return false;
     }
 
     memcpy(&header, &buffer, sizeof(buffer));
