@@ -134,7 +134,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
         retro_assert(NDSCart::Cart != nullptr);
     }
 #endif
-    retro_assert(size == melonds::_savestate_size);
+
     Savestate savestate((u8 *) data, size, false);
 
     if (savestate.Error) {
@@ -155,6 +155,12 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
                 "then update this core or import the save data.");
         }
 
+        return false;
+    }
+
+    if (size != melonds::_savestate_size) {
+        retro::error("Expected a {}-byte savestate, got one of {} bytes", melonds::_savestate_size, size);
+        retro::set_error_message("Can't load this savestate, most likely the ROM or the core is wrong.");
         return false;
     }
 
