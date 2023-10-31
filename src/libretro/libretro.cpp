@@ -44,6 +44,7 @@
 #include <SPU.h>
 #include <ARM.h>
 #include <fmt/format.h>
+#include <RTC.h>
 
 #include "cheats.hpp"
 #include "config.hpp"
@@ -491,6 +492,16 @@ static void melonds::render_audio() {
     retro::audio_sample_batch(audio_buffer, read);
 }
 
+static void SetConsoleTime() noexcept {
+    ZoneScopedN(TracyFunction);
+    time_t now = time(nullptr);
+    tm tm;
+    struct tm* tmPtr = localtime(&now);
+    memcpy(&tm, tmPtr, sizeof(tm)); // Reduce the odds of race conditions in case some other thread uses this
+    RTC::SetDateTime(tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    // tm.tm_mon is 0-indexed, but RTC::SetDateTime expects 1-indexed
+}
+
 namespace NDS {
     extern bool Running;
 }
@@ -648,6 +659,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
         NDS::Reset();
     }
 
+    SetConsoleTime();
     if (NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
         melonds::set_up_direct_boot(nds_info.value());
     }
@@ -839,6 +851,8 @@ static void melonds::load_games_deferred(
         ZoneScopedN("NDS::Reset");
         NDS::Reset();
     }
+
+    SetConsoleTime();
 
     if (nds_info && NDSCart::Cart && !NDSCart::Cart->GetHeader().IsDSiWare()) {
         set_up_direct_boot(*nds_info);

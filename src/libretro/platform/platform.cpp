@@ -33,6 +33,7 @@
 #include "../format.hpp"
 #include "retro/scaler.hpp"
 #include "sram.hpp"
+#include "tracy.hpp"
 
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
@@ -207,6 +208,11 @@ static void sleep_impl(u64 usecs) {
 
 void Platform::Sleep(u64 usecs) {
     sleep_impl(usecs);
+}
+
+void Platform::WriteDateTime(int year, int month, int day, int hour, int minute, int second) {
+    ZoneScopedN(TracyFunction);
+    retro::debug("Platform::WriteDateTime({}, {}, {}, {}, {}, {})", year, month, day, hour, minute, second);
 }
 
 void Platform::Camera_Start(int num) {
