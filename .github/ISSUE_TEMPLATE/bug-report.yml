@@ -5,7 +5,7 @@ labels: ["bug"]
 body:
   - type: markdown
     attributes:
-      value: |
+      value: >
         Thanks for taking the time to help improve melonDS DS!
         Please answer the following questions to the best of your ability.
 
@@ -13,7 +13,7 @@ body:
     id: version
     attributes:
       label: What version of melonDS DS are you using?
-      description: |
+      description: >
         Different frontends have their own ways of showing this info.
         In RetroArch, check the lower-left corner of the screen
         when paused while the core is loaded.
@@ -25,7 +25,7 @@ body:
     id: upstream
     attributes:
       label: Does the problem happen in upstream melonDS?
-      description: |
+      description: >
         This core stays close to upstream melonDS,
         so any bugs present there may affect melonDS DS as well.
         
@@ -47,7 +47,7 @@ body:
     id: observed
     attributes:
       label: What happened?
-      description: |
+      description: >
         Describe the problem you're having,
         and provide as much information as you can to help us reproduce it.
         Please attach logs, screenshots, videos, savestates, or save data
@@ -55,7 +55,7 @@ body:
 
         **Include steps to reproduce the problem if possible;**
         bugs that are easy to reproduce are much easier to fix!
-      placeholder: |
+      placeholder: >
         Waluigi is in my computer! Here's a log:
         ```
         [  0.000000] [FATAL] Waluigi is in your computer!
@@ -67,12 +67,12 @@ body:
     id: expected
     attributes:
       label: What should've happened instead?
-      description: |
+      description: >
         Please describe what you expected to happen.
         If possible, a screenshot of the expected behavior
         in upstream [melonDS](https://melonds.kuribo64.net)
         or another emulator would be helpful.
-      placeholder: |
+      placeholder: >
         Waluigi should not be in my computer!
         His constant screaming is making the emulator unusable.
     validations:
@@ -105,7 +105,7 @@ body:
     id: frontend
     attributes:
       label: Which libretro frontend are you using?
-      description: |
+      description: >
         melonDS DS is primarily designed for RetroArch,
         but it will work on other libretro frontends as well.
         Tell me which frontend(s) you've seen the problem on,
@@ -118,7 +118,7 @@ body:
     id: terms
     attributes:
       label: Terms
-      description: |
+      description: >
         You must understand and agree to the following terms in order to submit this bug report.
         If your behavior indicates otherwise, your report may be closed.
       options:
@@ -126,7 +126,7 @@ body:
           required: true
         - label: I understand that melonDS DS is not developed or maintained by the authors of melonDS.
           required: true
-        - label: |
+        - label: >
             I understand that the author develops this core in his spare time,
             and that he is under no obligation to respond to this bug report.
           required: true
