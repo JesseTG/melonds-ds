@@ -127,6 +127,8 @@ body:
           required: true
         - label: I understand that melonDS DS is not developed or maintained by the authors of melonDS.
           required: true
+        - label: I understand that this form is for reporting bugs, not for requesting help.
+          required: true
         - label: >
             I understand that the author develops this core in his spare time,
             and that he is under no obligation to respond to this bug report.
