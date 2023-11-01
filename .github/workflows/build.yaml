@@ -136,7 +136,7 @@ jobs:
             -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
             -DMELONDS_REPOSITORY_TAG="${{ vars.MELONDS_REPOSITORY_TAG }}" \
             -DBUILD_TESTING=ON \
-            -DRETROARCH="${{ github.workspace }}/RetroArch/retroarch" \
+            -DRETROARCH="$(which retroarch)" \
             -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
             -DARM9_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_BIOS }}" \
             -DARM7_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_DSI_BIOS }}" \

@@ -38,6 +38,11 @@ runs:
       shell: bash
       run: brew install pkg-config cmake ninja ccache
 
+    - name: Add RetroArch PPA
+      if: inputs.test-suite == 'true'
+      shell: bash
+      run: sudo add-apt-repository --yes ppa:libretro/stable
+
       # Skip this step on act due to https://github.com/nektos/act/issues/1849
     - name: Install Dependencies (Linux x86_64/Android)
       if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
@@ -49,7 +54,7 @@ runs:
     - name: Install Dependencies (Linux x86_64/Android + act)
       if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       shell: bash
-      run: sudo apt-get update -qy && sudo apt-get install -qy libepoxy-dev ccache ninja-build cmake p7zip-full xvfb libx11-xcb-dev xdg-utils x11-xserver-utils
+      run: sudo apt-get update -qy && sudo apt-get install -qy libepoxy-dev ccache ninja-build cmake p7zip-full xvfb libx11-xcb-dev xdg-utils x11-xserver-utils retroarch
 
     - name: Install Cross-Compile Support (Linux aarch64)
       if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
@@ -84,80 +89,6 @@ runs:
       working-directory: "${{ inputs.testfile-dir }}"
       shell: bash
       run: 7z x "${{ inputs.dsi-nand-archive }}"
-
-    - name: Check Out RetroArch
-      if: inputs.test-suite == 'true'
-      uses: actions/checkout@v3
-      with:
-        repository: libretro/RetroArch
-        path: "${{ github.workspace }}/RetroArch"
-        ref: "5b2ed5c9ee45c0ecb740f4835db30189e84058a5"
-        token: "${{ inputs.testfile-repo-token }}"
-
-    - name: Configure RetroArch
-      if: inputs.test-suite == 'true'
-      env:
-        CC: "ccache gcc"
-        CXX: "ccache g++"
-      working-directory: "${{ github.workspace }}/RetroArch"
-      shell: bash
-      run: |
-        ./configure \
-          --disable-accessibility \
-          --disable-alsa \
-          --disable-builtinbearssl \
-          --disable-builtinmbedtls \
-          --disable-cdrom \
-          --disable-cg \
-          --disable-chd \
-          --disable-core_info_cache \
-          --disable-crtswitchres \
-          --disable-discord \
-          --disable-egl \
-          --disable-ffmpeg \
-          --disable-flac \
-          --disable-freetype \
-          --disable-gfx_widgets \
-          --disable-ibxm \
-          --disable-imageviewer \
-          --disable-jack \
-          --disable-libretrodb \
-          --disable-materialui \
-          --disable-netplaydiscovery \
-          --disable-networkgamepad \
-          --disable-online_updater \
-          --disable-oss \
-          --disable-overlay \
-          --disable-ozone \
-          --disable-parport \
-          --disable-patch \
-          --disable-pulse \
-          --disable-qt \
-          --disable-runahead \
-          --disable-sixel \
-          --disable-ssa \
-          --disable-ssl \
-          --disable-stb_image \
-          --disable-stb_vorbis \
-          --disable-systemd \
-          --disable-systemmbedtls \
-          --disable-translate \
-          --disable-update_assets \
-          --disable-update_core_info \
-          --disable-update_cores \
-          --disable-vg \
-          --disable-video_filter \
-          --disable-videocore \
-          --disable-videoprocessor \
-          --disable-xmb \
-          --enable-command \
-          --enable-sse
-
-    - name: Build RetroArch
-      if: inputs.test-suite == 'true'
-      shell: bash
-      working-directory: "${{ github.workspace }}/RetroArch"
-      run: make -j$(nproc)
 
     - name: Install Go
       if: inputs.test-suite == 'true'
