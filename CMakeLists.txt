@@ -26,6 +26,7 @@ find_package(Git REQUIRED)
 include(GitInfo)
 
 message(STATUS "Git revision: ${GIT_REVISION}")
+message(STATUS "Git state: ${GIT_STATE}")
 
 option(TRACY_ENABLE "Build with Tracy support." OFF)
 
