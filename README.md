@@ -320,7 +320,7 @@ cmake -B build # Generate the build system, and add any -D or --toolchain flags 
 cmake --build build # Build the project
 ```
 
-However, some platforms need you to add some extra flags to the first `cmake` command:
+However, some platforms or features need you to add some extra flags to the first `cmake` command:
 
 ### Android
 
@@ -357,6 +357,11 @@ but the paths will be different.
 See [here](https://developer.android.com/ndk/guides/cmake#variables) for more information
 about these and other Android-specific CMake variables.
 
+### Tracy Integration
+
+melonDS DS supports the [Tracy](https://github.com/wolfpld/tracy) frame profiler.
+To enable it, add `-DTRACY_ENABLE=ON` to the initial `cmake` command.
+
 ## CMake Variables
 
 These are some of the most important CMake variables
@@ -367,6 +372,7 @@ To see the rest, run `cmake -LH` in the build directory.
 |----------------------------------|------------------------------------------------------------------------------------------------------------------------|
 | `ENABLE_OPENGL`                  | Whether to build the OpenGL renderer. Defaults to `ON` on Windows and Linux, `OFF` on other platforms.                 |
 | `ENABLE_THREADED_RENDERER`       | Enables the multithreaded software renderer. Crashes when rewinding in RetroArch, so it's not generally available yet. |
+| `TRACY_ENABLE`                   | Enables the Tracy frame profiler.                                                                                      |
 | `MELONDS_REPOSITORY_URL`         | The Git repo from which melonDS will be cloned. Set this to use a fork.                                                |
 | `MELONDS_REPOSITORY_TAG`         | The melonDS commit to use in the build.                                                                                |
 | `LIBRETRO_COMMON_REPOSITORY_URL` | The Git repo from which `libretro-common` will be cloned. Set this to use a fork.                                      |
