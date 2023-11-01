@@ -643,6 +643,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         size_t basePathLength = strnlen(melon_dir, sizeof(melon_dir));
         if (basePathLength > 0 && melon_dir[basePathLength - 1] == '/')
             melon_dir[basePathLength - 1] = '\0';
+        // TODO: Normalize the save directory path the same way we're doing so here
         retro::info("System directory: \"{}\"", melon_dir);
         retro::_system_directory = melon_dir;
 
