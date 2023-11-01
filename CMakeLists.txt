@@ -25,15 +25,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 find_package(Git REQUIRED)
 include(GitInfo)
 
-message(STATUS "Git revision: ${GIT_REVISION}")
-message(STATUS "Git state: ${GIT_STATE}")
-
 option(TRACY_ENABLE "Build with Tracy support." OFF)
 
 include(cmake/utils.cmake)
 include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
+
+set(MELONDSDS_VERSION "${MELONDSDS_INFO_display_version} (${GIT_STATE}, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
+message(STATUS "${MELONDSDS_INFO_corename} Version: ${MELONDSDS_VERSION}")
 
 # Disabled by default due to https://github.com/JesseTG/melonds-ds/issues/81
 # Enable it if you're going to work on it.

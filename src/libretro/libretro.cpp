@@ -142,10 +142,11 @@ PUBLIC_SYMBOL void retro_init(void) {
 #ifdef HAVE_TRACY
     tracy::StartupProfiler();
 #endif
-    TracySetProgramName(MELONDSDS_NAME);
+    TracySetProgramName(MELONDSDS_VERSION_STRING);
     ZoneScopedN("retro_init");
     retro::env::init();
     retro::debug("retro_init");
+    retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
     retro_assert(NDSCart::Cart == nullptr);
     retro_assert(GBACart::Cart == nullptr);
     retro_assert(retro::content::get_loaded_nds_info() == nullopt);
