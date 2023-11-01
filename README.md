@@ -234,7 +234,7 @@ melonDS DS is compatible with all games that melonDS supports,
 unless otherwise noted in the [Missing Features section](#missing-features).
 If this is not the case, please [report it][issue-tracker].
 
-## Libretro Frontends
+## Frontends
 
 melonDS DS primarily targets RetroArch,
 but you may be able to use it with other libretro frontends.
@@ -242,9 +242,22 @@ If you encounter problems using this core with other frontends,
 please [report them][issue-tracker]!
 Support is not guaranteed, but I'll do the best I can.
 
+## Platforms
+
+melonDS DS will run on the following platforms,
+assuming it's used with a frontend that also supports them:
+
+- Windows
+- macOS
+- Linux
+- Android
+- iOS
+
+Available features may vary depending on the platform and frontend.
+
 # Building
 
-MelonDS DS is built with CMake.
+melonDS DS is built with CMake.
 
 ## Dependencies
 
