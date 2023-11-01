@@ -320,6 +320,43 @@ cmake -B build # Generate the build system, and add any -D or --toolchain flags 
 cmake --build build # Build the project
 ```
 
+However, some platforms need you to add some extra flags to the first `cmake` command:
+
+### Android
+
+You will need to add the following flags in order to build for Android.
+
+- `--toolchain=...`:
+  The path to the `android.toolchain.cmake` file in your NDK installation.
+  The location varies depending on how you installed the NDK;
+  it will most likely be in `$ANDROID_SDK/ndk/$NDK_VERSION/build/cmake`.
+- `-DANDROID_ABI=...`:
+  The ABI to build for.
+  This should be one of `arm64-v8a`, `armeabi-v7a`, `x86`, or `x86_64`.
+  If in doubt, use `arm64-v8a`.
+- `-DANDROID_PLATFORM=...`:
+  The Android API level to target.
+  The minimum level supported by melonDS DS is 24.
+
+You should also use the version of `cmake` that the NDK includes.
+
+Here's an example configure step for `cmake` on Windows.
+This command uses the NDK-bundled toolchain
+to prepare a 64-bit ARM build for Android API level 24.
+
+```pwsh
+PS C:\Users\Jesse\Projects\melonds-ds> $Env:LOCALAPPDATA\Android\Sdk\cmake\3.22.1\bin\cmake.exe `
+    -DANDROID_ABI=arm64-v8a `
+    -DANDROID_PLATFORM=24 `
+    -DCMAKE_TOOLCHAIN_FILE=$Env:LOCALAPPDATA\Android\Sdk\ndk\25.2.9519653\build\cmake\android.toolchain.cmake
+```
+
+The command will be more or less the same on other platforms,
+but the paths will be different.
+
+See [here](https://developer.android.com/ndk/guides/cmake#variables) for more information
+about these and other Android-specific CMake variables.
+
 ## CMake Variables
 
 These are some of the most important CMake variables
