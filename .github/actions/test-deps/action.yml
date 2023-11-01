@@ -1,0 +1,61 @@
+name: Install Test Suite Dependencies
+description: Install Test Suite Dependencies
+inputs:
+  target:
+    description: Platform target
+    required: true
+  testfile-dir:
+    description: Directory containing the test files
+    required: false
+    default: "testfiles"
+  testfile-repo:
+    description: Repository containing the test files
+    required: true
+  testfile-repo-token:
+    description: Token for the repository containing the test files
+    required: true
+  dsi-nand-archive:
+    description: Name of the DSI NAND archive
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Add RetroArch PPA (Linux)
+      if: ${{ runner.os == 'Linux' }}
+      shell: bash
+      run: sudo add-apt-repository --yes ppa:libretro/stable
+
+      # Skip this step on act due to https://github.com/nektos/act/issues/1849
+    - name: Install Dependencies (Linux x86_64/Android)
+      if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: cmake p7zip-full xvfb xdg-utils x11-xserver-utils retroarch
+        version: 1.0
+
+    - name: Install Dependencies (Linux x86_64/Android + act)
+      if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+      shell: bash
+      run: sudo apt-get update -qy && sudo apt-get install -qy cmake p7zip-full xvfb xdg-utils x11-xserver-utils retroarch
+
+    - name: Download Test Files
+      uses: actions/checkout@v3
+      with:
+        repository: "${{ inputs.testfile-repo }}"
+        token: "${{ inputs.testfile-repo-token }}"
+        path: "${{ inputs.testfile-dir }}"
+
+    - name: Prepare Test Files
+      working-directory: "${{ inputs.testfile-dir }}"
+      shell: bash
+      run: 7z x "${{ inputs.dsi-nand-archive }}"
+
+    - name: Install Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '^1.21.0'
+
+    - name: Install Emutest
+      shell: bash
+      run: go install github.com/kivutar/emutest@latest

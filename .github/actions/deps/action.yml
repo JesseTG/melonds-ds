@@ -4,23 +4,6 @@ inputs:
   target:
     description: Platform target
     required: true
-  test-suite:
-    description: True if running the test suite
-    required: false
-    default: "false"
-  testfile-dir:
-    description: Directory containing the test files
-    required: false
-    default: "testfiles"
-  testfile-repo:
-    description: Repository containing the test files
-    required: true
-  testfile-repo-token:
-    description: Token for the repository containing the test files
-    required: true
-  dsi-nand-archive:
-    description: Name of the DSI NAND archive
-    required: true
 
 runs:
   using: composite
@@ -38,23 +21,18 @@ runs:
       shell: bash
       run: brew install pkg-config cmake ninja ccache
 
-    - name: Add RetroArch PPA
-      if: inputs.test-suite == 'true'
-      shell: bash
-      run: sudo add-apt-repository --yes ppa:libretro/stable
-
       # Skip this step on act due to https://github.com/nektos/act/issues/1849
     - name: Install Dependencies (Linux x86_64/Android)
       if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: cmake ninja-build libepoxy-dev ccache p7zip-full xvfb libx11-xcb-dev xdg-utils x11-xserver-utils retroarch
-        version: 1.0
+        packages: cmake ninja-build libepoxy-dev ccache
+        version: 1.1
 
     - name: Install Dependencies (Linux x86_64/Android + act)
       if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       shell: bash
-      run: sudo apt-get update -qy && sudo apt-get install -qy libepoxy-dev ccache ninja-build cmake p7zip-full xvfb libx11-xcb-dev xdg-utils x11-xserver-utils retroarch
+      run: sudo apt-get update -qy && sudo apt-get install -qy libepoxy-dev cmake ninja-build libepoxy-dev ccache
 
     - name: Install Cross-Compile Support (Linux aarch64)
       if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
@@ -73,30 +51,5 @@ runs:
       uses: hendrikmuhs/ccache-action@v1.2.10
       with:
         key: ${{ inputs.target }}-${{ matrix.build-type }}
-        variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }}
+        variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
         # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
-
-    - name: Download Test Files
-      if: inputs.test-suite == 'true'
-      uses: actions/checkout@v3
-      with:
-        repository: "${{ inputs.testfile-repo }}"
-        token: "${{ inputs.testfile-repo-token }}"
-        path: "${{ inputs.testfile-dir }}"
-
-    - name: Prepare Test Files
-      if: inputs.test-suite == 'true'
-      working-directory: "${{ inputs.testfile-dir }}"
-      shell: bash
-      run: 7z x "${{ inputs.dsi-nand-archive }}"
-
-    - name: Install Go
-      if: inputs.test-suite == 'true'
-      uses: actions/setup-go@v4
-      with:
-        go-version: '^1.21.0'
-
-    - name: Install Emutest
-      if: inputs.test-suite == 'true'
-      shell: bash
-      run: go install github.com/kivutar/emutest@latest

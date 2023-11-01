@@ -1,0 +1,101 @@
+name: Test Suite (Internal)
+on:
+  workflow_call:
+    secrets:
+      TESTFILE_REPO_TOKEN:
+        required: true
+      TESTFILE_REPO:
+        required: true
+      ARM7_BIOS:
+        required: true
+      ARM9_BIOS:
+        required: true
+      ARM7_DSI_BIOS:
+        required: true
+      ARM9_DSI_BIOS:
+        required: true
+      NDS_FIRMWARE:
+        required: true
+      DSI_FIRMWARE:
+        required: true
+      NDS_ROM:
+        required: true
+      DSI_NAND_ARCHIVE:
+        required: true
+      DSI_NAND:
+        required: true
+    inputs:
+      cmake-args:
+        description: Additional arguments to pass to CMake.
+        type: string
+        required: false
+      runs-on:
+        description: The platform on which the workflow will be run. Passed directly to jobs.<job_id>.runs-on.
+        type: string
+        required: true
+      shell:
+        description: The shell to use for running commands. Passed directly to jobs.<job_id>.defaults.run.shell.
+        type: string
+        required: false
+        default: bash
+      build-dir:
+        description: The directory in which to build the project.
+        type: string
+        required: false
+        default: "build"
+      archive-name:
+        description: The name of the archive to upload.
+        type: string
+        required: true
+      target:
+        description: The platform target.
+        type: string
+        required: true
+env:
+  BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
+  TESTFILE_DIR: "${{ github.workspace }}/testfiles"
+jobs:
+  build:
+    runs-on: ${{ inputs.runs-on }}
+    defaults:
+      run:
+        shell: ${{ inputs.shell }}
+    steps:
+      - name: Check Out Source
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        uses: ./.github/actions/test-deps
+        with:
+          target: ${{ inputs.target }}
+          testfile-repo: ${{ secrets.TESTFILE_REPO }}
+          testfile-repo-token: ${{ secrets.TESTFILE_REPO_TOKEN }}
+          dsi-nand-archive: ${{ secrets.DSI_NAND_ARCHIVE }}
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: "zzz-not-for-players-cmake-build-${{ inputs.archive-name }}-Debug"
+          path: "${{ env.BUILD_DIR }}"
+
+      - name: Configure Test Suite
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: |
+          cmake "${{ github.workspace }}" \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
+            -DMELONDS_REPOSITORY_TAG="${{ vars.MELONDS_REPOSITORY_TAG }}" \
+            -DBUILD_TESTING=ON \
+            -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
+            -DARM9_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_BIOS }}" \
+            -DARM7_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_DSI_BIOS }}" \
+            -DARM9_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_DSI_BIOS }}" \
+            -DNDS_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_FIRMWARE }}" \
+            -DDSI_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_FIRMWARE }}" \
+            -DDSI_NAND="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_NAND }}" \
+            -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
+            ${{ inputs.cmake-args }}
+
+      - name: Run Test Suite
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: xvfb-run ctest --extra-verbose --exclude-regex example --output-on-failure
