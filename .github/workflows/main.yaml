@@ -87,7 +87,6 @@ jobs:
       archive-name: melondsds_libretro-linux-x86_64
       target: linux-x86_64
       runs-on: ubuntu-latest
-      lib-ext: so
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
