@@ -198,6 +198,7 @@ bool melonds::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const ch
     snprintf(url, sizeof(url), "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd",
              header.DSiTitleIDHigh, header.DSiTitleIDLow);
     // The URL comes from here https://problemkaputt.de/gbatek.htm#dsisdmmcdsiwarefilesfromnintendosserver
+    // Example: http://nus.cdn.t.shop.nintendowifi.net/ccs/download/00030015484e4250/tmd
 
     info("Downloading title metadata from \"{}\"", url);
 

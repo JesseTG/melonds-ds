@@ -1,0 +1,25 @@
+name: Validate URLs
+
+on:
+  push:
+    branches:
+      - main
+    paths: ["**.md", "**.yaml", "**.yml", "**.cpp", "**.hpp", "**.cmake", "**.txt"]
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight UTC
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Source
+        uses: actions/checkout@v3
+
+      - name: Validate URLs
+        uses: urlstechie/urlchecker-action@0.0.34
+        with:
+          file_types: .md,.yaml,.yml,.cpp,.hpp,.cmake,.txt
+          print_all: false
+          timeout: 10
+          retry_count: 3
+          exclude_patterns: http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd,http://www.gnu.org/licenses/
