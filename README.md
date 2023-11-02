@@ -247,13 +247,17 @@ Support is not guaranteed, but I'll do the best I can.
 melonDS DS will run on the following platforms,
 assuming it's used with a frontend that also supports them:
 
-- Windows
-- macOS
-- Linux
-- Android
-- iOS
+- Windows (x86_64)
+- macOS (x86_64 and arm64)
+- Linux (x86_64 and arm64)
+- Android (arm64)
+- iOS (arm64)
 
 Available features may vary depending on the platform and frontend.
+
+The legacy melonDS core has builds for the Nintendo Switch
+and for 32-bit versions of the above platforms,
+_but melonDS DS will not support these platforms unless there's enough demand_.
 
 # Building
 
