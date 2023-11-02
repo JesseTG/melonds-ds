@@ -105,6 +105,7 @@ jobs:
           mkdir -vp "$CORES_PATH" "$INFO_PATH"
           cp -f "${{ env.BUILD_DIR }}/src/libretro/melondsds_libretro.${{ inputs.lib-ext }}" "$CORES_PATH"
           cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH/melondsds_libretro.info"
+          cp -f "${{ env.BUILD_DIR }}/melondsds-LICENSE.txt" "$CORES_PATH"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
