@@ -181,16 +181,7 @@ if (ENABLE_JIT)
 endif ()
 
 # libretro cores do not start with "lib"
-set_target_properties(libretro PROPERTIES PREFIX "")
-
-# Most platforms use the name "<core name>_libretro", but a few have their own conventions
-if(CMAKE_SYSTEM_NAME STREQUAL "tvOS")
-    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_tvos")
-elseif(IOS)
-    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro_ios")
-else()
-    set_target_properties(libretro PROPERTIES OUTPUT_NAME "melondsds_libretro")
-endif()
+set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
 
 # Some platforms or compilers don't use the expected suffixes for shared libraries
 if (APPLE)

@@ -35,11 +35,6 @@ on:
         type: string
         required: false
         default: "build/dist"
-      lib-name:
-        description: The name of the library to build.
-        type: string
-        required: false
-        default: melondsds_libretro
       lib-ext:
         description: The extension of the library to build.
         type: string
@@ -108,8 +103,8 @@ jobs:
           INFO_PATH: "${{ env.DIST_DIR }}/${{ inputs.info-dir }}"
         run: |
           mkdir -vp "$CORES_PATH" "$INFO_PATH"
-          cp -f "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.lib-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
-          cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH/${{ inputs.lib-name }}.info"
+          cp -f "${{ env.BUILD_DIR }}/src/libretro/melondsds_libretro.${{ inputs.lib-ext }}" "$CORES_PATH"
+          cp -f "${{ github.workspace }}/melondsds_libretro.info" "$INFO_PATH/melondsds_libretro.info"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
