@@ -77,6 +77,18 @@ jobs:
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
+  tvos:
+    name: tvOS
+    uses: ./.github/workflows/build.yaml
+    with:
+      runs-on: macos-latest
+      target: tvos
+      archive-name: melondsds_libretro-tvos
+      info-dir: info
+      lib-ext: dylib
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14
+      # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
+
   test-linux-x86_64:
     name: Test Suite (Linux x86_64)
     uses: ./.github/workflows/test.yaml
