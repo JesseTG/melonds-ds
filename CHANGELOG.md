@@ -7,6 +7,10 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
+Nothing right now.
+
+## [0.7.2] - 2023-11-02
+
 ### Added
 
 - Added changelog.
@@ -14,3 +18,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
   the threaded software renderer,
   OpenGL support for macOS,
   and support for 32-bit platforms and the Switch.
+
+### Changed
+
+- Test release to see what happens.
