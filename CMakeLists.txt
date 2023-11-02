@@ -32,6 +32,10 @@ include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
 
+if (NOT GIT_STATE)
+    set(GIT_STATE "no-git")
+endif ()
+
 set(MELONDSDS_VERSION "${MELONDSDS_INFO_display_version} (${GIT_STATE}, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
 message(STATUS "${MELONDSDS_INFO_corename} Version: ${MELONDSDS_VERSION}")
 
