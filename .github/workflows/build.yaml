@@ -114,6 +114,7 @@ jobs:
           path: "${{ env.DIST_DIR }}"
 
       - name: Remove Extra Artifacts
+        if: ${{ matrix.build-type == 'Debug' && inputs.test-suite }}
         run: |
           rm -rf "${{ env.BUILD_DIR }}/_deps" "${{ env.BUILD_DIR }}/src/libretro/CMakeFiles"
         # Remove various files that we won't need to pass to the test suite
