@@ -2,6 +2,8 @@ name: Build Artifacts
 
 on:
   push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
     branches:
       - main
   pull_request:
@@ -109,3 +111,15 @@ jobs:
       NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
       DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
       NDS_ROM: ${{ secrets.NDS_ROM }}
+
+  release:
+    name: Release Build
+    needs: [ windows, macos, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Source
+        uses: actions/checkout@v3
+      - name: Create Release
+        uses: dropseed/changerelease@v1.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
