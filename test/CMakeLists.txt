@@ -79,12 +79,12 @@ function(add_retroarch_test)
         NAME "${RETRO_NAME}"
         COMMAND ${Python3_EXECUTABLE}
             "${CMAKE_CURRENT_SOURCE_DIR}/python/retroarch.py"
-            --libretro "$<TARGET_FILE:libretro>"
+            --libretro "$<TARGET_FILE:melondsds_libretro>"
             --max-frames=${RETRO_MAX_FRAMES}
             "${RETRO_CONTENT}"
     )
 
-    list(APPEND REQUIRED_FILES "$<TARGET_FILE:libretro>")
+    list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
     if (RETRO_CONTENT)
         list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
     endif()
@@ -148,13 +148,13 @@ function(add_emutest_test)
     add_test(
         NAME "${RETRO_NAME}"
         COMMAND ${EMUTEST}
-        -L "$<TARGET_FILE:libretro>"
+        -L "$<TARGET_FILE:melondsds_libretro>"
         -r "${RETRO_CONTENT}"
         -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/${RETRO_TEST_SCRIPT}"
     )
 
     list(APPEND REQUIRED_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
-    list(APPEND REQUIRED_FILES "$<TARGET_FILE:libretro>")
+    list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
     if (RETRO_CONTENT)
         list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
     endif()
