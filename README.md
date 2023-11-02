@@ -341,7 +341,7 @@ However, some platforms or features need you to add some extra flags to the firs
 
 ### Android
 
-You will need to add the following flags in order to build for Android.
+You'll need to add the following flags to build for Android.
 
 - `--toolchain=...`:
   The path to the `android.toolchain.cmake` file in your NDK installation.
@@ -349,7 +349,7 @@ You will need to add the following flags in order to build for Android.
   it will most likely be in `$ANDROID_SDK/ndk/$NDK_VERSION/build/cmake`.
 - `-DANDROID_ABI=...`:
   The ABI to build for.
-  This should be one of `arm64-v8a`, `armeabi-v7a`, `x86`, or `x86_64`.
+  This should be `arm64-v8a` or `x86_64`.
   If in doubt, use `arm64-v8a`.
 - `-DANDROID_PLATFORM=...`:
   The Android API level to target.
@@ -373,6 +373,21 @@ but the paths will be different.
 
 See [here](https://developer.android.com/ndk/guides/cmake#variables) for more information
 about these and other Android-specific CMake variables.
+
+### iOS/tvOS
+
+You will need to add the following flags to build for iOS or tvOS:
+
+- `--toolchain=./cmake/toolchain/ios.toolchain.cmake`:
+  The path to the `ios.toolchain.cmake` that's bundled with melonDS DS.
+- `-DPLATFORM=...`:
+  The target platform to build for.
+  Use `OS64` for iOS and `TVOS` for tvOS.
+  See `cmake/toolchain/ios.toolchain.cmake` for more information
+  about the available CMake variables that this toolchain defines.
+- `-DDEPLOYMENT_TARGET=...`:
+  The minimum SDK version to target.
+  The minimum level supported by melonDS DS is 14.
 
 ### Tracy Integration
 
