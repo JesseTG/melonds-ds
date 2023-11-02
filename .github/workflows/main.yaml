@@ -74,7 +74,7 @@ jobs:
       archive-name: melondsds_libretro-ios
       info-dir: info
       lib-ext: dylib
-      cmake-args: -DENABLE_OGLRENDERER=OFF -DENABLE_JIT=OFF --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=13.0 -DDEPLOYMENT_TARGET=14 -DENABLE_STRICT_TRY_COMPILE_INT:BOOL=ON
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   test-linux-x86_64:

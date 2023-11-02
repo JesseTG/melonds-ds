@@ -1,18 +1,7 @@
 # Detects the presence of various libraries or functions and sets the appropriate HAVE_* variables.
 # Other files are used to actually configure the build.
 
-if (ANDROID)
-    set(DEFAULT_OPENGL_PROFILE OpenGLES2)
-else ()
-    set(DEFAULT_OPENGL_PROFILE OpenGL)
-endif ()
 
-if (ANDROID OR IOS OR APPLE)
-    message(STATUS "Disabling OpenGL because it's not supported on this platform")
-    set(DEFAULT_ENABLE_OPENGL OFF)
-else ()
-    set(DEFAULT_ENABLE_OPENGL ON)
-endif ()
 
 option(ENABLE_DYNAMIC "Build with dynamic library support, if supported by the target." ON)
 option(ENABLE_EGL "Build with EGL support, if supported by the target." OFF)
@@ -20,9 +9,6 @@ option(ENABLE_NETWORKING "Build with networking support, if supported by the tar
 option(ENABLE_SCCACHE "Build with sccache instead of ccache, if available." OFF)
 option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_GLSM_DEBUG "Enable debug output for GLSM." OFF)
-option(ENABLE_OPENGL "Enable OpenGL support. Not supported on all platforms; defaults to OFF in such case." ${DEFAULT_ENABLE_OPENGL})
-set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL', 'OpenGLES2', 'OpenGLES3', 'OpenGLES31', and 'OpenGLES32'.")
-set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
 if (ENABLE_SCCACHE)
     find_program(SCCACHE "sccache" PATHS "$ENV{HOME}/.cargo/bin")
