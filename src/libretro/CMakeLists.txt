@@ -3,7 +3,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(embed-binaries)
 
-add_library(libretro MODULE
+add_library(melondsds_libretro MODULE
     "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     buffer.cpp
     buffer.hpp
@@ -79,7 +79,7 @@ add_library(libretro MODULE
     ../pntr/pntr.c
 )
 
-target_include_directories(libretro SYSTEM PUBLIC
+target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
     "${glm_SOURCE_DIR}"
@@ -87,7 +87,7 @@ target_include_directories(libretro SYSTEM PUBLIC
     "${fmt_SOURCE_DIR}/include"
     )
 
-target_include_directories(libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
+target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
 
 embed_binaries(libretro-assets
     ASSET
@@ -119,84 +119,84 @@ embed_binaries(libretro-assets
         PATH "assets/OpenSans_Condensed-SemiBold.ttf"
 )
 
-add_common_definitions(libretro)
+add_common_definitions(melondsds_libretro)
 
 if (ENABLE_THREADED_RENDERER)
-    target_compile_definitions(libretro PUBLIC ENABLE_THREADED_RENDERER HAVE_THREADED_RENDERER)
+    target_compile_definitions(melondsds_libretro PUBLIC ENABLE_THREADED_RENDERER HAVE_THREADED_RENDERER)
 endif ()
 
 if (HAVE_NETWORKING)
-    target_sources(libretro PRIVATE
+    target_sources(melondsds_libretro PRIVATE
         ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_Socket.cpp
         platform/lan.cpp
     )
 
-    target_include_directories(libretro SYSTEM PRIVATE "${melonDS_SOURCE_DIR}/src/frontend/qt_sdl")
+    target_include_directories(melondsds_libretro SYSTEM PRIVATE "${melonDS_SOURCE_DIR}/src/frontend/qt_sdl")
 
     if (HAVE_NETWORKING_DIRECT_MODE)
-        target_sources(libretro PRIVATE
+        target_sources(melondsds_libretro PRIVATE
             ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_PCap.cpp
         )
     endif()
 endif ()
 
 if (TRACY_ENABLE)
-    target_sources(libretro PRIVATE tracy.cpp)
+    target_sources(melondsds_libretro PRIVATE tracy.cpp)
 endif ()
 
 if (HAVE_OPENGL OR HAVE_OPENGLES)
-    target_sources(libretro PRIVATE opengl.cpp)
+    target_sources(melondsds_libretro PRIVATE opengl.cpp)
 endif()
 
 if (HAVE_OPENGL)
     if (APPLE)
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-framework,OpenGL")
     endif ()
-    target_link_libraries(libretro PUBLIC OpenGL::GL)
-    target_include_directories(libretro SYSTEM PUBLIC "${OPENGL_INCLUDE_DIR}")
+    target_link_libraries(melondsds_libretro PUBLIC OpenGL::GL)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OPENGL_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES1)
-    target_link_libraries(libretro PUBLIC OpenGLES::OpenGLESv1)
-    target_include_directories(libretro SYSTEM PUBLIC "${OpenGLES_V1_INCLUDE_DIR}")
+    target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv1)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OpenGLES_V1_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES2)
-    target_link_libraries(libretro PUBLIC OpenGLES::OpenGLESv2)
-    target_include_directories(libretro SYSTEM PUBLIC "${OpenGLES_V2_INCLUDE_DIR}")
+    target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv2)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OpenGLES_V2_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES3)
-    target_link_libraries(libretro PUBLIC OpenGLES::OpenGLESv3)
-    target_include_directories(libretro SYSTEM PUBLIC "${OpenGLES_V3_INCLUDE_DIR}")
+    target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv3)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OpenGLES_V3_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES31)
-    target_link_libraries(libretro PUBLIC OpenGLES::OpenGLESv31)
-    target_include_directories(libretro SYSTEM PUBLIC "${OpenGLES_V31_INCLUDE_DIR}")
+    target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv31)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OpenGLES_V31_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES32)
-    target_link_libraries(libretro PUBLIC OpenGLES::OpenGLESv32)
-    target_include_directories(libretro SYSTEM PUBLIC "${OpenGLES_V32_INCLUDE_DIR}")
+    target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv32)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OpenGLES_V32_INCLUDE_DIR}")
 endif ()
 
 if (ENABLE_JIT)
-    target_compile_definitions(libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)
+    target_compile_definitions(melondsds_libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)
 
     if (NOT APPLE)
-        target_compile_definitions(libretro PUBLIC HAVE_JIT_FASTMEM)
+        target_compile_definitions(melondsds_libretro PUBLIC HAVE_JIT_FASTMEM)
         # melonDS doesn't support FastMem on macOS
     endif ()
 endif ()
 
 # libretro cores do not start with "lib"
-set_target_properties(libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
+set_target_properties(melondsds_libretro PROPERTIES PREFIX "" OUTPUT_NAME "melondsds_libretro")
 
 # Some platforms or compilers don't use the expected suffixes for shared libraries
 if (APPLE)
-    set_target_properties(libretro PROPERTIES SUFFIX ".dylib")
+    set_target_properties(melondsds_libretro PROPERTIES SUFFIX ".dylib")
 elseif (UNIX)
-    set_target_properties(libretro PROPERTIES SUFFIX ".so")
+    set_target_properties(melondsds_libretro PROPERTIES SUFFIX ".so")
 elseif (WIN32)
-    set_target_properties(libretro PROPERTIES SUFFIX ".dll")
+    set_target_properties(melondsds_libretro PROPERTIES SUFFIX ".dll")
 endif ()
 
 if (WIN32 AND MINGW)
-    target_link_options(libretro PUBLIC -static-libgcc -static-libstdc++ -static)
+    target_link_options(melondsds_libretro PUBLIC -static-libgcc -static-libstdc++ -static)
 endif()
 
-target_compile_definitions(libretro PUBLIC
+target_compile_definitions(melondsds_libretro PUBLIC
     MELONDSDS_VERSION="${MELONDSDS_VERSION}"
     MELONDSDS_NAME="${CMAKE_PROJECT_NAME}"
     MELONDSDS_VERSION_STRING="${CMAKE_PROJECT_NAME} ${MELONDSDS_VERSION}"
@@ -209,25 +209,25 @@ target_compile_definitions(libretro PUBLIC
     STB_IMAGE_STATIC # To avoid using any dynamically-linked STB implementations
 )
 
-target_link_libraries(libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr fmt::fmt)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr fmt::fmt)
 
 if (HAVE_NETWORKING)
-    target_compile_definitions(libretro PUBLIC BUILDING_LIBSLIRP)
-    target_link_libraries(libretro PUBLIC slirp)
+    target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)
+    target_link_libraries(melondsds_libretro PUBLIC slirp)
 
     if (WIN32)
-        target_link_libraries(libretro PRIVATE ws2_32 iphlpapi)
+        target_link_libraries(melondsds_libretro PRIVATE ws2_32 iphlpapi)
     endif()
 endif()
 
 if (TRACY_ENABLE)
-    target_link_libraries(libretro PUBLIC TracyClient)
-    target_include_directories(libretro SYSTEM PUBLIC TracyClient)
-    target_compile_definitions(libretro PUBLIC HAVE_TRACY)
+    target_link_libraries(melondsds_libretro PUBLIC TracyClient)
+    target_include_directories(melondsds_libretro SYSTEM PUBLIC TracyClient)
+    target_compile_definitions(melondsds_libretro PUBLIC HAVE_TRACY)
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    message(STATUS "Defining DEBUG in libretro and libretro-common targets")
-    target_compile_definitions(libretro PUBLIC DEBUG)
+    message(STATUS "Defining DEBUG in melondsds_libretro and libretro-common targets")
+    target_compile_definitions(melondsds_libretro PUBLIC DEBUG)
     target_compile_definitions(libretro-common PUBLIC DEBUG)
 endif ()
