@@ -1,9 +1,9 @@
 # Software Information
-display_name = "Nintendo - DS (melonDS DS)"
-display_version = "0.7.4"
+display_name = "Nintendo - DS (${CMAKE_PROJECT_NAME})"
+display_version = "${CMAKE_PROJECT_VERSION}"
 authors = "Jesse Talavera-Greenberg|The melonDS Team"
 categories = "Emulator"
-corename = "melonDS DS"
+corename = "${CMAKE_PROJECT_NAME}"
 license = "GPLv3+"
 permissions = "dynarec_optional|microphone_optional"
 supported_extensions = "nds|ids|dsi"
@@ -55,4 +55,4 @@ firmware6_path = "dsi_nand.bin"
 firmware6_opt = "true"
 notes = "(!) bios7.bin (md5): df692a80a5b1bc90728bc3dfc76cd948|(!) bios9.bin (md5): a392174eb3e572fed6447e956bde4b25"
 
-description = "A remake of the libretro melonDS core that prioritizes standalone parity, reliability, and usability. This core closely follows the feature set of standalone melonDS; it features OpenGL-accelerated upscaling, multiple screen layouts, and Wi-Fi emulation."
+description = "${CMAKE_PROJECT_DESCRIPTION}"

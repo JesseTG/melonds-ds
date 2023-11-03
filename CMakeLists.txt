@@ -6,13 +6,13 @@ if (CMAKE_MESSAGE_LOG_LEVEL)
     message(STATUS "Message log level is set to ${CMAKE_MESSAGE_LOG_LEVEL}")
 endif ()
 
-include(cmake/ParseLibretroInfo.cmake)
-
-project("${MELONDSDS_INFO_corename}"
-    VERSION "${MELONDSDS_INFO_display_version}"
-    DESCRIPTION "${MELONDSDS_INFO_description}"
+project("melonDS DS"
+    VERSION "0.7.4"
+    DESCRIPTION "A remake of the libretro melonDS core that prioritizes standalone parity, reliability, and usability. This core closely follows the feature set of standalone melonDS; it features OpenGL-accelerated upscaling, multiple screen layouts, and Wi-Fi emulation."
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
+
+configure_file("${CMAKE_SOURCE_DIR}/melondsds_libretro.info.in" "${CMAKE_CURRENT_BINARY_DIR}/melondsds_libretro.info")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 include(CheckSymbolExists)
@@ -61,8 +61,8 @@ if (NOT GIT_STATE)
     set(GIT_STATE "no-git")
 endif ()
 
-set(MELONDSDS_VERSION "${MELONDSDS_INFO_display_version} (${GIT_STATE}, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
-message(STATUS "${MELONDSDS_INFO_corename} Version: ${MELONDSDS_VERSION}")
+set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION} (${GIT_STATE}, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
+message(STATUS "${CMAKE_PROJECT_NAME} Version: ${MELONDSDS_VERSION}")
 
 # Disabled by default due to https://github.com/JesseTG/melonds-ds/issues/81
 # Enable it if you're going to work on it.
