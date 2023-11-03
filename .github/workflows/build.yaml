@@ -89,8 +89,6 @@ jobs:
         run: |
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
-            -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
-            -DMELONDS_REPOSITORY_TAG="${{ vars.MELONDS_REPOSITORY_TAG }}" \
             ${{ inputs.cmake-args }}
 
       - name: Build
