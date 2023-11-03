@@ -116,8 +116,22 @@ jobs:
     if: "${{ startsWith(github.ref, 'refs/tags/v') }}"
     runs-on: ubuntu-latest
     steps:
+      - name: Get Version From Tag
+        id: tag_name
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+        shell: bash
       - name: Check Out Source
         uses: actions/checkout@v3
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+      - run: ls -hal
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          validation_level: error
+          version: ${{ steps.tag_name.outputs.current_version }}
+          path: ./CHANGELOG.md
       - name: Create Release
         uses: dropseed/changerelease@v1.6.0
         with:
