@@ -122,4 +122,4 @@ jobs:
       - name: Create Release
         uses: dropseed/changerelease@v1.6.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}

@@ -1,6 +1,6 @@
 # Software Information
 display_name = "Nintendo - DS (melonDS DS)"
-display_version = "0.7.2"
+display_version = "0.7.3"
 authors = "Jesse Talavera-Greenberg|The melonDS Team"
 categories = "Emulator"
 corename = "melonDS DS"
