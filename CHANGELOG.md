@@ -11,13 +11,13 @@ Nothing right now.
 
 ## [0.7.4] - 2023-11-03
 
-### Changed
+### Fixed
 
 - Test release.
 
 ## [0.7.3] - 2023-11-03
 
-### Changed
+### Fixed
 
 - Test release.
 
