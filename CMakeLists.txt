@@ -7,7 +7,7 @@ if (CMAKE_MESSAGE_LOG_LEVEL)
 endif ()
 
 project("melonDS DS"
-    VERSION "0.7.4"
+    VERSION "0.7.5"
     DESCRIPTION "A remake of the libretro melonDS core that prioritizes standalone parity, reliability, and usability. This core closely follows the feature set of standalone melonDS; it features OpenGL-accelerated upscaling, multiple screen layouts, and Wi-Fi emulation."
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
