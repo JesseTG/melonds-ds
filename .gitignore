@@ -11,6 +11,9 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 cmake-build-*
+__cmake_systeminformation
+Authors.txt
+SystemInformation.in
 
 # JetBrains
 .idea/
@@ -18,6 +21,9 @@ fileList*.txt
 
 # Build System
 artifact
+melondsds-LICENSE.txt
+melondsds_libretro.info
+out.txt
 
 # Tracy
 *.tracy
@@ -26,3 +32,6 @@ artifact
 *.7z
 *.zip
 *.tar
+
+# Act
+.actrc
