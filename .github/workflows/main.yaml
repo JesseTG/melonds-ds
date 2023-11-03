@@ -2,8 +2,6 @@ name: Build Artifacts
 
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
     branches:
       - main
   pull_request:
@@ -115,6 +113,7 @@ jobs:
   release:
     name: Release Build
     needs: [ windows, macos, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
+    if: "${{ startsWith(github.ref, 'refs/tags/v') }}"
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Source
