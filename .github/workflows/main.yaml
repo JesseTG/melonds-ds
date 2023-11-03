@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]"
   pull_request:
     branches:
       - main
@@ -116,22 +118,33 @@ jobs:
     if: "${{ startsWith(github.ref, 'refs/tags/v') }}"
     runs-on: ubuntu-latest
     steps:
-      - name: Get Version From Tag
-        id: tag_name
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-        shell: bash
       - name: Check Out Source
         uses: actions/checkout@v3
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
-      - run: ls -hal
-      - name: Get Changelog Entry
-        id: changelog_reader
-        uses: mindsers/changelog-reader-action@v2
+      - name: Get Version From Pushed Tag
+        id: tag
+        shell: bash
+        run: echo "version=`echo ${{ github.ref_name }} | cut -c2- `" >> "$GITHUB_OUTPUT"
+        # Strip the v prefix of the pushed tag
+      - name: Get Version From Latest Changelog Entry
+        id: changelog
+        uses: mindsers/changelog-reader-action@v2.2.2
         with:
           validation_level: error
-          version: ${{ steps.tag_name.outputs.current_version }}
-          path: ./CHANGELOG.md
+      - name: Get Version From CMake
+        uses: DarwinInnovation/cmake-project-version-action@v1.0
+        id: cmake
+      - name: Require Versions to Match
+        if: "${{ !(steps.tag.outputs.version == steps.changelog.outputs.version && steps.tag.outputs.latest == steps.cmake.outputs.version) }}"
+        env:
+          VERSION_TAG: ${{ steps.tag.outputs.version }}
+          VERSION_CHANGELOG: ${{ steps.changelog.outputs.version }}
+          VERSION_CMAKE: ${{ steps.cmake.outputs.version }}
+        run: |
+          echo "::error::Expected the pushed tag, CHANGELOG.md, and CMakeLists.txt to all specify the same version ($VERSION_TAG, $VERSION_CHANGELOG, $VERSION_CMAKE)"
+          exit 1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+      - run: ls -halR
       - name: Create Release
         uses: dropseed/changerelease@v1.6.0
         with:
