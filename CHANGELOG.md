@@ -12,7 +12,6 @@ Nothing right now.
 ## [0.7.6] - 2023-11-03
 
 This is an overview of this release's changes.
-
 Pretty cool, huh?
 
 ### Fixed
