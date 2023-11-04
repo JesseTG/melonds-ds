@@ -12,6 +12,7 @@ on:
     paths-ignore:
       - "**.md"
       - ".gitignore"
+      - "*.gitlab-ci.yml"
 jobs:
   windows:
     name: Windows (x86_64)
