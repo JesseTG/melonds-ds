@@ -143,7 +143,6 @@ jobs:
           for file in melondsds_libretro-*-Release; do
             zip -r "${file}.zip" "$file"
           done
-      - run: ls -halR
       - name: Upload .info File Artifact
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: actions/upload-artifact@v3
