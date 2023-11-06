@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.16] - 2023-11-06
+
+### Changed
+
+- Submit the PR to update the `.info` file.
+
 ## [0.7.15] - 2023-11-06
 
 ### Changed

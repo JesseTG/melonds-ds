@@ -193,4 +193,6 @@ jobs:
         working-directory: libretro-super
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: gh pr create --fill --repo "${{ github.actor }}/libretro-super"
+        run: |
+          git checkout "release-v${{ steps.changelog.outputs.version }}"
+          gh pr create --fill --repo "${{ github.actor }}/libretro-super"
