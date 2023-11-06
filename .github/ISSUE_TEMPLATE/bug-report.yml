@@ -89,6 +89,7 @@ body:
         - label: Linux
         - label: Android
         - label: iOS
+        - label: tvOS
         - label: Other (specify below)
     validations:
       required: true
