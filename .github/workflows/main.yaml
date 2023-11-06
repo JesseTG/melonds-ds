@@ -135,9 +135,11 @@ jobs:
       - name: Create Tag
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         # If the latest tag is not the same as the latest changelog version, that means it's time for a new release
-        run: |
-          git tag v"${{ steps.changelog.outputs.version }}"
-          git push --tags
+        uses: joutvhu/create-tag@v1
+        with:
+          tag_name: "v${{ steps.changelog.outputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: actions/download-artifact@v3
