@@ -131,15 +131,7 @@ jobs:
       - name: Get the Newest Tag
         id: newest-tag
         run: |
-          echo "version=`git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n1`" >> "$GITHUB_OUTPUT"
-      - name: Create Tag
-        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        # If the latest tag is not the same as the latest changelog version, that means it's time for a new release
-        uses: joutvhu/create-tag@v1
-        with:
-          tag_name: "v${{ steps.changelog.outputs.version }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          echo "version=`git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n1 | cut -c2-`" >> "$GITHUB_OUTPUT"
       - name: Download Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: actions/download-artifact@v3
@@ -164,6 +156,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
+          tag_name: "v${{ steps.changelog.outputs.version }}"
+          body: "${{ steps.changelog.outputs.release-notes }}"
           files: |
             artifact/melondsds_libretro-win32-x86_64-Release.zip
             artifact/melondsds_libretro-macos-universal-Release.zip
