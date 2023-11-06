@@ -346,7 +346,7 @@ You'll need to add the following flags to build for Android.
 - `--toolchain=...`:
   The path to the `android.toolchain.cmake` file in your NDK installation.
   The location varies depending on how you installed the NDK;
-  it will most likely be in `$ANDROID_SDK/ndk/$NDK_VERSION/build/cmake`.
+  it will most likely be in `$ANDROID_NDK/build/cmake`.
 - `-DANDROID_ABI=...`:
   The ABI to build for.
   This should be `arm64-v8a` or `x86_64`.
@@ -362,10 +362,10 @@ This command uses the NDK-bundled toolchain
 to prepare a 64-bit ARM build for Android API level 24.
 
 ```pwsh
-PS C:\Users\Jesse\Projects\melonds-ds> $Env:LOCALAPPDATA\Android\Sdk\cmake\3.22.1\bin\cmake.exe `
+PS C:\Users\Jesse\Projects\melonds-ds> $Env:ANDROID_SDK_ROOT\cmake\3.22.1\bin\cmake.exe `
     -DANDROID_ABI=arm64-v8a `
     -DANDROID_PLATFORM=24 `
-    -DCMAKE_TOOLCHAIN_FILE=$Env:LOCALAPPDATA\Android\Sdk\ndk\25.2.9519653\build\cmake\android.toolchain.cmake
+    -DCMAKE_TOOLCHAIN_FILE=$Env:ANDROID_NDK\build\cmake\android.toolchain.cmake
 ```
 
 The command will be more or less the same on other platforms,
