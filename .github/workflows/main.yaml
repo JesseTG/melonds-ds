@@ -116,40 +116,50 @@ jobs:
   create-release:
     name: Create Release
     needs: [ windows, macos, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
-    if: "${{ startsWith(github.ref, 'refs/tags/v') }}"
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Source
         uses: actions/checkout@v3
-      - name: Get Version From Pushed Tag
-        id: tag
-        shell: bash
-        run: echo "version=`echo ${{ github.ref_name }} | cut -c2- `" >> "$GITHUB_OUTPUT"
-        # Strip the v prefix of the pushed tag
-      - name: Get Version From Latest Changelog Entry
+        with:
+          fetch-depth: 0 # To ensure we have all tags
+      - name: Get Latest Changelog Version
         id: changelog
         uses: mindsers/changelog-reader-action@v2.2.2
         with:
           validation_level: error
-      - name: Get Version From CMake
-        uses: DarwinInnovation/cmake-project-version-action@v1.0
-        id: cmake
-      - name: Fail If Versions Don't Match
-        if: "${{ !(steps.tag.outputs.version == steps.changelog.outputs.version && steps.tag.outputs.version == steps.cmake.outputs.version) }}"
-        env:
-          VERSION_TAG: ${{ steps.tag.outputs.version }}
-          VERSION_CHANGELOG: ${{ steps.changelog.outputs.version }}
-          VERSION_CMAKE: ${{ steps.cmake.outputs.version }}
+      - name: Get the Newest Tag
+        id: newest-tag
         run: |
-          echo "::error::Expected the pushed tag, CHANGELOG.md, and CMakeLists.txt to all specify the same version ($VERSION_TAG, $VERSION_CHANGELOG, $VERSION_CMAKE)"
-          exit 1
+          echo "version=`git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n1`" >> "$GITHUB_OUTPUT"
+      - name: Create Tag
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        # If the latest tag is not the same as the latest changelog version, that means it's time for a new release
+        run: |
+          git tag "${{ steps.changelog.outputs.version }}"
+          git push --tags
       - name: Download Artifacts
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: actions/download-artifact@v3
         with:
           path: artifact
       - run: ls -halR
+      - name: Zip Release Artifacts
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        shell: bash
+        run: |
+          for file in artifact/*; do
+            zip -r "${file}.zip" "$file"
+          done
+      - run: ls -halR
       - name: Create Release
-        uses: anton-yurchenko/git-release@v5.0.2
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        uses: softprops/action-gh-release@v1
         with:
-          github_token: ${{ secrets.RELEASE_TOKEN }}
-          limit: 1
+          files: |
+            artifact/melondsds_libretro-win32-x86_64.zip
+            artifact/melondsds_libretro-macos-universal.zip
+            artifact/melondsds_libretro-linux-x86_64.zip
+            artifact/melondsds_libretro-linux-aarch64.zip
+            artifact/melondsds_libretro-android.zip
+            artifact/melondsds_libretro-ios.zip
+            artifact/melondsds_libretro-tvos.zip
