@@ -3,15 +3,16 @@
 An enhanced remake of the [melonDS][melonds] [core][melonds-libretro] for [libretro][libretro]
 that prioritizes standalone parity, reliability, and usability.
 
+![melonDS DS Latest Release](https://img.shields.io/github/v/release/JesseTG/melonds-ds?label=melonDS%20DS&link=https%3A%2F%2Fgithub.com%2FJesseTG%2Fmelonds-ds%2Freleases%2Flatest)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/JesseTG/melonds-ds/main.yaml?label=Build%20Status)
+
 # Getting melonDS DS
 
-At the moment, melonDS DS does not have a stable release.
-I intend to set up a process for those soon.
-Once melonDS DS matches all the features provided by the legacy melonDS core,
-I will submit it for inclusion in the official RetroArch distribution.
-
-In the meantime, I suggest [building melonDS DS from source](#building)
-or [downloading one of the raw build artifacts][workflows].
+You can get the latest stable release of melonDS DS
+from [this repo's Releases](https://github.com/JesseTG/melonds-ds/releases/latest),
+or the raw build artifacts from [here][workflows].
+In the near future you'll be able to get it from the official RetroArch build server,
+or even from within RetroArch itself.
 
 # Installation
 
