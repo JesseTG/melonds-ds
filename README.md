@@ -437,7 +437,7 @@ so I wanted to embody that in the name.
   and for their help on Discord.
 - The [libretro team][libretro] for making a great app,
   for their help on Discord,
-  and for fixing bugs in RetroArch that affected melonDS DS.
+  and for fixing RetroArch bugs that affected melonDS DS.
 - Everyone who's ever reported a bug,
   for their role in ensuring a polished product.
 - Nintendo, for all the memories.
