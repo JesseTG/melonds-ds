@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.13] - 2023-11-06
+
+### Changed
+
+- Simplify the workflow for submitting releases to the libretro buildbot.
+
 ## [0.7.12] - 2023-11-06
 
 ### Changed
