@@ -145,24 +145,30 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: artifact
-      - run: ls -halR
       - name: Zip Release Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         shell: bash
         run: |
-          for file in artifact/*; do
+          for file in artifact/melondsds_libretro-*-Release; do
             zip -r "${file}.zip" "$file"
           done
       - run: ls -halR
+      - name: Upload .info File Artifact
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        uses: actions/upload-artifact@v3
+        with:
+          name: melondsds_libretro.info
+          path: artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info
       - name: Create Release
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: softprops/action-gh-release@v1
         with:
+          token: ${{ secrets.RELEASE_TOKEN }}
           files: |
-            artifact/melondsds_libretro-win32-x86_64.zip
-            artifact/melondsds_libretro-macos-universal.zip
-            artifact/melondsds_libretro-linux-x86_64.zip
-            artifact/melondsds_libretro-linux-aarch64.zip
-            artifact/melondsds_libretro-android.zip
-            artifact/melondsds_libretro-ios.zip
-            artifact/melondsds_libretro-tvos.zip
+            artifact/melondsds_libretro-win32-x86_64-Release.zip
+            artifact/melondsds_libretro-macos-universal-Release.zip
+            artifact/melondsds_libretro-linux-x86_64-Release.zip
+            artifact/melondsds_libretro-linux-aarch64-Release.zip
+            artifact/melondsds_libretro-android-Release.zip
+            artifact/melondsds_libretro-ios-Release.zip
+            artifact/melondsds_libretro-tvos-Release.zip
