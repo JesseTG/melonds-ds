@@ -124,9 +124,9 @@ jobs:
           fetch-depth: 0 # To ensure we have all tags
       - name: Get Latest Changelog Version
         id: changelog
-        uses: mindsers/changelog-reader-action@v2.2.2
+        uses: release-flow/keep-a-changelog-action@v2
         with:
-          validation_level: error
+          command: query
       - name: Get the Newest Tag
         id: newest-tag
         run: |
@@ -135,7 +135,7 @@ jobs:
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         # If the latest tag is not the same as the latest changelog version, that means it's time for a new release
         run: |
-          git tag "${{ steps.changelog.outputs.version }}"
+          git tag v"${{ steps.changelog.outputs.version }}"
           git push --tags
       - name: Download Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
