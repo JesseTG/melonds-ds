@@ -173,7 +173,6 @@ jobs:
           repository: "${{ github.triggering_actor }}/libretro-super"
           path: libretro-super
 
-      - run: ls -halR
       - name: Sync libretro-super with Upstream
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         working-directory: libretro-super

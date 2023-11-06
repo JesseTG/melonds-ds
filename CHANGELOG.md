@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.12] - 2023-11-06
+
+### Changed
+
+- Another attempt at fixing the release workflow.
+
 ## [0.7.11] - 2023-11-06
 
 ### Changed
