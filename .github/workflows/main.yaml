@@ -127,6 +127,7 @@ jobs:
         uses: release-flow/keep-a-changelog-action@v2
         with:
           command: query
+          version: latest
       - name: Get the Newest Tag
         id: newest-tag
         run: |
