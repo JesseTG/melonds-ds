@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]"
   pull_request:
     branches:
       - main
@@ -140,8 +138,9 @@ jobs:
       - name: Zip Release Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         shell: bash
+        working-directory: artifact
         run: |
-          for file in artifact/melondsds_libretro-*-Release; do
+          for file in melondsds_libretro-*-Release; do
             zip -r "${file}.zip" "$file"
           done
       - run: ls -halR

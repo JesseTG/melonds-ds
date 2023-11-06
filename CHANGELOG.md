@@ -9,6 +9,15 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.10] - 2023-11-06
+
+I'm still working out a workflow for releases,
+but that process is almost done.
+
+### Fixed
+
+- Simplify the hierarchy of the artifacts in the release.
+
 ## [0.7.9] - 2023-11-06
 
 This is an overview of this release's changes.
