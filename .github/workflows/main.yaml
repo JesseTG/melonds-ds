@@ -139,7 +139,7 @@ jobs:
         with:
           tag_name: "v${{ steps.changelog.outputs.version }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       - name: Download Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: actions/download-artifact@v3
