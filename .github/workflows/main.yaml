@@ -181,7 +181,7 @@ jobs:
         with:
           source_file: "${{ github.workspace }}/artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info"
           destination_branch_create: "release-v${{ steps.changelog.outputs.version }}"
-          destination_branch: "release-v${{ steps.changelog.outputs.version }}"
+          destination_branch: "master"
           destination_repo: '${{ github.triggering_actor }}/libretro-super'
           destination_folder: 'dist/info'
           user_email: 'github-actions[bot]@users.noreply.github.com'
