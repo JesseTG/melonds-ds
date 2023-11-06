@@ -114,6 +114,7 @@ jobs:
   create-release:
     name: Create Release
     needs: [ windows, macos, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Source
@@ -164,3 +165,47 @@ jobs:
             artifact/melondsds_libretro-android-Release.zip
             artifact/melondsds_libretro-ios-Release.zip
             artifact/melondsds_libretro-tvos-Release.zip
+
+      - name: Checkout libretro-super
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        uses: actions/checkout@v3
+        with:
+          repository: "${{ github.triggering_actor }}/libretro-super"
+          path: libretro-super
+
+      - run: ls -halR
+      - name: Sync libretro-super with Upstream
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        working-directory: libretro-super
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          git remote add upstream https://github.com/libretro/libretro-super.git
+          git pull upstream master
+          git push origin master
+
+      - name: Copy .info File
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        run: cp -f "${{ github.workspace }}/artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info" libretro-super/dist/info
+
+      - name: Commit and Push
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        working-directory: libretro-super
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          git add dist/info/melondsds_libretro.info
+          git commit -m "Add melondsds_libretro.info for melonDS DS release ${{ steps.changelog.outputs.version }}"
+          git push origin master
+
+      - name: Open Pull Request
+        if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
+        working-directory: libretro-super
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          gh pr create \
+            --title "Add melondsds_libretro.info for release ${{ github.event.release.tag_name }}" \
+            --fill \
+            --base master \
+            --repo ${{ github.actor }}:libretro-super
