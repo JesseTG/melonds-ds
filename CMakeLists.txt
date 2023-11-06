@@ -11,6 +11,7 @@ file(STRINGS "CHANGELOG.md" CHANGELOG REGEX "^## \\[([0-9]+\\.[0-9]+\\.[0-9]+)\\
 list(TRANSFORM CHANGELOG REPLACE "^## \\[([0-9]+\\.[0-9]+\\.[0-9]+)\\].+" "\\1")
 list(SORT CHANGELOG COMPARE NATURAL ORDER DESCENDING)
 list(GET CHANGELOG 0 VERSION)
+message(STATUS "Project version is ${VERSION}")
 
 project("melonDS DS"
     VERSION "${VERSION}"
