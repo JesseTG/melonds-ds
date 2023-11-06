@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.17] - 2023-11-06
+
+### Changed
+
+- Ensure my fork of `libretro-super` is up-to-date before opening a PR.
+
 ## [0.7.16] - 2023-11-06
 
 ### Changed
