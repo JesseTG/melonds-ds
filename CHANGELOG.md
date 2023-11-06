@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.20] - 2023-11-06
+
+### Changed
+
+- See if `libretro-super` gets a pull request now that I'm in @libretro.
+
 ## [0.7.19] - 2023-11-06
 
 ### Changed
