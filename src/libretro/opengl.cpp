@@ -145,7 +145,7 @@ bool melonds::opengl::Initialize() noexcept {
     glsm_ctx_params_t params = {};
 
     // melonds wants an opengl 3.1 context, so glcore is required for mesa compatibility
-    params.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
+    params.context_type = RETRO_HW_CONTEXT_OPENGL;
     params.major = 3;
     params.minor = 1;
     params.context_reset = ContextReset;
