@@ -194,6 +194,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
+          git remote -v
+          git remote add upstream master https://github.com/libretro/libretro-super.git
           git pull
           git checkout "release-v${{ steps.changelog.outputs.version }}"
           gh pr create --fill --repo "libretro/libretro-super"

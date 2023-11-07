@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.21] - 2023-11-06
+
+### Changed
+
+- Some more housekeeping related to `libretro-super`.
+
 ## [0.7.20] - 2023-11-06
 
 ### Changed
