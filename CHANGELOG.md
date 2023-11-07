@@ -9,6 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 Nothing right now.
 
+## [0.7.22] - 2023-11-06
+
+### Changed
+
+- Fixed `git remote add` usage.
+
 ## [0.7.21] - 2023-11-06
 
 ### Changed
