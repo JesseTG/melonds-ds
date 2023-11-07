@@ -164,7 +164,7 @@ bool melonds::opengl::Initialize() noexcept {
     retro_assert(hw_render.debug_context);
 #endif
 
-    gl_query_core_context_set(hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE || hw_render.context_type == RETRO_HW_CONTEXT_OPENGL);
+    gl_query_core_context_set(hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
 
     return ok;
 }
