@@ -682,6 +682,16 @@ static void melonds::load_games(
         throw environment_exception("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
+    bool ok;
+    {
+        ZoneScopedN("NDS::Init");
+        ok = NDS::Init();
+    }
+    if (!ok) {
+        retro::error("Failed to initialize melonDS DS.");
+        throw std::runtime_error("Failed to initialize NDS emulator.");
+    }
+
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
     melonds::InitConfig(header, screenLayout, input_state);
 
@@ -758,16 +768,6 @@ static void melonds::load_games(
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
 
     render::Initialize(config::video::ConfiguredRenderer());
-
-    bool ok;
-    {
-        ZoneScopedN("NDS::Init");
-        ok = NDS::Init();
-    }
-    if (!ok) {
-        retro::error("Failed to initialize melonDS DS.");
-        throw std::runtime_error("Failed to initialize NDS emulator.");
-    }
 
     // The ROM must be inserted in retro_load_game,
     // as the frontend may try to query the savestate size
