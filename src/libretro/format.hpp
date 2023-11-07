@@ -85,26 +85,26 @@ struct fmt::formatter<Platform::StopReason> : fmt::formatter<std::string_view> {
 };
 
 template<>
-struct fmt::formatter<SPI_Firmware::FirmwareConsoleType> : fmt::formatter<std::string_view> {
+struct fmt::formatter<Firmware::FirmwareConsoleType> : fmt::formatter<std::string_view> {
     // use inherited 'formatter<string_view>::parse'…
     // … and only implement 'format':
     template<typename FmtContext>
-    auto format(SPI_Firmware::FirmwareConsoleType c, FmtContext& ctx) {
+    auto format(Firmware::FirmwareConsoleType c, FmtContext& ctx) {
         string_view name = "unknown";
         switch (c) {
-            case SPI_Firmware::FirmwareConsoleType::DS:
+            case Firmware::FirmwareConsoleType::DS:
                 name = "DS";
                 break;
-            case SPI_Firmware::FirmwareConsoleType::DSLite:
+            case Firmware::FirmwareConsoleType::DSLite:
                 name = "DS Lite";
                 break;
-            case SPI_Firmware::FirmwareConsoleType::DSi:
+            case Firmware::FirmwareConsoleType::DSi:
                 name = "DSi";
                 break;
-            case SPI_Firmware::FirmwareConsoleType::iQueDS:
+            case Firmware::FirmwareConsoleType::iQueDS:
                 name = "iQue DS";
                 break;
-            case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
+            case Firmware::FirmwareConsoleType::iQueDSLite:
                 name = "iQueue DS Lite";
                 break;
         }
@@ -163,35 +163,35 @@ struct fmt::formatter<DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view
 };
 
 template<>
-struct fmt::formatter<SPI_Firmware::Language> : fmt::formatter<std::string_view> {
+struct fmt::formatter<Firmware::Language> : fmt::formatter<std::string_view> {
     // use inherited 'formatter<string_view>::parse'…
     // … and only implement 'format':
     template<typename FmtContext>
-    auto format(SPI_Firmware::Language c, FmtContext& ctx) {
+    auto format(Firmware::Language c, FmtContext& ctx) {
         string_view name = "<unknown>";
         switch (c) {
-            case SPI_Firmware::Language::Japanese:
+            case Firmware::Language::Japanese:
                 name = "Japanese";
                 break;
-            case SPI_Firmware::Language::English:
+            case Firmware::Language::English:
                 name = "English";
                 break;
-            case SPI_Firmware::Language::French:
+            case Firmware::Language::French:
                 name = "French";
                 break;
-            case SPI_Firmware::Language::German:
+            case Firmware::Language::German:
                 name = "German";
                 break;
-            case SPI_Firmware::Language::Italian:
+            case Firmware::Language::Italian:
                 name = "Italian";
                 break;
-            case SPI_Firmware::Language::Spanish:
+            case Firmware::Language::Spanish:
                 name = "Spanish";
                 break;
-            case SPI_Firmware::Language::Chinese:
+            case Firmware::Language::Chinese:
                 name = "Chinese";
                 break;
-            case SPI_Firmware::Language::Reserved:
+            case Firmware::Language::Reserved:
                 name = "Reserved";
                 break;
         }
@@ -302,6 +302,9 @@ struct fmt::formatter<retro_language> : fmt::formatter<std::string_view> {
                 break;
             case RETRO_LANGUAGE_HUNGARIAN:
                 name = "Hungarian";
+                break;
+            case RETRO_LANGUAGE_BELARUSIAN:
+                name = "Belarusian";
                 break;
         }
         return formatter<string_view>::format(name, ctx);

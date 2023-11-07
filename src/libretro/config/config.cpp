@@ -170,8 +170,8 @@ namespace melonds::config {
         static Color _favoriteColor;
         static UsernameMode _usernameMode;
         [[deprecated("Make this a flat array instead")]] static string _message;
-        static optional<SPI_Firmware::MacAddress> _macAddress;
-        static optional<SPI_Firmware::IpAddress> _dnsServer;
+        static optional<MacAddress> _macAddress;
+        static optional<IpAddress> _dnsServer;
     }
 
     namespace jit {
@@ -591,28 +591,28 @@ bool melonds::update_option_visibility() {
     return updated;
 }
 
-static SPI_Firmware::Language get_firmware_language(retro_language language) noexcept {
+static Firmware::Language get_firmware_language(retro_language language) noexcept {
     switch (language) {
         case RETRO_LANGUAGE_ENGLISH:
         case RETRO_LANGUAGE_BRITISH_ENGLISH:
-            return SPI_Firmware::Language::English;
+            return Firmware::Language::English;
         case RETRO_LANGUAGE_JAPANESE:
-            return SPI_Firmware::Language::Japanese;
+            return Firmware::Language::Japanese;
         case RETRO_LANGUAGE_FRENCH:
-            return SPI_Firmware::Language::French;
+            return Firmware::Language::French;
         case RETRO_LANGUAGE_GERMAN:
-            return SPI_Firmware::Language::German;
+            return Firmware::Language::German;
         case RETRO_LANGUAGE_ITALIAN:
-            return SPI_Firmware::Language::Italian;
+            return Firmware::Language::Italian;
         case RETRO_LANGUAGE_SPANISH:
-            return SPI_Firmware::Language::Spanish;
+            return Firmware::Language::Spanish;
         case RETRO_LANGUAGE_CHINESE_SIMPLIFIED:
         case RETRO_LANGUAGE_CHINESE_TRADITIONAL:
             // The DS/DSi itself doesn't seem to distinguish between the two variants;
             // different regions just have one or the other.
-            return SPI_Firmware::Language::Chinese;
+            return Firmware::Language::Chinese;
         default:
-            return SPI_Firmware::Language::English;
+            return Firmware::Language::English;
     }
 }
 
@@ -837,7 +837,7 @@ static void melonds::config::parse_firmware_options() noexcept {
 
     if (const char* wfcDnsText = get_variable(firmware::WFC_DNS); string_is_equal(wfcDnsText, values::DEFAULT)) {
         _dnsServer = nullopt;
-    } else if (optional<SPI_Firmware::IpAddress> wfcDns = ParseIpAddress(wfcDnsText)) {
+    } else if (optional<IpAddress> wfcDns = ParseIpAddress(wfcDnsText)) {
         _dnsServer = *wfcDns;
     } else {
         retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::WFC_DNS);
@@ -1209,11 +1209,10 @@ static unique_ptr<u8[]> LoadBios(const string_view& name, melonds::BiosType type
 }
 
 /// Loads firmware, does not patch it.
-static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePath) noexcept {
+static unique_ptr<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
     ZoneScopedN("melonds::config::LoadFirmware");
     using namespace melonds;
     using namespace melonds::config::firmware;
-    using namespace SPI_Firmware;
     using namespace Platform;
 
     // Try to open the configured firmware dump.
@@ -1236,7 +1235,7 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
     }
 
     // Try to load the firmware dump into the object.
-    unique_ptr<SPI_Firmware::Firmware> firmware = make_unique<SPI_Firmware::Firmware>(buffer.get(), fileSize);
+    unique_ptr<Firmware> firmware = make_unique<Firmware>(buffer.get(), fileSize);
 
     if (!firmware->Buffer()) {
         // If we failed to load the firmware...
@@ -1244,8 +1243,8 @@ static unique_ptr<SPI_Firmware::Firmware> LoadFirmware(const string& firmwarePat
         return nullptr;
     }
 
-    SPI_Firmware::FirmwareIdentifier id = firmware->Header().Identifier;
-    FirmwareConsoleType type = firmware->Header().ConsoleType;
+    FirmwareIdentifier id = firmware->GetHeader().Identifier;
+    Firmware::FirmwareConsoleType type = firmware->GetHeader().ConsoleType;
     retro::info(
         "Loaded {} firmware from \"{}\" (Identifier: {})",
         type,
@@ -1273,11 +1272,10 @@ static DSi_NAND::NANDImage LoadNANDImage(const string& nandPath, const u8* es_ke
     return nand;
 }
 
-static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
+static void CustomizeFirmware(Firmware& firmware) {
     ZoneScopedN("melonds::config::CustomizeFirmware");
     using namespace melonds;
     using namespace melonds::config::firmware;
-    using namespace SPI_Firmware;
     using namespace Platform;
 
     // We don't need to save the whole firmware, just the part that may actually change.
@@ -1286,35 +1284,35 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
         throw environment_exception("No system directory is available");
     }
 
-    const FirmwareHeader& header = firmware.Header();
+    const Firmware::FirmwareHeader& header = firmware.GetHeader();
 
     // If using generated firmware, we keep the wi-fi settings on the host disk separately.
     // Wi-fi access point data includes Nintendo WFC settings,
     // and if we didn't keep them then the player would have to reset them in each session.
     if (RFILE* file = filestream_open(wfcsettingspath->c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE)) {
         // If we have Wi-fi settings to load...
-        constexpr unsigned TOTAL_WFC_SETTINGS_SIZE = 3 * (sizeof(WifiAccessPoint) + sizeof(ExtendedWifiAccessPoint));
+        constexpr unsigned TOTAL_WFC_SETTINGS_SIZE = 3 * (sizeof(Firmware::WifiAccessPoint) + sizeof(Firmware::ExtendedWifiAccessPoint));
 
         // The access point and extended access point segments might
         // be in different locations depending on the firmware revision,
         // but our generated firmware always keeps them next to each other.
         // (Extended access points first, then regular ones.)
-        u8* userdata = firmware.ExtendedAccessPointPosition();
+        u8* userdata = firmware.GetExtendedAccessPointPosition();
 
         if (filestream_read(file, userdata, TOTAL_WFC_SETTINGS_SIZE) != TOTAL_WFC_SETTINGS_SIZE) {
             // If we couldn't read the Wi-fi settings from this file...
             retro::warn("Failed to read Wi-fi settings from \"{}\"; using defaults instead\n", *wfcsettingspath);
 
-            firmware.AccessPoints() = {
-                WifiAccessPoint(header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DSi ? 1 : 0),
-                WifiAccessPoint(),
-                WifiAccessPoint(),
+            firmware.GetAccessPoints() = {
+                Firmware::WifiAccessPoint(header.ConsoleType == Firmware::FirmwareConsoleType::DSi ? 1 : 0),
+                Firmware::WifiAccessPoint(),
+                Firmware::WifiAccessPoint(),
             };
 
-            firmware.ExtendedAccessPoints() = {
-                ExtendedWifiAccessPoint(),
-                ExtendedWifiAccessPoint(),
-                ExtendedWifiAccessPoint(),
+            firmware.GetExtendedAccessPoints() = {
+                Firmware::ExtendedWifiAccessPoint(),
+                Firmware::ExtendedWifiAccessPoint(),
+                Firmware::ExtendedWifiAccessPoint(),
             };
         }
 
@@ -1324,7 +1322,7 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
     // If we don't have Wi-fi settings to load,
     // then the defaults will have already been populated by the constructor.
 
-    if (header.Identifier != GENERATED_FIRMWARE_IDENTIFIER && header.ConsoleType == FirmwareConsoleType::DS) {
+    if (header.Identifier != GENERATED_FIRMWARE_IDENTIFIER && header.ConsoleType == Firmware::FirmwareConsoleType::DS) {
         // If we're using externally-loaded DS (not DSi) firmware...
 
         u8 chk1[0x180], chk2[0x180];
@@ -1349,7 +1347,7 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
         }
     }
 
-    UserData& currentData = firmware.EffectiveUserData();
+    Firmware::UserData& currentData = firmware.GetEffectiveUserData();
 
     // setting up username
     if (_usernameMode != UsernameMode::Firmware) {
@@ -1367,8 +1365,8 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
         case FirmwareLanguage::Auto:
 
             if (optional<retro_language> retroLanguage = retro::get_language()) {
-                currentData.Settings &= ~Language::Reserved; // clear the existing language bits
-                currentData.Settings |= static_cast<SPI_Firmware::Language>(get_firmware_language(*retroLanguage));
+                currentData.Settings &= ~Firmware::Language::Reserved; // clear the existing language bits
+                currentData.Settings |= static_cast<Firmware::Language>(get_firmware_language(*retroLanguage));
             } else {
                 retro::warn("Failed to get language from frontend; defaulting to existing firmware value");
             }
@@ -1377,8 +1375,8 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
             // do nothing, leave the existing language in place
             break;
         default:
-            currentData.Settings &= ~Language::Reserved;
-            currentData.Settings |= static_cast<SPI_Firmware::Language>(_language);
+            currentData.Settings &= ~Firmware::Language::Reserved;
+            currentData.Settings |= static_cast<Firmware::Language>(_language);
             break;
     }
 
@@ -1397,14 +1395,14 @@ static void CustomizeFirmware(SPI_Firmware::Firmware& firmware) {
     }
 
     if (_dnsServer) {
-        firmware.AccessPoints()[0].PrimaryDns = *_dnsServer;
-        firmware.AccessPoints()[0].SecondaryDns = *_dnsServer;
+        firmware.GetAccessPoints()[0].PrimaryDns = *_dnsServer;
+        firmware.GetAccessPoints()[0].SecondaryDns = *_dnsServer;
     }
 
     if (_macAddress) {
         MacAddress mac = *_macAddress;
         mac[0] &= 0xFC; // ensure the MAC isn't a broadcast MAC
-        firmware.Header().MacAddress = mac;
+        firmware.GetHeader().MacAddr = mac;
     }
 
     // fix touchscreen coords
@@ -1438,7 +1436,7 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
     // - Bootable firmware is required if booting without content.
     // - All system files must be native or all must be built-in. (No mixing.)
     // - If BIOS files are built-in, then Direct Boot mode must be used
-    unique_ptr<SPI_Firmware::Firmware> firmware;
+    unique_ptr<Firmware> firmware;
     if (sysfileMode == SysfileMode::Native) {
         optional<string> firmwarePath = retro::get_system_path(FirmwarePath());
         if (!firmwarePath) {
@@ -1463,7 +1461,7 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
             // ...but we were trying to...
             retro::warn("Falling back to built-in firmware");
         }
-        firmware = make_unique<SPI_Firmware::Firmware>(static_cast<int>(melonds::ConsoleType::DS));
+        firmware = make_unique<Firmware>(static_cast<int>(melonds::ConsoleType::DS));
     }
 
     if (sysfileMode == SysfileMode::BuiltIn) {
@@ -1504,7 +1502,9 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
     }
 
     CustomizeFirmware(*firmware);
-    SPI_Firmware::InstallFirmware(std::move(firmware));
+    retro_assert(NDS::SPI != nullptr);
+    retro_assert(NDS::SPI->GetFirmwareMem() != nullptr);
+    NDS::SPI->GetFirmwareMem()->InstallFirmware(std::move(firmware));
 }
 
 static void InitDsiSystemConfig(const NDSHeader* header) {
@@ -1550,14 +1550,14 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
         throw dsi_no_firmware_found_exception();
     }
 
-    unique_ptr<SPI_Firmware::Firmware> firmware = LoadFirmware(*firmwarePath);
+    unique_ptr<Firmware> firmware = LoadFirmware(*firmwarePath);
     if (!firmware) {
         throw firmware_missing_exception(firmwareName);
     }
 
-    if (firmware && firmware->Header().ConsoleType != SPI_Firmware::FirmwareConsoleType::DSi) {
-        retro::warn("Expected firmware of type DSi, got {}", firmware->Header().ConsoleType);
-        throw wrong_firmware_type_exception(firmwareName, melonds::ConsoleType::DSi, firmware->Header().ConsoleType);
+    if (firmware && firmware->GetHeader().ConsoleType != Firmware::FirmwareConsoleType::DSi) {
+        retro::warn("Expected firmware of type DSi, got {}", firmware->GetHeader().ConsoleType);
+        throw wrong_firmware_type_exception(firmwareName, melonds::ConsoleType::DSi, firmware->GetHeader().ConsoleType);
     }
     // DSi firmware isn't bootable, so we don't need to check for that here.
 
@@ -1569,7 +1569,9 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
 
     // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
     CustomizeFirmware(*firmware);
-    SPI_Firmware::InstallFirmware(std::move(firmware));
+    retro_assert(NDS::SPI != nullptr);
+    retro_assert(NDS::SPI->GetFirmwareMem() != nullptr);
+    NDS::SPI->GetFirmwareMem()->InstallFirmware(std::move(firmware));
 
     optional<string> nandPath = retro::get_system_path(nandName);
     if (!nandPath) {
@@ -1630,7 +1632,7 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
         case FirmwareLanguage::Auto:
             if (optional<retro_language> retroLanguage = retro::get_language()) {
                 // If we can't query the frontend's language, just leave that part of the firmware alone
-                SPI_Firmware::Language firmwareLanguage = get_firmware_language(*retroLanguage);
+                Firmware::Language firmwareLanguage = get_firmware_language(*retroLanguage);
                 if (dataS.SupportedLanguages & (1 << firmwareLanguage)) {
                     // If the NAND supports the frontend's language...
                     settings.Language = firmwareLanguage;
@@ -1648,7 +1650,7 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
             // do nothing, leave the existing language in place
             break;
         default: {
-            SPI_Firmware::Language firmwareLanguage = static_cast<SPI_Firmware::Language>(_language);
+            Firmware::Language firmwareLanguage = static_cast<Firmware::Language>(_language);
             if (dataS.SupportedLanguages & (1 << firmwareLanguage)) {
                 // If the NAND supports the core option's specified language...
                 settings.Language = firmwareLanguage;
@@ -1757,7 +1759,8 @@ static void melonds::config::apply_audio_options() noexcept {
         }
     }
 
-    SPU::SetInterpolation(static_cast<int>(config::audio::Interpolation()));
+    retro_assert(NDS::SPU != nullptr);
+    NDS::SPU->SetInterpolation(static_cast<int>(config::audio::Interpolation()));
 }
 
 static void melonds::config::apply_save_options(const NDSHeader* header) {
@@ -1857,7 +1860,7 @@ static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout
 
 struct FirmwareEntry {
     std::string path;
-    SPI_Firmware::FirmwareHeader header;
+    Firmware::FirmwareHeader header;
     struct stat stat;
 };
 
@@ -1865,12 +1868,12 @@ static time_t NewestTimestamp(const struct stat& statbuf) noexcept {
     return std::max({statbuf.st_atime, statbuf.st_mtime, statbuf.st_ctime});
 }
 
-static bool ConsoleTypeMatches(const SPI_Firmware::FirmwareHeader& header, melonds::ConsoleType type) noexcept {
+static bool ConsoleTypeMatches(const Firmware::FirmwareHeader& header, melonds::ConsoleType type) noexcept {
     if (type == melonds::ConsoleType::DS) {
-        return header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DS || header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DSLite;
+        return header.ConsoleType == Firmware::FirmwareConsoleType::DS || header.ConsoleType == Firmware::FirmwareConsoleType::DSLite;
     }
     else {
-        return header.ConsoleType == SPI_Firmware::FirmwareConsoleType::DSi;
+        return header.ConsoleType == Firmware::FirmwareConsoleType::DSi;
     }
 }
 
@@ -1969,8 +1972,8 @@ static void melonds::config::set_core_options() noexcept {
     if (subdir) {
         ZoneScopedN("melonds::config::set_core_options::find_system_files");
         retro_assert(sysdir.has_value());
-        u8 headerBytes[sizeof(SPI_Firmware::FirmwareHeader)];
-        SPI_Firmware::FirmwareHeader& header = *reinterpret_cast<SPI_Firmware::FirmwareHeader*>(headerBytes);
+        u8 headerBytes[sizeof(Firmware::FirmwareHeader)];
+        Firmware::FirmwareHeader& header = *reinterpret_cast<Firmware::FirmwareHeader*>(headerBytes);
         memset(headerBytes, 0, sizeof(headerBytes));
         array paths = {*sysdir, *subdir};
         for (const string& path: paths) {
@@ -2158,7 +2161,7 @@ bool Platform::GetConfigBool(ConfigEntry entry)
             system::ExternalBiosEnable() &&
             !NDS::IsLoadedARM7BIOSBuiltIn() &&
             !NDS::IsLoadedARM9BIOSBuiltIn() &&
-            !SPI_Firmware::IsLoadedFirmwareBuiltIn();
+            !NDS::SPI->GetFirmwareMem()->IsLoadedFirmwareBuiltIn();
 
         case DLDI_Enable: return save::DldiEnable();
         case DLDI_ReadOnly: return save::DldiReadOnly();
@@ -2186,18 +2189,3 @@ std::string Platform::GetConfigString(ConfigEntry entry)
     }
 }
 
-bool Platform::GetConfigArray(ConfigEntry entry, void* data)
-{
-    using SPI_Firmware::MacAddress;
-    switch (entry)
-    {
-        case Firm_MAC:
-        {
-            MacAddress* mac = (MacAddress*)data;
-            MacAddress current_mac = *firmware::_macAddress;
-            memcpy(mac, &current_mac, sizeof(MacAddress));
-        }
-        default:
-            return false;
-    }
-}

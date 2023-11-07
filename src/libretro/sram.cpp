@@ -131,20 +131,20 @@ static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& g
 
 static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsPath) noexcept {
     ZoneScopedN("melonds::sram::FlushFirmware");
-    using SPI_Firmware::Firmware;
     using namespace melonds;
 
     retro_assert(!firmwarePath.empty());
     retro_assert(path_is_absolute(firmwarePath.c_str()));
     retro_assert(!wfcSettingsPath.empty());
     retro_assert(path_is_absolute(wfcSettingsPath.c_str()));
+    retro_assert(NDS::SPI != nullptr);
 
-    const Firmware* firmware = SPI_Firmware::GetFirmware();
+    const Firmware* firmware = NDS::SPI->GetFirmware();
 
     retro_assert(firmware != nullptr);
     retro_assert(firmware->Buffer() != nullptr);
 
-    if (firmware->Header().Identifier != SPI_Firmware::GENERATED_FIRMWARE_IDENTIFIER) {
+    if (firmware->GetHeader().Identifier != GENERATED_FIRMWARE_IDENTIFIER) {
         // If this is a native firmware blob...
         int32_t existingFirmwareFileSize = path_get_size(firmwarePath.c_str());
         if (existingFirmwareFileSize == -1)  {
@@ -168,7 +168,7 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
             retro::error("Failed to write {}-byte firmware to \"{}\"", firmware->Length(), firmwarePath);
         }
     } else {
-        u32 expectedWfcSettingsSize = sizeof(firmware->ExtendedAccessPoints()) + sizeof(firmware->AccessPoints());
+        u32 expectedWfcSettingsSize = sizeof(firmware->GetExtendedAccessPoints()) + sizeof(firmware->GetAccessPoints());
         int32_t existingWfcSettingsSize = path_get_size(wfcSettingsPath.c_str());
         if (existingWfcSettingsSize == -1)  {
             retro::debug("Wi-Fi settings file at \"{}\" doesn't exist, creating it", wfcSettingsPath);
@@ -182,14 +182,14 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
             );
         }
         retro_assert(string_ends_with(wfcSettingsPath.c_str(), "/wfcsettings.bin"));
-        u32 eapstart = firmware->ExtendedAccessPointOffset();
-        u32 eapend = eapstart + sizeof(firmware->ExtendedAccessPoints());
-        u32 apstart = firmware->WifiAccessPointOffset();
+        u32 eapstart = firmware->GetExtendedAccessPointOffset();
+        u32 eapend = eapstart + sizeof(firmware->GetExtendedAccessPoints());
+        u32 apstart = firmware->GetWifiAccessPointOffset();
 
         // assert that the extended access points come just before the regular ones
         retro_assert(eapend == apstart);
 
-        const u8* buffer = firmware->ExtendedAccessPointPosition();
+        const u8* buffer = firmware->GetExtendedAccessPointPosition();
         if (filestream_write_file(wfcSettingsPath.c_str(), buffer, expectedWfcSettingsSize)) {
             retro::debug("Flushed {}-byte WFC settings to \"{}\"", expectedWfcSettingsSize, wfcSettingsPath);
         } else {
@@ -394,7 +394,7 @@ void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
     }
 }
 
-void Platform::WriteFirmware(const SPI_Firmware::Firmware &firmware, u32 writeoffset, u32 writelen) {
+void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writelen) {
     ZoneScopedN("Platform::WriteFirmware");
 
     TimeToFirmwareFlush = melonds::config::save::FlushDelay();

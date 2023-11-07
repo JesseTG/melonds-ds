@@ -16,10 +16,12 @@
 
 #include "power.hpp"
 
-#include <cmath>
 
+#include <NDS.h>
+#include <DSi.h>
 #include <DSi_I2C.h>
 #include <SPI.h>
+#include <retro_assert.h>
 
 #include "config.hpp"
 #include "environment.hpp"
@@ -73,13 +75,17 @@ retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
                             // If the threshold is 0, the battery level is always okay
                             // If the threshold is 100, the battery level is never okay
                             bool ok = charging || static_cast<unsigned>(devicePower->percent) > config::system::DsPowerOkayThreshold();
-                            SPI_Powerman::SetBatteryLevelOkay(ok);
+                            retro_assert(NDS::SPI != nullptr);
+                            retro_assert(NDS::SPI->GetPowerMan() != nullptr);
+                            NDS::SPI->GetPowerMan()->SetBatteryLevelOkay(ok);
                             break;
                         }
                         case ConsoleType::DSi: {
                             u8 batteryLevel = GetDsiBatteryLevel(devicePower->percent == RETRO_POWERSTATE_NO_ESTIMATE ? 100 : devicePower->percent);
-                            DSi_BPTWL::SetBatteryCharging(charging);
-                            DSi_BPTWL::SetBatteryLevel(batteryLevel);
+                            retro_assert(DSi::I2C != nullptr);
+                            retro_assert(DSi::I2C->GetBPTWL() != nullptr);
+                            DSi::I2C->GetBPTWL()->SetBatteryCharging(charging);
+                            DSi::I2C->GetBPTWL()->SetBatteryLevel(batteryLevel);
                             break;
                         }
                     }

@@ -53,7 +53,7 @@ melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exceptio
 melonds::wrong_firmware_type_exception::wrong_firmware_type_exception(
     std::string_view firmwareName,
     melonds::ConsoleType consoleType,
-    SPI_Firmware::FirmwareConsoleType firmwareConsoleType
+    Firmware::FirmwareConsoleType firmwareConsoleType
 ) noexcept : bios_exception(
     fmt::format(
         FMT_STRING("The firmware file at \"{}\" is for the {}, but it can't be used in {} mode."),

@@ -486,10 +486,11 @@ static void melonds::read_microphone(melonds::InputState& inputState) noexcept {
 static void melonds::render_audio() {
     ZoneScopedN("melonds::render_audio");
     static int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
-    u32 size = std::min(SPU::GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
+    retro_assert(NDS::SPU != nullptr);
+    u32 size = std::min(NDS::SPU->GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
     // Ensure that we don't overrun the buffer
 
-    size_t read = SPU::ReadOutput(audio_buffer, size);
+    size_t read = NDS::SPU->ReadOutput(audio_buffer, size);
     retro::audio_sample_batch(audio_buffer, read);
 }
 
@@ -499,7 +500,8 @@ static void SetConsoleTime() noexcept {
     tm tm;
     struct tm* tmPtr = localtime(&now);
     memcpy(&tm, tmPtr, sizeof(tm)); // Reduce the odds of race conditions in case some other thread uses this
-    RTC::SetDateTime(tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    retro_assert(NDS::RTC != nullptr);
+    NDS::RTC->SetDateTime(tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     // tm.tm_mon is 0-indexed, but RTC::SetDateTime expects 1-indexed
 }
 
@@ -745,7 +747,7 @@ static void melonds::load_games(
 
     InitFlushFirmwareTask();
 
-    if (loadedGbaCart && (NDS::IsLoadedARM9BIOSBuiltIn() || NDS::IsLoadedARM7BIOSBuiltIn() || SPI_Firmware::IsLoadedFirmwareBuiltIn())) {
+    if (loadedGbaCart && (NDS::IsLoadedARM9BIOSBuiltIn() || NDS::IsLoadedARM7BIOSBuiltIn() || NDS::SPI->GetFirmwareMem()->IsLoadedFirmwareBuiltIn())) {
         // If we're using FreeBIOS and are trying to load a GBA cart...
         retro::set_warn_message(
             "FreeBIOS does not support GBA connectivity. "

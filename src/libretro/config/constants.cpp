@@ -180,7 +180,7 @@ std::optional<melonds::TouchMode> melonds::config::ParseTouchMode(const char* va
     return nullopt;
 }
 
-optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
+optional<IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
     ZoneScopedN("melonds::config::ParseIpAddress");
     if (string_is_empty(value))
         return nullopt;
@@ -190,7 +190,7 @@ optional<SPI_Firmware::IpAddress> melonds::config::ParseIpAddress(const char* va
         // Both in_addr and ip represent an IPv4 address,
         // but they may have different alignment requirements.
         // Better safe than sorry.
-        SPI_Firmware::IpAddress ip;
+        IpAddress ip;
         memcpy(&ip, &address, sizeof(address));
         return ip;
     }
@@ -212,7 +212,7 @@ bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
     return true;
 }
 
-bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::FirmwareHeader& header) noexcept {
+bool melonds::config::IsFirmwareImage(const retro::dirent& file, Firmware::FirmwareHeader& header) noexcept {
     ZoneScopedN("melonds::config::IsFirmwareImage");
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
 
@@ -257,14 +257,14 @@ bool melonds::config::IsFirmwareImage(const retro::dirent& file, SPI_Firmware::F
         return false;
     }
 
-    SPI_Firmware::FirmwareHeader& loadedHeader = *reinterpret_cast<SPI_Firmware::FirmwareHeader*>(&buffer);
+    Firmware::FirmwareHeader& loadedHeader = *reinterpret_cast<Firmware::FirmwareHeader*>(&buffer);
 
     switch (loadedHeader.ConsoleType) {
-        case SPI_Firmware::FirmwareConsoleType::DS:
-        case SPI_Firmware::FirmwareConsoleType::DSi:
-        case SPI_Firmware::FirmwareConsoleType::iQueDSLite:
-        case SPI_Firmware::FirmwareConsoleType::iQueDS:
-        case SPI_Firmware::FirmwareConsoleType::DSLite:
+        case Firmware::FirmwareConsoleType::DS:
+        case Firmware::FirmwareConsoleType::DSi:
+        case Firmware::FirmwareConsoleType::iQueDSLite:
+        case Firmware::FirmwareConsoleType::iQueDS:
+        case Firmware::FirmwareConsoleType::DSLite:
             break;
         default:
             retro::debug("{} doesn't look like valid firmware (unrecognized ConsoleType 0x{:02X})", file.path, (u8)loadedHeader.ConsoleType);

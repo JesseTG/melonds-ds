@@ -7,7 +7,10 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
-Nothing right now.
+### Changed
+
+- Updated melonDS to commit 24a33e5.
+- Updated libretro-common to commit fce57fd.
 
 ## [0.7.25] - 2023-11-06
 

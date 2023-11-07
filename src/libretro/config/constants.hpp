@@ -267,13 +267,13 @@ namespace melonds::config {
     std::optional<melonds::MicInputMode> ParseMicInputMode(const char* value) noexcept;
     std::optional<melonds::TouchMode> ParseTouchMode(const char* value) noexcept;
 
-    std::optional<SPI_Firmware::IpAddress> ParseIpAddress(const char* value) noexcept;
+    std::optional<IpAddress> ParseIpAddress(const char* value) noexcept;
 
     constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
-    bool IsFirmwareImage(const retro::dirent &file, SPI_Firmware::FirmwareHeader& header) noexcept;
+    bool IsFirmwareImage(const retro::dirent &file, Firmware::FirmwareHeader& header) noexcept;
 }
 
 #endif //MELONDS_DS_CONSTANTS_HPP

@@ -55,7 +55,7 @@ namespace Config {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
 bool melonds::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
     ZoneScopedN("Platform::LAN_Init::LAN_PCap::IsAdapterAcceptable");
-    const SPI_Firmware::MacAddress& mac = *reinterpret_cast<const SPI_Firmware::MacAddress*>(adapter.MAC);
+    const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC);
 
     if (mac == BAD_MAC || mac == BROADCAST_MAC)
         return false;

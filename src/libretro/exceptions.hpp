@@ -90,7 +90,7 @@ namespace melonds
         wrong_firmware_type_exception(
             std::string_view  firmwareName,
             melonds::ConsoleType consoleType,
-            SPI_Firmware::FirmwareConsoleType firmwareConsoleType
+            Firmware::FirmwareConsoleType firmwareConsoleType
         ) noexcept;
     };
 
