@@ -1,3 +1,4 @@
 cmake/toolchain/**          linguist-vendored
 cmake/GitInfo.cmake         linguist-vendored
 cmake/FindOpenGLES.cmake    linguist-vendored
+LICENSE                     text
