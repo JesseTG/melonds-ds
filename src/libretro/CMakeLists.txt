@@ -25,6 +25,8 @@ add_library(melondsds_libretro MODULE
     config/definitions/video.hpp
     content.cpp
     content.hpp
+    core.cpp
+    core.hpp
     dsi.cpp
     dsi.hpp
     environment.cpp
