@@ -16,6 +16,7 @@
 
 #include "memory.hpp"
 
+#include "PlatformOGLPrivate.h"
 #include <cstring>
 #include <regex>
 #include <fmt/core.h>
@@ -28,6 +29,7 @@
 #include "info.hpp"
 #include <retro_assert.h>
 #include "content.hpp"
+#include "core.hpp"
 
 #include "tracy.hpp"
 #include "sram.hpp"
@@ -78,6 +80,8 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
             melonds::_savestate_size = 0;
             // TODO: When DSi mode supports savestates, remove this conditional block
         } else {
+            retro_assert(melondsds::Core.Console != nullptr);
+            NDS& nds = *melondsds::Core.Console;
             #ifndef NDEBUG
             if (retro::content::get_loaded_nds_info() != std::nullopt) {
                 // If we're booting with a ROM...
@@ -86,12 +90,12 @@ PUBLIC_SYMBOL size_t retro_serialize_size(void) {
                 // We won't know the size of the cart's SRAM until it's loaded,
                 // so we can't know the savestate size until then.
                 // We must ensure the cart is loaded before the frontend starts to ask about the savestate size!
-                retro_assert(NDSCart::Cart != nullptr);
+                retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
             }
             #endif
 
             Savestate state;
-            NDS::DoSavestate(&state);
+            nds.DoSavestate(&state);
             melonds::_savestate_size = state.Length();
 
             retro::info(
@@ -111,17 +115,19 @@ PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
     if (melonds::IsInErrorScreen())
         return false;
 
+    retro_assert(melondsds::Core.Console != nullptr);
+    NDS& nds = *melondsds::Core.Console;
 #ifndef NDEBUG
     if (retro::content::get_loaded_nds_info() != std::nullopt) {
         // If we're booting with a ROM...
-        retro_assert(NDSCart::Cart != nullptr);
+        retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
     }
 #endif
     retro_assert(size == melonds::_savestate_size);
 
     Savestate state(data, size, true);
 
-    return NDS::DoSavestate(&state) && !state.Error;
+    return nds.DoSavestate(&state) && !state.Error;
 }
 
 PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
@@ -129,10 +135,14 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     retro::debug("retro_unserialize({}, {})", data, size);
     if (melonds::IsInErrorScreen())
         return false;
+
+    retro_assert(melondsds::Core.Console != nullptr);
+    NDS& nds = *melondsds::Core.Console;
+
 #ifndef NDEBUG
     if (retro::content::get_loaded_nds_info() != std::nullopt) {
         // If we're booting with a ROM...
-        retro_assert(NDSCart::Cart != nullptr);
+        retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
     }
 #endif
 
@@ -165,7 +175,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
         return false;
     }
 
-    return NDS::DoSavestate(&savestate) && !savestate.Error;
+    return nds.DoSavestate(&savestate) && !savestate.Error;
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
@@ -174,7 +184,8 @@ PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
         return nullptr;
     switch (type) {
         case RETRO_MEMORY_SYSTEM_RAM:
-            return NDS::MainRAM;
+            retro_assert(melondsds::Core.Console != nullptr);
+            return melondsds::Core.Console->MainRAM;
         case RETRO_MEMORY_SAVE_RAM:
             if (melonds::sram::NdsSaveManager) {
                 return melonds::sram::NdsSaveManager->Sram();

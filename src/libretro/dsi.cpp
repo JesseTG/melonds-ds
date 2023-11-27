@@ -24,6 +24,8 @@
 #include <net/net_http.h>
 #endif
 
+#include "PlatformOGLPrivate.h"
+
 #include <DSi_NAND.h>
 #include <DSi_TMD.h>
 #include <retro_assert.h>

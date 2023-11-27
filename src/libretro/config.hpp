@@ -25,9 +25,14 @@
 #include <SPI_Firmware.h>
 
 namespace melonDS {
-struct NDSHeader;
+    struct NDSHeader;
     struct RenderSettings;
 }
+
+namespace melondsds {
+    struct CoreState;
+}
+
 struct retro_core_options_v2;
 struct retro_core_option_v2_definition;
 struct retro_game_info;
@@ -39,13 +44,14 @@ namespace melonds {
 
     /// Called when loading a game
     void InitConfig(
+        melondsds::CoreState& core,
         const melonDS::NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
         ScreenLayoutData& screenLayout,
         InputState& inputState
     );
 
     /// Called when settings have been updated mid-game
-    void UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
+    void UpdateConfig(melondsds::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     bool update_option_visibility();
 
     enum class ConsoleType {
@@ -100,7 +106,6 @@ namespace melonds {
         None,
         HostMic,
         WhiteNoise,
-        BlowNoise,
     };
 
     enum class FirmwareLanguage {

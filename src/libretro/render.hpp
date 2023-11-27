@@ -19,6 +19,9 @@
 
 #include "config.hpp"
 
+namespace melonDS {
+    class NDS;
+}
 namespace melonds {
     struct InputState;
     class ScreenLayoutData;
@@ -29,11 +32,11 @@ namespace melonds::render {
 
     /// Returns true if all global state necessary for rendering is ready.
     /// This includes the OpenGL context (if applicable) and the emulator's renderer.
-    bool ReadyToRender() noexcept;
+    bool ReadyToRender(const melonDS::NDS& nds) noexcept;
 
     Renderer CurrentRenderer() noexcept;
 
-    void Render(const InputState& input_state, ScreenLayoutData& screenLayout) noexcept;
+    void Render(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screenLayout) noexcept;
 }
 
 #endif //MELONDS_DS_RENDER_HPP

@@ -16,6 +16,7 @@
 
 #include "input.hpp"
 
+#include "PlatformOGLPrivate.h"
 #include <NDS.h>
 #include <glm/gtx/common.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -106,7 +107,7 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
     retro::debug("retro_set_controller_port_device({}, {})", port, device_name(device));
 }
 
-void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
+void melonds::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("melonds::HandleInput");
     using glm::clamp;
     using glm::all;
@@ -114,18 +115,18 @@ void melonds::HandleInput(InputState& inputState, ScreenLayoutData& screenLayout
     // Read the input from the frontend
     inputState.Update(screenLayout);
 
-    NDS::SetKeyMask(inputState.ConsoleButtons());
+    nds.SetKeyMask(inputState.ConsoleButtons());
 
     if (inputState.ToggleLidPressed()) {
-        NDS::SetLidClosed(!NDS::IsLidClosed());
-        retro::debug("{} the lid", NDS::IsLidClosed() ? "Closed" : "Opened");
+        nds.SetLidClosed(!nds.IsLidClosed());
+        retro::debug("{} the lid", nds.IsLidClosed() ? "Closed" : "Opened");
     }
 
     if (inputState.IsTouchingScreen()) {
         uvec2 touch = inputState.ConsoleTouchCoordinates(screenLayout);
-        NDS::TouchScreen(touch.x, touch.y);
+        nds.TouchScreen(touch.x, touch.y);
     } else if (inputState.ScreenReleased()) {
-        NDS::ReleaseScreen();
+        nds.ReleaseScreen();
     }
 
     if (inputState.CycleLayoutPressed()) {
@@ -306,7 +307,7 @@ bool melonds::InputState::CursorVisible() const noexcept {
             break;
     }
 
-    return modeAllowsCursor && !NDS::IsLidClosed() && IsCursorInputInBounds();
+    return modeAllowsCursor && IsCursorInputInBounds();
 }
 
 bool melonds::InputState::IsTouchingScreen() const noexcept {

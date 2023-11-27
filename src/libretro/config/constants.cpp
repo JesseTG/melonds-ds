@@ -166,7 +166,6 @@ std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(const ch
 
 optional<melonds::MicInputMode> melonds::config::ParseMicInputMode(const char* value) noexcept {
     if (string_is_equal(value, values::MICROPHONE)) return MicInputMode::HostMic;
-    if (string_is_equal(value, values::BLOW)) return MicInputMode::BlowNoise;
     if (string_is_equal(value, values::NOISE)) return MicInputMode::WhiteNoise;
     if (string_is_equal(value, values::SILENCE)) return MicInputMode::None;
 

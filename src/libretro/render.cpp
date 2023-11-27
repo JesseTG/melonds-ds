@@ -23,6 +23,7 @@
 
 #include <gfx/scaler/pixconv.h>
 #include <retro_assert.h>
+#include <NDS.h>
 #include <GPU3D.h>
 
 #include "config.hpp"
@@ -39,7 +40,7 @@ using glm::uvec2;
 
 namespace melonds::render {
     static Renderer _CurrentRenderer = Renderer::None;
-    static void RenderSoftware(const InputState& input_state, ScreenLayoutData& screenLayout) noexcept;
+    static void RenderSoftware(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screenLayout) noexcept;
 }
 
 void melonds::render::Initialize(Renderer renderer) {
@@ -73,9 +74,9 @@ void melonds::render::Initialize(Renderer renderer) {
 #endif
 }
 
-bool melonds::render::ReadyToRender() noexcept {
+bool melonds::render::ReadyToRender(const melonDS::NDS& nds) noexcept {
     using melonds::Renderer;
-    if (GPU3D::CurrentRenderer == nullptr) {
+    if (nds.GPU.GPU3D.GetCurrentRenderer() == nullptr) {
         // If the emulator doesn't yet have an assigned renderer...
         return false;
     }
@@ -92,15 +93,15 @@ bool melonds::render::ReadyToRender() noexcept {
 }
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
-void melonds::render::RenderSoftware(const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
+void melonds::render::RenderSoftware(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
     ZoneScopedN("melonds::render::RenderSoftware");
     retro_assert(_CurrentRenderer == Renderer::Software);
 
-    const uint32_t* topScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][0];
-    const uint32_t* bottomScreenBuffer = GPU::Framebuffer[GPU::FrontBuffer][1];
+    const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0];
+    const uint32_t* bottomScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][1];
     screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer);
 
-    if (input_state.CursorVisible()) {
+    if (!nds.IsLidClosed() && input_state.CursorVisible()) {
         screen_layout_data.DrawCursor(input_state.TouchPosition());
     }
 
@@ -128,16 +129,16 @@ melonds::Renderer melonds::render::CurrentRenderer() noexcept {
     return _CurrentRenderer;
 }
 
-void melonds::render::Render(const InputState& input_state, ScreenLayoutData& screenLayout) noexcept {
+void melonds::render::Render(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screenLayout) noexcept {
     switch (_CurrentRenderer) {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         case Renderer::OpenGl:
-            melonds::opengl::Render(input_state, screenLayout);
+            melonds::opengl::Render(nds, input_state, screenLayout);
             break;
 #endif
         case Renderer::Software:
         default:
-            render::RenderSoftware(input_state, screenLayout);
+            render::RenderSoftware(nds, input_state, screenLayout);
             break;
     }
 }

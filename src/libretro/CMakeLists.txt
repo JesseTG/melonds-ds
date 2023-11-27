@@ -4,7 +4,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(embed-binaries)
 
 add_library(melondsds_libretro MODULE
-    "${melonDS_SOURCE_DIR}/src/frontend/Util_Audio.cpp"
     buffer.cpp
     buffer.hpp
     cheats.cpp

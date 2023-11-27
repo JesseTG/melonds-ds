@@ -25,6 +25,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <GPU.h>
+#include <NDS.h>
 #include <OpenGLSupport.h>
 
 #include "embedded/melondsds_fragment_shader.h"
@@ -37,6 +38,7 @@
 #include "config.hpp"
 #include "render.hpp"
 #include "tracy.hpp"
+#include "core.hpp"
 
 #ifdef TRACY_ENABLE
 #include <tracy/TracyOpenGL.hpp>
@@ -106,7 +108,7 @@ namespace melonds::opengl {
 
     static void SetupOpenGl();
 
-    static void InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept;
+    static void InitializeFrameState(NDS& nds, const ScreenLayoutData& screenLayout) noexcept;
     static void InitializeVertices(const ScreenLayoutData& screenLayout) noexcept;
 }
 
@@ -171,7 +173,7 @@ bool melonds::opengl::Initialize() noexcept {
     return ok;
 }
 
-void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
+void melonds::opengl::Render(NDS& nds, const InputState& state, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("melonds::opengl::Render");
     TracyGpuZone("melonds::opengl::Render");
     retro_assert(melonds::render::CurrentRenderer() == melonds::Renderer::OpenGl);
@@ -183,10 +185,10 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
     if (refresh_opengl) {
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        InitializeFrameState(screenLayout);
+        InitializeFrameState(nds, screenLayout);
     }
 
-    if (state.CursorVisible()) {
+    if (!nds.IsLidClosed() && state.CursorVisible()) {
         float cursorSize = melonds::config::screen::CursorSize();
         ivec2 touch = state.TouchPosition();
         GL_ShaderConfig.cursorPos[0] = ((float) touch.x - cursorSize) / NDS_SCREEN_WIDTH;
@@ -213,7 +215,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
 
     glActiveTexture(GL_TEXTURE0);
 
-    GPU::CurGLCompositor->BindOutputTexture(GPU::FrontBuffer);
+    nds.GPU.CurGLCompositor->BindOutputTexture(nds.GPU.FrontBuffer);
 
     // Set the filtering mode for the active texture
     // For simplicity, we'll just use the same filter for both minification and magnification
@@ -238,18 +240,20 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
     TracyGpuCollect;
 }
 
-void melonds::opengl::deinitialize() {
+void melonds::opengl::deinitialize(melonDS::NDS& nds) {
     retro::debug("melonds::opengl::deinitialize()");
-    GPU::DeInitRenderer();
-    GPU::InitRenderer(false);
+    nds.GPU.DeInitRenderer();
+    nds.GPU.InitRenderer(false);
 }
 
 static void melonds::opengl::ContextReset() noexcept try {
     ZoneScopedN("melonds::opengl::ContextReset");
     retro::debug("melonds::opengl::ContextReset()");
-    if (UsingOpenGl() && GPU3D::CurrentRenderer) { // If we're using OpenGL, but there's already a renderer in place...
+    retro_assert(melondsds::Core.Console != nullptr);
+    NDS& nds = *melondsds::Core.Console;
+    if (UsingOpenGl() && nds.GPU.GPU3D.GetCurrentRenderer()) { // If we're using OpenGL, but there's already a renderer in place...
         retro::debug("GPU3D renderer is assigned; deinitializing it before resetting the context.");
-        GPU::DeInitRenderer();
+        nds.GPU.DeInitRenderer();
     }
 
     // Initialize all OpenGL function pointers
@@ -268,7 +272,7 @@ static void melonds::opengl::ContextReset() noexcept try {
     {
         ZoneScopedN("GPU::InitRenderer");
         TracyGpuZone("GPU::InitRenderer");
-        GPU::InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
+        nds.GPU.InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
     }
 
     SetupOpenGl();
@@ -558,12 +562,12 @@ static void melonds::opengl::InitializeVertices(const ScreenLayoutData& screenLa
     }
 }
 
-void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout) noexcept {
+void melonds::opengl::InitializeFrameState(NDS& nds, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("melonds::opengl::InitializeFrameState");
     TracyGpuZone("melonds::opengl::InitializeFrameState");
     refresh_opengl = false;
     RenderSettings render_settings = melonds::config::video::RenderSettings();
-    GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
+    nds.GPU.SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
 
     GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();
     GL_ShaderConfig.u3DScale = screenLayout.Scale();

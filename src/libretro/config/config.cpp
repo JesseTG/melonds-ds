@@ -52,6 +52,7 @@
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
 #include "config/definitions/categories.hpp"
+#include "core.hpp"
 #include "embedded/melondsds_default_wfc_config.h"
 #include "environment.hpp"
 #include "exceptions.hpp"
@@ -70,6 +71,7 @@
 #undef interface
 #endif
 
+using namespace melonDS;
 using std::array;
 using std::find_if;
 using std::from_chars;
@@ -135,9 +137,9 @@ namespace melonds::config {
     static void parse_homebrew_save_options(const NDSHeader* header);
     static void parse_dsi_storage_options() noexcept;
 
-    static void apply_system_options(const NDSHeader* header);
+    static void apply_system_options(melondsds::CoreState& core, const NDSHeader* header);
 
-    static void apply_audio_options() noexcept;
+    static void apply_audio_options(NDS& nds) noexcept;
     static void apply_save_options(const NDSHeader* header);
     static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     static void apply_network_options() noexcept;
@@ -349,10 +351,10 @@ namespace melonds::config {
 
     namespace video {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(HAVE_THREADS)
-        static GPU::RenderSettings _renderSettings = {false, 1, false};
-        GPU::RenderSettings RenderSettings() noexcept { return _renderSettings; }
+        static melonDS::RenderSettings _renderSettings = {false, 1, false};
+        melonDS::RenderSettings RenderSettings() noexcept { return _renderSettings; }
 #else
-        GPU::RenderSettings RenderSettings() noexcept { return {false, 1, false}; }
+        RenderSettings RenderSettings() noexcept { return {false, 1, false}; }
 #endif
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -371,7 +373,8 @@ namespace melonds::config {
 
 
 void melonds::InitConfig(
-    const NDSHeader* header,
+    melondsds::CoreState& core,
+    const melonDS::NDSHeader* header,
     ScreenLayoutData& screenLayout,
     InputState& inputState
 ) {
@@ -388,9 +391,10 @@ void melonds::InitConfig(
     bool openGlNeedsRefresh = config::parse_video_options(true);
     config::parse_screen_options();
 
-    config::apply_system_options(header);
+    retro_assert(core.Console == nullptr);    config::apply_system_options(core, header);
+    retro_assert(core.Console != nullptr);
     config::apply_save_options(header);
-    config::apply_audio_options();
+    config::apply_audio_options(*core.Console);
     config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -409,14 +413,16 @@ void melonds::InitConfig(
     update_option_visibility();
 }
 
-void melonds::UpdateConfig(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
+void melonds::UpdateConfig(melondsds::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
     ZoneScopedN("melonds::config::UpdateConfig");
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     config::parse_screen_options();
     config::parse_osd_options();
 
-    config::apply_audio_options();
+    retro_assert(core.Console != nullptr);
+
+    config::apply_audio_options(*core.Console);
     config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -1423,14 +1429,11 @@ static void CustomizeFirmware(Firmware& firmware) {
 // Then, fall back to other system files if needed and possible
 // If fallback is needed and not possible, throw an exception
 // Finally, install the system files
-static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootMode, melonds::SysfileMode sysfileMode) {
+static void InitNdsSystemConfig(NDS& nds, const NDSHeader* header, melonds::BootMode bootMode, melonds::SysfileMode sysfileMode) {
     ZoneScopedN("melonds::config::InitNdsSystemConfig");
     using namespace melonds::config::system;
     using namespace melonds;
     retro_assert(!(header && header->IsDSiWare()));
-
-    // No need for the NAND on the regular DS
-    DSi::NANDImage = nullptr;
 
     // The rules are somewhat complicated.
     // - Bootable firmware is required if booting without content.
@@ -1492,22 +1495,21 @@ static void InitNdsSystemConfig(const NDSHeader* header, melonds::BootMode bootM
     }
 
     if (bios7 && bios9) {
-        memcpy(NDS::ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
-        memcpy(NDS::ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
+        memcpy(nds.ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
+        memcpy(nds.ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
         retro::debug("Installed loaded native ARM7 and ARM9 NDS BIOS images");
     } else {
-        memcpy(NDS::ARM9BIOS, bios_arm9_bin, sizeof(NDS::ARM9BIOS));
-        memcpy(NDS::ARM7BIOS, bios_arm7_bin, sizeof(NDS::ARM7BIOS));
+        memcpy(nds.ARM9BIOS, bios_arm9_bin, sizeof(NDS::ARM9BIOS));
+        memcpy(nds.ARM7BIOS, bios_arm7_bin, sizeof(NDS::ARM7BIOS));
         retro::debug("Installed built-in ARM7 and ARM9 NDS BIOS images");
     }
 
     CustomizeFirmware(*firmware);
-    retro_assert(NDS::SPI != nullptr);
-    retro_assert(NDS::SPI->GetFirmwareMem() != nullptr);
-    NDS::SPI->GetFirmwareMem()->InstallFirmware(std::move(firmware));
+    retro_assert(nds.SPI.GetFirmwareMem() != nullptr);
+    nds.SPI.GetFirmwareMem()->InstallFirmware(std::move(firmware));
 }
 
-static void InitDsiSystemConfig(const NDSHeader* header) {
+static void InitDsiSystemConfig(DSi& dsi, const NDSHeader* header) {
     ZoneScopedN("melonds::config::InitDsiSystemConfig");
     using namespace melonds::config::system;
     using namespace melonds::config::firmware;
@@ -1561,24 +1563,23 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
     }
     // DSi firmware isn't bootable, so we don't need to check for that here.
 
-    memcpy(DSi::ARM9iBIOS, bios9i.get(), sizeof(DSi::ARM9iBIOS));
-    memcpy(DSi::ARM7iBIOS, bios7i.get(), sizeof(DSi::ARM7iBIOS));
-    memcpy(NDS::ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
-    memcpy(NDS::ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
+    memcpy(dsi.ARM9iBIOS, bios9i.get(), sizeof(DSi::ARM9iBIOS));
+    memcpy(dsi.ARM7iBIOS, bios7i.get(), sizeof(DSi::ARM7iBIOS));
+    memcpy(dsi.ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
+    memcpy(dsi.ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
     retro::debug("Installed native ARM7, ARM9, DSi ARM7, and DSi ARM9 BIOS images.");
 
     // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
     CustomizeFirmware(*firmware);
-    retro_assert(NDS::SPI != nullptr);
-    retro_assert(NDS::SPI->GetFirmwareMem() != nullptr);
-    NDS::SPI->GetFirmwareMem()->InstallFirmware(std::move(firmware));
+    retro_assert(dsi.SPI.GetFirmwareMem() != nullptr);
+    dsi.SPI.GetFirmwareMem()->InstallFirmware(std::move(firmware));
 
     optional<string> nandPath = retro::get_system_path(nandName);
     if (!nandPath) {
         throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
     }
 
-    DSi_NAND::NANDImage nand = LoadNANDImage(*nandPath, &DSi::ARM7iBIOS[0x8308]);
+    DSi_NAND::NANDImage nand = LoadNANDImage(*nandPath, &dsi.ARM7iBIOS[0x8308]);
     if (!nand) {
         throw dsi_nand_missing_exception(nandName);
     }
@@ -1718,11 +1719,11 @@ static void InitDsiSystemConfig(const NDSHeader* header) {
         throw environment_exception("Failed to write user data to NAND image");
     }
 
-    DSi::NANDImage = make_unique<DSi_NAND::NANDImage>(std::move(nand));
+    dsi.NANDImage = make_unique<DSi_NAND::NANDImage>(std::move(nand));
     retro::debug("Installed the DSi NAND image file at {}", *nandPath);
 }
 
-static void melonds::config::apply_system_options(const NDSHeader* header) {
+static void melonds::config::apply_system_options(melondsds::CoreState& core, const NDSHeader* header) {
     ZoneScopedN("melonds::config::apply_system_options");
     using namespace melonds::config::system;
     if (header && header->IsDSiWare()) {
@@ -1731,18 +1732,18 @@ static void melonds::config::apply_system_options(const NDSHeader* header) {
         retro::warn("Forcing DSi mode for DSiWare game");
     }
 
-    NDS::SetConsoleType(static_cast<int>(melonds::config::system::ConsoleType()));
-
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        InitDsiSystemConfig(header);
+        core.Console = std::make_unique<DSi>();
+        InitDsiSystemConfig(*static_cast<DSi*>(core.Console.get()), header);
     } else {
         // If we're in DS mode...
-        InitNdsSystemConfig(header, _bootMode, _sysfileMode);
+        core.Console = std::make_unique<NDS>();
+        InitNdsSystemConfig(*core.Console, header, _bootMode, _sysfileMode);
     }
 }
 
-static void melonds::config::apply_audio_options() noexcept {
+static void melonds::config::apply_audio_options(NDS& nds) noexcept {
     ZoneScopedN("melonds::config::apply_audio_options");
     bool is_using_host_mic = audio::MicInputMode() == MicInputMode::HostMic;
     if (retro::microphone::is_interface_available()) {
@@ -1759,8 +1760,7 @@ static void melonds::config::apply_audio_options() noexcept {
         }
     }
 
-    retro_assert(NDS::SPU != nullptr);
-    NDS::SPU->SetInterpolation(static_cast<int>(config::audio::Interpolation()));
+    nds.SPU.SetInterpolation(static_cast<int>(config::audio::Interpolation()));
 }
 
 static void melonds::config::apply_save_options(const NDSHeader* header) {
@@ -2159,9 +2159,9 @@ bool Platform::GetConfigBool(ConfigEntry entry)
         case ExternalBIOSEnable:
             return
             system::ExternalBiosEnable() &&
-            !NDS::IsLoadedARM7BIOSBuiltIn() &&
-            !NDS::IsLoadedARM9BIOSBuiltIn() &&
-            !NDS::SPI->GetFirmwareMem()->IsLoadedFirmwareBuiltIn();
+            !melondsds::Core.Console->IsLoadedARM7BIOSBuiltIn() &&
+            !melondsds::Core.Console->IsLoadedARM9BIOSBuiltIn() &&
+            !melondsds::Core.Console->SPI.GetFirmwareMem()->IsLoadedFirmwareBuiltIn();
 
         case DLDI_Enable: return save::DldiEnable();
         case DLDI_ReadOnly: return save::DldiReadOnly();

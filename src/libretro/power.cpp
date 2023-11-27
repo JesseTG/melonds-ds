@@ -16,6 +16,7 @@
 
 #include "power.hpp"
 
+#include "PlatformOGLPrivate.h"
 
 #include <NDS.h>
 #include <DSi.h>
@@ -24,6 +25,7 @@
 #include <retro_assert.h>
 
 #include "config.hpp"
+#include "core.hpp"
 #include "environment.hpp"
 #include "tracy.hpp"
 
@@ -67,26 +69,26 @@ retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
 
             if (timeToPowerStatusUpdate == 0) {
                 // If it's time to check the power status...
-
+                retro_assert(melondsds::Core.Console != nullptr);
+                NDS& nds = *melondsds::Core.Console;
                 if (optional<retro_device_power> devicePower = retro::get_device_power()) {
                     // ...and the check succeeded...
                     bool charging = devicePower->state == RETRO_POWERSTATE_CHARGING || devicePower->state == RETRO_POWERSTATE_PLUGGED_IN;
-                    switch (config::system::ConsoleType()) {
+                    switch (static_cast<ConsoleType>(nds.ConsoleType)) {
                         case ConsoleType::DS: {
                             // If the threshold is 0, the battery level is always okay
                             // If the threshold is 100, the battery level is never okay
                             bool ok = charging || static_cast<unsigned>(devicePower->percent) > config::system::DsPowerOkayThreshold();
-                            retro_assert(NDS::SPI != nullptr);
-                            retro_assert(NDS::SPI->GetPowerMan() != nullptr);
-                            NDS::SPI->GetPowerMan()->SetBatteryLevelOkay(ok);
+                            retro_assert(nds.SPI.GetPowerMan() != nullptr);
+                            nds.SPI.GetPowerMan()->SetBatteryLevelOkay(ok);
                             break;
                         }
                         case ConsoleType::DSi: {
+                            DSi& dsi = static_cast<DSi&>(nds);
                             u8 batteryLevel = GetDsiBatteryLevel(devicePower->percent == RETRO_POWERSTATE_NO_ESTIMATE ? 100 : devicePower->percent);
-                            retro_assert(DSi::I2C != nullptr);
-                            retro_assert(DSi::I2C->GetBPTWL() != nullptr);
-                            DSi::I2C->GetBPTWL()->SetBatteryCharging(charging);
-                            DSi::I2C->GetBPTWL()->SetBatteryLevel(batteryLevel);
+                            retro_assert(dsi.I2C.GetBPTWL() != nullptr);
+                            dsi.I2C.GetBPTWL()->SetBatteryCharging(charging);
+                            dsi.I2C.GetBPTWL()->SetBatteryLevel(batteryLevel);
                             break;
                         }
                     }

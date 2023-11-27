@@ -30,31 +30,31 @@ struct Platform::Semaphore {
 
 Semaphore *Platform::Semaphore_Create()
 {
-    ZoneScopedN("Platform::Semaphore_Create");
+    ZoneScopedN(TracyFunction);
     return new Semaphore;
 }
 
 void Platform::Semaphore_Reset(Semaphore *sema)
 {
-    ZoneScopedN("Platform::Semaphore_Reset");
+    ZoneScopedN(TracyFunction);
     while (sema->semaphore.try_acquire());
 }
 
 void Platform::Semaphore_Post(Semaphore *sema, int count)
 {
-    ZoneScopedN("Platform::Semaphore_Post");
+    ZoneScopedN(TracyFunction);
     sema->semaphore.release(count);
 }
 
 void Platform::Semaphore_Wait(Semaphore *sema)
 {
-    ZoneScopedN("Platform::Semaphore_Wait");
+    ZoneScopedN(TracyFunction);
     sema->semaphore.acquire();
 }
 
 void Platform::Semaphore_Free(Semaphore *sema)
 {
-    ZoneScopedN("Platform::Semaphore_Free");
+    ZoneScopedN(TracyFunction);
     delete sema;
 }
 

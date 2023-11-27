@@ -16,13 +16,17 @@
 
 #include "cheats.hpp"
 
+#include "PlatformOGLPrivate.h"
+
 #include <charconv>
 #include <memory>
 #include <regex>
 #include <ARCodeFile.h>
+#include <NDS.h>
 #include <string/stdstring.h>
 #include <retro_assert.h>
 
+#include "core.hpp"
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "tracy.hpp"
@@ -34,10 +38,6 @@ using std::make_unique;
 using std::from_chars_result;
 using std::cregex_iterator;
 using namespace std::regex_constants;
-
-namespace AREngine {
-    extern void RunCheat(ARCode &arcode);
-}
 
 static unique_ptr<regex> cheatSyntax;
 static unique_ptr<regex> tokenSyntax;
@@ -96,5 +96,5 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
         curcode.Code.push_back(token);
     }
 
-    AREngine::RunCheat(curcode);
+    melondsds::Core.Console->AREngine.RunCheat(curcode);
 }

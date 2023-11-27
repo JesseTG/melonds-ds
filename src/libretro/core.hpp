@@ -18,6 +18,7 @@
 #define MELONDSDS_CORE_HPP
 
 #include <memory>
+#include "PlatformOGLPrivate.h"
 
 namespace melonDS {
     class NDS;
@@ -26,7 +27,14 @@ namespace melonDS {
 namespace melondsds {
 
     struct CoreState {
+        ~CoreState() noexcept;
         std::unique_ptr<melonDS::NDS> Console = nullptr;
+    public:
+        [[nodiscard]] bool IsInitialized() const noexcept { return initialized; }
+    private:
+        bool initialized = false;
     };
+
+    extern CoreState Core;
 }
 #endif //MELONDSDS_CORE_HPP

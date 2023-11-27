@@ -15,3 +15,11 @@
 */
 
 #include "core.hpp"
+#include <NDS.h>
+
+melondsds::CoreState melondsds::Core;
+
+melondsds::CoreState::~CoreState() noexcept {
+    Console = nullptr;
+    initialized = false;
+}

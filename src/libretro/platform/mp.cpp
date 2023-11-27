@@ -15,17 +15,11 @@
 */
 
 #include <Platform.h>
-#include <NDS.h>
-#include "../environment.hpp"
-#include "../config.hpp"
 
 //! Local multiplayer is not implemented in melonDS DS.
 
 using namespace melonDS;
-static bool _hasUnsupportedMessageBeenShown = false;
-
 bool Platform::MP_Init() {
-    _hasUnsupportedMessageBeenShown = false;
     return false;
 }
 
@@ -33,15 +27,6 @@ void Platform::MP_DeInit() {
 }
 
 void Platform::MP_Begin() {
-    if (NDS::NumFrames > 120 && !_hasUnsupportedMessageBeenShown) {
-        // The DS may turn on the radio immediately after booting,
-        // but we only want to alert the user of this incompatibility
-        // when they actually try to play a local multiplayer game.
-        if (melonds::config::osd::ShowUnsupportedFeatureWarnings()) {
-            retro::set_warn_message("melonDS DS does not support local multiplayer.");
-        }
-        _hasUnsupportedMessageBeenShown = true;
-    }
 }
 
 void Platform::MP_End() {

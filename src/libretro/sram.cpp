@@ -26,6 +26,7 @@
 #include <streams/file_stream.h>
 #include <streams/rzip_stream.h>
 
+#include "PlatformOGLPrivate.h"
 #include <NDS.h>
 #include <Platform.h>
 #include <SPI.h>
@@ -34,6 +35,7 @@
 #include "config.hpp"
 #include "config/constants.hpp"
 #include "content.hpp"
+#include "core.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "libretro.hpp"
@@ -46,6 +48,7 @@ using std::unique_ptr;
 using std::make_unique;
 using std::string;
 using std::string_view;
+using namespace melonDS;
 
 unique_ptr<melonds::sram::SaveManager> melonds::sram::NdsSaveManager;
 unique_ptr<melonds::sram::SaveManager> melonds::sram::GbaSaveManager;
@@ -137,9 +140,10 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
     retro_assert(path_is_absolute(firmwarePath.c_str()));
     retro_assert(!wfcSettingsPath.empty());
     retro_assert(path_is_absolute(wfcSettingsPath.c_str()));
-    retro_assert(NDS::SPI != nullptr);
 
-    const Firmware* firmware = NDS::SPI->GetFirmware();
+    NDS& nds = *melondsds::Core.Console;
+
+    const Firmware* firmware = nds.SPI.GetFirmware();
 
     retro_assert(firmware != nullptr);
     retro_assert(firmware->Buffer() != nullptr);

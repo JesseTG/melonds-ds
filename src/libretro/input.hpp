@@ -22,6 +22,10 @@
 
 #include "config.hpp"
 
+namespace melonDS {
+    class NDS;
+}
+
 namespace melonds {
     class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
@@ -102,6 +106,6 @@ namespace melonds {
         uint32_t consoleButtons;
     };
 
-    void HandleInput(InputState& inputState, ScreenLayoutData& screenLayout) noexcept;
+    void HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept;
 }
 #endif //MELONDS_DS_INPUT_HPP

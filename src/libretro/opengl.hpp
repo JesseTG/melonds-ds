@@ -17,6 +17,10 @@
 #ifndef MELONDS_DS_OPENGL_HPP
 #define MELONDS_DS_OPENGL_HPP
 
+namespace melonDS {
+    class NDS;
+}
+
 namespace melonds {
     class InputState;
     class ScreenLayoutData;
@@ -32,9 +36,9 @@ namespace melonds::opengl {
 
     bool Initialize() noexcept;
 
-    void deinitialize();
+    void deinitialize(melonDS::NDS& nds);
 
-    void Render(const InputState& state, const ScreenLayoutData& screenLayout) noexcept;
+    void Render(melonDS::NDS& nds, const InputState& state, const ScreenLayoutData& screenLayout) noexcept;
 
     bool ContextInitialized();
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
