@@ -32,8 +32,8 @@
 #define GIT_VERSION ""
 #endif
 
-using NdsCart = NDSCart::CartCommon;
-using GbaCart = GBACart::CartCommon;
+using NdsCart = melonDS::NDSCart::CartCommon;
+using GbaCart = melonDS::GBACart::CartCommon;
 
 namespace melonds {
     bool IsUnloadingGame() noexcept;

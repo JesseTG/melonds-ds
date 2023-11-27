@@ -35,6 +35,7 @@
 #include "sram.hpp"
 #include "tracy.hpp"
 
+using namespace melonDS;
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
 static struct retro_camera_callback _camera{};

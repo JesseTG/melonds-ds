@@ -20,6 +20,7 @@
 
 #include <utility>
 
+using namespace melonDS;
 using Platform::Thread;
 struct Platform::Thread {
     sthread_t *thread;

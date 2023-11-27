@@ -24,10 +24,10 @@
 #include <string_view>
 #include <SPI_Firmware.h>
 
-namespace GPU {
+namespace melonDS {
+struct NDSHeader;
     struct RenderSettings;
 }
-struct NDSHeader;
 struct retro_core_options_v2;
 struct retro_core_option_v2_definition;
 struct retro_game_info;
@@ -39,7 +39,7 @@ namespace melonds {
 
     /// Called when loading a game
     void InitConfig(
-        const NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
+        const melonDS::NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
         ScreenLayoutData& screenLayout,
         InputState& inputState
     );
@@ -302,7 +302,7 @@ namespace melonds {
             constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
             constexpr unsigned MAX_OPENGL_SCALE = 8;
             [[nodiscard]] Renderer ConfiguredRenderer() noexcept;
-            [[nodiscard]] GPU::RenderSettings RenderSettings() noexcept;
+            [[nodiscard]] melonDS::RenderSettings RenderSettings() noexcept;
             [[nodiscard]] ScreenFilter ScreenFilter() noexcept;
             [[nodiscard]] int ScaleFactor() noexcept;
         }

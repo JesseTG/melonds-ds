@@ -22,7 +22,7 @@
 
 #include "retro/task_queue.hpp"
 
-struct Platform::FileHandle {
+struct melonDS::Platform::FileHandle {
     RFILE *file;
     unsigned hints;
 };

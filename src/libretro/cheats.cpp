@@ -77,7 +77,7 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
         return;
     }
 
-    ARCode curcode {
+    melonDS::ARCode curcode {
         .Name = "",
         .Enabled = enabled,
         .Code = {}

@@ -46,6 +46,7 @@ using retro::info;
 using retro::warn;
 using retro::error;
 
+using namespace melonDS;
 using DSi_TMD::TitleMetadata;
 
 const char *TMD_DIR_NAME = "tmd";

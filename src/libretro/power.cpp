@@ -27,6 +27,7 @@
 #include "environment.hpp"
 #include "tracy.hpp"
 
+using namespace melonDS;
 using std::optional;
 
 static u8 GetDsiBatteryLevel(u8 percent) noexcept {

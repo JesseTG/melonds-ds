@@ -29,6 +29,7 @@
 #include "tracy.hpp"
 #include "pcap.hpp"
 
+using namespace melonDS;
 using std::string;
 using std::string_view;
 static melonds::NetworkMode _activeNetworkMode;

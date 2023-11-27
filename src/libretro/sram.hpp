@@ -44,7 +44,7 @@ namespace melonds::sram {
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
     class SaveManager {
     public:
-        SaveManager(u32 initialLength);
+        SaveManager(uint32_t initialLength);
 
         ~SaveManager();
 
@@ -62,23 +62,23 @@ namespace melonds::sram {
         /// Never changes during a game's lifetime.
         /// \param writeoffset Starting position of the updated data
         /// \param writelen Length of the updated data.
-        void Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen);
+        void Flush(const uint8_t *savedata, uint32_t savelen, uint32_t writeoffset, uint32_t writelen);
 
-        [[nodiscard]] const u8 *Sram() const {
+        [[nodiscard]] const uint8_t *Sram() const {
             return _sram;
         }
 
-        u8 *Sram() {
+        uint8_t *Sram() {
             return _sram;
         }
 
-        [[nodiscard]] u32 SramLength() const {
+        [[nodiscard]] uint32_t SramLength() const {
             return _sram_length;
         }
 
     private:
-        u8 *_sram;
-        u32 _sram_length;
+        uint8_t *_sram;
+        uint32_t _sram_length;
     };
 
     extern std::unique_ptr<SaveManager> NdsSaveManager;

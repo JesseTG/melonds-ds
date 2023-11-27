@@ -19,6 +19,7 @@
 
 #include "tracy.hpp"
 
+using namespace melonDS;
 using Platform::Semaphore;
 
 struct Platform::Semaphore {

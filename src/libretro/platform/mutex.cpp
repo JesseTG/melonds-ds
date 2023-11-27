@@ -19,6 +19,7 @@
 #include "retro/threads.hpp"
 #include "tracy.hpp"
 
+using namespace melonDS;
 using Platform::Mutex;
 
 struct Platform::Mutex {

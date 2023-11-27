@@ -20,12 +20,12 @@
 #include <libretro.h>
 #include "libretro.hpp"
 
-namespace DSi_NAND {
+namespace melonDS::DSi_NAND {
     class NANDImage;
 }
 
 namespace melonds::dsi {
-    void install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info& nds_info);
-    void uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info& nds_info) noexcept;
+    void install_dsiware(melonDS::DSi_NAND::NANDImage& nand, const retro_game_info& nds_info);
+    void uninstall_dsiware(melonDS::DSi_NAND::NANDImage& nand, const retro_game_info& nds_info) noexcept;
 }
 #endif //MELONDS_DS_DSI_HPP

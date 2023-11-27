@@ -33,6 +33,7 @@
 #include "sram.hpp"
 #include "format.hpp"
 
+using namespace melonDS;
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 constexpr ssize_t SAVESTATE_SIZE_UNKNOWN = -1;

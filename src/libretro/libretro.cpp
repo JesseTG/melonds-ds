@@ -66,6 +66,7 @@
 #include "sram.hpp"
 #include "tracy.hpp"
 
+using namespace melonDS;
 using std::make_optional;
 using std::optional;
 using std::nullopt;

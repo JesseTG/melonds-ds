@@ -54,6 +54,8 @@ extern struct retro_hw_render_callback hw_render;
 
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 
+using namespace melonDS;
+
 namespace melonds::opengl {
     constexpr float PIXEL_PAD = 1.0f / (NDS_SCREEN_HEIGHT * 2 + 2);
     constexpr unsigned VERTEXES_PER_SCREEN = 6;
@@ -201,7 +203,7 @@ void melonds::opengl::Render(const InputState& state, const ScreenLayoutData& sc
     if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    OpenGL::UseShaderProgram(shader);
+    melonDS::OpenGL::UseShaderProgram(shader);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
@@ -560,7 +562,7 @@ void melonds::opengl::InitializeFrameState(const ScreenLayoutData& screenLayout)
     ZoneScopedN("melonds::opengl::InitializeFrameState");
     TracyGpuZone("melonds::opengl::InitializeFrameState");
     refresh_opengl = false;
-    GPU::RenderSettings render_settings = melonds::config::video::RenderSettings();
+    RenderSettings render_settings = melonds::config::video::RenderSettings();
     GPU::SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
 
     GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();

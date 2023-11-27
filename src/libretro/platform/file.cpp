@@ -38,51 +38,51 @@
 #include "tracy.hpp"
 #include "utils.hpp"
 
+using namespace melonDS;
+using namespace melonDS::Platform;
 using std::unique_ptr;
 using std::unordered_map;
 
 [[deprecated("Use specific Platform calls instead")]]
 static unique_ptr<unordered_map<Platform::FileHandle*, int>> flushTimers;
 
-namespace Platform {
-    constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
-        unsigned retro_mode = 0;
-        if (mode & FileMode::Read)
-            retro_mode |= RETRO_VFS_FILE_ACCESS_READ;
+constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
+    unsigned retro_mode = 0;
+    if (mode & FileMode::Read)
+        retro_mode |= RETRO_VFS_FILE_ACCESS_READ;
 
-        if (mode & FileMode::Write)
-            retro_mode |= RETRO_VFS_FILE_ACCESS_WRITE;
+    if (mode & FileMode::Write)
+        retro_mode |= RETRO_VFS_FILE_ACCESS_WRITE;
 
-        if (mode & FileMode::Preserve)
-            retro_mode |= RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING;
+    if (mode & FileMode::Preserve)
+        retro_mode |= RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING;
 
-        return retro_mode;
+    return retro_mode;
+}
+
+unsigned GetRetroVfsFileAccessHints(const std::string& path) noexcept {
+    // TODO: If this path matches an SD card path, NAND path, or firmware path,
+    // then we should return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS
+
+    if (string_ends_with(path.c_str(), ".bin")) {
+        // TODO: When I submit that PR with those new Platform calls,
+        // use them instead of relying on a .bin file extension
+        return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS;
     }
 
-    unsigned GetRetroVfsFileAccessHints(const std::string& path) noexcept {
-        // TODO: If this path matches an SD card path, NAND path, or firmware path,
-        // then we should return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS
+    return RETRO_VFS_FILE_ACCESS_HINT_NONE;
+}
 
-        if (string_ends_with(path.c_str(), ".bin")) {
-            // TODO: When I submit that PR with those new Platform calls,
-            // use them instead of relying on a .bin file extension
-            return RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS;
-        }
-
-        return RETRO_VFS_FILE_ACCESS_HINT_NONE;
-    }
-
-    constexpr unsigned GetRetroVfsFileSeekOrigin(FileSeekOrigin origin) noexcept {
-        switch (origin) {
-            case FileSeekOrigin::Start:
-                return RETRO_VFS_SEEK_POSITION_START;
-            case FileSeekOrigin::Current:
-                return RETRO_VFS_SEEK_POSITION_CURRENT;
-            case FileSeekOrigin::End:
-                return RETRO_VFS_SEEK_POSITION_END;
-            default:
-                return 0;
-        }
+constexpr unsigned GetRetroVfsFileSeekOrigin(FileSeekOrigin origin) noexcept {
+    switch (origin) {
+        case FileSeekOrigin::Start:
+            return RETRO_VFS_SEEK_POSITION_START;
+        case FileSeekOrigin::Current:
+            return RETRO_VFS_SEEK_POSITION_CURRENT;
+        case FileSeekOrigin::End:
+            return RETRO_VFS_SEEK_POSITION_END;
+        default:
+            return 0;
     }
 }
 

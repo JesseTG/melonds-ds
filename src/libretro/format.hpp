@@ -57,26 +57,26 @@ struct fmt::formatter<melonds::BiosType> : fmt::formatter<std::string_view> {
 };
 
 template<>
-struct fmt::formatter<Platform::StopReason> : fmt::formatter<std::string_view> {
+struct fmt::formatter<melonDS::Platform::StopReason> : fmt::formatter<std::string_view> {
     // use inherited 'formatter<string_view>::parse'…
     // … and only implement 'format':
     template<typename FmtContext>
-    auto format(Platform::StopReason c, FmtContext& ctx) {
+    auto format(melonDS::Platform::StopReason c, FmtContext& ctx) {
         string_view name = "???";
         switch (c) {
-            case Platform::StopReason::Unknown:
+            case melonDS::Platform::StopReason::Unknown:
                 name = "Unknown";
                 break;
-            case Platform::StopReason::External:
+            case melonDS::Platform::StopReason::External:
                 name = "External";
                 break;
-            case Platform::StopReason::GBAModeNotSupported:
+            case melonDS::Platform::StopReason::GBAModeNotSupported:
                 name = "GBAModeNotSupported";
                 break;
-            case Platform::StopReason::BadExceptionRegion:
+            case melonDS::Platform::StopReason::BadExceptionRegion:
                 name = "BadExceptionRegion";
                 break;
-            case Platform::StopReason::PowerOff:
+            case melonDS::Platform::StopReason::PowerOff:
                 name = "PowerOff";
                 break;
         }
@@ -85,26 +85,26 @@ struct fmt::formatter<Platform::StopReason> : fmt::formatter<std::string_view> {
 };
 
 template<>
-struct fmt::formatter<Firmware::FirmwareConsoleType> : fmt::formatter<std::string_view> {
+struct fmt::formatter<melonDS::Firmware::FirmwareConsoleType> : fmt::formatter<std::string_view> {
     // use inherited 'formatter<string_view>::parse'…
     // … and only implement 'format':
     template<typename FmtContext>
-    auto format(Firmware::FirmwareConsoleType c, FmtContext& ctx) {
+    auto format(melonDS::Firmware::FirmwareConsoleType c, FmtContext& ctx) {
         string_view name = "unknown";
         switch (c) {
-            case Firmware::FirmwareConsoleType::DS:
+            case melonDS::Firmware::FirmwareConsoleType::DS:
                 name = "DS";
                 break;
-            case Firmware::FirmwareConsoleType::DSLite:
+            case melonDS::Firmware::FirmwareConsoleType::DSLite:
                 name = "DS Lite";
                 break;
-            case Firmware::FirmwareConsoleType::DSi:
+            case melonDS::Firmware::FirmwareConsoleType::DSi:
                 name = "DSi";
                 break;
-            case Firmware::FirmwareConsoleType::iQueDS:
+            case melonDS::Firmware::FirmwareConsoleType::iQueDS:
                 name = "iQue DS";
                 break;
-            case Firmware::FirmwareConsoleType::iQueDSLite:
+            case melonDS::Firmware::FirmwareConsoleType::iQueDSLite:
                 name = "iQueue DS Lite";
                 break;
         }
@@ -132,29 +132,29 @@ struct fmt::formatter<melonds::ConsoleType> : fmt::formatter<std::string_view> {
 };
 
 template<>
-struct fmt::formatter<DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view> {
+struct fmt::formatter<melonDS::DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view> {
     // use inherited 'formatter<string_view>::parse'…
     // … and only implement 'format':
     template<typename FmtContext>
-    auto format(DSi_NAND::ConsoleRegion c, FmtContext& ctx) {
+    auto format(melonDS::DSi_NAND::ConsoleRegion c, FmtContext& ctx) {
         string_view name = "<unknown>";
         switch (c) {
-            case DSi_NAND::ConsoleRegion::Japan:
+            case melonDS::DSi_NAND::ConsoleRegion::Japan:
                 name = "Japan";
                 break;
-            case DSi_NAND::ConsoleRegion::USA:
+            case melonDS::DSi_NAND::ConsoleRegion::USA:
                 name = "USA";
                 break;
-            case DSi_NAND::ConsoleRegion::Europe:
+            case melonDS::DSi_NAND::ConsoleRegion::Europe:
                 name = "Europe";
                 break;
-            case DSi_NAND::ConsoleRegion::Australia:
+            case melonDS::DSi_NAND::ConsoleRegion::Australia:
                 name = "Australia";
                 break;
-            case DSi_NAND::ConsoleRegion::China:
+            case melonDS::DSi_NAND::ConsoleRegion::China:
                 name = "China";
                 break;
-            case DSi_NAND::ConsoleRegion::Korea:
+            case melonDS::DSi_NAND::ConsoleRegion::Korea:
                 name = "Korea";
                 break;
         }
@@ -163,35 +163,35 @@ struct fmt::formatter<DSi_NAND::ConsoleRegion> : fmt::formatter<std::string_view
 };
 
 template<>
-struct fmt::formatter<Firmware::Language> : fmt::formatter<std::string_view> {
+struct fmt::formatter<melonDS::Firmware::Language> : fmt::formatter<std::string_view> {
     // use inherited 'formatter<string_view>::parse'…
     // … and only implement 'format':
     template<typename FmtContext>
-    auto format(Firmware::Language c, FmtContext& ctx) {
+    auto format(melonDS::Firmware::Language c, FmtContext& ctx) {
         string_view name = "<unknown>";
         switch (c) {
-            case Firmware::Language::Japanese:
+            case melonDS::Firmware::Language::Japanese:
                 name = "Japanese";
                 break;
-            case Firmware::Language::English:
+            case melonDS::Firmware::Language::English:
                 name = "English";
                 break;
-            case Firmware::Language::French:
+            case melonDS::Firmware::Language::French:
                 name = "French";
                 break;
-            case Firmware::Language::German:
+            case melonDS::Firmware::Language::German:
                 name = "German";
                 break;
-            case Firmware::Language::Italian:
+            case melonDS::Firmware::Language::Italian:
                 name = "Italian";
                 break;
-            case Firmware::Language::Spanish:
+            case melonDS::Firmware::Language::Spanish:
                 name = "Spanish";
                 break;
-            case Firmware::Language::Chinese:
+            case melonDS::Firmware::Language::Chinese:
                 name = "Chinese";
                 break;
-            case Firmware::Language::Reserved:
+            case melonDS::Firmware::Language::Reserved:
                 name = "Reserved";
                 break;
         }
@@ -312,32 +312,32 @@ struct fmt::formatter<retro_language> : fmt::formatter<std::string_view> {
 };
 
 template<>
-struct fmt::formatter<RegionMask> : fmt::formatter<std::vector<string_view>> {
+struct fmt::formatter<melonDS::RegionMask> : fmt::formatter<std::vector<string_view>> {
     template<typename FmtContext>
-    auto format(RegionMask mask, FmtContext& ctx) {
+    auto format(melonDS::RegionMask mask, FmtContext& ctx) {
         std::vector<string_view> regions;
-        if (mask == RegionMask::RegionFree) {
+        if (mask == melonDS::RegionMask::RegionFree) {
             regions.push_back("RegionFree");
         } else {
-            if (mask & RegionMask::Japan)
+            if (mask & melonDS::RegionMask::Japan)
                 regions.push_back("Japan");
 
-            if (mask & RegionMask::USA)
+            if (mask & melonDS::RegionMask::USA)
                 regions.push_back("USA");
 
-            if (mask & RegionMask::Europe)
+            if (mask & melonDS::RegionMask::Europe)
                 regions.push_back("Europe");
 
-            if (mask & RegionMask::Australia)
+            if (mask & melonDS::RegionMask::Australia)
                 regions.push_back("Australia");
 
-            if (mask & RegionMask::China)
+            if (mask & melonDS::RegionMask::China)
                 regions.push_back("China");
 
-            if (mask & RegionMask::Korea)
+            if (mask & melonDS::RegionMask::Korea)
                 regions.push_back("Korea");
 
-            if (mask & RegionMask::Reserved)
+            if (mask & melonDS::RegionMask::Reserved)
                 regions.push_back("Reserved");
         }
 

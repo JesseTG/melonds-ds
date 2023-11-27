@@ -21,6 +21,7 @@
 
 //! Local multiplayer is not implemented in melonDS DS.
 
+using namespace melonDS;
 static bool _hasUnsupportedMessageBeenShown = false;
 
 bool Platform::MP_Init() {

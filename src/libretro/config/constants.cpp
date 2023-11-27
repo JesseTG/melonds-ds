@@ -32,6 +32,7 @@ using std::find;
 using std::optional;
 using std::nullopt;
 using std::string;
+using namespace melonDS;
 
 optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
     if (string_is_equal(value, values::SOFTWARE)) return melonds::Renderer::Software;
