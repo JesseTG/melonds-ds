@@ -52,7 +52,7 @@ melonDS includes built-in BIOS and firmware replacements that work with most gam
 However, some features require original Nintendo DS or DSi BIOS system files:
 
 - Game Boy Advance connectivity requires native Nintendo DS BIOS and firmware.
-- DSi mode requires native Nintendo DS _and_ DSi BIOS, firmware, and NAND files.
+- DSi mode requires native Nintendo DS _and_ DSi BIOS images, DSi firmware, and a DSi NAND image.
 
 You can place your system files in RetroArch's `system` directory
 or in a subdirectory named `melonDS DS`.
@@ -110,8 +110,8 @@ For your convenience, you can choose from
 one of several preconfigured servers in the core options menu,
 with [Kaeru WFC][kaeru] being the default.
 
-Future versions of melonDS DS will allow you to specify arbitrary servers.
-In the meantime, you can set the appropriate DNS address
+If there's another server you'd like to use,
+you can set its DNS address
 from within the emulated console's Wi-Fi settings menu.
 
 > [!NOTE]
@@ -189,7 +189,7 @@ But melonDS DS streamlines this process!
 
 These features have not yet been implemented in standalone [melonDS][melonds],
 or they haven't been integrated into melonDS DS.
-If you want to see them, you should contribute to the upstream project!
+If you want to see them, ask how you can get involved!
 
 - **Local Wireless:**
   Upstream melonDS supports emulating local wireless multiplayer
@@ -238,7 +238,7 @@ If this is not the case, please [report it][issue-tracker].
 ## Frontends
 
 melonDS DS primarily targets RetroArch,
-but you may be able to use it with other libretro frontends.
+but you can use it with most libretro frontends.
 If you encounter problems using this core with other frontends,
 please [report them][issue-tracker]!
 Support is not guaranteed, but I'll do the best I can.
@@ -401,18 +401,20 @@ These are some of the most important CMake variables
 that can be used to configure the build.
 To see the rest, run `cmake -LH` in the build directory.
 
-| Variable                         | Description                                                                                                            |
-|----------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `ENABLE_OPENGL`                  | Whether to build the OpenGL renderer. Defaults to `ON` on Windows and Linux, `OFF` on other platforms.                 |
-| `ENABLE_THREADED_RENDERER`       | Enables the multithreaded software renderer. Crashes when rewinding in RetroArch, so it's not generally available yet. |
-| `TRACY_ENABLE`                   | Enables the Tracy frame profiler.                                                                                      |
-| `MELONDS_REPOSITORY_URL`         | The Git repo from which melonDS will be cloned. Set this to use a fork.                                                |
-| `MELONDS_REPOSITORY_TAG`         | The melonDS commit to use in the build.                                                                                |
-| `LIBRETRO_COMMON_REPOSITORY_URL` | The Git repo from which `libretro-common` will be cloned. Set this to use a fork.                                      |
-| `LIBRETRO_COMMON_REPOSITORY_TAG` | The `libretro-common` commit to use in the build.                                                                      |
+| Variable                          | Description                                                                                                            |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| `ENABLE_OPENGL`                   | Whether to build the OpenGL renderer. Defaults to `ON` on Windows and Linux, `OFF` on other platforms.                 |
+| `ENABLE_THREADED_RENDERER`        | Enables the multithreaded software renderer. Crashes when rewinding in RetroArch, so it's not generally available yet. |
+| `TRACY_ENABLE`                    | Enables the Tracy frame profiler.                                                                                      |
+| `MELONDS_REPOSITORY_URL`          | The Git repo from which melonDS will be cloned. Set this to use a fork.                                                |
+| `MELONDS_REPOSITORY_TAG`          | The melonDS commit to use in the build.                                                                                |
+| `FETCHCONTENT_SOURCE_DIR_MELONDS` | Path to a copy of the melonDS repo on your system. Set this to use a local branch _instead_ of cloning.                |
+| `LIBRETRO_COMMON_REPOSITORY_URL`  | The Git repo from which `libretro-common` will be cloned. Set this to use a fork.                                      |
+| `LIBRETRO_COMMON_REPOSITORY_TAG`  | The `libretro-common` commit to use in the build.                                                                      |
 
-See [here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) for more information
-about the standard variables that CMake defines;
+See [here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html)
+and [here](https://cmake.org/cmake/help/latest/module/FetchContent.html#id8)
+for more information about the variables that CMake and its modules define;
 these can also be used to customize the build.
 
 # About the Name
