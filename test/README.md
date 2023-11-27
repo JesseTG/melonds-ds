@@ -10,7 +10,7 @@ This document describes how to use the test suite.
 ## Prerequisites
 
 Before you can run the test suite,
-you must be able to build melonDS
+you must be able to build melonDS DS
 through the steps described in the [main README](../README.md#building).
 
 ## Extra Dependencies
