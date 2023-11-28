@@ -54,7 +54,7 @@ namespace melonds::config::definitions {
     // I gotta be honest, I don't know how this works.
     // GitHub Copilot generated it and I'm too scared to change it.
     template<retro_language L = RETRO_LANGUAGE_ENGLISH>
-    constexpr std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1>
+    consteval std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1>
     GetCoreOptionDefinitions(decltype(CoreOptionDefinitionGroups<L>) categories) {
         std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1> result {};
         std::size_t index = 0;
