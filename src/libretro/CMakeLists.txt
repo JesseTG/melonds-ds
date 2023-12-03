@@ -197,6 +197,10 @@ if (WIN32 AND MINGW)
     target_link_options(melondsds_libretro PUBLIC -static-libgcc -static-libstdc++ -static)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "(.+)?Clang")
+    target_compile_options(melondsds_libretro PUBLIC -Werror=return-type)
+endif()
+
 target_compile_definitions(melondsds_libretro PUBLIC
     MELONDSDS_VERSION="${MELONDSDS_VERSION}"
     MELONDSDS_NAME="${CMAKE_PROJECT_NAME}"
