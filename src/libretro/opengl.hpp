@@ -36,8 +36,6 @@ namespace melonds::opengl {
 
     bool Initialize() noexcept;
 
-    void deinitialize(melonDS::NDS& nds);
-
     void Render(melonDS::NDS& nds, const InputState& state, const ScreenLayoutData& screenLayout) noexcept;
 
     bool ContextInitialized();

@@ -240,12 +240,6 @@ void melonds::opengl::Render(NDS& nds, const InputState& state, const ScreenLayo
     TracyGpuCollect;
 }
 
-void melonds::opengl::deinitialize(melonDS::NDS& nds) {
-    retro::debug("melonds::opengl::deinitialize()");
-    nds.GPU.DeInitRenderer();
-    nds.GPU.InitRenderer(false);
-}
-
 static void melonds::opengl::ContextReset() noexcept try {
     ZoneScopedN("melonds::opengl::ContextReset");
     retro::debug("melonds::opengl::ContextReset()");
