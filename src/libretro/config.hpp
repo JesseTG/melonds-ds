@@ -18,15 +18,20 @@
 #define MELONDS_DS_CONFIG_HPP
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <optional>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <SPI_Firmware.h>
 
 namespace melonDS {
+    struct NDSArgs;
+    struct DSiArgs;
     struct NDSHeader;
     struct RenderSettings;
+    class NDS;
 }
 
 namespace melondsds {
@@ -43,7 +48,7 @@ namespace melonds {
     class InputState;
 
     /// Called when loading a game
-    void InitConfig(
+    [[deprecated("Split into LoadConfig and ApplyConfig")]] void InitConfig(
         melondsds::CoreState& core,
         const melonDS::NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
         ScreenLayoutData& screenLayout,
@@ -307,9 +312,19 @@ namespace melonds {
             constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
             constexpr unsigned MAX_OPENGL_SCALE = 8;
             [[nodiscard]] Renderer ConfiguredRenderer() noexcept;
-            [[nodiscard]] melonDS::RenderSettings RenderSettings() noexcept;
             [[nodiscard]] ScreenFilter ScreenFilter() noexcept;
+#ifdef HAVE_THREADED_RENDERER
+            [[nodiscard]] bool ThreadedSoftRenderer() noexcept;
+#else
+            [[nodiscard]] constexpr bool ThreadedSoftRenderer() noexcept { return false; }
+#endif
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
             [[nodiscard]] int ScaleFactor() noexcept;
+            [[nodiscard]] bool BetterPolygonSplitting() noexcept;
+#else
+            [[nodiscard]] constexpr int ScaleFactor() noexcept { return 1; }
+            [[nodiscard]] constexpr bool BetterPolygonSplitting() noexcept { return false; }
+#endif
         }
     }
 }

@@ -25,6 +25,7 @@
 #include <cstring>
 #include <initializer_list>
 #include <memory>
+#include <span>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -37,6 +38,7 @@
 #include <string/stdstring.h>
 #include <fmt/ranges.h>
 
+#include <Args.h>
 #include <DSi.h>
 #include <DSi_NAND.h>
 #include <NDS.h>
@@ -77,6 +79,7 @@ using std::find_if;
 using std::from_chars;
 using std::from_chars_result;
 using std::initializer_list;
+using std::make_optional;
 using std::make_unique;
 using std::nullopt;
 using std::optional;
@@ -350,27 +353,28 @@ namespace melonds::config {
     }
 
     namespace video {
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(HAVE_THREADS)
-        static melonDS::RenderSettings _renderSettings = {false, 1, false};
-        melonDS::RenderSettings RenderSettings() noexcept { return _renderSettings; }
-#else
-        RenderSettings RenderSettings() noexcept { return {false, 1, false}; }
-#endif
-
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+        static int _scaleFactor = 1;
+        int ScaleFactor() noexcept { return _scaleFactor; }
+
+        static bool _betterPolygonSplitting = false;
+        bool BetterPolygonSplitting() noexcept { return _betterPolygonSplitting; }
+
         static melonds::Renderer _configuredRenderer;
         melonds::Renderer ConfiguredRenderer() noexcept { return _configuredRenderer; }
 #else
         melonds::Renderer ConfiguredRenderer() noexcept { return melonds::Renderer::Software; }
 #endif
 
+#ifdef HAVE_THREADED_RENDERER
+        static bool _threadedSoftRenderer = false;
+        bool ThreadedSoftRenderer() noexcept { return _threadedSoftRenderer; }
+#endif
+
         static melonds::ScreenFilter _screenFilter;
         melonds::ScreenFilter ScreenFilter() noexcept { return _screenFilter; }
-
-        int ScaleFactor() noexcept { return RenderSettings().GL_ScaleFactor; }
     }
 }
-
 
 void melonds::InitConfig(
     melondsds::CoreState& core,
@@ -391,7 +395,8 @@ void melonds::InitConfig(
     bool openGlNeedsRefresh = config::parse_video_options(true);
     config::parse_screen_options();
 
-    retro_assert(core.Console == nullptr);    config::apply_system_options(core, header);
+    retro_assert(core.Console == nullptr);
+    config::apply_system_options(core, header);
     retro_assert(core.Console != nullptr);
     config::apply_save_options(header);
     config::apply_audio_options(*core.Console);
@@ -947,18 +952,17 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
     if (const char* value = get_variable(THREADED_RENDERER); !string_is_empty(value)) {
         // Only relevant for software-rendered 3D, so no OpenGL state reset needed
-        _renderSettings.Soft_Threaded = string_is_equal(value, values::ENABLED);
+        _threadedSoftRenderer = string_is_equal(value, values::ENABLED);
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", THREADED_RENDERER, values::ENABLED);
-        _renderSettings.Soft_Threaded = true;
+        _threadedSoftRenderer = true;
     }
-#else
-    _renderSettings.Soft_Threaded = false;
 #endif
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (initializing) {
         // Can't change the renderer mid-game
+        // TODO: Allow this to be changed mid-game (may need to reinit the driver)
         if (optional<Renderer> renderer = ParseRenderer(get_variable(RENDER_MODE))) {
             _configuredRenderer = *renderer;
         } else {
@@ -970,25 +974,25 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
     if (const char* value = get_variable(OPENGL_RESOLUTION); !string_is_empty(value)) {
         int newScaleFactor = std::clamp(atoi(value), 1, 8);
 
-        if (_renderSettings.GL_ScaleFactor != newScaleFactor)
+        if (_scaleFactor != newScaleFactor)
             needsOpenGlRefresh = true;
 
-        _renderSettings.GL_ScaleFactor = newScaleFactor;
+        _scaleFactor = newScaleFactor;
     } else {
         retro::warn("Failed to get value for {}; defaulting to 1", OPENGL_RESOLUTION);
-        _renderSettings.GL_ScaleFactor = 1;
+        _scaleFactor = 1;
     }
 
     if (const char* value = get_variable(OPENGL_BETTER_POLYGONS); !string_is_empty(value)) {
         bool enabled = string_is_equal(value, values::ENABLED);
 
-        if (_renderSettings.GL_BetterPolygons != enabled)
+        if (_betterPolygonSplitting != enabled)
             needsOpenGlRefresh = true;
 
-        _renderSettings.GL_BetterPolygons = enabled;
+        _betterPolygonSplitting = enabled;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_BETTER_POLYGONS, values::DISABLED);
-        _renderSettings.GL_BetterPolygons = false;
+        _betterPolygonSplitting = false;
     }
 
     if (const char* value = get_variable(OPENGL_FILTERING); !string_is_empty(value)) {
@@ -1165,57 +1169,54 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
     }
 }
 
-static unique_ptr<u8[]> LoadBios(const string_view& name, melonds::BiosType type, size_t expectedLength) noexcept {
-    ZoneScopedN("melonds::config::LoadBios");
+static bool LoadBios(const string_view& name, melonds::BiosType type, std::span<u8> buffer) noexcept {
+    ZoneScopedN(TracyFunction);
 
-    auto LoadBiosImpl = [&](const string& path) -> unique_ptr<u8[]> {
+    auto LoadBiosImpl = [&](const string& path) -> bool {
         RFILE* file = filestream_open(path.c_str(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
         if (!file) {
             retro::error("Failed to open {} file \"{}\" for reading", type, path);
-            return nullptr;
+            return false;
         }
 
-        int64_t size = 0;
-        if (size = filestream_get_size(file); size != (int64_t)expectedLength) {
-            retro::error("Expected {} file \"{}\" to be exactly {} bytes long, got {} bytes", type, path, expectedLength, size);
+        if (int64_t size = filestream_get_size(file); size != buffer.size()) {
+            retro::error("Expected {} file \"{}\" to be exactly {} bytes long, got {} bytes", type, path, buffer.size(), size);
             filestream_close(file);
-            return nullptr;
+            return false;
         }
 
-        unique_ptr<u8[]> result = make_unique<u8[]>(size);
-        if (int64_t bytesRead = filestream_read(file, result.get(), expectedLength); bytesRead != (int64_t)expectedLength) {
-            retro::error("Failed to read {} bytes from {} file \"{}\"; got {} bytes", expectedLength, type, path, bytesRead);
+        if (int64_t bytesRead = filestream_read(file, buffer.data(), buffer.size()); bytesRead != buffer.size()) {
+            retro::error("Expected to read {} bytes from {} file \"{}\", got {} bytes", buffer.size(), type, path, bytesRead);
             filestream_close(file);
-            return nullptr;
+            return false;
         }
 
         filestream_close(file);
-        retro::info("Successfully loaded {}-byte {} file \"{}\"", expectedLength, type, path);
+        retro::info("Successfully loaded {}-byte {} file \"{}\"", buffer.size(), type, path);
 
-        return result;
+        return true;
     };
 
     // Prefer looking in "system/melonDS DS/${name}", but fall back to "system/${name}" if that fails
 
-    unique_ptr<u8[]> result;
-    if (optional<string> path = retro::get_system_subdir_path(name); path && (result = LoadBiosImpl(*path))) {
+    if (optional<string> path = retro::get_system_subdir_path(name); path && LoadBiosImpl(*path)) {
         // Get the path where we're expecting a BIOS file. If it's there and we loaded it...
-        return result;
+        return true;
     }
 
-    if (optional<string> path = retro::get_system_path(name); path && (result = LoadBiosImpl(*path))) {
+    if (optional<string> path = retro::get_system_path(name); path && LoadBiosImpl(*path)) {
         // Get the path where we're expecting a BIOS file. If it's there and we loaded it...
-        return result;
+        return true;
     }
 
     retro::error("Failed to load {} file \"{}\"", type, name);
 
-    return nullptr;
+    return false;
 }
 
 /// Loads firmware, does not patch it.
-static unique_ptr<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
+static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
     ZoneScopedN("melonds::config::LoadFirmware");
     using namespace melonds;
     using namespace melonds::config::firmware;
@@ -1226,7 +1227,7 @@ static unique_ptr<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
     if (!file) {
         // If that fails...
         retro::error("Failed to open firmware file \"{}\" for reading", firmwarePath);
-        return nullptr;
+        return nullopt;
     }
 
     int64_t fileSize = filestream_get_size(file);
@@ -1237,16 +1238,16 @@ static unique_ptr<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
     if (bytesRead != fileSize) {
         // If we couldn't read the firmware file...
         retro::error("Failed to read firmware file \"{}\"; got {} bytes, expected {} bytes", firmwarePath, bytesRead, fileSize);
-        return nullptr;
+        return nullopt;
     }
 
     // Try to load the firmware dump into the object.
-    unique_ptr<Firmware> firmware = make_unique<Firmware>(buffer.get(), fileSize);
+    optional<Firmware> firmware = std::make_optional<Firmware>(buffer.get(), fileSize);
 
     if (!firmware->Buffer()) {
         // If we failed to load the firmware...
         retro::error("Failed to read opened firmware file \"{}\"", firmwarePath);
-        return nullptr;
+        return nullopt;
     }
 
     FirmwareIdentifier id = firmware->GetHeader().Identifier;
@@ -1259,6 +1260,20 @@ static unique_ptr<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
     );
 
     return firmware;
+}
+
+static optional<FATStorage> LoadDSiSDCardImage() noexcept {
+    using namespace melonds;
+    using namespace melonds::config::save;
+
+    if (!DsiSdEnable()) return nullopt;
+
+    return FATStorage(
+        DsiSdImagePath(),
+        DsiSdImageSize(),
+        DsiSdReadOnly(),
+        DsiSdFolderSync() ? make_optional(DsiSdFolderPath()) : nullopt
+    );
 }
 
 /// Loads the DSi NAND, does not patch it
@@ -1429,24 +1444,25 @@ static void CustomizeFirmware(Firmware& firmware) {
 // Then, fall back to other system files if needed and possible
 // If fallback is needed and not possible, throw an exception
 // Finally, install the system files
-static void InitNdsSystemConfig(NDS& nds, const NDSHeader* header, melonds::BootMode bootMode, melonds::SysfileMode sysfileMode) {
-    ZoneScopedN("melonds::config::InitNdsSystemConfig");
+static NDSArgs GetNdsArgs(const NDSHeader* header, melonds::BootMode bootMode, melonds::SysfileMode sysfileMode) {
+    ZoneScopedN(TracyFunction);
     using namespace melonds::config::system;
     using namespace melonds;
     retro_assert(!(header && header->IsDSiWare()));
 
+    std::array<u8, ARM7BIOSSize> arm7bios;
     // The rules are somewhat complicated.
     // - Bootable firmware is required if booting without content.
     // - All system files must be native or all must be built-in. (No mixing.)
     // - If BIOS files are built-in, then Direct Boot mode must be used
-    unique_ptr<Firmware> firmware;
+    optional<Firmware> firmware;
     if (sysfileMode == SysfileMode::Native) {
         optional<string> firmwarePath = retro::get_system_path(FirmwarePath());
         if (!firmwarePath) {
             retro::error("Failed to get system directory");
         }
 
-        firmware = firmwarePath ? LoadFirmware(*firmwarePath) : nullptr;
+        firmware = firmwarePath ? LoadFirmware(*firmwarePath) : nullopt;
     }
 
     if (!header && !(firmware && firmware->IsBootable())) {
@@ -1464,137 +1480,62 @@ static void InitNdsSystemConfig(NDS& nds, const NDSHeader* header, melonds::Boot
             // ...but we were trying to...
             retro::warn("Falling back to built-in firmware");
         }
-        firmware = make_unique<Firmware>(static_cast<int>(melonds::ConsoleType::DS));
+        firmware = make_optional<Firmware>(static_cast<int>(melonds::ConsoleType::DS));
     }
 
     if (sysfileMode == SysfileMode::BuiltIn) {
         retro::debug("Not loading native ARM BIOS files");
     }
 
-    // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
-    unique_ptr<u8[]> bios7 = (sysfileMode == SysfileMode::Native) ? LoadBios(Bios7Path(), BiosType::Arm7, sizeof(NDS::ARM7BIOS)) : nullptr;
-    unique_ptr<u8[]> bios9 = bios7 ? LoadBios(Bios9Path(), BiosType::Arm9, sizeof(NDS::ARM9BIOS)) : nullptr;
+    NDSArgs ndsargs {};
 
-    if (sysfileMode == SysfileMode::Native && !(bios7 && bios9)) {
+    // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
+    bool bios7Loaded = (sysfileMode == SysfileMode::Native) && LoadBios(Bios7Path(), BiosType::Arm7, ndsargs.ARM7BIOS);
+    bool bios9Loaded = bios7Loaded && LoadBios(Bios9Path(), BiosType::Arm9, ndsargs.ARM9BIOS);
+
+    if (sysfileMode == SysfileMode::Native && !(bios7Loaded && bios9Loaded)) {
         // If we're trying to load native BIOS files, but at least one of them failed...
         retro::warn("Falling back to FreeBIOS");
     }
 
     // Now that we've loaded the system files, let's see if we can use them
 
-    if (bootMode == melonds::BootMode::Native && (!bios7 || !bios9 || !firmware->IsBootable())) {
+    if (bootMode == melonds::BootMode::Native && !(bios7Loaded && bios9Loaded && firmware->IsBootable())) {
         // If we want to try a native boot, but the BIOS files aren't all native or the firmware isn't bootable...
         retro::warn("Native boot requires bootable firmware and native BIOS files; forcing Direct Boot mode");
 
         _bootMode = melonds::BootMode::Direct;
     }
 
-    if (!header && (!firmware || !firmware->IsBootable() || !bios7 || !bios9)) {
+    if (!header && !(firmware && firmware->IsBootable() && bios7Loaded && bios9Loaded)) {
         // If we're trying to boot into the NDS menu, but we don't have all the required files...
         throw nds_sysfiles_incomplete_exception();
     }
 
-    if (bios7 && bios9) {
-        memcpy(nds.ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
-        memcpy(nds.ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
-        retro::debug("Installed loaded native ARM7 and ARM9 NDS BIOS images");
+
+    if (bios7Loaded && bios9Loaded) {
+        retro::debug("Installed native ARM7 and ARM9 NDS BIOS images");
     } else {
-        memcpy(nds.ARM9BIOS, bios_arm9_bin, sizeof(NDS::ARM9BIOS));
-        memcpy(nds.ARM7BIOS, bios_arm7_bin, sizeof(NDS::ARM7BIOS));
+        ndsargs.ARM9BIOS = bios_arm9_bin;
+        ndsargs.ARM7BIOS = bios_arm7_bin;
         retro::debug("Installed built-in ARM7 and ARM9 NDS BIOS images");
     }
 
     CustomizeFirmware(*firmware);
-    retro_assert(nds.SPI.GetFirmwareMem() != nullptr);
-    nds.SPI.GetFirmwareMem()->InstallFirmware(std::move(firmware));
+    ndsargs.Firmware = std::move(*firmware);
+
+    return std::move(ndsargs);
 }
 
-static void InitDsiSystemConfig(DSi& dsi, const NDSHeader* header) {
-    ZoneScopedN("melonds::config::InitDsiSystemConfig");
+static void CustomizeNAND(DSi_NAND::NANDMount& mount, const NDSHeader* header, string_view nandName) {
     using namespace melonds::config::system;
     using namespace melonds::config::firmware;
     using namespace melonds;
 
-    retro_assert(_consoleType == ConsoleType::DSi);
-
-    string_view nandName = DsiNandPath();
-    if (nandName == melonds::config::values::NOT_FOUND) {
-        throw dsi_no_nand_found_exception();
-    }
-
-    // DSi mode requires all native BIOS files
-    unique_ptr<u8[]> bios7i = LoadBios(DsiBios7Path(), BiosType::Arm7i, sizeof(DSi::ARM7iBIOS));
-    if (!bios7i) {
-        throw dsi_missing_bios_exception(BiosType::Arm7i, DsiBios7Path());
-    }
-
-    unique_ptr<u8[]> bios9i = LoadBios(DsiBios9Path(), BiosType::Arm9i, sizeof(DSi::ARM9iBIOS));
-    if (!bios9i) {
-        throw dsi_missing_bios_exception(BiosType::Arm9i, DsiBios9Path());
-    }
-
-    unique_ptr<u8[]> bios7 = LoadBios(Bios7Path(), BiosType::Arm7, sizeof(NDS::ARM7BIOS));
-    if (!bios7) {
-        throw dsi_missing_bios_exception(BiosType::Arm7, Bios7Path());
-    }
-
-    unique_ptr<u8[]> bios9 = LoadBios(Bios9Path(), BiosType::Arm9, sizeof(NDS::ARM9BIOS));
-    if (!bios9) {
-        throw dsi_missing_bios_exception(BiosType::Arm9, Bios9Path());
-    }
-
-    string_view firmwareName = DsiFirmwarePath();
-    optional<string> firmwarePath = retro::get_system_path(firmwareName);
-    retro_assert(firmwarePath.has_value());
-    // If we couldn't get the system directory, we wouldn't have gotten this far
-
-    if (firmwareName == melonds::config::values::NOT_FOUND) {
-        throw dsi_no_firmware_found_exception();
-    }
-
-    unique_ptr<Firmware> firmware = LoadFirmware(*firmwarePath);
-    if (!firmware) {
-        throw firmware_missing_exception(firmwareName);
-    }
-
-    if (firmware && firmware->GetHeader().ConsoleType != Firmware::FirmwareConsoleType::DSi) {
-        retro::warn("Expected firmware of type DSi, got {}", firmware->GetHeader().ConsoleType);
-        throw wrong_firmware_type_exception(firmwareName, melonds::ConsoleType::DSi, firmware->GetHeader().ConsoleType);
-    }
-    // DSi firmware isn't bootable, so we don't need to check for that here.
-
-    memcpy(dsi.ARM9iBIOS, bios9i.get(), sizeof(DSi::ARM9iBIOS));
-    memcpy(dsi.ARM7iBIOS, bios7i.get(), sizeof(DSi::ARM7iBIOS));
-    memcpy(dsi.ARM7BIOS, bios7.get(), sizeof(NDS::ARM7BIOS));
-    memcpy(dsi.ARM9BIOS, bios9.get(), sizeof(NDS::ARM9BIOS));
-    retro::debug("Installed native ARM7, ARM9, DSi ARM7, and DSi ARM9 BIOS images.");
-
-    // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
-    CustomizeFirmware(*firmware);
-    retro_assert(dsi.SPI.GetFirmwareMem() != nullptr);
-    dsi.SPI.GetFirmwareMem()->InstallFirmware(std::move(firmware));
-
-    optional<string> nandPath = retro::get_system_path(nandName);
-    if (!nandPath) {
-        throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
-    }
-
-    DSi_NAND::NANDImage nand = LoadNANDImage(*nandPath, &dsi.ARM7iBIOS[0x8308]);
-    if (!nand) {
-        throw dsi_nand_missing_exception(nandName);
-    }
-
-    DSi_NAND::NANDMount mount(nand);
-    if (!mount) {
-        throw dsi_nand_corrupted_exception(nandName);
-    }
-
-    retro::debug("Opened and mounted the DSi NAND image file at {}", *nandPath);
-
     DSi_NAND::DSiSerialData dataS {};
     memset(&dataS, 0, sizeof(dataS));
     if (!mount.ReadSerialData(dataS)) {
-        throw environment_exception("Failed to read serial data from NAND image");
+        throw emulator_exception("Failed to read serial data from NAND image");
     }
 
     if (header && header->IsDSiWare()) {
@@ -1611,7 +1552,7 @@ static void InitDsiSystemConfig(DSi& dsi, const NDSHeader* header) {
 
     DSi_NAND::DSiFirmwareSystemSettings settings;
     if (!mount.ReadUserData(settings)) {
-        throw environment_exception("Failed to read user data from NAND image");
+        throw emulator_exception("Failed to read user data from NAND image");
     }
 
     // Right now, I only modify the user data with the firmware overrides defined by core options
@@ -1716,11 +1657,99 @@ static void InitDsiSystemConfig(DSi& dsi, const NDSHeader* header) {
     settings.UpdateHash();
 
     if (!mount.ApplyUserData(settings)) {
-        throw environment_exception("Failed to write user data to NAND image");
+        throw emulator_exception("Failed to write user data to NAND image");
+    }
+}
+
+static DSiArgs GetDSiArgs(const NDSHeader* header) {
+    ZoneScopedN("melonds::config::InitDsiSystemConfig");
+    using namespace melonds::config::system;
+    using namespace melonds::config::firmware;
+    using namespace melonds;
+
+    retro_assert(_consoleType == ConsoleType::DSi);
+
+    string_view nandName = DsiNandPath();
+    if (nandName == melonds::config::values::NOT_FOUND) {
+        throw dsi_no_nand_found_exception();
     }
 
-    dsi.NANDImage = make_unique<DSi_NAND::NANDImage>(std::move(nand));
-    retro::debug("Installed the DSi NAND image file at {}", *nandPath);
+    if (DsiFirmwarePath() == melonds::config::values::NOT_FOUND) {
+        throw dsi_no_firmware_found_exception();
+    }
+
+    // DSi mode requires all native BIOS files
+    std::array<u8, DSiBIOSSize> arm7i;
+    if (!LoadBios(DsiBios7Path(), BiosType::Arm7i, arm7i)) {
+        throw dsi_missing_bios_exception(BiosType::Arm7i, DsiBios7Path());
+    }
+
+    std::array<u8, DSiBIOSSize> arm9i;
+    if (!LoadBios(DsiBios9Path(), BiosType::Arm9i, arm9i)) {
+        throw dsi_missing_bios_exception(BiosType::Arm9i, DsiBios9Path());
+    }
+
+    std::array<u8, ARM7BIOSSize> arm7;
+    if (!LoadBios(Bios7Path(), BiosType::Arm7, arm7)) {
+        throw dsi_missing_bios_exception(BiosType::Arm7, Bios7Path());
+    }
+
+    std::array<u8, ARM9BIOSSize> arm9;
+    if (!LoadBios(Bios9Path(), BiosType::Arm9, arm9)) {
+        throw dsi_missing_bios_exception(BiosType::Arm9, Bios9Path());
+    }
+
+    optional<string> firmwarePath = retro::get_system_path(DsiFirmwarePath());
+    retro_assert(firmwarePath.has_value());
+    // If we couldn't get the system directory, we wouldn't have gotten this far
+
+    optional<Firmware> firmware = LoadFirmware(*firmwarePath);
+    if (!firmware) {
+        throw firmware_missing_exception(DsiFirmwarePath());
+    }
+
+    if (firmware->GetHeader().ConsoleType != Firmware::FirmwareConsoleType::DSi) {
+        retro::warn("Expected firmware of type DSi, got {}", firmware->GetHeader().ConsoleType);
+        throw wrong_firmware_type_exception(DsiFirmwarePath(), melonds::ConsoleType::DSi, firmware->GetHeader().ConsoleType);
+    }
+    // DSi firmware isn't bootable, so we don't need to check for that here.
+
+    retro::debug("Installed native ARM7, ARM9, DSi ARM7, and DSi ARM9 BIOS images.");
+
+    // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
+    CustomizeFirmware(*firmware);
+
+    optional<string> nandPath = retro::get_system_path(nandName);
+    if (!nandPath) {
+        throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
+    }
+
+    DSi_NAND::NANDImage nand = LoadNANDImage(*nandPath, &arm7i[0x8308]);
+    {
+        DSi_NAND::NANDMount mount(nand);
+        if (!mount) {
+            throw dsi_nand_corrupted_exception(nandName);
+        }
+        retro::debug("Opened and mounted the DSi NAND image file at {}", *nandPath);
+
+        CustomizeNAND(mount, header, nandName);
+    }
+
+    DSiArgs dsiargs {
+        {
+            .NDSROM = nullptr, // Inserted later
+            .GBAROM = nullptr, // Irrelevant on DSi
+            .ARM9BIOS = arm9,
+            .ARM7BIOS = arm7,
+            .Firmware = std::move(*firmware),
+        },
+        arm9i,
+        arm7i,
+        std::move(nand),
+        LoadDSiSDCardImage(),
+    };
+
+    return dsiargs;
 }
 
 static void melonds::config::apply_system_options(melondsds::CoreState& core, const NDSHeader* header) {
@@ -1734,12 +1763,10 @@ static void melonds::config::apply_system_options(melondsds::CoreState& core, co
 
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        core.Console = std::make_unique<DSi>();
-        InitDsiSystemConfig(*static_cast<DSi*>(core.Console.get()), header);
+        core.Console = std::make_unique<DSi>(GetDSiArgs(header));
     } else {
         // If we're in DS mode...
-        core.Console = std::make_unique<NDS>();
-        InitNdsSystemConfig(*core.Console, header, _bootMode, _sysfileMode);
+        core.Console = std::make_unique<NDS>(GetNdsArgs(header, _bootMode, _sysfileMode));
     }
 }
 
@@ -2136,10 +2163,6 @@ int Platform::GetConfigInt(ConfigEntry entry)
         case JIT_MaxBlockSize: return jit::MaxBlockSize();
 #endif
 
-        case DLDI_ImageSize: return save::DldiImageSize();
-
-        case DSiSD_ImageSize: return save::DsiSdImageSize();
-
         case AudioBitDepth: return static_cast<int>(audio::BitDepth());
         default: return 0;
     }
@@ -2163,29 +2186,6 @@ bool Platform::GetConfigBool(ConfigEntry entry)
             !melondsds::Core.Console->IsLoadedARM9BIOSBuiltIn() &&
             !melondsds::Core.Console->SPI.GetFirmwareMem()->IsLoadedFirmwareBuiltIn();
 
-        case DLDI_Enable: return save::DldiEnable();
-        case DLDI_ReadOnly: return save::DldiReadOnly();
-        case DLDI_FolderSync: return save::DldiFolderSync();
-
-        case DSiSD_Enable: return save::DsiSdEnable();
-        case DSiSD_ReadOnly: return save::DsiSdReadOnly();
-        case DSiSD_FolderSync: return save::DsiSdFolderSync();
         default: return false;
     }
 }
-
-std::string Platform::GetConfigString(ConfigEntry entry)
-{
-    using std::string;
-    switch (entry)
-    {
-        case DLDI_ImagePath: return save::DldiImagePath();
-        case DLDI_FolderPath: return save::DldiFolderPath();
-
-        case DSiSD_ImagePath: return save::DsiSdImagePath();
-        case DSiSD_FolderPath: return save::DsiSdFolderPath();
-        case WifiSettingsPath: return "wfcsettings.bin";
-        default: return "";
-    }
-}
-

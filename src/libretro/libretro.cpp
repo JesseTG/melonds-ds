@@ -150,6 +150,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro::env::init();
     retro::debug("retro_init");
     retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
+    retro_assert(!melondsds::Core.IsInitialized());
     retro_assert(melondsds::Core.Console == nullptr);
     retro_assert(retro::content::get_loaded_nds_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_info() == nullopt);
@@ -168,7 +169,7 @@ PUBLIC_SYMBOL void retro_init(void) {
 
     melonds::file::init();
     melonds::first_frame_run = false;
-    new(&melondsds::Core) melondsds::CoreState(); // placement-new the CoreState
+    new(&melondsds::Core) melondsds::CoreState(true); // placement-new the CoreState
     retro_assert(melondsds::Core.IsInitialized());
     retro::task::init(false, nullptr);
 
@@ -684,6 +685,7 @@ static void melonds::load_games(
     retro_assert(Core.Console == nullptr);
 
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
+    // TODO: Apply config
     melonds::InitConfig(Core, header, screenLayout, input_state);
 
     retro_assert(Core.Console != nullptr);
@@ -729,6 +731,7 @@ static void melonds::load_games(
         if (config::system::ConsoleType() == ConsoleType::DSi) {
             retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
         } else {
+            // TODO: Load the ROM and SRAM in one go
             {
                 ZoneScopedN("GBACart::ParseROM");
                 loadedGbaCart = GBACart::ParseROM(static_cast<const u8*>(gba_info->data), gba_info->size);

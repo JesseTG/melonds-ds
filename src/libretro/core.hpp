@@ -27,6 +27,7 @@ namespace melonDS {
 namespace melondsds {
 
     struct CoreState {
+        CoreState(bool init) noexcept;
         ~CoreState() noexcept;
         std::unique_ptr<melonDS::NDS> Console = nullptr;
     public:
