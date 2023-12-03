@@ -76,10 +76,6 @@ void melonds::render::Initialize(Renderer renderer) {
 
 bool melonds::render::ReadyToRender(const melonDS::NDS& nds) noexcept {
     using melonds::Renderer;
-    if (nds.GPU.GPU3D.GetCurrentRenderer() == nullptr) {
-        // If the emulator doesn't yet have an assigned renderer...
-        return false;
-    }
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (_CurrentRenderer == Renderer::OpenGl && !melonds::opengl::ContextInitialized()) {
@@ -97,8 +93,8 @@ void melonds::render::RenderSoftware(melonDS::NDS& nds, const InputState& input_
     ZoneScopedN("melonds::render::RenderSoftware");
     retro_assert(_CurrentRenderer == Renderer::Software);
 
-    const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0];
-    const uint32_t* bottomScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][1];
+    const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();
+    const uint32_t* bottomScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][1].get();
     screen_layout_data.CombineScreens(topScreenBuffer, bottomScreenBuffer);
 
     if (!nds.IsLidClosed() && input_state.CursorVisible()) {

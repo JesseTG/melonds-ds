@@ -25,6 +25,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <GPU.h>
+#include <GPU3D_OpenGL.h>
 #include <NDS.h>
 #include <OpenGLSupport.h>
 
@@ -215,7 +216,11 @@ void melonds::opengl::Render(NDS& nds, const InputState& state, const ScreenLayo
 
     glActiveTexture(GL_TEXTURE0);
 
-    nds.GPU.CurGLCompositor->BindOutputTexture(nds.GPU.FrontBuffer);
+    if (nds.GPU.GetRenderer3D().Accelerated)
+    {
+        // hardware-accelerated render
+        static_cast<GLRenderer&>(nds.GPU.GetRenderer3D()).GetCompositor().BindOutputTexture(nds.GPU.FrontBuffer);
+    }
 
     // Set the filtering mode for the active texture
     // For simplicity, we'll just use the same filter for both minification and magnification
@@ -245,10 +250,6 @@ static void melonds::opengl::ContextReset() noexcept try {
     retro::debug("melonds::opengl::ContextReset()");
     retro_assert(melondsds::Core.Console != nullptr);
     NDS& nds = *melondsds::Core.Console;
-    if (UsingOpenGl() && nds.GPU.GPU3D.GetCurrentRenderer()) { // If we're using OpenGL, but there's already a renderer in place...
-        retro::debug("GPU3D renderer is assigned; deinitializing it before resetting the context.");
-        nds.GPU.DeInitRenderer();
-    }
 
     // Initialize all OpenGL function pointers
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
@@ -263,11 +264,10 @@ static void melonds::opengl::ContextReset() noexcept try {
         glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     }
 
-    {
-        ZoneScopedN("GPU::InitRenderer");
-        TracyGpuZone("GPU::InitRenderer");
-        nds.GPU.InitRenderer(static_cast<int>(melonds::render::CurrentRenderer()));
-    }
+    auto renderer = GLRenderer::New(nds.GPU);
+    // TODO: Throw an exception if creating the renderer failed
+    renderer->SetRenderSettings(config::video::BetterPolygonSplitting(), config::video::ScaleFactor());
+    nds.GPU.SetRenderer3D(std::move(renderer));
 
     SetupOpenGl();
     context_initialized = true;
@@ -559,9 +559,10 @@ static void melonds::opengl::InitializeVertices(const ScreenLayoutData& screenLa
 void melonds::opengl::InitializeFrameState(NDS& nds, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("melonds::opengl::InitializeFrameState");
     TracyGpuZone("melonds::opengl::InitializeFrameState");
+    retro_assert(nds.GPU.GetRenderer3D().Accelerated);
     refresh_opengl = false;
-    RenderSettings render_settings = melonds::config::video::RenderSettings();
-    nds.GPU.SetRenderSettings(static_cast<int>(Renderer::OpenGl), render_settings);
+    GLRenderer& renderer = static_cast<GLRenderer&>(nds.GPU.GetRenderer3D());
+    renderer.SetRenderSettings(config::video::BetterPolygonSplitting(), config::video::ScaleFactor());
 
     GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();
     GL_ShaderConfig.u3DScale = screenLayout.Scale();

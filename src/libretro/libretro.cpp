@@ -351,7 +351,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             if (retro::content::get_loaded_nds_info() && NdsSaveManager && NdsSaveManager->SramLength() > 0) {
                 // If we're loading a NDS game that has SRAM...
                 ZoneScopedN("NDS::LoadSave");
-                nds.LoadSave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
+                nds.SetGBASave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
             }
 
             // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
@@ -360,7 +360,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
                 // If we're loading a GBA game that has existing SRAM...
                 ZoneScopedN("GBACart::LoadSave");
                 // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
-                nds.GBACartSlot.LoadSave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
+                nds.SetGBASave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
             }
 
             // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
@@ -538,11 +538,9 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
             retro_assert(dynamic_cast<DSi*>(&nds) != nullptr);
 
             DSi& dsi = *static_cast<DSi*>(&nds);
-            retro_assert(dsi.NANDImage != nullptr);
-            retro_assert(*dsi.NANDImage); // NAND image itself should be valid
             // DSiWare "cart" shouldn't have been cleaned up yet
             // (a regular DS cart would've been moved-from at the start of the session)
-            melonds::dsi::uninstall_dsiware(*dsi.NANDImage, *nds_info);
+            melonds::dsi::uninstall_dsiware(dsi.GetNAND(), *nds_info);
         }
     }
 
@@ -655,7 +653,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
 
         {
             ZoneScopedN("NDSCart::InsertROM");
-            nds.NDSCartSlot.InsertROM(std::move(rom));
+            nds.SetNDSCart(std::move(rom));
         }
         // TODO: Only reload the ROM if the BIOS mode, boot mode, or console mode has changed
     }
@@ -776,15 +774,7 @@ static void melonds::load_games(
         if (!loadedNdsCart->GetHeader().IsDSiWare()) {
             // If we're running a physical cartridge...
 
-            bool cartInstalled;
-            {
-                cartInstalled = nds.NDSCartSlot.InsertROM(std::move(loadedNdsCart));
-            }
-            if (!cartInstalled) {
-                // If we failed to insert the ROM, we can't continue
-                retro::error("Failed to insert \"{}\" into the emulator. Exiting.", nds_info->path);
-                throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
-            }
+            nds.SetNDSCart(std::move(loadedNdsCart));
 
             // Just to be sure
             retro_assert(loadedNdsCart == nullptr);
@@ -794,23 +784,13 @@ static void melonds::load_games(
             retro_assert(Core.Console->ConsoleType == 1);
             auto& dsi = *static_cast<DSi*>(Core.Console.get());
             // We're running a DSiWare game, then
-            retro_assert(dsi.NANDImage != nullptr); // should've been loaded in InitConfig
-            melonds::dsi::install_dsiware(*dsi.NANDImage, *nds_info);
+            melonds::dsi::install_dsiware(dsi.GetNAND(), *nds_info);
         }
     }
 
     if (gba_info && loadedGbaCart) {
         // If we want to insert a GBA ROM that was previously loaded...
-        bool inserted;
-        {
-            ZoneScopedN("GBACart::InsertROM");
-            inserted = nds.GBACartSlot.InsertROM(std::move(loadedGbaCart));
-        }
-        if (!inserted) {
-            // If we failed to insert the ROM, we can't continue
-            retro::error("Failed to insert \"{}\" into the emulator. Exiting.", gba_info->path);
-            throw std::runtime_error("Failed to insert the loaded ROM. Please report this issue.");
-        }
+        nds.SetGBACart(std::move(loadedGbaCart));
 
         retro_assert(loadedGbaCart == nullptr);
     }
@@ -832,18 +812,6 @@ static void melonds::load_games_deferred(
     const optional<retro_game_info>& gba_info
 ) {
     ZoneScopedN("melonds::load_games_deferred");
-
-    // GPU config must be initialized before NDS::Reset is called.
-    bool isOpenGl = render::CurrentRenderer() == Renderer::OpenGl;
-    {
-        ZoneScopedN("GPU::InitRenderer");
-        nds.GPU.InitRenderer(isOpenGl);
-    }
-    {
-        melonDS::RenderSettings render_settings = config::video::RenderSettings();
-        ZoneScopedN("GPU::SetRenderSettings");
-        nds.GPU.SetRenderSettings(isOpenGl, render_settings);
-    }
 
     {
         ZoneScopedN("NDS::Reset");
