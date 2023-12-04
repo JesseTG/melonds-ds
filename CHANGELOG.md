@@ -11,6 +11,8 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Updated melonDS to commit 1bec2a9.
 - Updated libretro-common to commit fce57fd.
+- Allow switching between the software and OpenGL renderers
+  (where available) without restarting the core.
 
 ### Fixed
 

@@ -64,6 +64,7 @@
 #include "microphone.hpp"
 #include "retro/dirent.hpp"
 #include "screenlayout.hpp"
+#include "span.hpp"
 #include "tracy.hpp"
 #include "pcap.hpp"
 

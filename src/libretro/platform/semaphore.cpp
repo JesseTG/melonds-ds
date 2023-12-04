@@ -15,11 +15,19 @@
 */
 
 #include <Platform.h>
+#ifdef __cpp_lib_semaphore
 #include <semaphore>
+#else
+#include <semaphore.h>
+#endif
 
 #include "tracy.hpp"
 
+#ifdef __cpp_lib_semaphore
 using std::counting_semaphore;
+#else
+using cyan::counting_semaphore;
+#endif
 
 using namespace melonDS;
 using Platform::Semaphore;
