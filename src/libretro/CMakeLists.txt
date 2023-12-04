@@ -1,4 +1,4 @@
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(embed-binaries)
@@ -72,6 +72,7 @@ add_library(melondsds_libretro MODULE
     retro/threads.hpp
     screenlayout.cpp
     screenlayout.hpp
+    span.hpp
     sram.cpp
     sram.hpp
     tracy.hpp
@@ -86,6 +87,8 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${glm_SOURCE_DIR}"
     "${pntr_SOURCE_DIR}"
     "${fmt_SOURCE_DIR}/include"
+    "${semaphore_SOURCE_DIR}"
+    "${span_SOURCE_DIR}/include"
     )
 
 target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")

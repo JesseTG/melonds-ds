@@ -44,6 +44,8 @@ fetch_dependency(glm "https://github.com/g-truc/glm.git" "47585fd")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7877")
 fetch_dependency(pntr "https://github.com/robloach/pntr.git" "1d7ba67")
 fetch_dependency(fmt "https://github.com/fmtlib/fmt.git" "10.1.1")
+fetch_dependency(semaphore "https://github.com/cyanhill/semaphore" "58ab483")
+fetch_dependency(span "https://github.com/tcbrindle/span" "836dc6a")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
@@ -57,7 +59,7 @@ set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTE
 set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
-FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt)
+FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt semaphore span)
 
 if (TRACY_ENABLE)
     set(BUILD_SHARED_LIBS OFF)

@@ -149,9 +149,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ${PNTR_LICENSE}
 
+# semaphore (C++17 reimplementation of C++20's std::counting_semaphore) ################################################
+
+${SEMAPHORE_LICENSE}
+
 # Slirp ################################################################################################################
 
 ${SLIRP_LICENSE}
+
+# span (std::span implementation for C++11 and later) ##################################################################
+
+${SPAN_LICENSE}
 
 # teakra ###############################################################################################################
 
