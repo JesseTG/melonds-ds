@@ -270,7 +270,7 @@ You will need to install the following beforehand:
 
 - CMake 3.19 or later
 - Git
-- A C++17 compiler (MSVC is not supported)
+- A C++20 compiler (MSVC is not supported)
 
 Most other dependencies are fetched automatically by CMake.
 
