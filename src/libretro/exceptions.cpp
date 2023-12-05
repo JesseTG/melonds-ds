@@ -15,6 +15,7 @@
 */
 
 #include "exceptions.hpp"
+#undef isnan
 #include "format.hpp"
 
 #include <optional>

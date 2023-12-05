@@ -43,6 +43,7 @@
 #include <SPI.h>
 #include <SPU.h>
 #include <ARM.h>
+#undef isnan
 #include <fmt/format.h>
 #include <RTC.h>
 

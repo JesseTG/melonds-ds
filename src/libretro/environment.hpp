@@ -20,6 +20,7 @@
 #include <optional>
 #include <string>
 #include <libretro.h>
+#undef isnan
 #include <fmt/format.h>
 
 namespace retro {
