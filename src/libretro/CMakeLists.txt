@@ -72,7 +72,6 @@ add_library(melondsds_libretro MODULE
     retro/threads.hpp
     screenlayout.cpp
     screenlayout.hpp
-    span.hpp
     sram.cpp
     sram.hpp
     tracy.hpp
