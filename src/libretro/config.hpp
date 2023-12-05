@@ -24,7 +24,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <SPI_Firmware.h>
+#include <SPU.h>
 
 namespace melonDS {
     struct NDSArgs;
@@ -92,19 +92,6 @@ namespace melonds {
         None = -1,
         Software = 0, // To match with values that melonDS expects
         OpenGl = 1,
-    };
-
-    enum class BitDepth {
-        Auto = 0,
-        _10Bit = 1,
-        _16Bit = 2,
-    };
-
-    enum class AudioInterpolation {
-        None = 0,
-        Linear = 1,
-        Cosine = 2,
-        Cubic = 3,
     };
 
     enum class MicInputMode {
@@ -207,16 +194,11 @@ namespace melonds {
 
     namespace config {
         namespace audio {
-            [[nodiscard]] BitDepth BitDepth() noexcept;
-            [[nodiscard]] AudioInterpolation Interpolation() noexcept;
+            [[nodiscard]] melonDS::AudioBitDepth BitDepth() noexcept;
+            [[nodiscard]] melonDS::AudioInterpolation Interpolation() noexcept;
 
             [[nodiscard]] MicButtonMode MicButtonMode() noexcept;
             [[nodiscard]] MicInputMode MicInputMode() noexcept;
-        }
-
-        namespace firmware {
-            [[deprecated("Individual settings may be overridden")]]
-            [[nodiscard]] bool FirmwareSettingsOverrideEnable() noexcept;
         }
 
         namespace jit {

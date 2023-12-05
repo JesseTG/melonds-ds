@@ -24,6 +24,7 @@
 #include <initializer_list>
 #include <optional>
 #include <system_error>
+#include <SPI_Firmware.h>
 
 #include <libretro.h>
 

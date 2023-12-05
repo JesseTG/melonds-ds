@@ -155,18 +155,14 @@ namespace melonds::config {
         melonds::MicInputMode _micInputMode;
         melonds::MicInputMode MicInputMode() noexcept { return _micInputMode; }
 
-        melonds::BitDepth _bitDepth;
-        melonds::BitDepth BitDepth() noexcept { return _bitDepth; }
+        AudioBitDepth _bitDepth;
+        AudioBitDepth BitDepth() noexcept { return _bitDepth; }
 
-        melonds::AudioInterpolation _interpolation;
-        melonds::AudioInterpolation Interpolation() noexcept { return _interpolation; }
+        AudioInterpolation _interpolation;
+        AudioInterpolation Interpolation() noexcept { return _interpolation; }
     }
 
     namespace firmware {
-        [[deprecated("Override settings individually")]]
-        static bool _firmwareSettingsOverrideEnable = false;
-        bool FirmwareSettingsOverrideEnable() noexcept { return _firmwareSettingsOverrideEnable; }
-
         static AlarmMode _alarmMode;
         static optional<unsigned> _alarmHour;
         static optional<unsigned> _alarmMinute;
@@ -888,14 +884,14 @@ static void melonds::config::parse_audio_options() noexcept {
 
     if (const char* value = get_variable(AUDIO_BITDEPTH); !string_is_empty(value)) {
         if (string_is_equal(value, values::_10BIT))
-            _bitDepth = BitDepth::_10Bit;
+            _bitDepth = AudioBitDepth::_10Bit;
         else if (string_is_equal(value, values::_16BIT))
-            _bitDepth = BitDepth::_16Bit;
+            _bitDepth = AudioBitDepth::_16Bit;
         else
-            _bitDepth = BitDepth::Auto;
+            _bitDepth = AudioBitDepth::Auto;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_BITDEPTH, values::AUTO);
-        _bitDepth = BitDepth::Auto;
+        _bitDepth = AudioBitDepth::Auto;
     }
 
     if (const char* value = get_variable(AUDIO_INTERPOLATION); !string_is_empty(value)) {
@@ -1790,7 +1786,7 @@ static void melonds::config::apply_audio_options(NDS& nds) noexcept {
         }
     }
 
-    nds.SPU.SetInterpolation(static_cast<int>(config::audio::Interpolation()));
+    nds.SPU.SetInterpolation(config::audio::Interpolation());
 }
 
 static void melonds::config::apply_save_options(const NDSHeader* header) {
@@ -2153,38 +2149,5 @@ static void melonds::config::set_core_options() noexcept {
 
     if (!retro::set_core_options(optionsUs)) {
         retro::set_error_message("Failed to set core option definitions, functionality will be limited.");
-    }
-}
-
-using namespace melonds::config;
-
-int Platform::GetConfigInt(ConfigEntry entry)
-{
-    switch (entry)
-    {
-#ifdef JIT_ENABLED
-        case JIT_MaxBlockSize: return jit::MaxBlockSize();
-#endif
-
-        case AudioBitDepth: return static_cast<int>(audio::BitDepth());
-        default: return 0;
-    }
-}
-
-bool Platform::GetConfigBool(ConfigEntry entry)
-{
-    switch (entry)
-    {
-#ifdef JIT_ENABLED
-        case JIT_Enable: return jit::Enable();
-        case JIT_LiteralOptimizations: return jit::LiteralOptimizations();
-        case JIT_BranchOptimizations: return jit::BranchOptimizations();
-        case JIT_FastMemory: return jit::FastMemory();
-#endif
-
-        case ExternalBIOSEnable:
-            return system::ExternalBiosEnable();
-
-        default: return false;
     }
 }
