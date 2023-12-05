@@ -17,6 +17,8 @@
 #ifndef MELONDS_DS_CONFIG_HPP
 #define MELONDS_DS_CONFIG_HPP
 
+#undef isnan
+
 #include <array>
 #include <chrono>
 #include <cstdint>
