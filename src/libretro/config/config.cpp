@@ -1525,7 +1525,7 @@ static NDSArgs GetNdsArgs(const NDSHeader* header, melonds::BootMode bootMode, m
     CustomizeFirmware(*firmware);
     ndsargs.Firmware = std::move(*firmware);
 
-    return std::move(ndsargs);
+    return ndsargs;
 }
 
 static void CustomizeNAND(DSi_NAND::NANDMount& mount, const NDSHeader* header, string_view nandName) {
@@ -1764,11 +1764,13 @@ static void melonds::config::apply_system_options(melondsds::CoreState& core, co
 
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        core.Console = std::make_unique<DSi>(GetDSiArgs(header));
+        core.Console = std::make_unique<DSi>(std::move(GetDSiArgs(header)));
     } else {
         // If we're in DS mode...
-        core.Console = std::make_unique<NDS>(GetNdsArgs(header, _bootMode, _sysfileMode));
+        core.Console = std::make_unique<NDS>(std::move(GetNdsArgs(header, _bootMode, _sysfileMode)));
     }
+
+    NDS::Current = core.Console.get();
 }
 
 static void melonds::config::apply_audio_options(NDS& nds) noexcept {
@@ -2181,11 +2183,7 @@ bool Platform::GetConfigBool(ConfigEntry entry)
 #endif
 
         case ExternalBIOSEnable:
-            return
-            system::ExternalBiosEnable() &&
-            !melondsds::Core.Console->IsLoadedARM7BIOSBuiltIn() &&
-            !melondsds::Core.Console->IsLoadedARM9BIOSBuiltIn() &&
-            !melondsds::Core.Console->SPI.GetFirmwareMem()->IsLoadedFirmwareBuiltIn();
+            return system::ExternalBiosEnable();
 
         default: return false;
     }
