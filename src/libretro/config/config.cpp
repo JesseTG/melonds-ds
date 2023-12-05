@@ -1760,10 +1760,10 @@ static void melonds::config::apply_system_options(melondsds::CoreState& core, co
 
     if (_consoleType == ConsoleType::DSi) {
         // If we're in DSi mode...
-        core.Console = std::make_unique<DSi>(std::move(GetDSiArgs(header)));
+        core.Console = std::make_unique<DSi>(GetDSiArgs(header));
     } else {
         // If we're in DS mode...
-        core.Console = std::make_unique<NDS>(std::move(GetNdsArgs(header, _bootMode, _sysfileMode)));
+        core.Console = std::make_unique<NDS>(GetNdsArgs(header, _bootMode, _sysfileMode));
     }
 
     NDS::Current = core.Console.get();
