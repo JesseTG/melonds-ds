@@ -33,6 +33,7 @@ add_library(melondsds_libretro MODULE
     exceptions.cpp
     exceptions.hpp
     file.hpp
+    format.cpp
     format.hpp
     glsym_private.cpp
     glsym_private.h
