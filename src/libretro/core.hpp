@@ -32,7 +32,7 @@ namespace melondsds {
         CoreState(bool init) noexcept;
         ~CoreState() noexcept;
         std::unique_ptr<melonDS::NDS> Console = nullptr;
-        Config Config {};
+        CoreConfig Config {};
     public:
         [[nodiscard]] bool IsInitialized() const noexcept { return initialized; }
     private:

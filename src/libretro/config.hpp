@@ -322,7 +322,7 @@ namespace MelonDsDs {
     using std::optional;
     using namespace std::chrono;
 
-    class Config {
+    class CoreConfig {
     public:
         [[nodiscard]] MicButtonMode MicButtonMode() const noexcept { return _micButtonMode; }
         void SetMicButtonMode(melonds::MicButtonMode mode) noexcept { _micButtonMode = mode; }
