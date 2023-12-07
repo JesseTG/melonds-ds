@@ -43,9 +43,6 @@ using namespace melonDS::Platform;
 using std::unique_ptr;
 using std::unordered_map;
 
-[[deprecated("Use specific Platform calls instead")]]
-static unique_ptr<unordered_map<Platform::FileHandle*, int>> flushTimers;
-
 constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
     unsigned retro_mode = 0;
     if (mode & FileMode::Read)
@@ -173,8 +170,6 @@ bool Platform::CloseFile(FileHandle* file)
         return false;
     }
 
-    flushTimers->erase(file);
-
     char path[PATH_MAX];
     strlcpy(path, filestream_get_path(file->file), sizeof(path));
     retro::debug("Closing \"{}\"", path);
@@ -255,9 +250,6 @@ u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
         return 0;
 
     u64 result = filestream_write(file->file, data, size * count);
-    if (file->hints & RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS) {
-        (*flushTimers)[file] = melonds::config::save::FlushDelay();
-    }
 
     return result;
 }
@@ -286,84 +278,4 @@ u64 Platform::FileLength(FileHandle* file)
         retro::error("Failed to get size of file \"{}\"", filestream_get_path(file->file));
     }
     return size;
-}
-
-void melonds::file::init() {
-    retro_assert(flushTimers == nullptr);
-    flushTimers = std::make_unique<unordered_map<Platform::FileHandle*, int>>();
-}
-
-void melonds::file::reset() noexcept {
-    for (auto& [file, timeUntilFlush] : *flushTimers) {
-        timeUntilFlush = 0;
-    }
-}
-
-void melonds::file::deinit() {
-    retro_assert(flushTimers != nullptr);
-    for (auto& [file, timeUntilFlush] : *flushTimers) {
-        Platform::CloseFile(file);
-    }
-    flushTimers.reset();
-}
-
-retro::task::TaskSpec melonds::file::FlushTask() noexcept {
-    retro::task::TaskSpec task([](retro::task::TaskHandle &task) {
-        ZoneScopedN("melonds::file::FlushTask");
-        using namespace melonds::file;
-        if (task.IsCancelled()) {
-            // If it's time to stop...
-            task.Finish();
-            return;
-        }
-
-        std::vector<Platform::FileHandle*> filesToRemove;
-
-        for (auto& [file, timeUntilFlush] : *flushTimers) {
-            timeUntilFlush--;
-            if (timeUntilFlush == 0) {
-                // If the timer has reached 0, flush the file and remove it from the map
-
-                retro_assert(file != nullptr);
-                retro_assert(file->file != nullptr);
-
-                libretro_vfs_implementation_file* handle = filestream_get_vfs_handle(file->file);
-                const char* original_path = filestream_get_path(file->file);
-                retro_assert(handle != nullptr);
-                retro_assert(handle->fd >= 0);
-                retro_assert(original_path != nullptr);
-                // If the above conditions were false, the file should never have left Platform::OpenFile
-
-#ifdef _WIN32
-                int syncResult = _commit(handle->fd);
-#else
-                int syncResult = fsync(handle->fd);
-#endif
-
-                if (syncResult == 0) {
-                    retro::debug("Flushed file \"{}\" to host disk", original_path);
-                } else {
-                    int error = errno;
-                    if (error == EBADF) {
-                        retro::info("File \"{}\" was closed behind our backs, no need to flush it to disk.", original_path);
-                    }
-                    else {
-                        retro::error("Failed to flush \"{}\" to host disk: {} ({:#x})", original_path, strerror(error), error);
-                    }
-                }
-
-                // If the file is not open, then it was closed before the flush timer reached 0.
-                // In that case it will have been flushed to disk anyway, so we don't need to do anything.
-
-                filesToRemove.push_back(file);
-            }
-        }
-
-        for (Platform::FileHandle* file : filesToRemove) {
-            int removed = flushTimers->erase(file);
-            retro_assert(removed == 1);
-        }
-    });
-
-    return task;
 }
