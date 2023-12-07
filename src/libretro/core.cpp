@@ -15,6 +15,10 @@
 */
 
 #include "core.hpp"
+
+#include <libretro.h>
+#include <retro_assert.h>
+
 #include <NDS.h>
 
 MelonDsDs::CoreState MelonDsDs::Core(false);
@@ -25,4 +29,20 @@ MelonDsDs::CoreState::CoreState(bool init) noexcept : initialized(init) {
 MelonDsDs::CoreState::~CoreState() noexcept {
     Console = nullptr;
     initialized = false;
+}
+
+retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
+#ifndef NDEBUG
+    if (!_messageScreen) {
+        retro_assert(Console != nullptr);
+    }
+#endif
+
+    return {
+        .timing {
+            .fps = 32.0f * 1024.0f * 1024.0f / 560190.0f,
+            .sample_rate = 32.0f * 1024.0f,
+        },
+        .geometry = _screenLayout.Geometry(Console->GPU.GetRenderer3D()),
+    };
 }

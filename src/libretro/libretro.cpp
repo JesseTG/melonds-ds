@@ -80,14 +80,12 @@ using retro::task::TaskSpec;
 
 namespace MelonDsDs {
     static InputState input_state;
-    static ScreenLayoutData screenLayout;
     static bool mic_state_toggled = false;
     static bool isInDeinit = false;
     static bool isUnloading = false;
     static bool deferred_initialization_pending = false;
     static bool first_frame_run = false;
     static uint32_t flushTaskId = 0;
-    static unique_ptr<error::ErrorScreen> _messageScreen;
     static const char *const INTERNAL_ERROR_MESSAGE =
         "An internal error occurred with melonDS DS. "
         "Please contact the developer with the log file.";
@@ -269,18 +267,11 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
 }
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
-    ZoneScopedN("retro_get_system_av_info");
-    using MelonDsDs::screenLayout;
+    ZoneScopedN(TracyFunction);
 
-#ifndef NDEBUG
-    if (!MelonDsDs::_messageScreen) {
-        retro_assert(MelonDsDs::render::CurrentRenderer() != MelonDsDs::Renderer::None);
-    }
-#endif
+    retro_assert(info != nullptr);
 
-    info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
-    info->timing.sample_rate = 32.0f * 1024.0f;
-    info->geometry = screenLayout.Geometry(MelonDsDs::render::CurrentRenderer());
+    *info = MelonDsDs::Core.GetSystemAvInfo();
 }
 
 PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {

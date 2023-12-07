@@ -21,6 +21,8 @@
 #include <algorithm>
 #include <array>
 
+#include <GPU3D.h>
+
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <retro_assert.h>
 
@@ -347,8 +349,7 @@ void MelonDsDs::ScreenLayoutData::Clear() noexcept {
     }
 }
 
-
-retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(MelonDsDs::Renderer renderer) const noexcept {
+retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(const melonDS::Renderer3D& renderer) const noexcept {
     retro_game_geometry geometry {
         .base_width = BufferWidth(),
         .base_height = BufferHeight(),
@@ -358,7 +359,7 @@ retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(MelonDsDs::Renderer re
     };
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (renderer == Renderer::OpenGl) {
+    if (renderer.Accelerated) {
         geometry.max_width = MaxOpenGlRenderedWidth();
         geometry.max_height = MaxOpenGlRenderedHeight();
     }

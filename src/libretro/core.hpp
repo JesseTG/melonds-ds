@@ -22,6 +22,7 @@
 #include <span>
 
 #include "config.hpp"
+#include "screenlayout.hpp"
 #include "PlatformOGLPrivate.h"
 
 struct retro_game_info;
@@ -32,6 +33,10 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
+    namespace error {
+        class ErrorScreen;
+    }
+
     class CoreState {
     public:
         CoreState(bool init) noexcept;
@@ -55,6 +60,8 @@ namespace MelonDsDs {
         void UnloadGame() noexcept;
         std::span<std::byte> GetMemory(unsigned id) noexcept;
     private:
+        ScreenLayoutData _screenLayout {};
+        std::unique_ptr<error::ErrorScreen> _messageScreen;
         bool initialized = false;
     };
 

@@ -34,6 +34,10 @@
 #include "buffer.hpp"
 #include "retro/scaler.hpp"
 
+namespace melonDS {
+    class Renderer3D;
+}
+
 namespace MelonDsDs {
     /// The native width of a single Nintendo DS screen, in pixels
     constexpr int NDS_SCREEN_WIDTH = 256;
@@ -189,7 +193,7 @@ namespace MelonDsDs {
             return transformedScreenPoints;
         }
 
-        [[nodiscard]] retro_game_geometry Geometry(Renderer renderer) const noexcept;
+        [[nodiscard]] retro_game_geometry Geometry(const melonDS::Renderer3D& renderer) const noexcept;
 
         [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
     private:
