@@ -68,6 +68,8 @@ add_library(melondsds_libretro MODULE
     render.hpp
     retro/dirent.cpp
     retro/dirent.hpp
+    retro/info.cpp
+    retro/info.hpp
     retro/scaler.cpp
     retro/scaler.hpp
     retro/task_queue.cpp
