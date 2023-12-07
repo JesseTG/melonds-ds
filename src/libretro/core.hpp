@@ -17,27 +17,48 @@
 #ifndef MELONDSDS_CORE_HPP
 #define MELONDSDS_CORE_HPP
 
+#include <cstddef>
 #include <memory>
+#include <span>
 
 #include "config.hpp"
 #include "PlatformOGLPrivate.h"
+
+struct retro_game_info;
+struct retro_system_av_info;
 
 namespace melonDS {
     class NDS;
 }
 
 namespace MelonDsDs {
-    struct CoreState {
+    class CoreState {
+    public:
         CoreState(bool init) noexcept;
         ~CoreState() noexcept;
+
+        // TODO: Make private
         std::unique_ptr<melonDS::NDS> Console = nullptr;
+
+        // TODO: Make private
         CoreConfig Config {};
-    public:
         [[nodiscard]] bool IsInitialized() const noexcept { return initialized; }
+
+        [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
+        void Reset();
+        void Run() noexcept;
+        size_t SerializeSize() const noexcept;
+        bool Serialize(std::span<std::byte> data) const noexcept;
+        bool Unserialize(std::span<const std::byte> data) noexcept;
+        void CheatSet(unsigned index, bool enabled, std::string_view code) noexcept;
+        bool LoadGame(std::span<const retro_game_info> game);
+        void UnloadGame() noexcept;
+        std::span<std::byte> GetMemory(unsigned id) noexcept;
     private:
         bool initialized = false;
     };
 
+    // TODO: Replace with a unique_ptr
     extern CoreState Core;
 }
 #endif //MELONDSDS_CORE_HPP
