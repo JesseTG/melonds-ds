@@ -77,17 +77,17 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destT
     }
 }
 
-void melonds::ScreenLayoutData::DrawCursor(glm::ivec2 touch) noexcept {
+void melonds::ScreenLayoutData::DrawCursor(float cursorSize, glm::ivec2 touch) noexcept {
     switch (Layout()) {
         default:
-            DrawCursor(touch, bottomScreenMatrix);
+            DrawCursor(cursorSize, touch, bottomScreenMatrix);
             break;
         case ScreenLayout::TopOnly:
             return;
     }
 }
 
-void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noexcept {
+void melonds::ScreenLayoutData::DrawCursor(float cursorSize, ivec2 touch, const mat3& matrix) noexcept {
     ZoneScopedN("melonds::ScreenLayoutData::DrawCursor");
     // Only used for software rendering
     if (!buffer)
@@ -96,7 +96,6 @@ void melonds::ScreenLayoutData::DrawCursor(ivec2 touch, const mat3& matrix) noex
     ivec2 clampedTouch = glm::clamp(touch, ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
     ivec2 transformedTouch = matrix * vec3(clampedTouch, 1);
 
-    float cursorSize = melonds::config::screen::CursorSize();
     uvec2 start = glm::clamp(transformedTouch - ivec2(cursorSize), ivec2(0), ivec2(bufferSize));
     uvec2 end = glm::clamp(transformedTouch + ivec2(cursorSize), ivec2(0), ivec2(bufferSize));
 
@@ -249,7 +248,7 @@ glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const
     }
 }
 
-void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
+void melonds::ScreenLayoutData::Update(melonds::Renderer renderer, ScreenFilter filter) noexcept {
     ZoneScopedN("melonds::ScreenLayoutData::Update");
     unsigned scale = (renderer == Renderer::Software) ? 1 : resolutionScale;
     uvec2 oldBufferSize = bufferSize;
@@ -327,7 +326,7 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer) noexcept {
             hybridScaler = retro::Scaler(
                 SCALER_FMT_ARGB8888,
                 SCALER_FMT_ARGB8888,
-                config::video::ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
+                filter == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
                 NDS_SCREEN_WIDTH,
                 NDS_SCREEN_HEIGHT,
                 NDS_SCREEN_WIDTH * hybridRatio,

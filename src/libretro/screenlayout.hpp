@@ -29,7 +29,6 @@
 #include <glm/mat3x3.hpp>
 #include <glm/trigonometric.hpp>
 
-#include "config.hpp"
 #include "environment.hpp"
 #include "input.hpp"
 #include "buffer.hpp"
@@ -79,10 +78,10 @@ namespace melonds {
     public:
         ScreenLayoutData();
         ~ScreenLayoutData() noexcept;
-        void DrawCursor(glm::ivec2 touch) noexcept;
+        void DrawCursor(float cursorSize, glm::ivec2 touch) noexcept;
         void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept;
 
-        void Update(Renderer renderer) noexcept;
+        void Update(Renderer renderer, ScreenFilter filter) noexcept;
 
         bool Dirty() const noexcept { return _dirty; }
         void Clear() noexcept;
@@ -198,7 +197,7 @@ namespace melonds {
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
         void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
-        void DrawCursor(glm::ivec2 touch, const glm::mat3& matrix) noexcept;
+        void DrawCursor(float cursorSize, glm::ivec2 touch, const glm::mat3& matrix) noexcept;
 
         bool _dirty;
         unsigned resolutionScale;
