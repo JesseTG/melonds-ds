@@ -23,89 +23,97 @@
 #include "../constants.hpp"
 
 namespace melonds::config::definitions {
+    constexpr retro_core_option_v2_definition MicInput {
+        config::audio::MIC_INPUT,
+        "Microphone Input Mode",
+        nullptr,
+        "Choose the sound that the emulated microphone will receive:\n"
+        "\n"
+        "Silence: No audio input.\n"
+        "Blow: Loop a built-in blowing sound.\n"
+        "Noise: Random white noise.\n"
+        "Microphone: Use your real microphone if available, fall back to Silence if not.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {melonds::config::values::SILENCE, "Silence"},
+            {melonds::config::values::BLOW, "Blow"},
+            {melonds::config::values::NOISE, "Noise"},
+            {melonds::config::values::MICROPHONE, "Microphone"},
+            {nullptr, nullptr},
+        },
+        melonds::config::values::MICROPHONE,
+    };
+
+    constexpr retro_core_option_v2_definition MicInputButton {
+        config::audio::MIC_INPUT_BUTTON,
+        "Microphone Button Mode",
+        nullptr,
+        "Set the behavior of the Microphone button, "
+        "even if Microphone Input Mode is set to Blow or Noise. "
+        "The microphone receives silence when disabled by the button.\n"
+        "\n"
+        "Hold: Button enables mic input while held.\n"
+        "Toggle: Button enables mic input when pressed, disables it when pressed again.\n"
+        "Always: Button is ignored, mic input is always enabled.\n"
+        "\n"
+        "Ignored if Microphone Input Mode is set to Silence.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {melonds::config::values::HOLD, "Hold"},
+            {melonds::config::values::TOGGLE, "Toggle"},
+            {melonds::config::values::ALWAYS, "Always"},
+            {nullptr, nullptr},
+        },
+        melonds::config::values::HOLD,
+    };
+
+    constexpr retro_core_option_v2_definition BitDepth{
+        config::audio::AUDIO_BITDEPTH,
+        "Audio Bit Depth",
+        "Bit Depth",
+        "The audio playback bit depth. "
+        "Automatic uses 10-bit audio for DS mode "
+        "and 16-bit audio for DSi mode.\n"
+        "\n"
+        "Takes effect at next restart. "
+        "If unsure, set to Automatic.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {melonds::config::values::AUTO, "Automatic"},
+            {melonds::config::values::_10BIT, "10-bit"},
+            {melonds::config::values::_16BIT, "16-bit"},
+            {nullptr, nullptr},
+        },
+        melonds::config::values::AUTO
+    };
+
+    constexpr retro_core_option_v2_definition AudioInterpolation {
+        config::audio::AUDIO_INTERPOLATION,
+        "Audio Interpolation",
+        "Interpolation",
+        "Interpolates audio output for improved quality. "
+        "Disable this to match the behavior of the original DS hardware.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {melonds::config::values::DISABLED, nullptr},
+            {melonds::config::values::LINEAR, "Linear"},
+            {melonds::config::values::COSINE, "Cosine"},
+            {melonds::config::values::CUBIC, "Cubic"},
+            {nullptr, nullptr},
+        },
+        melonds::config::values::DISABLED
+    };
+
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> AudioOptionDefinitions {
-        retro_core_option_v2_definition {
-            config::audio::MIC_INPUT,
-            "Microphone Input Mode",
-            nullptr,
-            "Choose the sound that the emulated microphone will receive:\n"
-            "\n"
-            "Silence: No audio input.\n"
-            "Blow: Loop a built-in blowing sound.\n"
-            "Noise: Random white noise.\n"
-            "Microphone: Use your real microphone if available, fall back to Silence if not.",
-            nullptr,
-            config::audio::CATEGORY,
-            {
-                {melonds::config::values::SILENCE, "Silence"},
-                {melonds::config::values::BLOW, "Blow"},
-                {melonds::config::values::NOISE, "Noise"},
-                {melonds::config::values::MICROPHONE, "Microphone"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::MICROPHONE
-        },
-        retro_core_option_v2_definition {
-            config::audio::MIC_INPUT_BUTTON,
-            "Microphone Button Mode",
-            nullptr,
-            "Set the behavior of the Microphone button, "
-            "even if Microphone Input Mode is set to Blow or Noise. "
-            "The microphone receives silence when disabled by the button.\n"
-            "\n"
-            "Hold: Button enables mic input while held.\n"
-            "Toggle: Button enables mic input when pressed, disables it when pressed again.\n"
-            "Always: Button is ignored, mic input is always enabled.\n"
-            "\n"
-            "Ignored if Microphone Input Mode is set to Silence.",
-            nullptr,
-            config::audio::CATEGORY,
-            {
-                {melonds::config::values::HOLD, "Hold"},
-                {melonds::config::values::TOGGLE, "Toggle"},
-                {melonds::config::values::ALWAYS, "Always"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::HOLD
-        },
-        retro_core_option_v2_definition {
-            config::audio::AUDIO_BITDEPTH,
-            "Audio Bit Depth",
-            "Bit Depth",
-            "The audio playback bit depth. "
-            "Automatic uses 10-bit audio for DS mode "
-            "and 16-bit audio for DSi mode.\n"
-            "\n"
-            "Takes effect at next restart. "
-            "If unsure, set to Automatic.",
-            nullptr,
-            config::audio::CATEGORY,
-            {
-                {melonds::config::values::AUTO, "Automatic"},
-                {melonds::config::values::_10BIT, "10-bit"},
-                {melonds::config::values::_16BIT, "16-bit"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::AUTO
-        },
-        retro_core_option_v2_definition {
-            config::audio::AUDIO_INTERPOLATION,
-            "Audio Interpolation",
-            "Interpolation",
-            "Interpolates audio output for improved quality. "
-            "Disable this to match the behavior of the original DS hardware.",
-            nullptr,
-            config::audio::CATEGORY,
-            {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::LINEAR, "Linear"},
-                {melonds::config::values::COSINE, "Cosine"},
-                {melonds::config::values::CUBIC, "Cubic"},
-                {nullptr, nullptr},
-            },
-            melonds::config::values::DISABLED
-        },
+        MicInput,
+        MicInputButton,
+        BitDepth,
+        AudioInterpolation,
     };
 }
 #endif //MELONDS_DS_AUDIO_HPP
