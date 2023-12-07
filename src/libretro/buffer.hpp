@@ -26,13 +26,13 @@ namespace melonds {
     class PixelBuffer {
     public:
         PixelBuffer(glm::uvec2 size) noexcept;
-        PixelBuffer(std::nullptr_t) noexcept;
+        [[deprecated]] PixelBuffer(std::nullptr_t) noexcept;
         ~PixelBuffer() noexcept;
         PixelBuffer(const PixelBuffer&) noexcept;
         PixelBuffer(PixelBuffer&&) noexcept;
         PixelBuffer& operator=(const PixelBuffer&) noexcept;
         PixelBuffer& operator=(PixelBuffer&&) noexcept;
-        PixelBuffer& operator=(std::nullptr_t) noexcept;
+        [[deprecated]] PixelBuffer& operator=(std::nullptr_t) noexcept;
 
         [[nodiscard]] uint32_t operator[](glm::uvec2 pos) const noexcept {
             return buffer[pos.y * size.x + pos.x];
