@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <regex>
 #include <span>
 
 #include "config.hpp"
@@ -63,6 +64,7 @@ namespace MelonDsDs {
         std::byte* GetMemoryData(unsigned id) noexcept;
         size_t GetMemorySize(unsigned id) noexcept;
     private:
+        static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         ScreenLayoutData _screenLayout {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
@@ -73,6 +75,9 @@ namespace MelonDsDs {
         std::optional<int> _timeToFirmwareFlush = std::nullopt;
         mutable std::optional<size_t> _savestateSize = std::nullopt;
         std::unique_ptr<error::ErrorScreen> _messageScreen = nullptr;
+        // TODO: Switch to compile time regular expressions (see https://compile-time.re)
+        std::regex cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
+        std::regex tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };
         bool initialized = false;
     };
 

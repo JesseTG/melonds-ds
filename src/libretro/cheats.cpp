@@ -16,36 +16,9 @@
 
 #include "cheats.hpp"
 
-#include "PlatformOGLPrivate.h"
-
-#include <charconv>
-#include <memory>
-#include <regex>
-#include <ARCodeFile.h>
-#include <NDS.h>
-#include <string/stdstring.h>
-#include <retro_assert.h>
+#include <string_view>
 
 #include "core.hpp"
-#include "libretro.hpp"
-#include "environment.hpp"
-#include "tracy.hpp"
-
-using std::csub_match;
-using std::unique_ptr;
-using std::regex;
-using std::make_unique;
-using std::from_chars_result;
-using std::cregex_iterator;
-using namespace std::regex_constants;
-
-static unique_ptr<regex> cheatSyntax;
-static unique_ptr<regex> tokenSyntax;
-
-void MelonDsDs::cheats::deinit() noexcept {
-    cheatSyntax = nullptr;
-    tokenSyntax = nullptr;
-}
 
 PUBLIC_SYMBOL void retro_cheat_reset(void) {
     retro::debug("retro_cheat_reset()");
@@ -54,47 +27,6 @@ PUBLIC_SYMBOL void retro_cheat_reset(void) {
 PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *code) {
     // Cheat codes are small programs, so we can't exactly turn them off (that would be undoing them)
     ZoneScopedN("retro_cheat_set");
-    retro::debug("retro_cheat_set({}, {}, {})\n", index, enabled, code);
-    if (string_is_empty(code))
-        return;
 
-    if (!enabled) {
-        retro::set_warn_message("Action Replay codes can't be undone, please restart the game to remove their effects.");
-        return;
-    }
-
-    if (!cheatSyntax) {
-        cheatSyntax = make_unique<regex>("^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", ECMAScript | optimize);
-    }
-
-    if (!tokenSyntax) {
-        tokenSyntax = make_unique<regex>("[0-9A-Fa-f]{8}", ECMAScript | optimize);
-    }
-
-    if (enabled && !regex_match(code, *cheatSyntax)) {
-        // If we're trying to activate this cheat code, but it's not valid...
-        retro::set_warn_message("Cheat #{} ({:.8}...) isn't valid, ignoring it.", index, code);
-        return;
-    }
-
-    melonDS::ARCode curcode {
-        .Name = "",
-        .Enabled = enabled,
-        .Code = {}
-    };
-
-    // NDS cheats are sequence of unsigned 32-bit integers, each of which is hex-encoded
-    size_t length = strlen(code);
-    auto end = cregex_iterator();
-    for (auto i = cregex_iterator(code, code + length, *tokenSyntax); i != end; ++i)
-    {
-        const csub_match& match = (*i)[0];
-        retro_assert(match.matched);
-        uint32_t token = 0;
-        from_chars_result result = std::from_chars(match.first, match.second, token, 16);
-        retro_assert(result.ec == std::errc());
-        curcode.Code.push_back(token);
-    }
-
-    MelonDsDs::Core.Console->AREngine.RunCheat(curcode);
+    MelonDsDs::Core.CheatSet(index, enabled, code);
 }

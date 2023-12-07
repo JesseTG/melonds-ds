@@ -16,6 +16,8 @@
 
 #include "core.hpp"
 
+#include <charconv>
+
 #include <libretro.h>
 #include <retro_assert.h>
 
@@ -217,4 +219,43 @@ size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) noexcept {
         default:
             return 0;
     }
+}
+
+void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_view code) noexcept {
+    // Cheat codes are small programs, so we can't exactly turn them off (that would be undoing them)
+    ZoneScopedN(TracyFunction);
+    retro::debug("retro_cheat_set({}, {}, {})\n", index, enabled, code);
+    if (code.empty())
+        return;
+
+    if (!enabled) {
+        retro::set_warn_message("Action Replay codes can't be undone, restart the game to remove their effects.");
+        return;
+    }
+
+    if (enabled && !regex_match(code.data(), cheatSyntax)) {
+        // If we're trying to activate this cheat code, but it's not valid...
+        retro::set_warn_message("Cheat #{} ({:.8}...) isn't valid, ignoring it.", index, code);
+        return;
+    }
+
+    melonDS::ARCode curcode {
+        .Name = "",
+        .Enabled = enabled,
+        .Code = {}
+    };
+
+    // NDS cheats are sequence of unsigned 32-bit integers, each of which is hex-encoded
+    auto end = std::cregex_iterator();
+    for (auto i = std::cregex_iterator(code.cbegin(), code.cend(), tokenSyntax); i != end; ++i) {
+        const std::csub_match& match = (*i)[0];
+        retro_assert(match.matched);
+        uint32_t token = 0;
+        std::from_chars_result result = std::from_chars(match.first, match.second, token, 16);
+        retro_assert(result.ec == std::errc());
+        curcode.Code.push_back(token);
+    }
+
+    retro_assert(Console != nullptr);
+    Console->AREngine.RunCheat(curcode);
 }
