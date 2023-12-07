@@ -24,6 +24,7 @@
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 
+#include "types.hpp"
 #include "environment.hpp"
 #include "retro/dirent.hpp"
 #include "tracy.hpp"
@@ -33,66 +34,6 @@ using std::optional;
 using std::nullopt;
 using std::string;
 using namespace melonDS;
-
-optional<melonds::Renderer> melonds::config::ParseRenderer(const char* value) noexcept {
-    if (string_is_equal(value, values::SOFTWARE)) return melonds::Renderer::Software;
-    if (string_is_equal(value, values::OPENGL)) return melonds::Renderer::OpenGl;
-    return nullopt;
-}
-
-optional<melonds::CursorMode> melonds::config::ParseCursorMode(const char* value) noexcept {
-    if (string_is_equal(value, values::DISABLED)) return melonds::CursorMode::Never;
-    if (string_is_equal(value, values::TOUCHING)) return melonds::CursorMode::Touching;
-    if (string_is_equal(value, values::TIMEOUT)) return melonds::CursorMode::Timeout;
-    if (string_is_equal(value, values::ALWAYS)) return melonds::CursorMode::Always;
-    return nullopt;
-}
-
-optional<melonds::ConsoleType> melonds::config::ParseConsoleType(const char* value) noexcept {
-    if (string_is_equal(value, values::DS)) return melonds::ConsoleType::DS;
-    if (string_is_equal(value, values::DSI)) return melonds::ConsoleType::DSi;
-    return nullopt;
-}
-
-optional<melonds::NetworkMode> melonds::config::ParseNetworkMode(const char* value) noexcept {
-    if (string_is_equal(value, values::DISABLED)) return melonds::NetworkMode::None;
-    if (string_is_equal(value, values::DIRECT)) return melonds::NetworkMode::Direct;
-    if (string_is_equal(value, values::INDIRECT)) return melonds::NetworkMode::Indirect;
-    return nullopt;
-}
-
-optional<bool> melonds::config::ParseBoolean(const char* value) noexcept {
-    ZoneScopedN("melonds::config::ParseBoolean");
-    if (string_is_equal(value, values::ENABLED)) return true;
-    if (string_is_equal(value, values::DISABLED)) return false;
-    return nullopt;
-}
-
-optional<melonds::BootMode> melonds::config::ParseBootMode(const char *value) noexcept {
-    if (string_is_equal(value, values::NATIVE)) return BootMode::Native;
-    if (string_is_equal(value, values::DIRECT)) return BootMode::Direct;
-    return nullopt;
-}
-
-optional<melonds::SysfileMode> melonds::config::ParseSysfileMode(const char *value) noexcept {
-    if (string_is_equal(value, values::NATIVE)) return SysfileMode::Native;
-    if (string_is_equal(value, values::BUILT_IN)) return SysfileMode::BuiltIn;
-    return nullopt;
-}
-
-optional<melonds::AlarmMode> melonds::config::ParseAlarmMode(const char* value) noexcept {
-    if (string_is_equal(value, values::DISABLED)) return AlarmMode::Disabled;
-    if (string_is_equal(value, values::ENABLED)) return AlarmMode::Enabled;
-    if (string_is_equal(value, values::DEFAULT)) return AlarmMode::Default;
-    return nullopt;
-}
-
-optional<melonds::UsernameMode> melonds::config::ParseUsernameMode(const char* value) noexcept {
-    if (string_is_empty(value) || string_is_equal(value, values::firmware::DEFAULT_USERNAME)) return UsernameMode::MelonDSDS;
-    if (string_is_equal(value, values::firmware::FIRMWARE_USERNAME)) return UsernameMode::Firmware;
-    if (string_is_equal(value, values::firmware::GUESS_USERNAME)) return UsernameMode::Guess;
-    return nullopt;
-}
 
 string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
     ZoneScopedN("melonds::config::GetUsername");
@@ -121,81 +62,6 @@ string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
         default:
             return values::firmware::DEFAULT_USERNAME;
     }
-
-
-}
-
-optional<melonds::ScreenLayout> melonds::config::ParseScreenLayout(const char* value) noexcept {
-    ZoneScopedN("melonds::config::ParseScreenLayout");
-    using melonds::ScreenLayout;
-    if (string_is_equal(value, values::TOP_BOTTOM)) return ScreenLayout::TopBottom;
-    if (string_is_equal(value, values::BOTTOM_TOP)) return ScreenLayout::BottomTop;
-    if (string_is_equal(value, values::LEFT_RIGHT)) return ScreenLayout::LeftRight;
-    if (string_is_equal(value, values::RIGHT_LEFT)) return ScreenLayout::RightLeft;
-    if (string_is_equal(value, values::TOP)) return ScreenLayout::TopOnly;
-    if (string_is_equal(value, values::BOTTOM)) return ScreenLayout::BottomOnly;
-    if (string_is_equal(value, values::HYBRID_TOP)) return ScreenLayout::HybridTop;
-    if (string_is_equal(value, values::HYBRID_BOTTOM)) return ScreenLayout::HybridBottom;
-    if (string_is_equal(value, values::ROTATE_LEFT)) return ScreenLayout::TurnLeft;
-    if (string_is_equal(value, values::ROTATE_RIGHT)) return ScreenLayout::TurnRight;
-    if (string_is_equal(value, values::UPSIDE_DOWN)) return ScreenLayout::UpsideDown;
-
-    return nullopt;
-}
-
-optional<melonds::HybridSideScreenDisplay> melonds::config::ParseHybridSideScreenDisplay(const char* value) noexcept {
-    using melonds::ScreenLayout;
-    if (string_is_equal(value, values::ONE)) return melonds::HybridSideScreenDisplay::One;
-    if (string_is_equal(value, values::BOTH)) return melonds::HybridSideScreenDisplay::Both;
-
-    return nullopt;
-}
-
-std::optional<melonds::FirmwareLanguage> melonds::config::ParseLanguage(const char* value) noexcept {
-    if (string_is_equal(value, values::AUTO)) return melonds::FirmwareLanguage::Auto;
-    if (string_is_equal(value, values::DEFAULT)) return melonds::FirmwareLanguage::Default;
-    if (string_is_equal(value, values::JAPANESE)) return melonds::FirmwareLanguage::Japanese;
-    if (string_is_equal(value, values::ENGLISH)) return melonds::FirmwareLanguage::English;
-    if (string_is_equal(value, values::FRENCH)) return melonds::FirmwareLanguage::French;
-    if (string_is_equal(value, values::GERMAN)) return melonds::FirmwareLanguage::German;
-    if (string_is_equal(value, values::ITALIAN)) return melonds::FirmwareLanguage::Italian;
-    if (string_is_equal(value, values::SPANISH)) return melonds::FirmwareLanguage::Spanish;
-
-    return nullopt;
-}
-
-optional<melonds::MicInputMode> melonds::config::ParseMicInputMode(const char* value) noexcept {
-    if (string_is_equal(value, values::MICROPHONE)) return MicInputMode::HostMic;
-    if (string_is_equal(value, values::NOISE)) return MicInputMode::WhiteNoise;
-    if (string_is_equal(value, values::SILENCE)) return MicInputMode::None;
-
-    return nullopt;
-}
-
-std::optional<melonds::TouchMode> melonds::config::ParseTouchMode(const char* value) noexcept {
-    if (string_is_equal(value, values::AUTO)) return TouchMode::Auto;
-    if (string_is_equal(value, values::TOUCH)) return TouchMode::Pointer;
-    if (string_is_equal(value, values::JOYSTICK)) return TouchMode::Joystick;
-
-    return nullopt;
-}
-
-optional<IpAddress> melonds::config::ParseIpAddress(const char* value) noexcept {
-    ZoneScopedN("melonds::config::ParseIpAddress");
-    if (string_is_empty(value))
-        return nullopt;
-
-    in_addr address;
-    if (inet_pton(AF_INET, value, &address) == 1) {
-        // Both in_addr and ip represent an IPv4 address,
-        // but they may have different alignment requirements.
-        // Better safe than sorry.
-        IpAddress ip;
-        memcpy(&ip, &address, sizeof(address));
-        return ip;
-    }
-
-    return nullopt;
 }
 
 bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {

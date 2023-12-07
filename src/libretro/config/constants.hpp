@@ -21,15 +21,12 @@
 #include <array>
 #include <charconv>
 #include <cstring>
-#include <initializer_list>
-#include <optional>
 #include <system_error>
 #include <SPI_Firmware.h>
 
-#include <libretro.h>
-
-#include "../config.hpp"
-#include "../tracy.hpp"
+namespace melonds {
+    enum class UsernameMode;
+}
 
 namespace retro {
     struct dirent;
@@ -87,6 +84,9 @@ namespace melonds::config {
     }
 
     namespace screen {
+        constexpr unsigned MAX_HYBRID_RATIO = 3;
+        constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
+        constexpr unsigned MAX_SCREEN_GAP = 128;
         static constexpr const char *const CATEGORY = "screen";
         static constexpr const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
         static constexpr const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
@@ -214,65 +214,10 @@ namespace melonds::config {
         static constexpr const char *const UPSIDE_DOWN = "rotate-180";
     }
 
-    std::optional<bool> ParseBoolean(const char *value) noexcept;
-    std::optional<BootMode> ParseBootMode(const char *value) noexcept;
-    std::optional<melonds::SysfileMode> ParseSysfileMode(const char *value) noexcept;
-    std::optional<AlarmMode> ParseAlarmMode(const char *value) noexcept;
-    std::optional<UsernameMode> ParseUsernameMode(const char* value) noexcept;
-
-    std::string GetUsername(UsernameMode mode) noexcept;
-    template<typename T>
-    std::optional<T> ParseIntegerInRange(const char *value, T min, T max) noexcept {
-        ZoneScopedN("melonds::config::ParseIntegerInRange");
-        if (min > max) return std::nullopt;
-        if (!value) return std::nullopt;
-
-        T parsed_number = 0;
-        std::from_chars_result result = std::from_chars(value, value + strlen(value), parsed_number);
-
-        if (result.ec != std::errc()) return std::nullopt;
-        if (parsed_number < min || parsed_number > max) return std::nullopt;
-
-        return parsed_number;
-    }
-
-    template<typename T>
-    std::optional<T> ParseIntegerInList(const char *value, const std::initializer_list<T> &list) noexcept {
-        ZoneScopedN("melonds::config::ParseIntegerInList");
-        if (!value) return std::nullopt;
-
-        T parsed_number = 0;
-        std::from_chars_result result = std::from_chars(value, value + strlen(value), parsed_number);
-
-        if (result.ec != std::errc()) return std::nullopt;
-        for (T t: list) {
-            if (parsed_number == t) return parsed_number;
-        }
-
-        return std::nullopt;
-    }
-
-    std::optional<melonds::Renderer> ParseRenderer(const char *value) noexcept;
-
-    std::optional<melonds::CursorMode> ParseCursorMode(const char *value) noexcept;
-
-    std::optional<melonds::ConsoleType> ParseConsoleType(const char *value) noexcept;
-
-    std::optional<melonds::NetworkMode> ParseNetworkMode(const char *value) noexcept;
-
-    std::optional<melonds::ScreenLayout> ParseScreenLayout(const char *value) noexcept;
-
-    std::optional<melonds::HybridSideScreenDisplay> ParseHybridSideScreenDisplay(const char *value) noexcept;
-
-    std::optional<melonds::FirmwareLanguage> ParseLanguage(const char* value) noexcept;
-    std::optional<melonds::MicInputMode> ParseMicInputMode(const char* value) noexcept;
-    std::optional<melonds::TouchMode> ParseTouchMode(const char* value) noexcept;
-
-    std::optional<melonDS::IpAddress> ParseIpAddress(const char* value) noexcept;
-
     constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
+    std::string GetUsername(melonds::UsernameMode mode) noexcept;
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
     bool IsFirmwareImage(const retro::dirent &file, melonDS::Firmware::FirmwareHeader& header) noexcept;
 }
