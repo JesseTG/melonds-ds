@@ -27,7 +27,7 @@ namespace MelonDsDs {
     class ScreenLayoutData;
 }
 
-namespace MelonDsDs::render {
+namespace [[deprecated("Move the associated state into CoreState")]] MelonDsDs::render {
     void Initialize(Renderer renderer);
 
     /// Returns true if all global state necessary for rendering is ready.

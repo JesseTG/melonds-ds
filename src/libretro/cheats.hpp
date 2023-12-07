@@ -19,6 +19,6 @@
 #define MELONDS_DS_CHEATS_HPP
 
 namespace MelonDsDs::cheats {
-    void deinit() noexcept;
+    [[deprecated("Move the associated state into CoreState")]] void deinit() noexcept;
 }
 #endif //MELONDS_DS_CHEATS_HPP

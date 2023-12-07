@@ -30,7 +30,7 @@ namespace MelonDsDs {
 
     constexpr unsigned NINTENDO_DS_MEMORY_SAVE_RAM = 0x101;
 
-    void clear_memory_config();
+    [[deprecated("Move the associated state into CoreState")]] void clear_memory_config();
 
 
 }

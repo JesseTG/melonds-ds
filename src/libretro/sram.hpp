@@ -31,7 +31,7 @@ namespace retro::task {
 
 struct retro_game_info;
 
-namespace MelonDsDs::sram {
+namespace MelonDsDs::sram  {
     void init();
     void reset() noexcept;
     void deinit() noexcept;

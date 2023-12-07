@@ -66,10 +66,7 @@ namespace MelonDsDs {
     /// Called when settings have been updated mid-game
     void UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     bool update_option_visibility();
-}
 
-namespace MelonDsDs {
-    using namespace MelonDsDs;
     using std::string;
     using std::string_view;
     using std::optional;
