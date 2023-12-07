@@ -32,6 +32,7 @@
 
 #include "config/parse.hpp"
 #include "config/definitions.hpp"
+#include "config/types.hpp"
 
 namespace melonDS {
     struct NDSArgs;
