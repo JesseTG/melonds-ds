@@ -22,7 +22,8 @@
 
 #include <libretro.h>
 
-namespace [[deprecated("Move the associated state into CoreState")]] retro::content {
+// TODO: Move the associated state into CoreState
+namespace retro::content {
     const std::optional<struct retro_game_info>& get_loaded_nds_info();
     const std::optional<struct retro_game_info_ext>& get_loaded_nds_info_ext();
     const std::optional<struct retro_game_info>& get_loaded_gba_info();
