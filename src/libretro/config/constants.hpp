@@ -139,6 +139,8 @@ namespace melonds::config {
     }
 
     namespace video {
+        constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
+        constexpr unsigned MAX_OPENGL_SCALE = 8;
         static constexpr const char *const CATEGORY = "video";
         static constexpr const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
         static constexpr const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
