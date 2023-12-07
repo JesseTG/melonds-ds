@@ -22,6 +22,7 @@
 #include <span>
 
 #include "config.hpp"
+#include "retro/info.hpp"
 #include "screenlayout.hpp"
 #include "PlatformOGLPrivate.h"
 
@@ -61,7 +62,11 @@ namespace MelonDsDs {
         std::span<std::byte> GetMemory(unsigned id) noexcept;
     private:
         ScreenLayoutData _screenLayout {};
-        std::unique_ptr<error::ErrorScreen> _messageScreen;
+        std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
+        std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
+        std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
+        mutable std::optional<size_t> _savestateSize = std::nullopt;
+        std::unique_ptr<error::ErrorScreen> _messageScreen = nullptr;
         bool initialized = false;
     };
 
