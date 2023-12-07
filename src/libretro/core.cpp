@@ -21,6 +21,10 @@
 
 #include <NDS.h>
 
+using std::byte;
+constexpr size_t DS_MEMORY_SIZE = 0x400000;
+constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
+
 MelonDsDs::CoreState MelonDsDs::Core(false);
 
 MelonDsDs::CoreState::CoreState(bool init) noexcept : initialized(init) {
@@ -65,7 +69,8 @@ size_t MelonDsDs::CoreState::SerializeSize() const noexcept {
             // DSi mode doesn't support savestates right now
             _savestateSize = 0;
             // TODO: When DSi mode supports savestates, remove this conditional block
-        } else {
+        }
+        else {
 #ifndef NDEBUG
             if (_ndsInfo) {
                 // If we're booting with a ROM...
@@ -119,6 +124,7 @@ bool MelonDsDs::CoreState::Serialize(std::span<std::byte> data) const noexcept {
 }
 
 bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept {
+    ZoneScopedN(TracyFunction);
     if (_messageScreen)
         return false;
 
@@ -144,7 +150,8 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
             retro::set_error_message(
                 "This savestate is too old, can't load it.\n"
                 "Save your game normally in the older version and import the save data.");
-        } else if (major > SAVESTATE_MAJOR) {
+        }
+        else if (major > SAVESTATE_MAJOR) {
             // If this savestate is too new...
             retro::set_error_message(
                 "This savestate is too new, can't load it.\n"
@@ -162,4 +169,53 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
     }
 
     return Console->DoSavestate(&savestate) && !savestate.Error;
+}
+
+
+byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
+    ZoneScopedN(TracyFunction);
+    if (_messageScreen)
+        return nullptr;
+
+    switch (id) {
+        case RETRO_MEMORY_SYSTEM_RAM:
+            retro_assert(Console != nullptr);
+            return reinterpret_cast<byte*>(Console->MainRAM);
+        case RETRO_MEMORY_SAVE_RAM:
+            if (_ndsSaveManager) {
+                return (byte*)_ndsSaveManager->Sram();
+            }
+            [[fallthrough]];
+        default:
+            return nullptr;
+    }
+}
+
+size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) noexcept {
+    if (_messageScreen)
+        return 0;
+
+    switch (id) {
+        case RETRO_MEMORY_SYSTEM_RAM: {
+            retro_assert(Console != nullptr);
+            auto consoleType = static_cast<ConsoleType>(Console->ConsoleType);
+            switch (consoleType) {
+                default:
+                    retro::warn("Unknown console type {}, returning memory size of 4MB.", consoleType);
+                    [[fallthrough]];
+                // Intentional fall-through
+                case ConsoleType::DS:
+                    return DS_MEMORY_SIZE; // 4MB, the size of the DS system RAM
+                case ConsoleType::DSi:
+                    return melonDS::MainRAMMaxSize; // 16MB, the size of the DSi system RAM
+            }
+        }
+        case RETRO_MEMORY_SAVE_RAM:
+            if (_ndsSaveManager) {
+                return _ndsSaveManager->SramLength();
+            }
+            [[fallthrough]];
+        default:
+            return 0;
+    }
 }

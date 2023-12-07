@@ -25,6 +25,7 @@
 #include "retro/info.hpp"
 #include "screenlayout.hpp"
 #include "PlatformOGLPrivate.h"
+#include "sram.hpp"
 
 struct retro_game_info;
 struct retro_system_av_info;
@@ -59,12 +60,17 @@ namespace MelonDsDs {
         void CheatSet(unsigned index, bool enabled, std::string_view code) noexcept;
         bool LoadGame(std::span<const retro_game_info> game);
         void UnloadGame() noexcept;
-        std::span<std::byte> GetMemory(unsigned id) noexcept;
+        std::byte* GetMemoryData(unsigned id) noexcept;
+        size_t GetMemorySize(unsigned id) noexcept;
     private:
         ScreenLayoutData _screenLayout {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
+        std::optional<sram::SaveManager> _ndsSaveManager = std::nullopt;
+        std::optional<sram::SaveManager> _gbaSaveManager = std::nullopt;
+        std::optional<int> _timeToGbaFlush = std::nullopt;
+        std::optional<int> _timeToFirmwareFlush = std::nullopt;
         mutable std::optional<size_t> _savestateSize = std::nullopt;
         std::unique_ptr<error::ErrorScreen> _messageScreen = nullptr;
         bool initialized = false;

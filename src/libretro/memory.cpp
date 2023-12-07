@@ -25,30 +25,17 @@
 #include <fmt/core.h>
 #include <NDS.h>
 #include <NDSCart.h>
-#include <AREngine.h>
 #include "libretro.hpp"
 #include "environment.hpp"
 #include "config.hpp"
 #include "info.hpp"
-#include <retro_assert.h>
-#include "content.hpp"
 #include "core.hpp"
 
 #include "tracy.hpp"
-#include "sram.hpp"
 #include "format.hpp"
 
 using std::byte;
 using std::span;
-
-using namespace melonDS;
-constexpr size_t DS_MEMORY_SIZE = 0x400000;
-constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
-constexpr ssize_t SAVESTATE_SIZE_UNKNOWN = -1;
-
-namespace MelonDsDs {
-    static ssize_t _savestate_size = SAVESTATE_SIZE_UNKNOWN;
-}
 
 static const char *memory_type_name(unsigned type)
 {
@@ -88,49 +75,14 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
+    ZoneScopedN(TracyFunction);
     retro::debug("retro_get_memory_data({})\n", memory_type_name(type));
-    if (MelonDsDs::IsInErrorScreen())
-        return nullptr;
-    switch (type) {
-        case RETRO_MEMORY_SYSTEM_RAM:
-            retro_assert(MelonDsDs::Core.Console != nullptr);
-            return MelonDsDs::Core.Console->MainRAM;
-        case RETRO_MEMORY_SAVE_RAM:
-            if (MelonDsDs::sram::NdsSaveManager) {
-                return MelonDsDs::sram::NdsSaveManager->Sram();
-            }
-            [[fallthrough]];
-        default:
-            return nullptr;
-    }
+
+    return MelonDsDs::Core.GetMemoryData(type);
 }
 
 PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
-    using namespace MelonDsDs;
-    if (MelonDsDs::IsInErrorScreen())
-        return 0;
-    ConsoleType console_type = config::system::ConsoleType();
-    switch (type) {
-        case RETRO_MEMORY_SYSTEM_RAM:
-            switch (console_type) {
-                default:
-                    retro::warn("Unknown console type {}, returning memory size of 4MB (as used by the DS).", console_type);
-                    // Intentional fall-through
-                case MelonDsDs::ConsoleType::DS:
-                    return DS_MEMORY_SIZE; // 4MB, the size of the DS system RAM
-                case MelonDsDs::ConsoleType::DSi:
-                    return DSI_MEMORY_SIZE; // 16MB, the size of the DSi system RAM
-            }
-        case RETRO_MEMORY_SAVE_RAM:
-            if (MelonDsDs::sram::NdsSaveManager) {
-                return MelonDsDs::sram::NdsSaveManager->SramLength();
-            }
-            [[fallthrough]];
-        default:
-            return 0;
-    }
-}
+    ZoneScopedN(TracyFunction);
 
-void MelonDsDs::clear_memory_config() {
-    _savestate_size = SAVESTATE_SIZE_UNKNOWN;
+    return MelonDsDs::Core.GetMemorySize(type);
 }
