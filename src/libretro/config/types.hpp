@@ -17,7 +17,7 @@
 #ifndef MELONDSDS_CONFIG_TYPES_HPP
 #define MELONDSDS_CONFIG_TYPES_HPP
 
-namespace melonds {
+namespace MelonDsDs {
     enum class ConsoleType {
         DS = 0,
         DSi = 1,

@@ -35,7 +35,7 @@
 using NdsCart = melonDS::NDSCart::CartCommon;
 using GbaCart = melonDS::GBACart::CartCommon;
 
-namespace melonds {
+namespace MelonDsDs {
     bool IsUnloadingGame() noexcept;
     bool IsInDeinit() noexcept;
     bool IsInErrorScreen() noexcept;

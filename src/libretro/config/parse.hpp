@@ -26,7 +26,7 @@
 #include "tracy.hpp"
 
 namespace MelonDsDs {
-    using namespace melonds;
+    using namespace MelonDsDs;
 
     constexpr std::optional<bool> ParseBoolean(std::string_view value) noexcept {
         if (value == config::values::ENABLED) return true;
@@ -65,61 +65,61 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::BootMode> ParseBootMode(std::string_view value) noexcept {
+    constexpr std::optional<MelonDsDs::BootMode> ParseBootMode(std::string_view value) noexcept {
         if (value == config::values::NATIVE) return BootMode::Native;
         if (value == config::values::DIRECT) return BootMode::Direct;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::SysfileMode> ParseSysfileMode(std::string_view value) noexcept {
+    constexpr std::optional<MelonDsDs::SysfileMode> ParseSysfileMode(std::string_view value) noexcept {
         if (value == config::values::NATIVE) return SysfileMode::Native;
         if (value == config::values::BUILT_IN) return SysfileMode::BuiltIn;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::AlarmMode> ParseAlarmMode(std::string_view value) noexcept {
+    constexpr std::optional<MelonDsDs::AlarmMode> ParseAlarmMode(std::string_view value) noexcept {
         if (value == config::values::DISABLED) return AlarmMode::Disabled;
         if (value == config::values::ENABLED) return AlarmMode::Enabled;
         if (value == config::values::DEFAULT) return AlarmMode::Default;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::UsernameMode> ParseUsernameMode(std::string_view value) noexcept {
+    constexpr std::optional<MelonDsDs::UsernameMode> ParseUsernameMode(std::string_view value) noexcept {
         if (value.empty() || value == config::values::firmware::DEFAULT_USERNAME) return UsernameMode::MelonDSDS;
         if (value == config::values::firmware::FIRMWARE_USERNAME) return UsernameMode::Firmware;
         if (value == config::values::firmware::GUESS_USERNAME) return UsernameMode::Guess;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::Renderer> ParseRenderer(std::string_view value) noexcept {
-        if (value == config::values::SOFTWARE) return melonds::Renderer::Software;
-        if (value == config::values::OPENGL) return melonds::Renderer::OpenGl;
+    constexpr std::optional<MelonDsDs::Renderer> ParseRenderer(std::string_view value) noexcept {
+        if (value == config::values::SOFTWARE) return MelonDsDs::Renderer::Software;
+        if (value == config::values::OPENGL) return MelonDsDs::Renderer::OpenGl;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::CursorMode> ParseCursorMode(std::string_view value) noexcept {
-        if (value == config::values::DISABLED) return melonds::CursorMode::Never;
-        if (value == config::values::TOUCHING) return melonds::CursorMode::Touching;
-        if (value == config::values::TIMEOUT) return melonds::CursorMode::Timeout;
-        if (value == config::values::ALWAYS) return melonds::CursorMode::Always;
+    constexpr std::optional<MelonDsDs::CursorMode> ParseCursorMode(std::string_view value) noexcept {
+        if (value == config::values::DISABLED) return MelonDsDs::CursorMode::Never;
+        if (value == config::values::TOUCHING) return MelonDsDs::CursorMode::Touching;
+        if (value == config::values::TIMEOUT) return MelonDsDs::CursorMode::Timeout;
+        if (value == config::values::ALWAYS) return MelonDsDs::CursorMode::Always;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::ConsoleType> ParseConsoleType(std::string_view value) noexcept {
-        if (value == config::values::DS) return melonds::ConsoleType::DS;
-        if (value == config::values::DSI) return melonds::ConsoleType::DSi;
+    constexpr std::optional<MelonDsDs::ConsoleType> ParseConsoleType(std::string_view value) noexcept {
+        if (value == config::values::DS) return MelonDsDs::ConsoleType::DS;
+        if (value == config::values::DSI) return MelonDsDs::ConsoleType::DSi;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::NetworkMode> ParseNetworkMode(std::string_view value) noexcept {
-        if (value == config::values::DISABLED) return melonds::NetworkMode::None;
-        if (value == config::values::DIRECT) return melonds::NetworkMode::Direct;
-        if (value == config::values::INDIRECT) return melonds::NetworkMode::Indirect;
+    constexpr std::optional<MelonDsDs::NetworkMode> ParseNetworkMode(std::string_view value) noexcept {
+        if (value == config::values::DISABLED) return MelonDsDs::NetworkMode::None;
+        if (value == config::values::DIRECT) return MelonDsDs::NetworkMode::Direct;
+        if (value == config::values::INDIRECT) return MelonDsDs::NetworkMode::Indirect;
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::ScreenLayout> ParseScreenLayout(std::string_view value) noexcept {
-        using melonds::ScreenLayout;
+    constexpr std::optional<MelonDsDs::ScreenLayout> ParseScreenLayout(std::string_view value) noexcept {
+        using MelonDsDs::ScreenLayout;
         if (value == config::values::TOP_BOTTOM) return ScreenLayout::TopBottom;
         if (value == config::values::BOTTOM_TOP) return ScreenLayout::BottomTop;
         if (value == config::values::LEFT_RIGHT) return ScreenLayout::LeftRight;
@@ -136,22 +136,22 @@ namespace MelonDsDs {
     }
 
     constexpr std::optional<HybridSideScreenDisplay> ParseHybridSideScreenDisplay(std::string_view value) noexcept {
-        using melonds::ScreenLayout;
-        if (value == config::values::ONE) return melonds::HybridSideScreenDisplay::One;
-        if (value == config::values::BOTH) return melonds::HybridSideScreenDisplay::Both;
+        using MelonDsDs::ScreenLayout;
+        if (value == config::values::ONE) return MelonDsDs::HybridSideScreenDisplay::One;
+        if (value == config::values::BOTH) return MelonDsDs::HybridSideScreenDisplay::Both;
 
         return std::nullopt;
     }
 
     constexpr std::optional<FirmwareLanguage> ParseLanguage(std::string_view value) noexcept {
-        if (value == config::values::AUTO) return melonds::FirmwareLanguage::Auto;
-        if (value == config::values::DEFAULT) return melonds::FirmwareLanguage::Default;
-        if (value == config::values::JAPANESE) return melonds::FirmwareLanguage::Japanese;
-        if (value == config::values::ENGLISH) return melonds::FirmwareLanguage::English;
-        if (value == config::values::FRENCH) return melonds::FirmwareLanguage::French;
-        if (value == config::values::GERMAN) return melonds::FirmwareLanguage::German;
-        if (value == config::values::ITALIAN) return melonds::FirmwareLanguage::Italian;
-        if (value == config::values::SPANISH) return melonds::FirmwareLanguage::Spanish;
+        if (value == config::values::AUTO) return MelonDsDs::FirmwareLanguage::Auto;
+        if (value == config::values::DEFAULT) return MelonDsDs::FirmwareLanguage::Default;
+        if (value == config::values::JAPANESE) return MelonDsDs::FirmwareLanguage::Japanese;
+        if (value == config::values::ENGLISH) return MelonDsDs::FirmwareLanguage::English;
+        if (value == config::values::FRENCH) return MelonDsDs::FirmwareLanguage::French;
+        if (value == config::values::GERMAN) return MelonDsDs::FirmwareLanguage::German;
+        if (value == config::values::ITALIAN) return MelonDsDs::FirmwareLanguage::Italian;
+        if (value == config::values::SPANISH) return MelonDsDs::FirmwareLanguage::Spanish;
 
         return std::nullopt;
     }
@@ -164,7 +164,7 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
-    constexpr std::optional<melonds::TouchMode> ParseTouchMode(std::string_view value) noexcept {
+    constexpr std::optional<MelonDsDs::TouchMode> ParseTouchMode(std::string_view value) noexcept {
         if (value == config::values::AUTO) return TouchMode::Auto;
         if (value == config::values::TOUCH) return TouchMode::Pointer;
         if (value == config::values::JOYSTICK) return TouchMode::Joystick;

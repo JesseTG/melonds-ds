@@ -78,7 +78,7 @@ using std::unique_ptr;
 using std::make_unique;
 using retro::task::TaskSpec;
 
-namespace melonds {
+namespace MelonDsDs {
     static InputState input_state;
     static ScreenLayoutData screenLayout;
     static bool mic_state_toggled = false;
@@ -111,7 +111,7 @@ namespace melonds {
     static void set_up_direct_boot(NDS& nds, const retro_game_info &nds_info);
 
     // functions for running games
-    static void read_microphone(NDS& nds, melonds::InputState& inputState) noexcept;
+    static void read_microphone(NDS& nds, MelonDsDs::InputState& inputState) noexcept;
     static void render_audio(NDS& nds);
     static void InitFlushFirmwareTask() noexcept
     {
@@ -151,61 +151,61 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro::env::init();
     retro::debug("retro_init");
     retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
-    retro_assert(!melondsds::Core.IsInitialized());
-    retro_assert(melondsds::Core.Console == nullptr);
+    retro_assert(!MelonDsDs::Core.IsInitialized());
+    retro_assert(MelonDsDs::Core.Console == nullptr);
     retro_assert(retro::content::get_loaded_nds_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
-    retro_assert(!melonds::first_frame_run);
-    retro_assert(!melonds::deferred_initialization_pending);
-    retro_assert(!melonds::isInDeinit);
-    retro_assert(!melonds::isUnloading);
-    retro_assert(!melonds::mic_state_toggled);
-    retro_assert(melonds::flushTaskId == 0);
-    retro_assert(melonds::_messageScreen == nullptr);
+    retro_assert(!MelonDsDs::first_frame_run);
+    retro_assert(!MelonDsDs::deferred_initialization_pending);
+    retro_assert(!MelonDsDs::isInDeinit);
+    retro_assert(!MelonDsDs::isUnloading);
+    retro_assert(!MelonDsDs::mic_state_toggled);
+    retro_assert(MelonDsDs::flushTaskId == 0);
+    retro_assert(MelonDsDs::_messageScreen == nullptr);
     srand(time(nullptr));
-    melonds::input_state = melonds::InputState();
-    melonds::sram::init();
+    MelonDsDs::input_state = MelonDsDs::InputState();
+    MelonDsDs::sram::init();
 
 
-    melonds::file::init();
-    melonds::first_frame_run = false;
-    new(&melondsds::Core) melondsds::CoreState(true); // placement-new the CoreState
-    retro_assert(melondsds::Core.IsInitialized());
+    MelonDsDs::file::init();
+    MelonDsDs::first_frame_run = false;
+    new(&MelonDsDs::Core) MelonDsDs::CoreState(true); // placement-new the CoreState
+    retro_assert(MelonDsDs::Core.IsInitialized());
     retro::task::init(false, nullptr);
 
     // ScreenLayoutData is initialized in its constructor
 }
 
-static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
-    using namespace melonds;
-    ZoneScopedN("melonds::InitErrorScreen");
-    retro_assert(melonds::_messageScreen == nullptr);
+static bool InitErrorScreen(const MelonDsDs::config_exception& e) noexcept {
+    using namespace MelonDsDs;
+    ZoneScopedN("MelonDsDs::InitErrorScreen");
+    retro_assert(MelonDsDs::_messageScreen == nullptr);
     if (getenv("MELONDSDS_SKIP_ERROR_SCREEN")) {
         retro::error("Skipping error screen due to the environment variable MELONDSDS_SKIP_ERROR_SCREEN");
         return false;
     }
 
     retro::task::reset();
-    melonds::_messageScreen = make_unique<error::ErrorScreen>(e);
-    screenLayout.Update(melonds::Renderer::Software);
+    MelonDsDs::_messageScreen = make_unique<error::ErrorScreen>(e);
+    screenLayout.Update(MelonDsDs::Renderer::Software);
     retro::error("Error screen initialized");
     return true;
 }
 
-static bool melonds::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
-    ZoneScopedN("melonds::handle_load_game");
+static bool MelonDsDs::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
+    ZoneScopedN("MelonDsDs::handle_load_game");
     retro_assert(retro::content::get_loaded_nds_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_info() == nullopt);
     retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
 
     // First initialize the content info...
     switch (type) {
-        case melonds::MELONDSDS_GAME_TYPE_NDS:
+        case MelonDsDs::MELONDSDS_GAME_TYPE_NDS:
             // ...which refers to a Nintendo DS game...
             retro::content::set_loaded_content_info(info, nullptr);
             break;
-        case melonds::MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
+        case MelonDsDs::MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
             // ...which refers to both a Nintendo DS and Game Boy Advance game...
             switch (num) {
                 case 2: // NDS ROM and GBA ROM
@@ -216,17 +216,17 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
                     break;
                 default:
                     retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", num);
-                    retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
+                    retro::set_error_message(MelonDsDs::INTERNAL_ERROR_MESSAGE);
             }
             break;
         default:
             retro::error("Unknown game type {}", type);
-            retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
+            retro::set_error_message(MelonDsDs::INTERNAL_ERROR_MESSAGE);
             return false;
     }
 
     // ...then load the game.
-    melonds::load_games(
+    MelonDsDs::load_games(
         retro::content::get_loaded_nds_info(),
         retro::content::get_loaded_gba_info(),
         retro::content::get_loaded_gba_save_info()
@@ -234,12 +234,12 @@ static bool melonds::handle_load_game(unsigned type, const struct retro_game_inf
 
     return true;
 }
-catch (const melonds::config_exception& e) {
+catch (const MelonDsDs::config_exception& e) {
     retro::error("{}", e.what());
 
     return InitErrorScreen(e);
 }
-catch (const melonds::emulator_exception &e) {
+catch (const MelonDsDs::emulator_exception &e) {
     // Thrown for invalid ROMs
     retro::error("{}", e.what());
     retro::set_error_message(e.user_message());
@@ -247,11 +247,11 @@ catch (const melonds::emulator_exception &e) {
 }
 catch (const std::exception &e) {
     retro::error("{}", e.what());
-    retro::set_error_message(melonds::INTERNAL_ERROR_MESSAGE);
+    retro::set_error_message(MelonDsDs::INTERNAL_ERROR_MESSAGE);
     return false;
 }
 catch (...) {
-    retro::set_error_message(melonds::UNKNOWN_ERROR_MESSAGE);
+    retro::set_error_message(MelonDsDs::UNKNOWN_ERROR_MESSAGE);
     return false;
 }
 
@@ -265,36 +265,36 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
         retro::debug("retro_load_game(<no content>)");
     }
 
-    return melonds::handle_load_game(melonds::MELONDSDS_GAME_TYPE_NDS, info, 1);
+    return MelonDsDs::handle_load_game(MelonDsDs::MELONDSDS_GAME_TYPE_NDS, info, 1);
 }
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     ZoneScopedN("retro_get_system_av_info");
-    using melonds::screenLayout;
+    using MelonDsDs::screenLayout;
 
 #ifndef NDEBUG
-    if (!melonds::_messageScreen) {
-        retro_assert(melonds::render::CurrentRenderer() != melonds::Renderer::None);
+    if (!MelonDsDs::_messageScreen) {
+        retro_assert(MelonDsDs::render::CurrentRenderer() != MelonDsDs::Renderer::None);
     }
 #endif
 
     info->timing.fps = 32.0f * 1024.0f * 1024.0f / 560190.0f;
     info->timing.sample_rate = 32.0f * 1024.0f;
-    info->geometry = screenLayout.Geometry(melonds::render::CurrentRenderer());
+    info->geometry = screenLayout.Geometry(MelonDsDs::render::CurrentRenderer());
 }
 
 PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
     {
         ZoneScopedN("retro_run");
-        using namespace melonds;
+        using namespace MelonDsDs;
 
         if (deferred_initialization_pending) {
             ZoneScopedN("retro_run::deferred_initialization");
             try {
-                retro_assert(melondsds::Core.Console != nullptr);
+                retro_assert(MelonDsDs::Core.Console != nullptr);
                 retro::debug("Starting deferred initialization");
-                melonds::load_games_deferred(
-                    *melondsds::Core.Console,
+                MelonDsDs::load_games_deferred(
+                    *MelonDsDs::Core.Console,
                     retro::content::get_loaded_nds_info(),
                     retro::content::get_loaded_gba_info()
                 );
@@ -302,14 +302,14 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
 
                 retro::debug("Completed deferred initialization");
             }
-            catch (const melonds::config_exception &e) {
+            catch (const MelonDsDs::config_exception &e) {
                 retro::error("Deferred initialization failed; displaying error screen");
                 retro::error("{}", e.what());
                 retro::set_error_message(e.user_message());
                 if (!InitErrorScreen(e))
                     return;
             }
-            catch (const melonds::emulator_exception &e) {
+            catch (const MelonDsDs::emulator_exception &e) {
                 retro::error("Deferred initialization failed; exiting core");
                 retro::error("{}", e.what());
                 retro::set_error_message(e.user_message());
@@ -335,8 +335,8 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             return;
         }
 
-        retro_assert(melondsds::Core.Console != nullptr);
-        NDS& nds = *melondsds::Core.Console;
+        retro_assert(MelonDsDs::Core.Console != nullptr);
+        NDS& nds = *MelonDsDs::Core.Console;
 
         if (!first_frame_run) {
             ZoneScopedN("retro_run::first_frame");
@@ -374,10 +374,10 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
 
         if (retro::is_variable_updated()) {
             // If any settings have changed...
-            melonds::UpdateConfig(melondsds::Core, screenLayout, input_state);
+            MelonDsDs::UpdateConfig(MelonDsDs::Core, screenLayout, input_state);
         }
 
-        if (melonds::render::ReadyToRender(nds)) {
+        if (MelonDsDs::render::ReadyToRender(nds)) {
             // If the global state needed for rendering is ready...
             ZoneScopedN("retro_run::render");
             HandleInput(nds, input_state, screenLayout);
@@ -386,7 +386,7 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
             if (screenLayout.Dirty()) {
                 // If the active screen layout has changed (either by settings or by hotkey)...
                 ZoneScopedN("retro_run::render::dirty");
-                Renderer renderer = melonds::render::CurrentRenderer();
+                Renderer renderer = MelonDsDs::render::CurrentRenderer();
                 retro_assert(renderer != Renderer::None);
 
                 // Apply the new screen layout
@@ -397,18 +397,18 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
                     retro::warn("Failed to update geometry after screen layout change");
                 }
 
-                melonds::opengl::RequestOpenGlRefresh();
+                MelonDsDs::opengl::RequestOpenGlRefresh();
             }
 
             // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
-            // which is then drawn to the screen by melonds::render::Render
+            // which is then drawn to the screen by MelonDsDs::render::Render
             {
                 ZoneScopedN("NDS::RunFrame");
                 nds.RunFrame();
             }
 
             render::Render(nds, input_state, screenLayout);
-            melonds::render_audio(nds);
+            MelonDsDs::render_audio(nds);
 
             retro::task::check();
         }
@@ -416,8 +416,8 @@ PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
     FrameMark;
 }
 
-static void melonds::read_microphone(NDS& nds, melonds::InputState& inputState) noexcept {
-    ZoneScopedN("melonds::read_microphone");
+static void MelonDsDs::read_microphone(NDS& nds, MelonDsDs::InputState& inputState) noexcept {
+    ZoneScopedN("MelonDsDs::read_microphone");
     MicInputMode mic_input_mode = config::audio::MicInputMode();
     MicButtonMode mic_button_mode = config::audio::MicButtonMode();
     bool should_mic_be_on = false;
@@ -485,8 +485,8 @@ static void melonds::read_microphone(NDS& nds, melonds::InputState& inputState) 
     }
 }
 
-static void melonds::render_audio(NDS& nds) {
-    ZoneScopedN("melonds::render_audio");
+static void MelonDsDs::render_audio(NDS& nds) {
+    ZoneScopedN("MelonDsDs::render_audio");
     int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
     u32 size = std::min(nds.SPU.GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
     // Ensure that we don't overrun the buffer
@@ -507,8 +507,8 @@ static void SetConsoleTime(NDS& nds) noexcept {
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
     ZoneScopedN("retro_unload_game");
-    using melondsds::Core;
-    melonds::isUnloading = true;
+    using MelonDsDs::Core;
+    MelonDsDs::isUnloading = true;
     retro::debug("retro_unload_game()");
     // No need to flush SRAM to the buffer, Platform::WriteNDSSave has been doing that for us this whole time
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
@@ -541,13 +541,13 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
             DSi& dsi = *static_cast<DSi*>(&nds);
             // DSiWare "cart" shouldn't have been cleaned up yet
             // (a regular DS cart would've been moved-from at the start of the session)
-            melonds::dsi::uninstall_dsiware(dsi.GetNAND(), *nds_info);
+            MelonDsDs::dsi::uninstall_dsiware(dsi.GetNAND(), *nds_info);
         }
     }
 
     Core.Console = nullptr;
 
-    melonds::isUnloading = false;
+    MelonDsDs::isUnloading = false;
 }
 
 PUBLIC_SYMBOL unsigned retro_get_region(void) {
@@ -556,9 +556,9 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
     ZoneScopedN("retro_load_game_special");
-    retro::debug("retro_load_game_special({}, {}, {})", melonds::get_game_type_name(type), fmt::ptr(info), num);
+    retro::debug("retro_load_game_special({}, {}, {})", MelonDsDs::get_game_type_name(type), fmt::ptr(info), num);
 
-    return melonds::handle_load_game(type, info, num);
+    return MelonDsDs::handle_load_game(type, info, num);
 }
 
 // We deinitialize all these variables just in case the frontend doesn't unload the dynamic library.
@@ -567,24 +567,24 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 PUBLIC_SYMBOL void retro_deinit(void) {
     {
         ZoneScopedN("retro_deinit");
-        melonds::isInDeinit = true;
+        MelonDsDs::isInDeinit = true;
         retro::debug("retro_deinit()");
         retro::task::deinit();
-        melonds::file::deinit();
+        MelonDsDs::file::deinit();
         retro::content::clear();
-        melonds::clear_memory_config();
-        melonds::sram::deinit();
-        melonds::mic_state_toggled = false;
-        melonds::isUnloading = false;
-        melonds::deferred_initialization_pending = false;
-        melonds::first_frame_run = false;
-        melonds::isInDeinit = false;
-        melonds::flushTaskId = 0;
-        melonds::_messageScreen = nullptr;
-        melondsds::Core.~CoreState(); // placement delete
-        retro_assert(!melondsds::Core.IsInitialized());
-        retro_assert(melondsds::Core.Console == nullptr);
-        melonds::cheats::deinit();
+        MelonDsDs::clear_memory_config();
+        MelonDsDs::sram::deinit();
+        MelonDsDs::mic_state_toggled = false;
+        MelonDsDs::isUnloading = false;
+        MelonDsDs::deferred_initialization_pending = false;
+        MelonDsDs::first_frame_run = false;
+        MelonDsDs::isInDeinit = false;
+        MelonDsDs::flushTaskId = 0;
+        MelonDsDs::_messageScreen = nullptr;
+        MelonDsDs::Core.~CoreState(); // placement delete
+        retro_assert(!MelonDsDs::Core.IsInitialized());
+        retro_assert(MelonDsDs::Core.Console == nullptr);
+        MelonDsDs::cheats::deinit();
         retro::env::deinit();
     }
 
@@ -610,7 +610,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
     ZoneScopedN("retro_reset");
     retro::debug("retro_reset()\n");
 
-    if (melonds::_messageScreen) {
+    if (MelonDsDs::_messageScreen) {
         retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
         return;
         // TODO: Allow the game to be reset from the error screen
@@ -618,9 +618,9 @@ PUBLIC_SYMBOL void retro_reset(void) {
     }
 
     // Flush all data before resetting
-    melonds::sram::reset();
+    MelonDsDs::sram::reset();
     retro::task::find([](retro::task::TaskHandle& task) {
-        if (task.Identifier() == melonds::flushTaskId) {
+        if (task.Identifier() == MelonDsDs::flushTaskId) {
             // If this is the flush task we want to cancel...
             task.Cancel();
             return true;
@@ -628,15 +628,15 @@ PUBLIC_SYMBOL void retro_reset(void) {
         return false; // Keep looking...
     });
     retro::task::check();
-    melonds::clear_memory_config();
+    MelonDsDs::clear_memory_config();
 
     const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
-    retro_assert(melondsds::Core.Console != nullptr);
-    NDS& nds = *melondsds::Core.Console;
-    melonds::InitConfig(melondsds::Core, header, melonds::screenLayout, melonds::input_state);
+    retro_assert(MelonDsDs::Core.Console != nullptr);
+    NDS& nds = *MelonDsDs::Core.Console;
+    MelonDsDs::InitConfig(MelonDsDs::Core, header, MelonDsDs::screenLayout, MelonDsDs::input_state);
 
-    melonds::InitFlushFirmwareTask();
+    MelonDsDs::InitFlushFirmwareTask();
 
     if (nds_info) {
         // We need to reload the ROM because it might need to be encrypted with a different key,
@@ -662,20 +662,20 @@ PUBLIC_SYMBOL void retro_reset(void) {
 
     SetConsoleTime(nds);
     if (nds.NDSCartSlot.GetCart() && !nds.NDSCartSlot.GetCart()->GetHeader().IsDSiWare()) {
-        melonds::set_up_direct_boot(nds, nds_info.value());
+        MelonDsDs::set_up_direct_boot(nds, nds_info.value());
     }
 
-    melonds::first_frame_run = false;
+    MelonDsDs::first_frame_run = false;
 }
 
-static void melonds::load_games(
+static void MelonDsDs::load_games(
     const optional<struct retro_game_info> &nds_info,
     const optional<struct retro_game_info> &gba_info,
     const optional<struct retro_game_info> &gba_save_info
 ) {
-    ZoneScopedN("melonds::load_games");
-    using melondsds::Core;
-    melonds::clear_memory_config();
+    ZoneScopedN("MelonDsDs::load_games");
+    using MelonDsDs::Core;
+    MelonDsDs::clear_memory_config();
 
     if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
         throw environment_exception("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
@@ -685,7 +685,7 @@ static void melonds::load_games(
 
     const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
     // TODO: Apply config
-    melonds::InitConfig(Core, header, screenLayout, input_state);
+    MelonDsDs::InitConfig(Core, header, screenLayout, input_state);
 
     retro_assert(Core.Console != nullptr);
 
@@ -693,12 +693,12 @@ static void melonds::load_games(
 
     if (retro::supports_power_status())
     {
-        retro::task::push(melonds::power::PowerStatusUpdateTask());
+        retro::task::push(MelonDsDs::power::PowerStatusUpdateTask());
     }
 
     if (optional<unsigned> version = retro::message_interface_version(); version && version >= 1) {
         // If the frontend supports on-screen notifications...
-        retro::task::push(melonds::OnScreenDisplayTask());
+        retro::task::push(MelonDsDs::OnScreenDisplayTask());
     }
 
     using retro::environment;
@@ -760,7 +760,7 @@ static void melonds::load_games(
         );
     }
 
-    environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &melonds::input_descriptors);
+    environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &MelonDsDs::input_descriptors);
 
     render::Initialize(config::video::ConfiguredRenderer());
 
@@ -785,7 +785,7 @@ static void melonds::load_games(
             retro_assert(Core.Console->ConsoleType == 1);
             auto& dsi = *static_cast<DSi*>(Core.Console.get());
             // We're running a DSiWare game, then
-            melonds::dsi::install_dsiware(dsi.GetNAND(), *nds_info);
+            MelonDsDs::dsi::install_dsiware(dsi.GetNAND(), *nds_info);
         }
     }
 
@@ -807,12 +807,12 @@ static void melonds::load_games(
 
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
-static void melonds::load_games_deferred(
+static void MelonDsDs::load_games_deferred(
     NDS& nds,
     const optional<retro_game_info>& nds_info,
     const optional<retro_game_info>& gba_info
 ) {
-    ZoneScopedN("melonds::load_games_deferred");
+    ZoneScopedN("MelonDsDs::load_games_deferred");
 
     {
         ZoneScopedN("NDS::Reset");
@@ -831,8 +831,8 @@ static void melonds::load_games_deferred(
 }
 
 // Decrypts the ROM's secure area
-static void melonds::set_up_direct_boot(NDS& nds, const retro_game_info &nds_info) {
-    ZoneScopedN("melonds::set_up_direct_boot");
+static void MelonDsDs::set_up_direct_boot(NDS& nds, const retro_game_info &nds_info) {
+    ZoneScopedN("MelonDsDs::set_up_direct_boot");
     if (config::system::DirectBoot() || nds.NeedsDirectBoot()) {
         char game_name[256];
         const char *ptr = path_basename(nds_info.path);
@@ -849,17 +849,17 @@ static void melonds::set_up_direct_boot(NDS& nds, const retro_game_info &nds_inf
     }
 }
 
-retro::task::TaskSpec melonds::OnScreenDisplayTask() noexcept {
+retro::task::TaskSpec MelonDsDs::OnScreenDisplayTask() noexcept {
     return retro::task::TaskSpec(
         [](retro::task::TaskHandle&) noexcept {
             using std::to_string;
-            ZoneScopedN("melonds::OnScreenDisplayTask");
+            ZoneScopedN("MelonDsDs::OnScreenDisplayTask");
             constexpr const char* const OSD_DELIMITER = " || ";
             constexpr const char* const OSD_YES = "✔";
             constexpr const char* const OSD_NO = "✘";
 
-            retro_assert(melondsds::Core.Console != nullptr);
-            NDS& nds = *melondsds::Core.Console;
+            retro_assert(MelonDsDs::Core.Console != nullptr);
+            NDS& nds = *MelonDsDs::Core.Console;
 
             // TODO: If an on-screen display isn't supported, finish the task
             fmt::memory_buffer buf;

@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> OsdOptionDefinitions {
         retro_core_option_v2_definition {
@@ -35,11 +35,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::osd::BIOS_WARNINGS,
@@ -51,11 +51,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::osd::CURRENT_LAYOUT,
@@ -65,11 +65,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::osd::MIC_STATE,
@@ -79,11 +79,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::osd::CAMERA_STATE,
@@ -93,11 +93,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::osd::LID_STATE,
@@ -107,11 +107,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
 #ifndef NDEBUG
         retro_core_option_v2_definition {
@@ -124,11 +124,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::osd::CATEGORY,
             {
-                {melonds::config::values::ENABLED, nullptr},
-                {melonds::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
 #endif
     };

@@ -38,20 +38,20 @@ using std::optional;
 using glm::ivec2;
 using glm::uvec2;
 
-namespace melonds::render {
+namespace MelonDsDs::render {
     static Renderer _CurrentRenderer = Renderer::None;
     static void RenderSoftware(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screenLayout) noexcept;
 }
 
-void melonds::render::Initialize(Renderer renderer) {
-    ZoneScopedN("melonds::render::Initialize");
+void MelonDsDs::render::Initialize(Renderer renderer) {
+    ZoneScopedN("MelonDsDs::render::Initialize");
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Initialize the opengl state if needed
     switch (renderer) {
         // Depending on which renderer we want to use...
         case Renderer::OpenGl:
-            if (melonds::opengl::Initialize()) {
+            if (MelonDsDs::opengl::Initialize()) {
                 _CurrentRenderer = Renderer::OpenGl;
                 retro::debug("Requested OpenGL context");
             } else {
@@ -74,11 +74,11 @@ void melonds::render::Initialize(Renderer renderer) {
 #endif
 }
 
-bool melonds::render::ReadyToRender(const melonDS::NDS& nds) noexcept {
-    using melonds::Renderer;
+bool MelonDsDs::render::ReadyToRender(const melonDS::NDS& nds) noexcept {
+    using MelonDsDs::Renderer;
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (_CurrentRenderer == Renderer::OpenGl && !melonds::opengl::ContextInitialized()) {
+    if (_CurrentRenderer == Renderer::OpenGl && !MelonDsDs::opengl::ContextInitialized()) {
         // If we're using OpenGL, but it isn't ready...
         return false;
     }
@@ -89,8 +89,8 @@ bool melonds::render::ReadyToRender(const melonDS::NDS& nds) noexcept {
 }
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
-void melonds::render::RenderSoftware(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
-    ZoneScopedN("melonds::render::RenderSoftware");
+void MelonDsDs::render::RenderSoftware(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screen_layout_data) noexcept {
+    ZoneScopedN("MelonDsDs::render::RenderSoftware");
     retro_assert(_CurrentRenderer == Renderer::Software);
 
     const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();
@@ -107,7 +107,7 @@ void melonds::render::RenderSoftware(melonDS::NDS& nds, const InputState& input_
 #ifdef HAVE_TRACY
     if (tracy::ProfilerAvailable()) {
         // If Tracy is connected...
-        ZoneScopedN("melonds::render::RenderSoftware::SendFrameToTracy");
+        ZoneScopedN("MelonDsDs::render::RenderSoftware::SendFrameToTracy");
         std::unique_ptr<u8 []> frame = std::make_unique<u8[]>(buffer.Width() * buffer.Height() * 4);
         {
             ZoneScopedN("conv_argb8888_abgr8888");
@@ -121,15 +121,15 @@ void melonds::render::RenderSoftware(melonDS::NDS& nds, const InputState& input_
 #endif
 }
 
-melonds::Renderer melonds::render::CurrentRenderer() noexcept {
+MelonDsDs::Renderer MelonDsDs::render::CurrentRenderer() noexcept {
     return _CurrentRenderer;
 }
 
-void melonds::render::Render(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screenLayout) noexcept {
+void MelonDsDs::render::Render(melonDS::NDS& nds, const InputState& input_state, ScreenLayoutData& screenLayout) noexcept {
     switch (_CurrentRenderer) {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         case Renderer::OpenGl:
-            melonds::opengl::Render(nds, input_state, screenLayout);
+            MelonDsDs::opengl::Render(nds, input_state, screenLayout);
             break;
 #endif
         case Renderer::Software:

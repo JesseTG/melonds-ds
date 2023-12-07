@@ -21,12 +21,12 @@ namespace melonDS {
     class NDS;
 }
 
-namespace melonds {
+namespace MelonDsDs {
     class InputState;
     class ScreenLayoutData;
 }
 
-namespace melonds::opengl {
+namespace MelonDsDs::opengl {
     // Requests that the OpenGL context be refreshed.
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     void RequestOpenGlRefresh();

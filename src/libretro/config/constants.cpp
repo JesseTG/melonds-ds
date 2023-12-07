@@ -35,15 +35,15 @@ using std::nullopt;
 using std::string;
 using namespace melonDS;
 
-string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
-    ZoneScopedN("melonds::config::GetUsername");
+string MelonDsDs::config::GetUsername(MelonDsDs::UsernameMode mode) noexcept {
+    ZoneScopedN("MelonDsDs::config::GetUsername");
     char result[DS_NAME_LIMIT + 1];
     result[DS_NAME_LIMIT] = '\0';
 
     switch (mode) {
-        case melonds::UsernameMode::Firmware:
+        case MelonDsDs::UsernameMode::Firmware:
             return values::firmware::FIRMWARE_USERNAME;
-        case melonds::UsernameMode::Guess: {
+        case MelonDsDs::UsernameMode::Guess: {
             if (optional<string> frontendGuess = retro::username(); frontendGuess && !frontendGuess->empty()) {
                 return *frontendGuess;
             } else if (const char* user = getenv("USER"); !string_is_empty(user)) {
@@ -58,14 +58,14 @@ string melonds::config::GetUsername(melonds::UsernameMode mode) noexcept {
 
             return result;
         }
-        case melonds::UsernameMode::MelonDSDS:
+        case MelonDsDs::UsernameMode::MelonDSDS:
         default:
             return values::firmware::DEFAULT_USERNAME;
     }
 }
 
-bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
-    ZoneScopedN("melonds::config::IsDsiNandImage");
+bool MelonDsDs::config::IsDsiNandImage(const retro::dirent &file) noexcept {
+    ZoneScopedN("MelonDsDs::config::IsDsiNandImage");
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
 
     // TODO: Validate the NoCash footer
@@ -78,8 +78,8 @@ bool melonds::config::IsDsiNandImage(const retro::dirent &file) noexcept {
     return true;
 }
 
-bool melonds::config::IsFirmwareImage(const retro::dirent& file, Firmware::FirmwareHeader& header) noexcept {
-    ZoneScopedN("melonds::config::IsFirmwareImage");
+bool MelonDsDs::config::IsFirmwareImage(const retro::dirent& file, Firmware::FirmwareHeader& header) noexcept {
+    ZoneScopedN("MelonDsDs::config::IsFirmwareImage");
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
 
     retro_assert(path_is_absolute(file.path));

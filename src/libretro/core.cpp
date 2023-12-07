@@ -17,12 +17,12 @@
 #include "core.hpp"
 #include <NDS.h>
 
-melondsds::CoreState melondsds::Core(false);
+MelonDsDs::CoreState MelonDsDs::Core(false);
 
-melondsds::CoreState::CoreState(bool init) noexcept : initialized(init) {
+MelonDsDs::CoreState::CoreState(bool init) noexcept : initialized(init) {
 }
 
-melondsds::CoreState::~CoreState() noexcept {
+MelonDsDs::CoreState::~CoreState() noexcept {
     Console = nullptr;
     initialized = false;
 }

@@ -33,8 +33,8 @@
 
 namespace fmt {
     template<>
-    struct formatter<melonds::BiosType> : formatter<std::string_view> {
-        auto format(melonds::BiosType c, format_context& ctx) const -> decltype(ctx.out());
+    struct formatter<MelonDsDs::BiosType> : formatter<std::string_view> {
+        auto format(MelonDsDs::BiosType c, format_context& ctx) const -> decltype(ctx.out());
     };
 
     template<>
@@ -48,8 +48,8 @@ namespace fmt {
     };
 
     template<>
-    struct formatter<melonds::ConsoleType> : formatter<std::string_view> {
-        auto format(melonds::ConsoleType c, format_context& ctx) const -> decltype(ctx.out());
+    struct formatter<MelonDsDs::ConsoleType> : formatter<std::string_view> {
+        auto format(MelonDsDs::ConsoleType c, format_context& ctx) const -> decltype(ctx.out());
     };
 
     template<>

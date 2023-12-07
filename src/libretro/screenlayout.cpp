@@ -39,7 +39,7 @@ using glm::vec2;
 using glm::vec3;
 using glm::mat3;
 
-melonds::ScreenLayoutData::ScreenLayoutData() :
+MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
     _dirty(true), // Uninitialized
     orientation(retro::ScreenOrientation::Normal),
     joystickMatrix(1), // Identity matrix
@@ -54,11 +54,11 @@ melonds::ScreenLayoutData::ScreenLayoutData() :
     hybridBuffer(nullptr) {
 }
 
-melonds::ScreenLayoutData::~ScreenLayoutData() noexcept {
+MelonDsDs::ScreenLayoutData::~ScreenLayoutData() noexcept {
 }
 
-void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::CopyScreen");
+void MelonDsDs::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::CopyScreen");
     // Only used for software rendering
 
     // melonDS's software renderer draws each emulated screen to its own buffer,
@@ -77,7 +77,7 @@ void melonds::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destT
     }
 }
 
-void melonds::ScreenLayoutData::DrawCursor(float cursorSize, glm::ivec2 touch) noexcept {
+void MelonDsDs::ScreenLayoutData::DrawCursor(float cursorSize, glm::ivec2 touch) noexcept {
     switch (Layout()) {
         default:
             DrawCursor(cursorSize, touch, bottomScreenMatrix);
@@ -87,8 +87,8 @@ void melonds::ScreenLayoutData::DrawCursor(float cursorSize, glm::ivec2 touch) n
     }
 }
 
-void melonds::ScreenLayoutData::DrawCursor(float cursorSize, ivec2 touch, const mat3& matrix) noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::DrawCursor");
+void MelonDsDs::ScreenLayoutData::DrawCursor(float cursorSize, ivec2 touch, const mat3& matrix) noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::DrawCursor");
     // Only used for software rendering
     if (!buffer)
         return;
@@ -108,8 +108,8 @@ void melonds::ScreenLayoutData::DrawCursor(float cursorSize, ivec2 touch, const 
     }
 }
 
-void melonds::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::CombineScreens");
+void MelonDsDs::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::CombineScreens");
     if (!buffer)
         return;
 
@@ -150,7 +150,7 @@ mat3 NorthwestMatrix(unsigned resolutionScale) noexcept {
 
 /// For a screen on the bottom that accounts for the screen gap
 constexpr mat3 SouthwestMatrix(unsigned resolutionScale, unsigned screenGap) noexcept {
-    using namespace melonds;
+    using namespace MelonDsDs;
     return math::ts<float>(
         vec2(0, resolutionScale * (NDS_SCREEN_HEIGHT + screenGap)),
         vec2(resolutionScale)
@@ -159,7 +159,7 @@ constexpr mat3 SouthwestMatrix(unsigned resolutionScale, unsigned screenGap) noe
 
 /// For a screen on the right
 constexpr mat3 EastMatrix(unsigned resolutionScale) noexcept {
-    using namespace melonds;
+    using namespace MelonDsDs;
     return math::ts<float>(
         vec2(resolutionScale * NDS_SCREEN_WIDTH, 0),
         vec2(resolutionScale)
@@ -168,7 +168,7 @@ constexpr mat3 EastMatrix(unsigned resolutionScale) noexcept {
 
 /// For the northeast hybrid screen
 constexpr mat3 HybridWestMatrix(unsigned resolutionScale, unsigned hybridRatio) noexcept {
-    using namespace melonds;
+    using namespace MelonDsDs;
     return math::ts<float>(
         vec2(0),
         vec2(resolutionScale * hybridRatio)
@@ -177,7 +177,7 @@ constexpr mat3 HybridWestMatrix(unsigned resolutionScale, unsigned hybridRatio) 
 
 /// For the northeast hybrid screen
 constexpr mat3 HybridNortheastMatrix(unsigned resolutionScale, unsigned hybridRatio) noexcept {
-    using namespace melonds;
+    using namespace MelonDsDs;
     return math::ts<float>(
         vec2(resolutionScale * hybridRatio * NDS_SCREEN_WIDTH, 0),
         vec2(resolutionScale)
@@ -186,15 +186,15 @@ constexpr mat3 HybridNortheastMatrix(unsigned resolutionScale, unsigned hybridRa
 
 /// For the southeast hybrid screen
 constexpr mat3 HybridSoutheastMatrix(unsigned resolutionScale, unsigned hybridRatio) noexcept {
-    using namespace melonds;
+    using namespace MelonDsDs;
     return math::ts<float>(
         vec2(resolutionScale * hybridRatio * NDS_SCREEN_WIDTH, resolutionScale * NDS_SCREEN_HEIGHT * (hybridRatio - 1)),
         vec2(resolutionScale)
     );
 }
 
-mat3 melonds::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::GetTopScreenMatrix");
+mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::GetTopScreenMatrix");
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TopOnly:
@@ -215,8 +215,8 @@ mat3 melonds::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcep
     }
 }
 
-mat3 melonds::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::GetBottomScreenMatrix");
+mat3 MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix");
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TurnLeft:
@@ -237,8 +237,8 @@ mat3 melonds::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noex
     }
 }
 
-glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::GetHybridScreenMatrix");
+glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix");
     switch (Layout()) {
         case ScreenLayout::HybridBottom:
         case ScreenLayout::HybridTop:
@@ -248,8 +248,8 @@ glm::mat3 melonds::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const
     }
 }
 
-void melonds::ScreenLayoutData::Update(melonds::Renderer renderer, ScreenFilter filter) noexcept {
-    ZoneScopedN("melonds::ScreenLayoutData::Update");
+void MelonDsDs::ScreenLayoutData::Update(MelonDsDs::Renderer renderer, ScreenFilter filter) noexcept {
+    ZoneScopedN("MelonDsDs::ScreenLayoutData::Update");
     unsigned scale = (renderer == Renderer::Software) ? 1 : resolutionScale;
     uvec2 oldBufferSize = bufferSize;
 
@@ -341,14 +341,14 @@ void melonds::ScreenLayoutData::Update(melonds::Renderer renderer, ScreenFilter 
 }
 
 
-void melonds::ScreenLayoutData::Clear() noexcept {
+void MelonDsDs::ScreenLayoutData::Clear() noexcept {
     if (buffer) {
         buffer.Clear();
     }
 }
 
 
-retro_game_geometry melonds::ScreenLayoutData::Geometry(melonds::Renderer renderer) const noexcept {
+retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(MelonDsDs::Renderer renderer) const noexcept {
     retro_game_geometry geometry {
         .base_width = BufferWidth(),
         .base_height = BufferHeight(),

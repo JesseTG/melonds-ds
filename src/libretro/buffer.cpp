@@ -22,37 +22,37 @@
 
 using glm::uvec2;
 
-melonds::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
+MelonDsDs::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
     size(size),
     stride(size.x * sizeof(uint32_t)),
     buffer(new uint32_t[size.x * size.y]) {
     memset(buffer, 0, size.x * size.y * sizeof(uint32_t));
 }
 
-melonds::PixelBuffer::PixelBuffer(std::nullptr_t) noexcept :
+MelonDsDs::PixelBuffer::PixelBuffer(std::nullptr_t) noexcept :
     size(0, 0),
     stride(0),
     buffer(nullptr) {}
 
-melonds::PixelBuffer::~PixelBuffer() noexcept {
+MelonDsDs::PixelBuffer::~PixelBuffer() noexcept {
     delete[] buffer;
 }
 
-melonds::PixelBuffer::PixelBuffer(const PixelBuffer& other) noexcept :
+MelonDsDs::PixelBuffer::PixelBuffer(const PixelBuffer& other) noexcept :
     size(other.size),
     stride(other.stride),
     buffer(new uint32_t[other.size.x * other.size.y]) {
     memcpy(buffer, other.buffer, size.x * size.y * sizeof(uint32_t));
 }
 
-melonds::PixelBuffer::PixelBuffer(PixelBuffer&& other) noexcept :
+MelonDsDs::PixelBuffer::PixelBuffer(PixelBuffer&& other) noexcept :
     size(other.size),
     stride(other.stride),
     buffer(other.buffer) {
     other.buffer = nullptr;
 }
 
-melonds::PixelBuffer& melonds::PixelBuffer::operator=(const PixelBuffer& other) noexcept {
+MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(const PixelBuffer& other) noexcept {
     if (this != &other) {
         delete[] buffer;
         size = other.size;
@@ -63,7 +63,7 @@ melonds::PixelBuffer& melonds::PixelBuffer::operator=(const PixelBuffer& other) 
     return *this;
 }
 
-melonds::PixelBuffer& melonds::PixelBuffer::operator=(PixelBuffer&& other) noexcept {
+MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(PixelBuffer&& other) noexcept {
     if (this != &other) {
         delete[] buffer;
         size = other.size;
@@ -74,7 +74,7 @@ melonds::PixelBuffer& melonds::PixelBuffer::operator=(PixelBuffer&& other) noexc
     return *this;
 }
 
-melonds::PixelBuffer& melonds::PixelBuffer::operator=(std::nullptr_t) noexcept {
+MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(std::nullptr_t) noexcept {
     delete[] buffer;
     size = uvec2(0, 0);
     stride = 0;
@@ -82,19 +82,19 @@ melonds::PixelBuffer& melonds::PixelBuffer::operator=(std::nullptr_t) noexcept {
     return *this;
 }
 
-void melonds::PixelBuffer::Clear() noexcept {
+void MelonDsDs::PixelBuffer::Clear() noexcept {
     if (buffer) {
         memset(buffer, 0, size.x * size.y * sizeof(uint32_t));
     }
 }
 
-void melonds::PixelBuffer::CopyDirect(const uint32_t* source, uvec2 destination) noexcept {
-    ZoneScopedN("melonds::PixelBuffer::CopyDirect");
+void MelonDsDs::PixelBuffer::CopyDirect(const uint32_t* source, uvec2 destination) noexcept {
+    ZoneScopedN("MelonDsDs::PixelBuffer::CopyDirect");
     memcpy(&this->operator[](destination), source, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
 }
 
-void melonds::PixelBuffer::CopyRows(const uint32_t* source, uvec2 destination, uvec2 destinationSize) noexcept {
-    ZoneScopedN("melonds::PixelBuffer::CopyRows");
+void MelonDsDs::PixelBuffer::CopyRows(const uint32_t* source, uvec2 destination, uvec2 destinationSize) noexcept {
+    ZoneScopedN("MelonDsDs::PixelBuffer::CopyRows");
     for (unsigned y = 0; y < destinationSize.y; y++) {
         // For each row of the rendered screen...
         memcpy(

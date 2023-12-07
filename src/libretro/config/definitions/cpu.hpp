@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> CpuOptionDefinitions {
 #ifdef JIT_ENABLED
@@ -35,13 +35,13 @@ namespace melonds::config::definitions {
             "Takes effect at next restart. "
             "If unsure, leave enabled.",
             nullptr,
-            melonds::config::cpu::CATEGORY,
+            MelonDsDs::config::cpu::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::cpu::JIT_BLOCK_SIZE,
@@ -49,7 +49,7 @@ namespace melonds::config::definitions {
             nullptr,
             nullptr,
             nullptr,
-            melonds::config::cpu::CATEGORY,
+            MelonDsDs::config::cpu::CATEGORY,
             {
                 {"1", nullptr},
                 {"2", nullptr},
@@ -93,13 +93,13 @@ namespace melonds::config::definitions {
             nullptr,
             nullptr,
             nullptr,
-            melonds::config::cpu::CATEGORY,
+            MelonDsDs::config::cpu::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::cpu::JIT_LITERAL_OPTIMISATIONS,
@@ -107,13 +107,13 @@ namespace melonds::config::definitions {
             nullptr,
             nullptr,
             nullptr,
-            melonds::config::cpu::CATEGORY,
+            MelonDsDs::config::cpu::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
 #ifdef HAVE_JIT_FASTMEM
         // Fastmem uses SIGSEGV for reasons I don't exactly understand,
@@ -131,16 +131,16 @@ namespace melonds::config::definitions {
             "Takes effect at next restart. "
             "If unsure, leave enabled.",
             nullptr,
-            melonds::config::cpu::CATEGORY,
+            MelonDsDs::config::cpu::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
 #ifdef NDEBUG
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
 #else
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
 #endif
         },
 #endif

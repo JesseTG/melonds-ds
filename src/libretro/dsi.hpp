@@ -24,7 +24,7 @@ namespace melonDS::DSi_NAND {
     class NANDImage;
 }
 
-namespace melonds::dsi {
+namespace MelonDsDs::dsi {
     void install_dsiware(melonDS::DSi_NAND::NANDImage& nand, const retro_game_info& nds_info);
     void uninstall_dsiware(melonDS::DSi_NAND::NANDImage& nand, const retro_game_info& nds_info) noexcept;
 }

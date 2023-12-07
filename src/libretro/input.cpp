@@ -37,10 +37,10 @@ using glm::mat3;
 using glm::vec2;
 using glm::vec3;
 using glm::uvec2;
-using melonds::NDS_SCREEN_SIZE;
-using melonds::NDS_SCREEN_HEIGHT;
+using MelonDsDs::NDS_SCREEN_SIZE;
+using MelonDsDs::NDS_SCREEN_HEIGHT;
 
-const struct retro_input_descriptor melonds::input_descriptors[] = {
+const struct retro_input_descriptor MelonDsDs::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_UP,     "Up"},
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down"},
@@ -107,8 +107,8 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
     retro::debug("retro_set_controller_port_device({}, {})", port, device_name(device));
 }
 
-void melonds::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
-    ZoneScopedN("melonds::HandleInput");
+void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
+    ZoneScopedN("MelonDsDs::HandleInput");
     using glm::clamp;
     using glm::all;
 
@@ -146,8 +146,8 @@ void melonds::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayou
         }                                      \
     } while (false)
 
-void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
-    ZoneScopedN("melonds::InputState::Update");
+void MelonDsDs::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
+    ZoneScopedN("MelonDsDs::InputState::Update");
     uint32_t retroInputBits; // Input bits from libretro
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 
@@ -246,7 +246,7 @@ void melonds::InputState::Update(const ScreenLayoutData& screen_layout_data) noe
     cursorSettingsDirty = false;
 }
 
-glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept {
+glm::uvec2 MelonDsDs::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept {
     uvec2 clampedTouch;
 
     switch (layout.Layout()) {
@@ -272,7 +272,7 @@ glm::uvec2 melonds::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& 
     return clampedTouch;
 }
 
-bool melonds::InputState::IsCursorInputInBounds() const noexcept {
+bool MelonDsDs::InputState::IsCursorInputInBounds() const noexcept {
     switch (touchMode) {
         case TouchMode::Pointer:
             return pointerRawPosition != i16vec2(0);
@@ -290,7 +290,7 @@ bool melonds::InputState::IsCursorInputInBounds() const noexcept {
     // but the screen's resolution probably isn't big enough for that to happen in practice.
 }
 
-bool melonds::InputState::CursorVisible() const noexcept {
+bool MelonDsDs::InputState::CursorVisible() const noexcept {
     bool modeAllowsCursor = false;
     switch (cursorMode) {
         case CursorMode::Always:
@@ -310,7 +310,7 @@ bool melonds::InputState::CursorVisible() const noexcept {
     return modeAllowsCursor && IsCursorInputInBounds();
 }
 
-bool melonds::InputState::IsTouchingScreen() const noexcept {
+bool MelonDsDs::InputState::IsTouchingScreen() const noexcept {
     switch (touchMode) {
         case TouchMode::Joystick:
             return joystickTouchButton;
@@ -323,7 +323,7 @@ bool melonds::InputState::IsTouchingScreen() const noexcept {
     }
 }
 
-ivec2 melonds::InputState::TouchPosition() const noexcept {
+ivec2 MelonDsDs::InputState::TouchPosition() const noexcept {
     if (touchMode == TouchMode::Joystick) {
         return joystickCursorPosition;
     }

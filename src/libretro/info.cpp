@@ -18,7 +18,7 @@
 
 #include <retro_miscellaneous.h>
 
-const struct retro_system_content_info_override melonds::content_overrides[] = {
+const struct retro_system_content_info_override MelonDsDs::content_overrides[] = {
     {
         "srm|sav",
         true,
@@ -46,22 +46,22 @@ static const struct retro_subsystem_rom_info slot_1_2_roms[] = {
     {"GBA Save Data",        "srm|sav", true, true, false, nullptr, 0},
 };
 
-const struct retro_subsystem_info melonds::subsystems[] = {
+const struct retro_subsystem_info MelonDsDs::subsystems[] = {
     {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, ARRAY_SIZE(slot_1_2_roms), MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
     {}
 };
 
-const struct retro_controller_description melonds::controllers[] = {
+const struct retro_controller_description MelonDsDs::controllers[] = {
     {"Nintendo DS", RETRO_DEVICE_JOYPAD},
     {},
 };
 
-const struct retro_controller_info melonds::ports[] = {
+const struct retro_controller_info MelonDsDs::ports[] = {
     {controllers, 1},
     {},
 };
 
-const char* melonds::get_game_type_name(unsigned game_type) {
+const char* MelonDsDs::get_game_type_name(unsigned game_type) {
     switch (game_type) {
         case MELONDSDS_GAME_TYPE_NDS:
             return "MELONDSDS_GAME_TYPE_NDS";

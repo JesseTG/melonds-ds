@@ -20,19 +20,19 @@ using namespace melonDS;
 using FirmwareConsoleType = Firmware::FirmwareConsoleType;
 using DSi_NAND::ConsoleRegion;
 
-auto fmt::formatter<melonds::BiosType>::format(melonds::BiosType c, format_context& ctx) const -> decltype(ctx.out()) {
+auto fmt::formatter<MelonDsDs::BiosType>::format(MelonDsDs::BiosType c, format_context& ctx) const -> decltype(ctx.out()) {
     string_view name = "unknown";
     switch (c) {
-        case melonds::BiosType::Arm7:
+        case MelonDsDs::BiosType::Arm7:
             name = "ARM7";
             break;
-        case melonds::BiosType::Arm9:
+        case MelonDsDs::BiosType::Arm9:
             name = "ARM9";
             break;
-        case melonds::BiosType::Arm7i:
+        case MelonDsDs::BiosType::Arm7i:
             name = "DSi ARM7";
             break;
-        case melonds::BiosType::Arm9i:
+        case MelonDsDs::BiosType::Arm9i:
             name = "DSi ARM9";
             break;
     }
@@ -83,13 +83,13 @@ auto fmt::formatter<FirmwareConsoleType>::format(FirmwareConsoleType c, format_c
     return formatter<string_view>::format(name, ctx);
 }
 
-auto fmt::formatter<melonds::ConsoleType>::format(melonds::ConsoleType c, format_context& ctx) const -> decltype(ctx.out()) {
+auto fmt::formatter<MelonDsDs::ConsoleType>::format(MelonDsDs::ConsoleType c, format_context& ctx) const -> decltype(ctx.out()) {
     string_view name = "unknown";
     switch (c) {
-        case melonds::ConsoleType::DS:
+        case MelonDsDs::ConsoleType::DS:
             name = "DS";
             break;
-        case melonds::ConsoleType::DSi:
+        case MelonDsDs::ConsoleType::DSi:
             name = "DSi";
             break;
     }

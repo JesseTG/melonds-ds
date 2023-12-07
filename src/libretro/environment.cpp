@@ -226,7 +226,7 @@ bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
 }
 
 bool retro::shutdown() noexcept {
-    if (melonds::IsInDeinit() || melonds::IsUnloadingGame())
+    if (MelonDsDs::IsInDeinit() || MelonDsDs::IsUnloadingGame())
         return true;
 
     if (isShuttingDown)
@@ -607,11 +607,11 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro::_environment = cb;
 
     // TODO: Handle potential errors with each environment call below
-    struct retro_core_options_update_display_callback update_display_cb{melonds::update_option_visibility};
+    struct retro_core_options_update_display_callback update_display_cb{MelonDsDs::update_option_visibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
 
-    environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void*) melonds::content_overrides);
-    environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*) melonds::ports);
+    environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void*) MelonDsDs::content_overrides);
+    environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*) MelonDsDs::ports);
 
     bool yes = true;
     environment(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &yes);
@@ -662,7 +662,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         }
     }
 
-    environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) melonds::subsystems);
+    environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) MelonDsDs::subsystems);
 
     retro_vfs_interface_info vfs { .required_interface_version = 1, .iface = nullptr };
     if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs)) {

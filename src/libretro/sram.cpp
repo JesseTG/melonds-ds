@@ -50,42 +50,42 @@ using std::string;
 using std::string_view;
 using namespace melonDS;
 
-unique_ptr<melonds::sram::SaveManager> melonds::sram::NdsSaveManager;
-unique_ptr<melonds::sram::SaveManager> melonds::sram::GbaSaveManager;
+unique_ptr<MelonDsDs::sram::SaveManager> MelonDsDs::sram::NdsSaveManager;
+unique_ptr<MelonDsDs::sram::SaveManager> MelonDsDs::sram::GbaSaveManager;
 static optional<int> TimeToGbaFlush = nullopt;
 static optional<int> TimeToFirmwareFlush = nullopt;
 
-void melonds::sram::init() {
-    ZoneScopedN("melonds::sram::init");
+void MelonDsDs::sram::init() {
+    ZoneScopedN("MelonDsDs::sram::init");
     retro_assert(NdsSaveManager == nullptr);
     retro_assert(GbaSaveManager == nullptr);
     TimeToGbaFlush = nullopt;
     TimeToFirmwareFlush = nullopt;
 }
 
-void melonds::sram::reset() noexcept {
-    ZoneScopedN("melonds::sram::reset");
+void MelonDsDs::sram::reset() noexcept {
+    ZoneScopedN("MelonDsDs::sram::reset");
     TimeToGbaFlush = 0;
     TimeToFirmwareFlush = 0;
 }
 
-void melonds::sram::deinit() noexcept {
-    ZoneScopedN("melonds::sram::deinit");
+void MelonDsDs::sram::deinit() noexcept {
+    ZoneScopedN("MelonDsDs::sram::deinit");
     NdsSaveManager = nullptr;
     GbaSaveManager = nullptr;
 }
 
-melonds::sram::SaveManager::SaveManager(u32 initialLength) :
+MelonDsDs::sram::SaveManager::SaveManager(u32 initialLength) :
         _sram(new u8[initialLength]),
         _sram_length(initialLength) {
 }
 
-melonds::sram::SaveManager::~SaveManager() {
+MelonDsDs::sram::SaveManager::~SaveManager() {
     delete[] _sram; // deleting null pointers is a no-op, no need to check
 }
 
-void melonds::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
-    ZoneScopedN("melonds::sram::SaveManager::Flush");
+void MelonDsDs::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    ZoneScopedN("MelonDsDs::sram::SaveManager::Flush");
     if (_sram_length != savelen) {
         // If we loaded a game with a different SRAM length...
 
@@ -110,8 +110,8 @@ void melonds::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writ
 }
 
 static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& gba_save_info) noexcept {
-    ZoneScopedN("melonds::sram::FlushGbaSram");
-    using namespace melonds;
+    ZoneScopedN("MelonDsDs::sram::FlushGbaSram");
+    using namespace MelonDsDs;
     const char* save_data_path = gba_save_info.path;
     if (save_data_path == nullptr || sram::GbaSaveManager == nullptr) {
         // No save data path was provided, or the GBA save manager isn't initialized
@@ -133,15 +133,15 @@ static void FlushGbaSram(retro::task::TaskHandle &task, const retro_game_info& g
 }
 
 static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsPath) noexcept {
-    ZoneScopedN("melonds::sram::FlushFirmware");
-    using namespace melonds;
+    ZoneScopedN("MelonDsDs::sram::FlushFirmware");
+    using namespace MelonDsDs;
 
     retro_assert(!firmwarePath.empty());
     retro_assert(path_is_absolute(firmwarePath.c_str()));
     retro_assert(!wfcSettingsPath.empty());
     retro_assert(path_is_absolute(wfcSettingsPath.c_str()));
 
-    NDS& nds = *melondsds::Core.Console;
+    NDS& nds = *MelonDsDs::Core.Console;
 
     const Firmware& firmware = nds.GetFirmware();
 
@@ -202,10 +202,10 @@ static void FlushFirmware(const string& firmwarePath, const string& wfcSettingsP
 }
 
 // This task keeps running for the lifetime of the task queue.
-retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept {
+retro::task::TaskSpec MelonDsDs::sram::FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept {
     retro::task::TaskSpec task(
         [info=gba_save_info](retro::task::TaskHandle &task) noexcept {
-            ZoneScopedN("melonds::sram::FlushGbaSramTask");
+            ZoneScopedN("MelonDsDs::sram::FlushGbaSramTask");
 
             if (TimeToGbaFlush != nullopt && (*TimeToGbaFlush)-- <= 0) {
                 // If it's time to flush the GBA's SRAM...
@@ -216,7 +216,7 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
         },
         nullptr,
         [info=gba_save_info](retro::task::TaskHandle& task) noexcept {
-            ZoneScopedN("melonds::sram::FlushGbaSramTask::Cleanup");
+            ZoneScopedN("MelonDsDs::sram::FlushGbaSramTask::Cleanup");
             FlushGbaSram(task, info);
             TimeToGbaFlush = nullopt;
         },
@@ -227,7 +227,7 @@ retro::task::TaskSpec melonds::sram::FlushGbaSramTask(const retro_game_info& gba
     return task;
 }
 
-retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName) noexcept {
+retro::task::TaskSpec MelonDsDs::sram::FlushFirmwareTask(string_view firmwareName) noexcept {
     optional<string> firmwarePath = retro::get_system_path(firmwareName);
     if (!firmwarePath) {
         retro::error("Failed to get system path for firmware named \"{}\", firmware changes won't be saved.", firmwareName);
@@ -243,7 +243,7 @@ retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName)
 
     return retro::task::TaskSpec(
         [firmwarePath=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle &) noexcept {
-            ZoneScopedN("melonds::sram::FlushFirmwareTask");
+            ZoneScopedN("MelonDsDs::sram::FlushFirmwareTask");
 
             if (TimeToFirmwareFlush != nullopt && (*TimeToFirmwareFlush)-- <= 0) {
                 // If it's time to flush the firmware...
@@ -254,7 +254,7 @@ retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName)
         },
         nullptr,
         [path=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle&) noexcept {
-            ZoneScopedN("melonds::sram::FlushFirmwareTask::Cleanup");
+            ZoneScopedN("MelonDsDs::sram::FlushFirmwareTask::Cleanup");
             FlushFirmware(path, wfcSettingsPath);
             TimeToFirmwareFlush = nullopt;
         },
@@ -265,8 +265,8 @@ retro::task::TaskSpec melonds::sram::FlushFirmwareTask(string_view firmwareName)
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
 // But it will allocate the SRAM buffer
-void melonds::sram::InitNdsSave(const NdsCart &nds_cart) {
-    ZoneScopedN("melonds::sram::InitNdsSave");
+void MelonDsDs::sram::InitNdsSave(const NdsCart &nds_cart) {
+    ZoneScopedN("MelonDsDs::sram::InitNdsSave");
     using std::runtime_error;
     if (nds_cart.GetHeader().IsHomebrew()) {
         // If this is a homebrew ROM...
@@ -299,8 +299,8 @@ void melonds::sram::InitNdsSave(const NdsCart &nds_cart) {
 }
 
 // Loads the GBA SRAM
-void melonds::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info) {
-    ZoneScopedN("melonds::sram::InitGbaSram");
+void MelonDsDs::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info) {
+    ZoneScopedN("MelonDsDs::sram::InitGbaSram");
     // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
     // because we'll overwrite it later and don't want the frontend to hold open any file handles.
     // Due to libretro limitations, we can't use retro_get_memory_data to load the GBA SRAM
@@ -375,8 +375,8 @@ void melonds::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info&
 void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
     ZoneScopedN("Platform::WriteNDSSave");
-    if (melonds::sram::NdsSaveManager) {
-        melonds::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    if (MelonDsDs::sram::NdsSaveManager) {
+        MelonDsDs::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
         // No need to maintain a flush timer for NDS SRAM,
         // because retro_get_memory lets us delegate autosave to the frontend.
@@ -385,21 +385,21 @@ void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u3
 
 void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     ZoneScopedN("Platform::WriteGBASave");
-    if (melonds::sram::GbaSaveManager) {
-        melonds::sram::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    if (MelonDsDs::sram::GbaSaveManager) {
+        MelonDsDs::sram::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 
         // Start the countdown until we flush the SRAM back to disk.
         // The timer resets every time we write to SRAM,
         // so that a sequence of SRAM writes doesn't result in
         // a sequence of disk writes.
-        TimeToGbaFlush = melonds::config::save::FlushDelay();
+        TimeToGbaFlush = MelonDsDs::config::save::FlushDelay();
     }
 }
 
 void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writelen) {
     ZoneScopedN("Platform::WriteFirmware");
 
-    TimeToFirmwareFlush = melonds::config::save::FlushDelay();
+    TimeToFirmwareFlush = MelonDsDs::config::save::FlushDelay();
 }
 
 

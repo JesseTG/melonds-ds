@@ -42,7 +42,7 @@ namespace melonDS {
     class NDS;
 }
 
-namespace melondsds {
+namespace MelonDsDs {
     struct CoreState;
 }
 
@@ -50,26 +50,26 @@ struct retro_core_options_v2;
 struct retro_core_option_v2_definition;
 struct retro_game_info;
 
-// TODO: Move everything into melonds::config
-namespace melonds {
+// TODO: Move everything into MelonDsDs::config
+namespace MelonDsDs {
     class ScreenLayoutData;
     class InputState;
 
     /// Called when loading a game
     [[deprecated("Split into LoadConfig and ApplyConfig")]] void InitConfig(
-        melondsds::CoreState& core,
+        MelonDsDs::CoreState& core,
         const melonDS::NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
         ScreenLayoutData& screenLayout,
         InputState& inputState
     );
 
     /// Called when settings have been updated mid-game
-    void UpdateConfig(melondsds::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
+    void UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     bool update_option_visibility();
 }
 
 namespace MelonDsDs {
-    using namespace melonds;
+    using namespace MelonDsDs;
     using std::string;
     using std::string_view;
     using std::optional;
@@ -78,10 +78,10 @@ namespace MelonDsDs {
     class CoreConfig {
     public:
         [[nodiscard]] MicButtonMode MicButtonMode() const noexcept { return _micButtonMode; }
-        void SetMicButtonMode(melonds::MicButtonMode mode) noexcept { _micButtonMode = mode; }
+        void SetMicButtonMode(MelonDsDs::MicButtonMode mode) noexcept { _micButtonMode = mode; }
 
         [[nodiscard]] MicInputMode MicInputMode() const noexcept { return _micInputMode; }
-        void SetMicInputMode(melonds::MicInputMode mode) noexcept { _micInputMode = mode; }
+        void SetMicInputMode(MelonDsDs::MicInputMode mode) noexcept { _micInputMode = mode; }
 
         [[nodiscard]] melonDS::AudioBitDepth BitDepth() const noexcept { return _bitDepth; }
         void SetBitDepth(melonDS::AudioBitDepth bitDepth) noexcept { _bitDepth = bitDepth; }
@@ -90,7 +90,7 @@ namespace MelonDsDs {
         void SetInterpolation(melonDS::AudioInterpolation interpolation) noexcept { _interpolation = interpolation; }
 
         [[nodiscard]] AlarmMode AlarmMode() const noexcept { return _alarmMode; }
-        void SetAlarmMode(melonds::AlarmMode alarmMode) noexcept { _alarmMode = alarmMode; }
+        void SetAlarmMode(MelonDsDs::AlarmMode alarmMode) noexcept { _alarmMode = alarmMode; }
 
         [[nodiscard]] optional<unsigned> AlarmHour() const noexcept { return _alarmHour; }
         void SetAlarmHour(optional<unsigned> hour) noexcept { _alarmHour = hour; }
@@ -122,8 +122,8 @@ namespace MelonDsDs {
         [[nodiscard]] Color FavoriteColor() const noexcept { return _favoriteColor; }
         void SetFavoriteColor(Color color) noexcept { _favoriteColor = color; }
 
-        [[nodiscard]] melonds::UsernameMode UsernameMode() const noexcept { return _usernameMode; }
-        void SetUsernameMode(melonds::UsernameMode mode) noexcept { _usernameMode = mode; }
+        [[nodiscard]] MelonDsDs::UsernameMode UsernameMode() const noexcept { return _usernameMode; }
+        void SetUsernameMode(MelonDsDs::UsernameMode mode) noexcept { _usernameMode = mode; }
 
         [[nodiscard]] string_view Message() const noexcept { return _message; }
         void SetMessage(string_view message) noexcept { _message = message; }
@@ -155,8 +155,8 @@ namespace MelonDsDs {
 #endif
 
 #ifdef HAVE_NETWORKING
-        [[nodiscard]] melonds::NetworkMode NetworkMode() const noexcept { return _networkMode; }
-        void SetNetworkMode(melonds::NetworkMode mode) noexcept { _networkMode = mode; }
+        [[nodiscard]] MelonDsDs::NetworkMode NetworkMode() const noexcept { return _networkMode; }
+        void SetNetworkMode(MelonDsDs::NetworkMode mode) noexcept { _networkMode = mode; }
 
 #   ifdef HAVE_NETWORKING_DIRECT_MODE
         [[nodiscard]] string_view NetworkInterface() const noexcept { return _networkInterface; }
@@ -255,22 +255,22 @@ namespace MelonDsDs {
         void SetCursorSize(float cursorSize) noexcept { _cursorSize = cursorSize; }
 
         [[nodiscard]] CursorMode CursorMode() const noexcept { return _cursorMode; }
-        void SetCursorMode(melonds::CursorMode cursorMode) noexcept { _cursorMode = cursorMode; }
+        void SetCursorMode(MelonDsDs::CursorMode cursorMode) noexcept { _cursorMode = cursorMode; }
 
         [[nodiscard]] unsigned CursorTimeout() const noexcept { return _cursorTimeout; }
         void SetCursorTimeout(unsigned cursorTimeout) noexcept { _cursorTimeout = cursorTimeout; }
 
         [[nodiscard]] TouchMode TouchMode() const noexcept { return _touchMode; }
-        void SetTouchMode(melonds::TouchMode touchMode) noexcept { _touchMode = touchMode; }
+        void SetTouchMode(MelonDsDs::TouchMode touchMode) noexcept { _touchMode = touchMode; }
 
         [[nodiscard]] ConsoleType ConsoleType() const noexcept { return _consoleType; }
-        void SetConsoleType(melonds::ConsoleType consoleType) noexcept { _consoleType = consoleType; }
+        void SetConsoleType(MelonDsDs::ConsoleType consoleType) noexcept { _consoleType = consoleType; }
 
         [[nodiscard]] BootMode BootMode() const noexcept { return _bootMode; }
-        void SetBootMode(melonds::BootMode bootMode) noexcept { _bootMode = bootMode; }
+        void SetBootMode(MelonDsDs::BootMode bootMode) noexcept { _bootMode = bootMode; }
 
         [[nodiscard]] SysfileMode SysfileMode() const noexcept { return _sysfileMode; }
-        void SetSysfileMode(melonds::SysfileMode sysfileMode) noexcept { _sysfileMode = sysfileMode; }
+        void SetSysfileMode(MelonDsDs::SysfileMode sysfileMode) noexcept { _sysfileMode = sysfileMode; }
 
         [[nodiscard]] unsigned DsPowerOkayThreshold() const noexcept { return _dsPowerOkayThreshold; }
         void SetDsPowerOkayThreshold(unsigned dsPowerOkayThreshold) noexcept { _dsPowerOkayThreshold = dsPowerOkayThreshold; }
@@ -302,21 +302,21 @@ namespace MelonDsDs {
         [[nodiscard]] bool ThreadedSoftRenderer() const noexcept { return _threadedSoftRenderer; }
         void SetThreadedSoftRenderer(bool threadedSoftRenderer) noexcept { _threadedSoftRenderer = threadedSoftRenderer; }
 
-        [[nodiscard]] melonds::ScreenFilter ScreenFilter() const noexcept { return _screenFilter; }
-        void SetScreenFilter(melonds::ScreenFilter screenFilter) noexcept { _screenFilter = screenFilter; }
+        [[nodiscard]] MelonDsDs::ScreenFilter ScreenFilter() const noexcept { return _screenFilter; }
+        void SetScreenFilter(MelonDsDs::ScreenFilter screenFilter) noexcept { _screenFilter = screenFilter; }
     private:
-        melonds::MicButtonMode _micButtonMode = melonds::MicButtonMode::Hold;
-        melonds::MicInputMode _micInputMode = *ParseMicInputMode(config::definitions::MicInput.default_value);
+        MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
+        MelonDsDs::MicInputMode _micInputMode = *ParseMicInputMode(config::definitions::MicInput.default_value);
         melonDS::AudioBitDepth _bitDepth;
         melonDS::AudioInterpolation _interpolation;
-        melonds::AlarmMode _alarmMode;
+        MelonDsDs::AlarmMode _alarmMode;
         optional<unsigned> _alarmHour;
         optional<unsigned> _alarmMinute;
         FirmwareLanguage _language;
         unsigned _birthdayMonth = 1;
         unsigned _birthdayDay = 1;
         Color _favoriteColor;
-        melonds::UsernameMode _usernameMode;
+        MelonDsDs::UsernameMode _usernameMode;
         string _message;
         optional<melonDS::MacAddress> _macAddress;
         optional<melonDS::IpAddress> _dnsServer;
@@ -332,7 +332,7 @@ namespace MelonDsDs {
 
 
 #ifdef HAVE_NETWORKING
-        melonds::NetworkMode _networkMode;
+        MelonDsDs::NetworkMode _networkMode;
         bool _interfacesInitialized = false;
 #   ifdef HAVE_NETWORKING_DIRECT_MODE
         string _networkInterface;
@@ -368,12 +368,12 @@ namespace MelonDsDs {
         unsigned _hybridRatio;
         HybridSideScreenDisplay _smallScreenLayout;
         unsigned _cursorSize = 2.0f;
-        melonds::CursorMode _cursorMode = CursorMode::Always;
+        MelonDsDs::CursorMode _cursorMode = CursorMode::Always;
         unsigned _cursorTimeout;
-        melonds::TouchMode _touchMode;
-        melonds::ConsoleType _consoleType;
-        melonds::BootMode _bootMode;
-        melonds::SysfileMode _sysfileMode;
+        MelonDsDs::TouchMode _touchMode;
+        MelonDsDs::ConsoleType _consoleType;
+        MelonDsDs::BootMode _bootMode;
+        MelonDsDs::SysfileMode _sysfileMode;
         unsigned _dsPowerOkayThreshold = 20;
         unsigned _powerUpdateInterval;
         string _firmwarePath;
@@ -383,7 +383,7 @@ namespace MelonDsDs {
         bool _betterPolygonSplitting = false;
         Renderer _configuredRenderer;
         bool _threadedSoftRenderer = false;
-        melonds::ScreenFilter _screenFilter;
+        MelonDsDs::ScreenFilter _screenFilter;
     };
 }
 

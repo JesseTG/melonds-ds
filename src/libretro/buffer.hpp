@@ -22,7 +22,7 @@
 
 #include <glm/vec2.hpp>
 
-namespace melonds {
+namespace MelonDsDs {
     class PixelBuffer {
     public:
         PixelBuffer(glm::uvec2 size) noexcept;

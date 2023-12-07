@@ -19,7 +19,7 @@
 
 #include <libretro.h>
 
-namespace melonds {
+namespace MelonDsDs {
     constexpr int SLOT_1_2_BOOT = 1;
     constexpr int MELONDSDS_GAME_TYPE_NDS = 0;
     constexpr int MELONDSDS_GAME_TYPE_GBA = 1;

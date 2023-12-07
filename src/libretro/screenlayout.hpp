@@ -34,7 +34,7 @@
 #include "buffer.hpp"
 #include "retro/scaler.hpp"
 
-namespace melonds {
+namespace MelonDsDs {
     /// The native width of a single Nintendo DS screen, in pixels
     constexpr int NDS_SCREEN_WIDTH = 256;
 

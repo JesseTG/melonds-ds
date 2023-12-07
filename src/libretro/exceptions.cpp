@@ -26,7 +26,7 @@ using std::optional;
 using std::string;
 using std::string_view;
 
-melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception(string_view firmwareName) noexcept
+MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception(string_view firmwareName) noexcept
     : bios_exception(
     fmt::format(
         FMT_STRING(
@@ -41,7 +41,7 @@ melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exceptio
 ) {
 }
 
-melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception() noexcept
+MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception() noexcept
     : bios_exception(
     "The built-in firmware can't be used to boot to the DS menu.",
     "Ensure you have native DS (not DSi) firmware in your frontend's system folder. "
@@ -51,9 +51,9 @@ melonds::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exceptio
 ) {
 }
 
-melonds::wrong_firmware_type_exception::wrong_firmware_type_exception(
+MelonDsDs::wrong_firmware_type_exception::wrong_firmware_type_exception(
     std::string_view firmwareName,
-    melonds::ConsoleType consoleType,
+    MelonDsDs::ConsoleType consoleType,
     melonDS::Firmware::FirmwareConsoleType firmwareConsoleType
 ) noexcept : bios_exception(
     fmt::format(
@@ -74,7 +74,7 @@ melonds::wrong_firmware_type_exception::wrong_firmware_type_exception(
 }
 
 
-melonds::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
+MelonDsDs::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
     string_view nandName,
     melonDS::DSi_NAND::ConsoleRegion nandRegion,
     melonDS::RegionMask gameRegionMask
@@ -92,7 +92,7 @@ melonds::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
 ) {
 }
 
-melonds::dsi_no_firmware_found_exception::dsi_no_firmware_found_exception() noexcept
+MelonDsDs::dsi_no_firmware_found_exception::dsi_no_firmware_found_exception() noexcept
     : bios_exception(
     "DSi mode requires a firmware file from a DSi, but none was found.",
     "Place your DSi firmware file in your frontend's system folder, "
@@ -102,7 +102,7 @@ melonds::dsi_no_firmware_found_exception::dsi_no_firmware_found_exception() noex
 ) {
 }
 
-melonds::firmware_missing_exception::firmware_missing_exception(std::string_view firmwareName) noexcept
+MelonDsDs::firmware_missing_exception::firmware_missing_exception(std::string_view firmwareName) noexcept
     : bios_exception(
     fmt::format(
         "The core is set to use the firmware file at \"{}\", but it wasn't there or it couldn't be loaded.",
@@ -115,7 +115,7 @@ melonds::firmware_missing_exception::firmware_missing_exception(std::string_view
 ) {
 }
 
-melonds::nds_sysfiles_incomplete_exception::nds_sysfiles_incomplete_exception() noexcept
+MelonDsDs::nds_sysfiles_incomplete_exception::nds_sysfiles_incomplete_exception() noexcept
     : bios_exception(
     "Booting to the native DS menu requires native DS firmware and BIOS files, "
     "but some of them were missing or couldn't be loaded.",
@@ -125,7 +125,7 @@ melonds::nds_sysfiles_incomplete_exception::nds_sysfiles_incomplete_exception() 
 ) {
 }
 
-melonds::dsi_missing_bios_exception::dsi_missing_bios_exception(melonds::BiosType bios, string_view biosName) noexcept
+MelonDsDs::dsi_missing_bios_exception::dsi_missing_bios_exception(MelonDsDs::BiosType bios, string_view biosName) noexcept
     : bios_exception(
     fmt::format(FMT_STRING("DSi mode requires the {} BIOS file, but none was found."), bios),
     fmt::format(
@@ -139,7 +139,7 @@ melonds::dsi_missing_bios_exception::dsi_missing_bios_exception(melonds::BiosTyp
 ) {
 }
 
-melonds::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
+MelonDsDs::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
     : bios_exception(
     "DSi mode requires a NAND image, but none was found.",
     "Place your NAND file in your frontend's system folder (any name works), then restart the core. "
@@ -149,7 +149,7 @@ melonds::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
 
 }
 
-melonds::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nandName) noexcept
+MelonDsDs::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nandName) noexcept
     : bios_exception(
     fmt::format(
         "The core is set to use the NAND file at \"{}\", but it wasn't there or it couldn't be loaded.",
@@ -163,7 +163,7 @@ melonds::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nand
 ) {
 }
 
-melonds::dsi_nand_corrupted_exception::dsi_nand_corrupted_exception(string_view nandName) noexcept
+MelonDsDs::dsi_nand_corrupted_exception::dsi_nand_corrupted_exception(string_view nandName) noexcept
     : bios_exception(
     fmt::format(
         "The core managed to load the configured NAND file at \"{}\", "
@@ -192,6 +192,6 @@ static std::string construct_missing_bios_message(const std::vector<std::string>
     return error.str();
 }
 
-melonds::missing_bios_exception::missing_bios_exception(const std::vector<std::string>& bios_files)
+MelonDsDs::missing_bios_exception::missing_bios_exception(const std::vector<std::string>& bios_files)
     : bios_exception(construct_missing_bios_message(bios_files)) {
 }

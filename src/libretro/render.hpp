@@ -22,12 +22,12 @@
 namespace melonDS {
     class NDS;
 }
-namespace melonds {
+namespace MelonDsDs {
     struct InputState;
     class ScreenLayoutData;
 }
 
-namespace melonds::render {
+namespace MelonDsDs::render {
     void Initialize(Renderer renderer);
 
     /// Returns true if all global state necessary for rendering is ready.

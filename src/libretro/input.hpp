@@ -26,7 +26,7 @@ namespace melonDS {
     class NDS;
 }
 
-namespace melonds {
+namespace MelonDsDs {
     class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
 
@@ -61,7 +61,7 @@ namespace melonds {
             maxCursorTimeout = timeout;
         }
         [[nodiscard]] enum CursorMode CursorMode() const noexcept { return cursorMode; }
-        void SetCursorMode(melonds::CursorMode mode) noexcept {
+        void SetCursorMode(MelonDsDs::CursorMode mode) noexcept {
             if (mode != cursorMode) cursorSettingsDirty = true;
             cursorMode = mode;
         }
@@ -69,7 +69,7 @@ namespace melonds {
             if (mode != touchMode) cursorSettingsDirty = true;
             touchMode = mode;
         }
-        void Update(const melonds::ScreenLayoutData& screen_layout_data) noexcept;
+        void Update(const MelonDsDs::ScreenLayoutData& screen_layout_data) noexcept;
 
     private:
         bool IsCursorInputInBounds() const noexcept;

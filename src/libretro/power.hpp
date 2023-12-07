@@ -19,7 +19,7 @@
 
 #include "retro/task_queue.hpp"
 
-namespace melonds::power {
+namespace MelonDsDs::power {
     retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
 }
 

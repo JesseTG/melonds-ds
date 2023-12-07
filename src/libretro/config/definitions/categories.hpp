@@ -22,48 +22,48 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::array OptionCategories {
         retro_core_option_v2_category {
-            melonds::config::system::CATEGORY,
+            MelonDsDs::config::system::CATEGORY,
             "System",
             "Change system settings."
         },
         retro_core_option_v2_category {
-            melonds::config::video::CATEGORY,
+            MelonDsDs::config::video::CATEGORY,
             "Video",
             "Change video settings."
         },
         retro_core_option_v2_category {
-            melonds::config::audio::CATEGORY,
+            MelonDsDs::config::audio::CATEGORY,
             "Audio",
             "Change audio settings."
         },
         retro_core_option_v2_category {
-            melonds::config::screen::CATEGORY,
+            MelonDsDs::config::screen::CATEGORY,
             "Screen",
             "Change screen settings."
         },
         retro_core_option_v2_category {
-            melonds::config::firmware::CATEGORY,
+            MelonDsDs::config::firmware::CATEGORY,
             "Firmware",
             "Override the emulated firmware's settings."
         },
         retro_core_option_v2_category {
-            melonds::config::network::CATEGORY,
+            MelonDsDs::config::network::CATEGORY,
             "Network",
             "Change Nintendo Wi-Fi emulation settings."
         },
 #ifdef JIT_ENABLED
         retro_core_option_v2_category {
-            melonds::config::cpu::CATEGORY,
+            MelonDsDs::config::cpu::CATEGORY,
             "CPU Emulation",
             "Change CPU emulation settings."
         },
 #endif
         retro_core_option_v2_category {
-            melonds::config::osd::CATEGORY,
+            MelonDsDs::config::osd::CATEGORY,
             "On-Screen Display & Notifications",
             "Change what extra information is shown on-screen."
         },

@@ -35,7 +35,7 @@
 // All descriptive text uses semantic line breaks. https://sembr.org
 
 // I know this is a monstrosity. The idea is to make it easier to add new options.
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L = RETRO_LANGUAGE_ENGLISH>
     constexpr std::tuple CoreOptionDefinitionGroups {
         AudioOptionDefinitions<L>,

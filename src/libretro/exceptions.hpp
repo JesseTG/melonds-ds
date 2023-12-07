@@ -27,7 +27,7 @@
 #include <DSi_NAND.h>
 #include "config.hpp"
 
-namespace melonds
+namespace MelonDsDs
 {
     class emulator_exception : public std::runtime_error {
     public:
@@ -89,7 +89,7 @@ namespace melonds
     public:
         wrong_firmware_type_exception(
             std::string_view  firmwareName,
-            melonds::ConsoleType consoleType,
+            MelonDsDs::ConsoleType consoleType,
             melonDS::Firmware::FirmwareConsoleType firmwareConsoleType
         ) noexcept;
     };

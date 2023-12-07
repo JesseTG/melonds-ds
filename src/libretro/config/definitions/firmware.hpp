@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     // If you ever get these translated, turn the variable into a template and
     // make the translated strings variable templates too.
     // Here's an example:

@@ -28,7 +28,7 @@
 #define PCAP_IF_CONNECTION_STATUS_DISCONNECTED          0x00000020      /* disconnected */
 #define PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE        0x00000030      /* not applicable */
 
-namespace melonds {
+namespace MelonDsDs {
     constexpr std::array<uint8_t, 6> BAD_MAC = {0, 0, 0, 0, 0, 0};
     constexpr std::array<uint8_t, 6> BROADCAST_MAC = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 

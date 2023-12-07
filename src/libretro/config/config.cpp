@@ -102,7 +102,7 @@ const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
-namespace melonds::config {
+namespace MelonDsDs::config {
     static void set_core_options() noexcept;
     namespace visibility {
         static bool ShowMicButtonMode = true;
@@ -140,20 +140,20 @@ namespace melonds::config {
     static void parse_homebrew_save_options(const NDSHeader* header);
     static void parse_dsi_storage_options() noexcept;
 
-    static void apply_system_options(melondsds::CoreState& core, const NDSHeader* header);
+    static void apply_system_options(MelonDsDs::CoreState& core, const NDSHeader* header);
 
     static void apply_audio_options(NDS& nds) noexcept;
     static void apply_save_options(const NDSHeader* header);
     static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
 }
 
-void melonds::InitConfig(
-    melondsds::CoreState& core,
+void MelonDsDs::InitConfig(
+    MelonDsDs::CoreState& core,
     const melonDS::NDSHeader* header,
     ScreenLayoutData& screenLayout,
     InputState& inputState
 ) {
-    ZoneScopedN("melonds::InitConfig");
+    ZoneScopedN("MelonDsDs::InitConfig");
     config::set_core_options();
     config::parse_system_options();
     config::parse_osd_options();
@@ -174,23 +174,23 @@ void melonds::InitConfig(
     config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
+    if (MelonDsDs::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
-        melonds::opengl::RequestOpenGlRefresh();
+        MelonDsDs::opengl::RequestOpenGlRefresh();
     }
 #endif
 
-    if (melonds::render::CurrentRenderer() == Renderer::None) {
+    if (MelonDsDs::render::CurrentRenderer() == Renderer::None) {
         screenLayout.Update(config::video::ConfiguredRenderer());
     } else {
-        screenLayout.Update(melonds::render::CurrentRenderer());
+        screenLayout.Update(MelonDsDs::render::CurrentRenderer());
     }
 
     update_option_visibility();
 }
 
-void melonds::UpdateConfig(melondsds::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
-    ZoneScopedN("melonds::config::UpdateConfig");
+void MelonDsDs::UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
+    ZoneScopedN("MelonDsDs::config::UpdateConfig");
     config::parse_audio_options();
     bool openGlNeedsRefresh = config::parse_video_options(false);
     config::parse_screen_options();
@@ -202,25 +202,25 @@ void melonds::UpdateConfig(melondsds::CoreState& core, ScreenLayoutData& screenL
     config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (melonds::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
+    if (MelonDsDs::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
         // If we're using OpenGL and the settings changed, or the screen layout changed...
-        melonds::opengl::RequestOpenGlRefresh();
+        MelonDsDs::opengl::RequestOpenGlRefresh();
     }
 #endif
 
     update_option_visibility();
 }
 
-bool melonds::update_option_visibility() {
-    ZoneScopedN("melonds::update_option_visibility");
-    using namespace melonds::config;
-    using namespace melonds::config::visibility;
+bool MelonDsDs::update_option_visibility() {
+    ZoneScopedN("MelonDsDs::update_option_visibility");
+    using namespace MelonDsDs::config;
+    using namespace MelonDsDs::config::visibility;
     using retro::environment;
     using retro::get_variable;
     using retro::set_option_visible;
     bool updated = false;
 
-    retro::debug("melonds::update_option_visibility");
+    retro::debug("MelonDsDs::update_option_visibility");
 
     // Convention: if an option is not found, show any dependent options
     bool oldShowMicButtonMode = ShowMicButtonMode;
@@ -293,8 +293,8 @@ bool melonds::update_option_visibility() {
     }
 
     bool oldShowCursorTimeout = ShowCursorTimeout;
-    optional<melonds::CursorMode> cursorMode = MelonDsDs::ParseCursorMode(get_variable(screen::SHOW_CURSOR));
-    ShowCursorTimeout = !cursorMode || *cursorMode == melonds::CursorMode::Timeout;
+    optional<MelonDsDs::CursorMode> cursorMode = MelonDsDs::ParseCursorMode(get_variable(screen::SHOW_CURSOR));
+    ShowCursorTimeout = !cursorMode || *cursorMode == MelonDsDs::CursorMode::Timeout;
     if (ShowCursorTimeout != oldShowCursorTimeout) {
         set_option_visible(screen::CURSOR_TIMEOUT, ShowCursorTimeout);
         updated = true;
@@ -316,7 +316,7 @@ bool melonds::update_option_visibility() {
     bool anyHybridLayouts = false;
     bool anyVerticalLayouts = false;
     for (unsigned i = 0; i < NumberOfShownScreenLayouts; i++) {
-        optional<melonds::ScreenLayout> parsedLayout = MelonDsDs::ParseScreenLayout(get_variable(screen::SCREEN_LAYOUTS[i]));
+        optional<MelonDsDs::ScreenLayout> parsedLayout = MelonDsDs::ParseScreenLayout(get_variable(screen::SCREEN_LAYOUTS[i]));
         anyHybridLayouts |= !parsedLayout || IsHybridLayout(*parsedLayout);
         anyVerticalLayouts |= !parsedLayout || LayoutSupportsScreenGap(*parsedLayout);
     }
@@ -398,9 +398,9 @@ static Firmware::Language get_firmware_language(retro_language language) noexcep
     }
 }
 
-static void melonds::config::parse_osd_options() noexcept {
-    ZoneScopedN("melonds::config::parse_osd_options");
-    using namespace melonds::config::osd;
+static void MelonDsDs::config::parse_osd_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_osd_options");
+    using namespace MelonDsDs::config::osd;
     using retro::get_variable;
 
 #ifndef NDEBUG
@@ -455,10 +455,10 @@ static void melonds::config::parse_osd_options() noexcept {
     }
 }
 
-static void melonds::config::parse_jit_options() noexcept {
-    ZoneScopedN("melonds::config::parse_jit_options");
+static void MelonDsDs::config::parse_jit_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_jit_options");
 #ifdef HAVE_JIT
-    using namespace melonds::config::jit;
+    using namespace MelonDsDs::config::jit;
     using retro::get_variable;
 
     if (const char* value = get_variable(cpu::JIT_ENABLE); !string_is_empty(value)) {
@@ -500,14 +500,14 @@ static void melonds::config::parse_jit_options() noexcept {
 #endif
 }
 
-static void melonds::config::parse_system_options() noexcept {
-    ZoneScopedN("melonds::config::parse_system_options");
-    using namespace melonds::config::system;
+static void MelonDsDs::config::parse_system_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_system_options");
+    using namespace MelonDsDs::config::system;
     using retro::get_variable;
 
     // All of these options take effect when a game starts, so there's no need to update them mid-game
 
-    if (optional<melonds::ConsoleType> type = MelonDsDs::ParseConsoleType(get_variable(CONSOLE_MODE))) {
+    if (optional<MelonDsDs::ConsoleType> type = MelonDsDs::ParseConsoleType(get_variable(CONSOLE_MODE))) {
         _consoleType = *type;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", CONSOLE_MODE, values::DS);
@@ -545,12 +545,12 @@ static void melonds::config::parse_system_options() noexcept {
     }
 }
 
-static void melonds::config::parse_firmware_options() noexcept {
-    ZoneScopedN("melonds::config::parse_firmware_options");
-    using namespace melonds::config::firmware;
+static void MelonDsDs::config::parse_firmware_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_firmware_options");
+    using namespace MelonDsDs::config::firmware;
     using retro::get_variable;
 
-    if (optional<melonds::FirmwareLanguage> value = MelonDsDs::ParseLanguage(get_variable(firmware::LANGUAGE))) {
+    if (optional<MelonDsDs::FirmwareLanguage> value = MelonDsDs::ParseLanguage(get_variable(firmware::LANGUAGE))) {
         _language = *value;
     } else {
         retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::LANGUAGE);
@@ -629,9 +629,9 @@ static void melonds::config::parse_firmware_options() noexcept {
     // TODO: Make MAC address configurable with a file at runtime
 }
 
-static void melonds::config::parse_audio_options() noexcept {
-    ZoneScopedN("melonds::config::parse_audio_options");
-    using namespace melonds::config::audio;
+static void MelonDsDs::config::parse_audio_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_audio_options");
+    using namespace MelonDsDs::config::audio;
     using retro::get_variable;
 
     if (const char* value = get_variable(MIC_INPUT_BUTTON); !string_is_empty(value)) {
@@ -649,7 +649,7 @@ static void melonds::config::parse_audio_options() noexcept {
         _micButtonMode = MicButtonMode::Hold;
     }
 
-    if (optional<melonds::MicInputMode> value = MelonDsDs::ParseMicInputMode(get_variable(MIC_INPUT))) {
+    if (optional<MelonDsDs::MicInputMode> value = MelonDsDs::ParseMicInputMode(get_variable(MIC_INPUT))) {
         _micInputMode = *value;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT, values::SILENCE);
@@ -684,8 +684,8 @@ static void melonds::config::parse_audio_options() noexcept {
 }
 
 #ifdef HAVE_NETWORKING
-static void melonds::config::parse_network_options() noexcept {
-    ZoneScopedN("melonds::config::parse_network_options");
+static void MelonDsDs::config::parse_network_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_network_options");
     using retro::get_variable;
 
     if (optional<NetworkMode> networkMode = MelonDsDs::ParseNetworkMode(get_variable(network::NETWORK_MODE))) {
@@ -713,9 +713,9 @@ static void melonds::config::parse_network_options() noexcept {
 }
 #endif
 
-static bool melonds::config::parse_video_options(bool initializing) noexcept {
-    ZoneScopedN("melonds::config::parse_video_options");
-    using namespace melonds::config::video;
+static bool MelonDsDs::config::parse_video_options(bool initializing) noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_video_options");
+    using namespace MelonDsDs::config::video;
     using retro::get_variable;
 
     bool needsOpenGlRefresh = false;
@@ -780,9 +780,9 @@ static bool melonds::config::parse_video_options(bool initializing) noexcept {
     return needsOpenGlRefresh;
 }
 
-static void melonds::config::parse_screen_options() noexcept {
-    ZoneScopedN("melonds::config::parse_screen_options");
-    using namespace melonds::config::screen;
+static void MelonDsDs::config::parse_screen_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_screen_options");
+    using namespace MelonDsDs::config::screen;
     using retro::get_variable;
 
     if (optional<unsigned> value = MelonDsDs::ParseIntegerInList<unsigned>(get_variable(SCREEN_GAP), SCREEN_GAP_LENGTHS)) {
@@ -799,14 +799,14 @@ static void melonds::config::parse_screen_options() noexcept {
         _cursorTimeout = 3;
     }
 
-    if (optional<melonds::TouchMode> value = MelonDsDs::ParseTouchMode(get_variable(TOUCH_MODE))) {
+    if (optional<MelonDsDs::TouchMode> value = MelonDsDs::ParseTouchMode(get_variable(TOUCH_MODE))) {
         _touchMode = *value;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", TOUCH_MODE, values::AUTO);
         _touchMode = TouchMode::Auto;
     }
 
-    if (optional<melonds::CursorMode> value = MelonDsDs::ParseCursorMode(get_variable(SHOW_CURSOR))) {
+    if (optional<MelonDsDs::CursorMode> value = MelonDsDs::ParseCursorMode(get_variable(SHOW_CURSOR))) {
         _cursorMode = *value;
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", SHOW_CURSOR, values::ALWAYS);
@@ -835,7 +835,7 @@ static void melonds::config::parse_screen_options() noexcept {
     }
 
     for (unsigned i = 0; i < MAX_SCREEN_LAYOUTS; i++) {
-        if (optional<melonds::ScreenLayout> value = MelonDsDs::ParseScreenLayout(get_variable(SCREEN_LAYOUTS[i]))) {
+        if (optional<MelonDsDs::ScreenLayout> value = MelonDsDs::ParseScreenLayout(get_variable(SCREEN_LAYOUTS[i]))) {
             _screenLayouts[i] = *value;
         } else {
             retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_LAYOUTS[i], values::TOP_BOTTOM);
@@ -847,9 +847,9 @@ static void melonds::config::parse_screen_options() noexcept {
 /**
  * Reads the frontend's saved homebrew save data options and applies them to the emulator.
  */
-static void melonds::config::parse_homebrew_save_options(const NDSHeader* header) {
-    ZoneScopedN("melonds::config::parse_homebrew_save_options");
-    using namespace melonds::config::save;
+static void MelonDsDs::config::parse_homebrew_save_options(const NDSHeader* header) {
+    ZoneScopedN("MelonDsDs::config::parse_homebrew_save_options");
+    using namespace MelonDsDs::config::save;
     using retro::get_variable;
 
     if (!header || !header->IsHomebrew()) {
@@ -891,9 +891,9 @@ static void melonds::config::parse_homebrew_save_options(const NDSHeader* header
 /**
  * Reads the frontend's saved DSi save data options and applies them to the emulator.
  */
-static void melonds::config::parse_dsi_storage_options() noexcept {
-    ZoneScopedN("melonds::config::parse_dsi_storage_options");
-    using namespace melonds::config::save;
+static void MelonDsDs::config::parse_dsi_storage_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_dsi_storage_options");
+    using namespace MelonDsDs::config::save;
     using retro::get_variable;
 
     if (const char* value = get_variable(storage::DSI_SD_READ_ONLY); !string_is_empty(value)) {
@@ -940,7 +940,7 @@ static void melonds::config::parse_dsi_storage_options() noexcept {
     }
 }
 
-static bool LoadBios(const string_view& name, melonds::BiosType type, std::span<u8> buffer) noexcept {
+static bool LoadBios(const string_view& name, MelonDsDs::BiosType type, std::span<u8> buffer) noexcept {
     ZoneScopedN(TracyFunction);
 
     auto LoadBiosImpl = [&](const string& path) -> bool {
@@ -988,9 +988,9 @@ static bool LoadBios(const string_view& name, melonds::BiosType type, std::span<
 
 /// Loads firmware, does not patch it.
 static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
-    ZoneScopedN("melonds::config::LoadFirmware");
-    using namespace melonds;
-    using namespace melonds::config::firmware;
+    ZoneScopedN("MelonDsDs::config::LoadFirmware");
+    using namespace MelonDsDs;
+    using namespace MelonDsDs::config::firmware;
     using namespace Platform;
 
     // Try to open the configured firmware dump.
@@ -1034,8 +1034,8 @@ static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept {
 }
 
 static optional<FATStorage> LoadDSiSDCardImage() noexcept {
-    using namespace melonds;
-    using namespace melonds::config::save;
+    using namespace MelonDsDs;
+    using namespace MelonDsDs::config::save;
 
     if (!DsiSdEnable()) return nullopt;
 
@@ -1049,7 +1049,7 @@ static optional<FATStorage> LoadDSiSDCardImage() noexcept {
 
 /// Loads the DSi NAND, does not patch it
 static DSi_NAND::NANDImage LoadNANDImage(const string& nandPath, const u8* es_keyY) {
-    using namespace melonds;
+    using namespace MelonDsDs;
     Platform::FileHandle* nandFile = Platform::OpenLocalFile(nandPath, Platform::FileMode::ReadWriteExisting);
     if (!nandFile) {
         throw dsi_nand_missing_exception(nandPath);
@@ -1065,9 +1065,9 @@ static DSi_NAND::NANDImage LoadNANDImage(const string& nandPath, const u8* es_ke
 }
 
 static void CustomizeFirmware(Firmware& firmware) {
-    ZoneScopedN("melonds::config::CustomizeFirmware");
-    using namespace melonds;
-    using namespace melonds::config::firmware;
+    ZoneScopedN("MelonDsDs::config::CustomizeFirmware");
+    using namespace MelonDsDs;
+    using namespace MelonDsDs::config::firmware;
     using namespace Platform;
 
     // We don't need to save the whole firmware, just the part that may actually change.
@@ -1144,10 +1144,10 @@ static void CustomizeFirmware(Firmware& firmware) {
     // setting up username
     if (_usernameMode != UsernameMode::Firmware) {
         // If we want to override the existing username...
-        string username = melonds::config::GetUsername(_usernameMode);
+        string username = MelonDsDs::config::GetUsername(_usernameMode);
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
         std::u16string convertedUsername = converter.from_bytes(username);
-        size_t usernameLength = std::min(convertedUsername.length(), (size_t) melonds::config::DS_NAME_LIMIT);
+        size_t usernameLength = std::min(convertedUsername.length(), (size_t) MelonDsDs::config::DS_NAME_LIMIT);
         currentData.NameLength = usernameLength;
 
         memcpy(currentData.Nickname, convertedUsername.data(), usernameLength * sizeof(char16_t));
@@ -1215,10 +1215,10 @@ static void CustomizeFirmware(Firmware& firmware) {
 // Then, fall back to other system files if needed and possible
 // If fallback is needed and not possible, throw an exception
 // Finally, install the system files
-static NDSArgs GetNdsArgs(const NDSHeader* header, melonds::BootMode bootMode, melonds::SysfileMode sysfileMode) {
+static NDSArgs GetNdsArgs(const NDSHeader* header, MelonDsDs::BootMode bootMode, MelonDsDs::SysfileMode sysfileMode) {
     ZoneScopedN(TracyFunction);
-    using namespace melonds::config::system;
-    using namespace melonds;
+    using namespace MelonDsDs::config::system;
+    using namespace MelonDsDs;
     retro_assert(!(header && header->IsDSiWare()));
 
     std::array<u8, ARM7BIOSSize> arm7bios;
@@ -1251,7 +1251,7 @@ static NDSArgs GetNdsArgs(const NDSHeader* header, melonds::BootMode bootMode, m
             // ...but we were trying to...
             retro::warn("Falling back to built-in firmware");
         }
-        firmware = make_optional<Firmware>(static_cast<int>(melonds::ConsoleType::DS));
+        firmware = make_optional<Firmware>(static_cast<int>(MelonDsDs::ConsoleType::DS));
     }
 
     if (sysfileMode == SysfileMode::BuiltIn) {
@@ -1271,11 +1271,11 @@ static NDSArgs GetNdsArgs(const NDSHeader* header, melonds::BootMode bootMode, m
 
     // Now that we've loaded the system files, let's see if we can use them
 
-    if (bootMode == melonds::BootMode::Native && !(bios7Loaded && bios9Loaded && firmware->IsBootable())) {
+    if (bootMode == MelonDsDs::BootMode::Native && !(bios7Loaded && bios9Loaded && firmware->IsBootable())) {
         // If we want to try a native boot, but the BIOS files aren't all native or the firmware isn't bootable...
         retro::warn("Native boot requires bootable firmware and native BIOS files; forcing Direct Boot mode");
 
-        _bootMode = melonds::BootMode::Direct;
+        _bootMode = MelonDsDs::BootMode::Direct;
     }
 
     if (!header && !(firmware && firmware->IsBootable() && bios7Loaded && bios9Loaded)) {
@@ -1299,9 +1299,9 @@ static NDSArgs GetNdsArgs(const NDSHeader* header, melonds::BootMode bootMode, m
 }
 
 static void CustomizeNAND(DSi_NAND::NANDMount& mount, const NDSHeader* header, string_view nandName) {
-    using namespace melonds::config::system;
-    using namespace melonds::config::firmware;
-    using namespace melonds;
+    using namespace MelonDsDs::config::system;
+    using namespace MelonDsDs::config::firmware;
+    using namespace MelonDsDs;
 
     DSi_NAND::DSiSerialData dataS {};
     memset(&dataS, 0, sizeof(dataS));
@@ -1332,10 +1332,10 @@ static void CustomizeNAND(DSi_NAND::NANDMount& mount, const NDSHeader* header, s
     // setting up username
     if (_usernameMode != UsernameMode::Firmware) {
         // If we want to override the existing username...
-        string username = melonds::config::GetUsername(_usernameMode);
+        string username = MelonDsDs::config::GetUsername(_usernameMode);
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
         std::u16string convertedUsername = converter.from_bytes(username);
-        size_t usernameLength = std::min(convertedUsername.length(), (size_t) melonds::config::DS_NAME_LIMIT);
+        size_t usernameLength = std::min(convertedUsername.length(), (size_t) MelonDsDs::config::DS_NAME_LIMIT);
 
         memset(settings.Nickname, 0, sizeof(settings.Nickname));
         memcpy(settings.Nickname, convertedUsername.data(), usernameLength * sizeof(char16_t));
@@ -1433,19 +1433,19 @@ static void CustomizeNAND(DSi_NAND::NANDMount& mount, const NDSHeader* header, s
 }
 
 static DSiArgs GetDSiArgs(const NDSHeader* header) {
-    ZoneScopedN("melonds::config::InitDsiSystemConfig");
-    using namespace melonds::config::system;
-    using namespace melonds::config::firmware;
-    using namespace melonds;
+    ZoneScopedN("MelonDsDs::config::InitDsiSystemConfig");
+    using namespace MelonDsDs::config::system;
+    using namespace MelonDsDs::config::firmware;
+    using namespace MelonDsDs;
 
     retro_assert(_consoleType == ConsoleType::DSi);
 
     string_view nandName = DsiNandPath();
-    if (nandName == melonds::config::values::NOT_FOUND) {
+    if (nandName == MelonDsDs::config::values::NOT_FOUND) {
         throw dsi_no_nand_found_exception();
     }
 
-    if (DsiFirmwarePath() == melonds::config::values::NOT_FOUND) {
+    if (DsiFirmwarePath() == MelonDsDs::config::values::NOT_FOUND) {
         throw dsi_no_firmware_found_exception();
     }
 
@@ -1481,7 +1481,7 @@ static DSiArgs GetDSiArgs(const NDSHeader* header) {
 
     if (firmware->GetHeader().ConsoleType != Firmware::FirmwareConsoleType::DSi) {
         retro::warn("Expected firmware of type DSi, got {}", firmware->GetHeader().ConsoleType);
-        throw wrong_firmware_type_exception(DsiFirmwarePath(), melonds::ConsoleType::DSi, firmware->GetHeader().ConsoleType);
+        throw wrong_firmware_type_exception(DsiFirmwarePath(), MelonDsDs::ConsoleType::DSi, firmware->GetHeader().ConsoleType);
     }
     // DSi firmware isn't bootable, so we don't need to check for that here.
 
@@ -1523,9 +1523,9 @@ static DSiArgs GetDSiArgs(const NDSHeader* header) {
     return dsiargs;
 }
 
-static void melonds::config::apply_system_options(melondsds::CoreState& core, const NDSHeader* header) {
-    ZoneScopedN("melonds::config::apply_system_options");
-    using namespace melonds::config::system;
+static void MelonDsDs::config::apply_system_options(MelonDsDs::CoreState& core, const NDSHeader* header) {
+    ZoneScopedN("MelonDsDs::config::apply_system_options");
+    using namespace MelonDsDs::config::system;
     if (header && header->IsDSiWare()) {
         // If we're loading a DSiWare game...
         _consoleType = ConsoleType::DSi;
@@ -1543,8 +1543,8 @@ static void melonds::config::apply_system_options(melondsds::CoreState& core, co
     NDS::Current = core.Console.get();
 }
 
-static void melonds::config::apply_audio_options(NDS& nds) noexcept {
-    ZoneScopedN("melonds::config::apply_audio_options");
+static void MelonDsDs::config::apply_audio_options(NDS& nds) noexcept {
+    ZoneScopedN("MelonDsDs::config::apply_audio_options");
     bool is_using_host_mic = audio::MicInputMode() == MicInputMode::HostMic;
     if (retro::microphone::is_interface_available()) {
         // Open the mic if the user wants it (and it isn't already open)
@@ -1563,8 +1563,8 @@ static void melonds::config::apply_audio_options(NDS& nds) noexcept {
     nds.SPU.SetInterpolation(config::audio::Interpolation());
 }
 
-static void melonds::config::apply_save_options(const NDSHeader* header) {
-    ZoneScopedN("melonds::config::apply_save_options");
+static void MelonDsDs::config::apply_save_options(const NDSHeader* header) {
+    ZoneScopedN("MelonDsDs::config::apply_save_options");
     using namespace config::save;
 
     const optional<string> save_directory = retro::get_save_directory();
@@ -1641,8 +1641,8 @@ static void melonds::config::apply_save_options(const NDSHeader* header) {
     }
 }
 
-static void melonds::config::apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
-    ZoneScopedN("melonds::config::apply_screen_options");
+static void MelonDsDs::config::apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
+    ZoneScopedN("MelonDsDs::config::apply_screen_options");
     using namespace config::video;
     using namespace render;
 
@@ -1668,8 +1668,8 @@ static time_t NewestTimestamp(const struct stat& statbuf) noexcept {
     return std::max({statbuf.st_atime, statbuf.st_mtime, statbuf.st_ctime});
 }
 
-static bool ConsoleTypeMatches(const Firmware::FirmwareHeader& header, melonds::ConsoleType type) noexcept {
-    if (type == melonds::ConsoleType::DS) {
+static bool ConsoleTypeMatches(const Firmware::FirmwareHeader& header, MelonDsDs::ConsoleType type) noexcept {
+    if (type == MelonDsDs::ConsoleType::DS) {
         return header.ConsoleType == Firmware::FirmwareConsoleType::DS || header.ConsoleType == Firmware::FirmwareConsoleType::DSLite;
     }
     else {
@@ -1677,9 +1677,9 @@ static bool ConsoleTypeMatches(const Firmware::FirmwareHeader& header, melonds::
     }
 }
 
-static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, melonds::ConsoleType type) noexcept {
-    ZoneScopedN("melonds::config::SelectDefaultFirmware");
-    using namespace melonds;
+static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, MelonDsDs::ConsoleType type) noexcept {
+    ZoneScopedN("MelonDsDs::config::SelectDefaultFirmware");
+    using namespace MelonDsDs;
 
     const optional<string>& sysdir = retro::get_system_directory();
 
@@ -1757,8 +1757,8 @@ static vector<string_view> fmt_flags(const pcap_if_t& interface) noexcept {
 
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
-static void melonds::config::set_core_options() noexcept {
-    ZoneScopedN("melonds::config::set_core_options");
+static void MelonDsDs::config::set_core_options() noexcept {
+    ZoneScopedN("MelonDsDs::config::set_core_options");
 
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
     array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
@@ -1770,16 +1770,16 @@ static void melonds::config::set_core_options() noexcept {
     const optional<string>& sysdir = retro::get_system_directory();
 
     if (subdir) {
-        ZoneScopedN("melonds::config::set_core_options::find_system_files");
+        ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files");
         retro_assert(sysdir.has_value());
         u8 headerBytes[sizeof(Firmware::FirmwareHeader)];
         Firmware::FirmwareHeader& header = *reinterpret_cast<Firmware::FirmwareHeader*>(headerBytes);
         memset(headerBytes, 0, sizeof(headerBytes));
         array paths = {*sysdir, *subdir};
         for (const string& path: paths) {
-            ZoneScopedN("melonds::config::set_core_options::find_system_files::paths");
+            ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths");
             for (const retro::dirent& d : retro::readdir(path, true)) {
-                ZoneScopedN("melonds::config::set_core_options::find_system_files::paths::dirent");
+                ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths::dirent");
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
                 } else if (IsFirmwareImage(d, header)) {
@@ -1795,10 +1795,10 @@ static void melonds::config::set_core_options() noexcept {
     }
 
     if (!dsiNandPaths.empty()) {
-        ZoneScopedN("melonds::config::set_core_options::init_dsi_nand_options");
+        ZoneScopedN("MelonDsDs::config::set_core_options::init_dsi_nand_options");
         // If we found at least one DSi NAND image...
         retro_core_option_v2_definition* dsiNandPathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
-            return string_is_equal(def.key, melonds::config::storage::DSI_NAND_PATH);
+            return string_is_equal(def.key, MelonDsDs::config::storage::DSI_NAND_PATH);
         });
 
         retro_assert(dsiNandPathOption != definitions.end());
@@ -1817,13 +1817,13 @@ static void melonds::config::set_core_options() noexcept {
     }
 
     if (!firmware.empty()) {
-        ZoneScopedN("melonds::config::set_core_options::init_firmware_options");
+        ZoneScopedN("MelonDsDs::config::set_core_options::init_firmware_options");
         // If we found at least one firmware image...
         retro_core_option_v2_definition* firmwarePathOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
-            return string_is_equal(def.key, melonds::config::system::FIRMWARE_PATH);
+            return string_is_equal(def.key, MelonDsDs::config::system::FIRMWARE_PATH);
         });
         retro_core_option_v2_definition* firmwarePathDsiOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
-            return string_is_equal(def.key, melonds::config::system::FIRMWARE_DSI_PATH);
+            return string_is_equal(def.key, MelonDsDs::config::system::FIRMWARE_DSI_PATH);
         });
 
         retro_assert(firmwarePathOption != definitions.end());
@@ -1857,10 +1857,10 @@ static void melonds::config::set_core_options() noexcept {
     // holds on to strings used in dynamic options until we finish submitting the options to the frontend
     vector<AdapterOption> adapters;
     if (pcapOk) {
-        ZoneScopedN("melonds::config::set_core_options::init_adapter_options");
+        ZoneScopedN("MelonDsDs::config::set_core_options::init_adapter_options");
         // If we successfully initialized PCap and got some adapters...
         retro_core_option_v2_definition* wifiAdapterOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
-            return string_is_equal(def.key, melonds::config::network::DIRECT_NETWORK_INTERFACE);
+            return string_is_equal(def.key, MelonDsDs::config::network::DIRECT_NETWORK_INTERFACE);
         });
         retro_assert(wifiAdapterOption != definitions.end());
 

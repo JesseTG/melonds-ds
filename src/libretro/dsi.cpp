@@ -53,7 +53,7 @@ using DSi_TMD::TitleMetadata;
 
 const char *TMD_DIR_NAME = "tmd";
 constexpr u32 RSA256_SIGNATURE_TYPE = 16777472;
-namespace melonds::dsi {
+namespace MelonDsDs::dsi {
     static void get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length);
 
     bool get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept;
@@ -72,8 +72,8 @@ namespace melonds::dsi {
     void export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
 }
 
-void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) {
-    ZoneScopedN("melonds::dsi::install_dsiware");
+void MelonDsDs::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) {
+    ZoneScopedN("MelonDsDs::dsi::install_dsiware");
     info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", nds_info.path);
     retro_assert(nand);
     const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(nds_info.data);
@@ -126,7 +126,7 @@ void melonds::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_i
     }
 }
 
-static void melonds::dsi::get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length) {
+static void MelonDsDs::dsi::get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length) {
     char tmd_name[PATH_MAX]; // "/path/to/game.zip#game.nds"
     memset(tmd_name, 0, sizeof(tmd_name));
     const char *ptr = path_basename(nds_info.path);  // "game.nds"
@@ -149,8 +149,8 @@ static void melonds::dsi::get_tmd_path(const retro_game_info &nds_info, char *bu
     // "/libretro/system/melonDS DS/tmd/game.tmd"
 }
 
-bool melonds::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept {
-    ZoneScopedN("melonds::dsi::get_cached_tmd");
+bool MelonDsDs::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept {
+    ZoneScopedN("MelonDsDs::dsi::get_cached_tmd");
     RFILE *tmd_file = filestream_open(tmd_path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!tmd_file) {
         info("Could not find local copy of title metadata at \"{}\"", tmd_path);
@@ -185,7 +185,7 @@ bool melonds::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noex
 }
 
 
-bool melonds::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
+bool MelonDsDs::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
     if (tmd.SignatureType != RSA256_SIGNATURE_TYPE) {
         error("Invalid signature type {:#x}", tmd.SignatureType);
         return false;
@@ -195,8 +195,8 @@ bool melonds::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
 }
 
 #ifdef HAVE_NETWORKING
-bool melonds::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const char* tmd_path) noexcept {
-    ZoneScopedN("melonds::dsi::get_tmd");
+bool MelonDsDs::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const char* tmd_path) noexcept {
+    ZoneScopedN("MelonDsDs::dsi::get_tmd");
     char url[256];
     snprintf(url, sizeof(url), "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd",
              header.DSiTitleIDHigh, header.DSiTitleIDLow);
@@ -296,8 +296,8 @@ done:
 }
 #endif
 
-bool melonds::dsi::cache_tmd(const char *tmd_path, const void *tmd, size_t tmd_length) noexcept {
-    ZoneScopedN("melonds::dsi::cache_tmd");
+bool MelonDsDs::dsi::cache_tmd(const char *tmd_path, const void *tmd, size_t tmd_length) noexcept {
+    ZoneScopedN("MelonDsDs::dsi::cache_tmd");
     char tmd_dir[PATH_MAX];
     strlcpy(tmd_dir, tmd_path, sizeof(tmd_dir));
     path_basedir(tmd_dir);
@@ -352,8 +352,8 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
     return true;
 }
 
-void melonds::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
-    ZoneScopedN("melonds::dsi::import_savedata");
+void MelonDsDs::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+    ZoneScopedN("MelonDsDs::dsi::import_savedata");
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
@@ -386,8 +386,8 @@ void melonds::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro_game_i
 }
 
 
-void melonds::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
-    ZoneScopedN("melonds::dsi::export_savedata");
+void MelonDsDs::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+    ZoneScopedN("MelonDsDs::dsi::export_savedata");
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
@@ -416,8 +416,8 @@ void melonds::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game_i
 }
 
 // Reset for the next time
-void melonds::dsi::uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) noexcept {
-    ZoneScopedN("melonds::dsi::uninstall_dsiware");
+void MelonDsDs::dsi::uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) noexcept {
+    ZoneScopedN("MelonDsDs::dsi::uninstall_dsiware");
 
     retro_assert(nand);
     const NDSHeader& header = *reinterpret_cast<const NDSHeader*>(nds_info.data);

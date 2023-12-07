@@ -26,7 +26,7 @@
 #define PLATFORM_DIR_SEPERATOR  '/'
 #endif
 
-namespace melonds {
+namespace MelonDsDs {
     void GetGameName(const struct retro_game_info& game_info, char* game_name, size_t game_name_size) noexcept;
 }
 

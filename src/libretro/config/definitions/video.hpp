@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> VideoOptionDefinitions {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -36,11 +36,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::video::CATEGORY,
             {
-                {melonds::config::values::SOFTWARE, "Software"},
-                {melonds::config::values::OPENGL, "OpenGL"},
+                {MelonDsDs::config::values::SOFTWARE, "Software"},
+                {MelonDsDs::config::values::OPENGL, "OpenGL"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::SOFTWARE
+            MelonDsDs::config::values::SOFTWARE
         },
         retro_core_option_v2_definition {
             config::video::OPENGL_RESOLUTION,
@@ -73,11 +73,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::video::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
         retro_core_option_v2_definition {
             config::video::OPENGL_FILTERING,
@@ -92,11 +92,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::video::CATEGORY,
             {
-                {melonds::config::values::NEAREST, "Nearest"},
-                {melonds::config::values::LINEAR, "Linear"},
+                {MelonDsDs::config::values::NEAREST, "Nearest"},
+                {MelonDsDs::config::values::LINEAR, "Linear"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::NEAREST
+            MelonDsDs::config::values::NEAREST
         },
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
@@ -111,11 +111,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::video::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
 #endif
     };

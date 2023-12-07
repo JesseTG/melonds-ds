@@ -42,7 +42,7 @@ using namespace std::regex_constants;
 static unique_ptr<regex> cheatSyntax;
 static unique_ptr<regex> tokenSyntax;
 
-void melonds::cheats::deinit() noexcept {
+void MelonDsDs::cheats::deinit() noexcept {
     cheatSyntax = nullptr;
     tokenSyntax = nullptr;
 }
@@ -96,5 +96,5 @@ PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *cod
         curcode.Code.push_back(token);
     }
 
-    melondsds::Core.Console->AREngine.RunCheat(curcode);
+    MelonDsDs::Core.Console->AREngine.RunCheat(curcode);
 }

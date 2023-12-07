@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     constexpr retro_core_option_v2_definition MicInput {
         config::audio::MIC_INPUT,
         "Microphone Input Mode",
@@ -36,13 +36,13 @@ namespace melonds::config::definitions {
         nullptr,
         config::audio::CATEGORY,
         {
-            {melonds::config::values::SILENCE, "Silence"},
-            {melonds::config::values::BLOW, "Blow"},
-            {melonds::config::values::NOISE, "Noise"},
-            {melonds::config::values::MICROPHONE, "Microphone"},
+            {MelonDsDs::config::values::SILENCE, "Silence"},
+            {MelonDsDs::config::values::BLOW, "Blow"},
+            {MelonDsDs::config::values::NOISE, "Noise"},
+            {MelonDsDs::config::values::MICROPHONE, "Microphone"},
             {nullptr, nullptr},
         },
-        melonds::config::values::MICROPHONE,
+        MelonDsDs::config::values::MICROPHONE,
     };
 
     constexpr retro_core_option_v2_definition MicInputButton {
@@ -61,12 +61,12 @@ namespace melonds::config::definitions {
         nullptr,
         config::audio::CATEGORY,
         {
-            {melonds::config::values::HOLD, "Hold"},
-            {melonds::config::values::TOGGLE, "Toggle"},
-            {melonds::config::values::ALWAYS, "Always"},
+            {MelonDsDs::config::values::HOLD, "Hold"},
+            {MelonDsDs::config::values::TOGGLE, "Toggle"},
+            {MelonDsDs::config::values::ALWAYS, "Always"},
             {nullptr, nullptr},
         },
-        melonds::config::values::HOLD,
+        MelonDsDs::config::values::HOLD,
     };
 
     constexpr retro_core_option_v2_definition BitDepth{
@@ -82,12 +82,12 @@ namespace melonds::config::definitions {
         nullptr,
         config::audio::CATEGORY,
         {
-            {melonds::config::values::AUTO, "Automatic"},
-            {melonds::config::values::_10BIT, "10-bit"},
-            {melonds::config::values::_16BIT, "16-bit"},
+            {MelonDsDs::config::values::AUTO, "Automatic"},
+            {MelonDsDs::config::values::_10BIT, "10-bit"},
+            {MelonDsDs::config::values::_16BIT, "16-bit"},
             {nullptr, nullptr},
         },
-        melonds::config::values::AUTO
+        MelonDsDs::config::values::AUTO
     };
 
     constexpr retro_core_option_v2_definition AudioInterpolation {
@@ -99,13 +99,13 @@ namespace melonds::config::definitions {
         nullptr,
         config::audio::CATEGORY,
         {
-            {melonds::config::values::DISABLED, nullptr},
-            {melonds::config::values::LINEAR, "Linear"},
-            {melonds::config::values::COSINE, "Cosine"},
-            {melonds::config::values::CUBIC, "Cubic"},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {MelonDsDs::config::values::LINEAR, "Linear"},
+            {MelonDsDs::config::values::COSINE, "Cosine"},
+            {MelonDsDs::config::values::CUBIC, "Cubic"},
             {nullptr, nullptr},
         },
-        melonds::config::values::DISABLED
+        MelonDsDs::config::values::DISABLED
     };
 
     template<retro_language L>

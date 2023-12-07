@@ -23,7 +23,7 @@
 #include "../constants.hpp"
 
 #ifdef HAVE_NETWORKING
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> NetworkOptionDefinitions {
         retro_core_option_v2_definition {
@@ -49,14 +49,14 @@ namespace melonds::config::definitions {
             nullptr,
             config::network::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::INDIRECT, "Indirect"},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::INDIRECT, "Indirect"},
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-                {melonds::config::values::DIRECT, "Direct"},
+                {MelonDsDs::config::values::DIRECT, "Direct"},
 #endif
                 {nullptr, nullptr},
             },
-            melonds::config::values::INDIRECT
+            MelonDsDs::config::values::INDIRECT
         },
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         retro_core_option_v2_definition {
@@ -70,9 +70,9 @@ namespace melonds::config::definitions {
             nullptr,
             config::network::CATEGORY,
             {
-                {melonds::config::values::AUTO, "Automatic"},
+                {MelonDsDs::config::values::AUTO, "Automatic"},
             },
-            melonds::config::values::AUTO
+            MelonDsDs::config::values::AUTO
         },
 #endif
     };

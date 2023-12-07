@@ -26,8 +26,7 @@ namespace melonDS {
     class NDS;
 }
 
-namespace melondsds {
-    using namespace MelonDsDs;
+namespace MelonDsDs {
     struct CoreState {
         CoreState(bool init) noexcept;
         ~CoreState() noexcept;

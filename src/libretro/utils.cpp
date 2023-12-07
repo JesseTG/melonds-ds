@@ -20,7 +20,7 @@
 #include <file/file_path.h>
 
 
-void melonds::GetGameName(const struct retro_game_info& game_info, char* game_name, size_t game_name_size) noexcept {
+void MelonDsDs::GetGameName(const struct retro_game_info& game_info, char* game_name, size_t game_name_size) noexcept {
     memset(game_name, 0, game_name_size);
 
     const char* basename = path_basename(game_info.path);

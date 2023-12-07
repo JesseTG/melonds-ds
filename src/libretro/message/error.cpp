@@ -39,8 +39,8 @@ static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
 static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
 
 // I intentionally fix the error message to the DS screen size to simplify the layout.
-melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
-    ZoneScopedN("melonds::error::ErrorScreen::ErrorScreen");
+MelonDsDs::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
+    ZoneScopedN("MelonDsDs::error::ErrorScreen::ErrorScreen");
 
     pntr_font* titleFont = pntr_load_font_ttf_from_memory(
         embedded_melondsds_error_title_font,
@@ -70,13 +70,13 @@ melonds::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : e
     pntr_unload_font(bodyFont);
 }
 
-melonds::error::ErrorScreen::~ErrorScreen() {
+MelonDsDs::error::ErrorScreen::~ErrorScreen() {
     pntr_unload_image(topScreen);
     pntr_unload_image(bottomScreen);
 }
 
-void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
-    ZoneScopedN("melonds::error::ErrorScreen::DrawTopScreen");
+void MelonDsDs::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+    ZoneScopedN("MelonDsDs::error::ErrorScreen::DrawTopScreen");
     assert(titleFont != nullptr);
 
     pntr_image* errorIcon = pntr_load_image_from_memory(
@@ -120,8 +120,8 @@ void melonds::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font*
     );
 }
 
-void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
-    ZoneScopedN("melonds::error::ErrorScreen::DrawBottomScreen");
+void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
+    ZoneScopedN("MelonDsDs::error::ErrorScreen::DrawBottomScreen");
     assert(titleFont != nullptr);
 
     pntr_image* sorryIcon = pntr_load_image_from_memory(
@@ -175,10 +175,10 @@ void melonds::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_fo
     );
 }
 
-void melonds::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
-    ZoneScopedN("melonds::error::ErrorScreen::Render");
+void MelonDsDs::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
+    ZoneScopedN("MelonDsDs::error::ErrorScreen::Render");
     if (screenLayout.Dirty()) {
-        screenLayout.Update(melonds::Renderer::Software);
+        screenLayout.Update(MelonDsDs::Renderer::Software);
     }
 
     screenLayout.Clear();

@@ -51,11 +51,11 @@ static u8 GetDsiBatteryLevel(u8 percent) noexcept {
     }
 }
 
-retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
+retro::task::TaskSpec MelonDsDs::power::PowerStatusUpdateTask() noexcept
 {
     retro::task::TaskSpec updatePowerStatus(
         [timeToPowerStatusUpdate=0](retro::task::TaskHandle& task) mutable noexcept {
-            ZoneScopedN("melonds::power::PowerStatusUpdateTask");
+            ZoneScopedN("MelonDsDs::power::PowerStatusUpdateTask");
             if (!retro::supports_power_status()) {
                 // If this frontend or device doesn't support querying the power status...
                 task.Finish();
@@ -69,8 +69,8 @@ retro::task::TaskSpec melonds::power::PowerStatusUpdateTask() noexcept
 
             if (timeToPowerStatusUpdate == 0) {
                 // If it's time to check the power status...
-                retro_assert(melondsds::Core.Console != nullptr);
-                NDS& nds = *melondsds::Core.Console;
+                retro_assert(MelonDsDs::Core.Console != nullptr);
+                NDS& nds = *MelonDsDs::Core.Console;
                 if (optional<retro_device_power> devicePower = retro::get_device_power()) {
                     // ...and the check succeeded...
                     bool charging = devicePower->state == RETRO_POWERSTATE_CHARGING || devicePower->state == RETRO_POWERSTATE_PLUGGED_IN;

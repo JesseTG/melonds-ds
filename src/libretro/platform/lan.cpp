@@ -32,7 +32,7 @@
 using namespace melonDS;
 using std::string;
 using std::string_view;
-static melonds::NetworkMode _activeNetworkMode;
+static MelonDsDs::NetworkMode _activeNetworkMode;
 struct Slirp;
 
 namespace LAN_Socket
@@ -54,7 +54,7 @@ namespace Config {
 }
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-bool melonds::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
+bool MelonDsDs::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
     ZoneScopedN("Platform::LAN_Init::LAN_PCap::IsAdapterAcceptable");
     const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC);
 
@@ -74,7 +74,7 @@ bool melonds::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept
 
 static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) noexcept {
     ZoneScopedN("Platform::LAN_Init::LAN_PCap::SelectNetworkInterface");
-    using namespace melonds;
+    using namespace MelonDsDs;
 
 
     if (config::net::NetworkInterface() != config::values::AUTO) {
@@ -112,10 +112,10 @@ static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::Adapt
         if (!(b_if.flags & PCAP_IF_WIRELESS))
             b_score += 100;
 
-        if (!melonds::IsAdapterAcceptable(a))
+        if (!MelonDsDs::IsAdapterAcceptable(a))
             a_score = INT_MIN;
 
-        if (!melonds::IsAdapterAcceptable(b))
+        if (!MelonDsDs::IsAdapterAcceptable(b))
             b_score = INT_MIN;
 
         return a_score < b_score;
@@ -129,15 +129,15 @@ static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::Adapt
 
 bool Platform::LAN_Init() {
     ZoneScopedN("Platform::LAN_Init");
-    using namespace melonds::config::net;
-    retro_assert(_activeNetworkMode == melonds::NetworkMode::None);
+    using namespace MelonDsDs::config::net;
+    retro_assert(_activeNetworkMode == MelonDsDs::NetworkMode::None);
     retro_assert(LAN_Socket::Ctx == nullptr);
 
     // LAN::PCap may already be initialized if we're using direct mode,
     // as it was necessary to query the available interfaces for the core options
     switch (NetworkMode()) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-        case melonds::NetworkMode::Direct: {
+        case MelonDsDs::NetworkMode::Direct: {
             const LAN_PCap::AdapterData* adapter = SelectNetworkInterface(LAN_PCap::Adapters, LAN_PCap::NumAdapters);
             Config::LANDevice = adapter->DeviceName;
             if (LAN_PCap::Init(true)) {
@@ -146,7 +146,7 @@ bool Platform::LAN_Init() {
                     adapter->FriendlyName,
                     fmt::join(adapter->MAC, ":")
                 );
-                _activeNetworkMode = melonds::NetworkMode::Direct;
+                _activeNetworkMode = MelonDsDs::NetworkMode::Direct;
                 return true;
             } else {
                 retro::warn(
@@ -158,17 +158,17 @@ bool Platform::LAN_Init() {
             [[fallthrough]];
         }
 #endif
-        case melonds::NetworkMode::Indirect:
+        case MelonDsDs::NetworkMode::Indirect:
             if (LAN_Socket::Init()) {
                 retro::debug("Initialized indirect-mode Wi-fi support\n");
-                _activeNetworkMode = melonds::NetworkMode::Indirect;
+                _activeNetworkMode = MelonDsDs::NetworkMode::Indirect;
                 return true;
             }
 
             retro::set_error_message("Failed to initialize indirect-mode Wi-fi support. Wi-fi will not be emulated.");
             [[fallthrough]];
         default:
-            _activeNetworkMode = melonds::NetworkMode::None;
+            _activeNetworkMode = MelonDsDs::NetworkMode::None;
             return false;
     }
 }
@@ -182,17 +182,17 @@ void Platform::LAN_DeInit() {
     LAN_Socket::DeInit();
     retro_assert(LAN_Socket::Ctx == nullptr);
 
-    _activeNetworkMode = melonds::NetworkMode::None;
+    _activeNetworkMode = MelonDsDs::NetworkMode::None;
 }
 
 int Platform::LAN_SendPacket(u8 *data, int len) {
     ZoneScopedN("Platform::LAN_SendPacket");
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-        case melonds::NetworkMode::Direct:
+        case MelonDsDs::NetworkMode::Direct:
             return LAN_PCap::SendPacket(data, len);
 #endif
-        case melonds::NetworkMode::Indirect:
+        case MelonDsDs::NetworkMode::Indirect:
             return LAN_Socket::SendPacket(data, len);
         default:
             return 0;
@@ -203,10 +203,10 @@ int Platform::LAN_RecvPacket(u8 *data) {
     ZoneScopedN("Platform::LAN_RecvPacket");
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-        case melonds::NetworkMode::Direct:
+        case MelonDsDs::NetworkMode::Direct:
             return LAN_PCap::RecvPacket(data);
 #endif
-        case melonds::NetworkMode::Indirect:
+        case MelonDsDs::NetworkMode::Indirect:
             return LAN_Socket::RecvPacket(data);
         default:
             return 0;

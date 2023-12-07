@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         retro_core_option_v2_definition {
@@ -41,11 +41,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DS, "DS"},
-                {melonds::config::values::DSI, "DSi (experimental)"},
+                {MelonDsDs::config::values::DS, "DS"},
+                {MelonDsDs::config::values::DSI, "DSi (experimental)"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DS
+            MelonDsDs::config::values::DS
         },
         retro_core_option_v2_definition {
             config::system::SYSFILE_MODE,
@@ -73,13 +73,13 @@ namespace melonds::config::definitions {
             "\n"
             "Changes take effect at next restart.",
             nullptr,
-            melonds::config::system::CATEGORY,
+            MelonDsDs::config::system::CATEGORY,
             {
-                {melonds::config::values::NATIVE, "Native"},
-                {melonds::config::values::BUILT_IN, "Built-In"},
+                {MelonDsDs::config::values::NATIVE, "Native"},
+                {MelonDsDs::config::values::BUILT_IN, "Built-In"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::NATIVE
+            MelonDsDs::config::values::NATIVE
         },
         retro_core_option_v2_definition {
             config::system::FIRMWARE_PATH,
@@ -99,10 +99,10 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::NOT_FOUND, "None found..."},
+                {MelonDsDs::config::values::NOT_FOUND, "None found..."},
                 {nullptr, nullptr},
             },
-            melonds::config::values::NOT_FOUND
+            MelonDsDs::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
             config::system::FIRMWARE_DSI_PATH,
@@ -121,10 +121,10 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::NOT_FOUND, "None found..."},
+                {MelonDsDs::config::values::NOT_FOUND, "None found..."},
                 {nullptr, nullptr},
             },
-            melonds::config::values::NOT_FOUND
+            MelonDsDs::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
             config::storage::DSI_NAND_PATH,
@@ -142,10 +142,10 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::NOT_FOUND, "None found..."},
+                {MelonDsDs::config::values::NOT_FOUND, "None found..."},
                 {nullptr, nullptr},
             },
-            melonds::config::values::NOT_FOUND
+            MelonDsDs::config::values::NOT_FOUND
         },
         retro_core_option_v2_definition {
             config::system::BOOT_MODE,
@@ -165,11 +165,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DIRECT, "Direct"},
-                {melonds::config::values::NATIVE, "Native"},
+                {MelonDsDs::config::values::DIRECT, "Direct"},
+                {MelonDsDs::config::values::NATIVE, "Native"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DIRECT
+            MelonDsDs::config::values::DIRECT
         },
         retro_core_option_v2_definition {
             config::storage::DSI_SD_SAVE_MODE,
@@ -183,11 +183,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::storage::DSI_SD_READ_ONLY,
@@ -198,11 +198,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
         retro_core_option_v2_definition {
             config::storage::DSI_SD_SYNC_TO_HOST,
@@ -217,11 +217,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
         retro_core_option_v2_definition {
             config::storage::HOMEBREW_SAVE_MODE,
@@ -235,11 +235,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::ENABLED
+            MelonDsDs::config::values::ENABLED
         },
         retro_core_option_v2_definition {
             config::storage::HOMEBREW_READ_ONLY,
@@ -250,11 +250,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
         retro_core_option_v2_definition {
             config::storage::HOMEBREW_SYNC_TO_HOST,
@@ -269,11 +269,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::system::CATEGORY,
             {
-                {melonds::config::values::DISABLED, nullptr},
-                {melonds::config::values::ENABLED, nullptr},
+                {MelonDsDs::config::values::DISABLED, nullptr},
+                {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            melonds::config::values::DISABLED
+            MelonDsDs::config::values::DISABLED
         },
         retro_core_option_v2_definition {
             config::system::BATTERY_UPDATE_INTERVAL,

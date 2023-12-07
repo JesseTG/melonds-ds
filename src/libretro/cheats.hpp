@@ -18,7 +18,7 @@
 #ifndef MELONDS_DS_CHEATS_HPP
 #define MELONDS_DS_CHEATS_HPP
 
-namespace melonds::cheats {
+namespace MelonDsDs::cheats {
     void deinit() noexcept;
 }
 #endif //MELONDS_DS_CHEATS_HPP

@@ -22,7 +22,7 @@
 
 #include "../constants.hpp"
 
-namespace melonds::config::definitions {
+namespace MelonDsDs::config::definitions {
     template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> ScreenOptionDefinitions {
         retro_core_option_v2_definition {
@@ -35,16 +35,16 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::DISABLED, "Never"},
-                {melonds::config::values::TOUCHING, "While Touching"},
-                {melonds::config::values::TIMEOUT, "Until Timeout"},
-                {melonds::config::values::ALWAYS, "Always"},
+                {MelonDsDs::config::values::DISABLED, "Never"},
+                {MelonDsDs::config::values::TOUCHING, "While Touching"},
+                {MelonDsDs::config::values::TIMEOUT, "Until Timeout"},
+                {MelonDsDs::config::values::ALWAYS, "Always"},
                 {nullptr, nullptr},
             },
 #if defined(ANDROID) || defined(IOS)
-            melonds::config::values::DISABLED // mobile users won't want to see a cursor by default
+            MelonDsDs::config::values::DISABLED // mobile users won't want to see a cursor by default
 #else
-            melonds::config::values::TIMEOUT
+            MelonDsDs::config::values::TIMEOUT
 #endif
         },
         retro_core_option_v2_definition {
@@ -84,12 +84,12 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::JOYSTICK, "Joystick"},
-                {melonds::config::values::TOUCH, "Pointer"},
-                {melonds::config::values::AUTO, "Auto"},
+                {MelonDsDs::config::values::JOYSTICK, "Joystick"},
+                {MelonDsDs::config::values::TOUCH, "Pointer"},
+                {MelonDsDs::config::values::AUTO, "Auto"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::AUTO
+            MelonDsDs::config::values::AUTO
         },
         retro_core_option_v2_definition {
             config::screen::HYBRID_RATIO,
@@ -113,11 +113,11 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::ONE, "Show Opposite Screen"},
-                {melonds::config::values::BOTH, "Show Both Screens"},
+                {MelonDsDs::config::values::ONE, "Show Opposite Screen"},
+                {MelonDsDs::config::values::BOTH, "Show Both Screens"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::BOTH
+            MelonDsDs::config::values::BOTH
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_GAP,
@@ -173,20 +173,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::TOP_BOTTOM
+            MelonDsDs::config::values::TOP_BOTTOM
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT2,
@@ -196,20 +196,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::LEFT_RIGHT
+            MelonDsDs::config::values::LEFT_RIGHT
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT3,
@@ -219,20 +219,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::TOP
+            MelonDsDs::config::values::TOP
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT4,
@@ -242,20 +242,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::BOTTOM
+            MelonDsDs::config::values::BOTTOM
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT5,
@@ -265,20 +265,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::HYBRID_TOP
+            MelonDsDs::config::values::HYBRID_TOP
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT6,
@@ -288,20 +288,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::HYBRID_BOTTOM
+            MelonDsDs::config::values::HYBRID_BOTTOM
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT7,
@@ -311,20 +311,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::BOTTOM_TOP
+            MelonDsDs::config::values::BOTTOM_TOP
         },
         retro_core_option_v2_definition {
             config::screen::SCREEN_LAYOUT8,
@@ -334,20 +334,20 @@ namespace melonds::config::definitions {
             nullptr,
             config::screen::CATEGORY,
             {
-                {melonds::config::values::TOP_BOTTOM, "Top/Bottom"},
-                {melonds::config::values::BOTTOM_TOP, "Bottom/Top"},
-                {melonds::config::values::LEFT_RIGHT, "Left/Right"},
-                {melonds::config::values::RIGHT_LEFT, "Right/Left"},
-                {melonds::config::values::TOP, "Top Only"},
-                {melonds::config::values::BOTTOM, "Bottom Only"},
-                {melonds::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
-                {melonds::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
-                {melonds::config::values::ROTATE_LEFT, "Rotated Left"},
-                {melonds::config::values::ROTATE_RIGHT, "Rotated Right"},
-                {melonds::config::values::UPSIDE_DOWN, "Upside Down"},
+                {MelonDsDs::config::values::TOP_BOTTOM, "Top/Bottom"},
+                {MelonDsDs::config::values::BOTTOM_TOP, "Bottom/Top"},
+                {MelonDsDs::config::values::LEFT_RIGHT, "Left/Right"},
+                {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
+                {MelonDsDs::config::values::TOP, "Top Only"},
+                {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+                {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
+                {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
+                {MelonDsDs::config::values::ROTATE_LEFT, "Rotated Left"},
+                {MelonDsDs::config::values::ROTATE_RIGHT, "Rotated Right"},
+                {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
                 {nullptr, nullptr},
             },
-            melonds::config::values::RIGHT_LEFT
+            MelonDsDs::config::values::RIGHT_LEFT
         },
     };
 }

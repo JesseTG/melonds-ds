@@ -27,7 +27,7 @@ struct melonDS::Platform::FileHandle {
     unsigned hints;
 };
 
-namespace melonds::file {
+namespace MelonDsDs::file {
     void init();
     void reset() noexcept;
     void deinit();

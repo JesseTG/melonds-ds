@@ -22,7 +22,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
-namespace melonds::math {
+namespace MelonDsDs::math {
 
     /// @brief Create a 3x3 transformation matrix from a translation and a scale.
     template<typename T>

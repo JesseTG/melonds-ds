@@ -23,7 +23,7 @@
 #include <memory>
 #include <optional>
 
-namespace melonds {
+namespace MelonDsDs {
     using std::size_t;
 
     constexpr size_t DEFAULT_SERIALIZE_TEST_SIZE = 16 * 1024 * 1024; // 16 MiB

@@ -22,12 +22,12 @@
 struct pntr_font;
 struct pntr_image;
 
-namespace melonds {
+namespace MelonDsDs {
     class ScreenLayoutData;
     class PixelBuffer;
 }
 
-namespace melonds::error {
+namespace MelonDsDs::error {
     class ErrorScreen {
     public:
         explicit ErrorScreen(const config_exception& e) noexcept;

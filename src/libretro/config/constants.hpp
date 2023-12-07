@@ -24,7 +24,7 @@
 #include <system_error>
 #include <SPI_Firmware.h>
 
-namespace melonds {
+namespace MelonDsDs {
     enum class UsernameMode;
 }
 
@@ -32,7 +32,7 @@ namespace retro {
     struct dirent;
 }
 
-namespace melonds::config {
+namespace MelonDsDs::config {
     constexpr unsigned DS_NAME_LIMIT = 10;
 
     namespace audio {
@@ -219,7 +219,7 @@ namespace melonds::config {
     constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
-    std::string GetUsername(melonds::UsernameMode mode) noexcept;
+    std::string GetUsername(MelonDsDs::UsernameMode mode) noexcept;
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
     bool IsFirmwareImage(const retro::dirent &file, melonDS::Firmware::FirmwareHeader& header) noexcept;
 }
