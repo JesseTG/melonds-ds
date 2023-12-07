@@ -21,7 +21,6 @@
 #include <string_view>
 
 #include "constants.hpp"
-#include "config.hpp"
 #include "config/types.hpp"
 
 #include "tracy.hpp"
