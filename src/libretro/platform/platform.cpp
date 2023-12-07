@@ -38,118 +38,6 @@
 using namespace melonDS;
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
-static struct retro_camera_callback _camera{};
-static std::unique_ptr<retro::Scaler> scaler{};
-
-// YUV422 framebuffer, two pixels per 32-bit int (see DSi_Camera.h)
-static std::array<uint32_t, DSI_CAMERA_WIDTH * DSI_CAMERA_HEIGHT / 2> _camera_buffer{};
-
-#define YUV_SHIFT 6
-#define YUV_OFFSET (1 << (YUV_SHIFT - 1))
-#define YUV_MAT_Y (1 << 6)
-#define YUV_MAT_U_G (-22)
-#define YUV_MAT_U_B (113)
-#define YUV_MAT_V_R (90)
-#define YUV_MAT_V_G (-46)
-
-static void conv_argb8888_yuyv(void *output_, const void *input_,
-                               int width, int height,
-                               int out_stride, int in_stride) {
-    const uint32_t* src = static_cast<const uint32_t *>(input_);
-    uint32_t* dst = static_cast<uint32_t *>(output_);
-    for (int dy = 0; dy < height; dy++)
-    {
-        int sy = (dy * height) / height;
-
-        for (int dx = 0; dx < width; dx+=2)
-        {
-            int sx;
-
-            sx = (dx * width) / width;
-
-            u32 pixel1 = SWAP32(src[sy*width + sx]);
-
-            sx = ((dx+1) * width) / width;
-
-            u32 pixel2 = SWAP32(src[sy*width + sx]);
-
-            int r1 = (pixel1 >> 16) & 0xFF;
-            int g1 = (pixel1 >> 8) & 0xFF;
-            int b1 = pixel1 & 0xFF;
-
-            int r2 = (pixel2 >> 16) & 0xFF;
-            int g2 = (pixel2 >> 8) & 0xFF;
-            int b2 = pixel2 & 0xFF;
-
-            int y1 = ((r1 * 19595) + (g1 * 38470) + (b1 * 7471)) >> 16;
-            int u1 = ((b1 - y1) * 32244) >> 16;
-            int v1 = ((r1 - y1) * 57475) >> 16;
-
-            int y2 = ((r2 * 19595) + (g2 * 38470) + (b2 * 7471)) >> 16;
-            int u2 = ((b2 - y2) * 32244) >> 16;
-            int v2 = ((r2 - y2) * 57475) >> 16;
-
-            u1 += 128; v1 += 128;
-            u2 += 128; v2 += 128;
-
-            y1 = std::clamp(y1, 0, 255); u1 = std::clamp(u1, 0, 255); v1 = std::clamp(v1, 0, 255);
-            y2 = std::clamp(y2, 0, 255); u2 = std::clamp(u2, 0, 255); v2 = std::clamp(v2, 0, 255);
-
-            // huh
-            u1 = (u1 + u2) >> 1;
-            v1 = (v1 + v2) >> 1;
-
-            dst[(dy*width + dx) / 2] = y1 | (u1 << 8) | (y2 << 16) | (v1 << 24);
-        }
-    }
-}
-
-static void CaptureImage(const uint32_t *buffer, unsigned width, unsigned height, size_t pitch) noexcept {
-
-    if (!scaler || scaler->InWidth() != width || scaler->InHeight() != height || scaler->InStride() != pitch) {
-        // If the scaler hasn't been initialized, or if the camera's dimensions changed behind our back...
-
-        scaler = std::make_unique<retro::Scaler>(SCALER_FMT_ARGB8888, SCALER_FMT_RGBA4444, SCALER_TYPE_BILINEAR, width, height, DSI_CAMERA_WIDTH, DSI_CAMERA_HEIGHT);
-    }
-
-    scaler->Scale(_camera_buffer.data(), buffer);
-}
-
-// TODO: Remove this, move the logic to retro_load_game
-void Platform::Init(int, char **) {
-    // these args are not used in libretro
-    retro::debug("Platform::Init\n");
-
-    if (melonds::config::system::ConsoleType() != melonds::ConsoleType::DSi) {
-        retro::info("Camera is only supported in DSi mode.\n");
-        return;
-    }
-
-    _camera.caps = (1 << RETRO_CAMERA_BUFFER_RAW_FRAMEBUFFER);
-    _camera.frame_raw_framebuffer = CaptureImage;
-    _camera.frame_opengl_texture = nullptr;
-    _camera.width = DSI_CAMERA_WIDTH;
-    _camera.height = DSI_CAMERA_HEIGHT;
-
-    if (!retro::environment(RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE, &_camera)) {
-        retro::warn("Camera interface not available.");
-    } else {
-        retro::info("Got a camera with images of ({} x {}) pixels", _camera.width, _camera.height);
-    }
-}
-
-// TODO: Remove this, move the logic to retro_unload_game or retro_deinit
-void Platform::DeInit() {
-    retro::debug("Platform::DeInit\n");
-
-    if (_camera.stop) {
-        _camera.stop();
-    }
-
-    _camera.start = nullptr;
-    _camera.stop = nullptr;
-    scaler.reset();
-}
 
 void Platform::SignalStop(Platform::StopReason reason) {
     switch (reason) {
@@ -217,25 +105,10 @@ void Platform::WriteDateTime(int year, int month, int day, int hour, int minute,
 }
 
 void Platform::Camera_Start(int num) {
-    if (_camera.start) {
-        if (_camera.start()) {
-            retro::debug("Started camera #{}", num);
-        } else {
-            retro::error("Failed to start camera #{}", num);
-        }
-    }
 }
 
 void Platform::Camera_Stop(int num) {
-    if (_camera.stop) {
-        _camera.stop();
-        retro::debug("Stopped camera #{}", num);
-    }
 }
 
 void Platform::Camera_CaptureFrame(int num, u32 *frame, int width, int height, bool yuv) {
-    retro_assert(width == DSI_CAMERA_WIDTH);
-    retro_assert(height == DSI_CAMERA_HEIGHT);
-
-    memcpy(frame, _camera_buffer.data(), _camera_buffer.size() * sizeof(uint32_t));
 }

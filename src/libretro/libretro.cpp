@@ -186,7 +186,6 @@ static bool InitErrorScreen(const melonds::config_exception& e) noexcept {
         return false;
     }
 
-    Platform::DeInit();
     retro::task::reset();
     melonds::_messageScreen = make_unique<error::ErrorScreen>(e);
     screenLayout.Update(melonds::Renderer::Software);
@@ -574,7 +573,6 @@ PUBLIC_SYMBOL void retro_deinit(void) {
         melonds::file::deinit();
         retro::content::clear();
         melonds::clear_memory_config();
-        Platform::DeInit();
         melonds::sram::deinit();
         melonds::mic_state_toggled = false;
         melonds::isUnloading = false;
@@ -692,7 +690,6 @@ static void melonds::load_games(
     retro_assert(Core.Console != nullptr);
 
     melonDS::NDS& nds = *Core.Console;
-    Platform::Init(0, nullptr);
 
     if (retro::supports_power_status())
     {
