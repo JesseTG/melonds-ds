@@ -171,7 +171,6 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
     return Console->DoSavestate(&savestate) && !savestate.Error;
 }
 
-
 byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
     ZoneScopedN(TracyFunction);
     if (_messageScreen)
