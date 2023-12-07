@@ -18,6 +18,8 @@
 #define MELONDSDS_CORE_HPP
 
 #include <memory>
+
+#include "config.hpp"
 #include "PlatformOGLPrivate.h"
 
 namespace melonDS {
@@ -25,11 +27,12 @@ namespace melonDS {
 }
 
 namespace melondsds {
-
+    using namespace MelonDsDs;
     struct CoreState {
         CoreState(bool init) noexcept;
         ~CoreState() noexcept;
         std::unique_ptr<melonDS::NDS> Console = nullptr;
+        Config Config {};
     public:
         [[nodiscard]] bool IsInitialized() const noexcept { return initialized; }
     private:
