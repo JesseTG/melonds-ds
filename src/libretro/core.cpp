@@ -207,7 +207,20 @@ bool MelonDsDs::CoreState::RunDeferredInitialization() noexcept {
     return true;
 }
 
+bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
+    ZoneScopedN(TracyFunction);
+    retro_assert(_messageScreen == nullptr);
+    if (getenv("MELONDSDS_SKIP_ERROR_SCREEN")) {
+        retro::error("Skipping error screen due to the environment variable MELONDSDS_SKIP_ERROR_SCREEN");
+        return false;
+    }
 
+    retro::task::reset();
+    _messageScreen = make_unique<error::ErrorScreen>(e);
+    _screenLayout.Update(MelonDsDs::Renderer::Software, Config.ScreenFilter());
+    retro::error("Error screen initialized");
+    return true;
+}
 
 void MelonDsDs::CoreState::RunFirstFrame() noexcept {
     ZoneScopedN(TracyFunction);

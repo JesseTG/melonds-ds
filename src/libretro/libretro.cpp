@@ -59,7 +59,6 @@
 #include "input.hpp"
 #include "memory.hpp"
 #include "microphone.hpp"
-#include "opengl.hpp"
 #include "power.hpp"
 #include "render/render.hpp"
 #include "retro/task_queue.hpp"
@@ -135,21 +134,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(MelonDsDs::Core.IsInitialized());
 }
 
-static bool InitErrorScreen(const MelonDsDs::config_exception& e) noexcept {
-    using namespace MelonDsDs;
-    ZoneScopedN("MelonDsDs::InitErrorScreen");
-    retro_assert(MelonDsDs::_messageScreen == nullptr);
-    if (getenv("MELONDSDS_SKIP_ERROR_SCREEN")) {
-        retro::error("Skipping error screen due to the environment variable MELONDSDS_SKIP_ERROR_SCREEN");
-        return false;
-    }
 
-    retro::task::reset();
-    MelonDsDs::_messageScreen = make_unique<error::ErrorScreen>(e);
-    screenLayout.Update(MelonDsDs::Renderer::Software);
-    retro::error("Error screen initialized");
-    return true;
-}
 
 static bool MelonDsDs::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
     ZoneScopedN("MelonDsDs::handle_load_game");

@@ -42,6 +42,7 @@ namespace melonDS {
 
 namespace MelonDsDs {
     class RenderState;
+    class config_exception;
 
     namespace error {
         class ErrorScreen;
@@ -81,6 +82,7 @@ namespace MelonDsDs {
         [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
+        [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         void ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept;
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
