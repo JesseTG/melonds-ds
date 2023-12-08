@@ -40,19 +40,23 @@ constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
 
 void Platform::SignalStop(Platform::StopReason reason) {
+    retro::debug("Platform::SignalStop({})\n", reason);
     switch (reason) {
         case StopReason::BadExceptionRegion:
             retro::set_error_message("An internal error occurred in the emulated console.");
+            retro::shutdown();
             break;
         case StopReason::GBAModeNotSupported:
             retro::set_error_message("GBA mode is not supported. Use a GBA core instead.");
+            retro::shutdown();
+            break;
+        case StopReason::PowerOff:
+            retro::shutdown();
             break;
         default:
             break;
             // no-op; not every stop reason needs a message shown to the user
     }
-    retro::debug("Platform::SignalStop({})\n", reason);
-    retro::shutdown();
 }
 
 int Platform::InstanceID() {
