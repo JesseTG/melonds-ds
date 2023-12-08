@@ -17,11 +17,14 @@
 #include "core.hpp"
 
 #include <charconv>
+#include <DSi.h>
 
 #include <libretro.h>
 #include <retro_assert.h>
 
 #include <NDS.h>
+
+#include "dsi.hpp"
 
 using std::byte;
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
@@ -29,12 +32,12 @@ constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 
 MelonDsDs::CoreState MelonDsDs::Core(false);
 
-MelonDsDs::CoreState::CoreState(bool init) noexcept : initialized(init) {
+MelonDsDs::CoreState::CoreState(bool init) noexcept : _initialized(init) {
 }
 
 MelonDsDs::CoreState::~CoreState() noexcept {
     Console = nullptr;
-    initialized = false;
+    _initialized = false;
 }
 
 retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
@@ -51,6 +54,33 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
         },
         .geometry = _screenLayout.Geometry(Console->GPU.GetRenderer3D()),
     };
+}
+
+
+void MelonDsDs::CoreState::UnloadGame() noexcept {
+    if (Console && Console->IsRunning())
+    { // If the NDS wasn't already stopped due to some internal event...
+        Console->Stop();
+    }
+
+    if (_ndsInfo) {
+        // If this session involved a loaded DS game...
+
+        retro_assert(_ndsInfo->GetData().size() > 0);
+        const melonDS::NDSHeader& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
+        if (header.IsDSiWare()) {
+            // And that game was a DSiWare game...
+            retro_assert(Console->ConsoleType == 1);
+            retro_assert(dynamic_cast<melonDS::DSi*>(Console.get()) != nullptr);
+
+            melonDS::DSi& dsi = *static_cast<melonDS::DSi*>(Console.get());
+            // DSiWare "cart" shouldn't have been cleaned up yet
+            // (a regular DS cart would've been moved-from at the start of the session)
+            MelonDsDs::dsi::uninstall_dsiware(dsi.GetNAND(), *_ndsInfo);
+        }
+    }
+
+    Core.Console = nullptr;
 }
 
 /// Savestates in melonDS can vary in size depending on the game,
@@ -233,7 +263,7 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
         return;
     }
 
-    if (enabled && !regex_match(code.data(), cheatSyntax)) {
+    if (enabled && !regex_match(code.data(), _cheatSyntax)) {
         // If we're trying to activate this cheat code, but it's not valid...
         retro::set_warn_message("Cheat #{} ({:.8}...) isn't valid, ignoring it.", index, code);
         return;
@@ -247,7 +277,7 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
 
     // NDS cheats are sequence of unsigned 32-bit integers, each of which is hex-encoded
     auto end = std::cregex_iterator();
-    for (auto i = std::cregex_iterator(code.cbegin(), code.cend(), tokenSyntax); i != end; ++i) {
+    for (auto i = std::cregex_iterator(code.cbegin(), code.cend(), _tokenSyntax); i != end; ++i) {
         const std::csub_match& match = (*i)[0];
         retro_assert(match.matched);
         uint32_t token = 0;

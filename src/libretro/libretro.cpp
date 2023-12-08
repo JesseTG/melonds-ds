@@ -79,13 +79,7 @@ using std::make_unique;
 using retro::task::TaskSpec;
 
 namespace MelonDsDs {
-    static InputState input_state;
     static bool mic_state_toggled = false;
-    static bool isInDeinit = false;
-    static bool isUnloading = false;
-    static bool deferred_initialization_pending = false;
-    static bool first_frame_run = false;
-    static uint32_t flushTaskId = 0;
     static const char *const INTERNAL_ERROR_MESSAGE =
         "An internal error occurred with melonDS DS. "
         "Please contact the developer with the log file.";
@@ -145,34 +139,17 @@ PUBLIC_SYMBOL void retro_init(void) {
     tracy::StartupProfiler();
 #endif
     TracySetProgramName(MELONDSDS_VERSION_STRING);
-    ZoneScopedN("retro_init");
+    ZoneScopedN(TracyFunction);
     retro::env::init();
     retro::debug("retro_init");
     retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
     retro_assert(!MelonDsDs::Core.IsInitialized());
     retro_assert(MelonDsDs::Core.Console == nullptr);
-    retro_assert(retro::content::get_loaded_nds_info() == nullopt);
-    retro_assert(retro::content::get_loaded_gba_info() == nullopt);
-    retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
-    retro_assert(!MelonDsDs::first_frame_run);
-    retro_assert(!MelonDsDs::deferred_initialization_pending);
-    retro_assert(!MelonDsDs::isInDeinit);
-    retro_assert(!MelonDsDs::isUnloading);
-    retro_assert(!MelonDsDs::mic_state_toggled);
-    retro_assert(MelonDsDs::flushTaskId == 0);
-    retro_assert(MelonDsDs::_messageScreen == nullptr);
-    srand(time(nullptr));
-    MelonDsDs::input_state = MelonDsDs::InputState();
-    MelonDsDs::sram::init();
 
-
-    MelonDsDs::file::init();
-    MelonDsDs::first_frame_run = false;
-    new(&MelonDsDs::Core) MelonDsDs::CoreState(true); // placement-new the CoreState
-    retro_assert(MelonDsDs::Core.IsInitialized());
     retro::task::init(false, nullptr);
 
-    // ScreenLayoutData is initialized in its constructor
+    new(&MelonDsDs::Core) MelonDsDs::CoreState(true); // placement-new the CoreState
+    retro_assert(MelonDsDs::Core.IsInitialized());
 }
 
 static bool InitErrorScreen(const MelonDsDs::config_exception& e) noexcept {
@@ -497,9 +474,8 @@ static void SetConsoleTime(NDS& nds) noexcept {
 }
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
-    ZoneScopedN("retro_unload_game");
+    ZoneScopedN(TracyFunction);
     using MelonDsDs::Core;
-    MelonDsDs::isUnloading = true;
     retro::debug("retro_unload_game()");
     // No need to flush SRAM to the buffer, Platform::WriteNDSSave has been doing that for us this whole time
     // No need to flush the homebrew save data either, the CartHomebrew destructor does that
@@ -509,36 +485,7 @@ PUBLIC_SYMBOL void retro_unload_game(void) {
     retro::task::wait();
     retro::task::deinit();
 
-    retro_assert(Core.Console != nullptr);
-    NDS& nds = *Core.Console;
-    if (nds.IsRunning())
-    { // If the NDS wasn't already stopped due to some internal event...
-        nds.Stop();
-    }
-
-    // Must uninstall the DSiWare between NDS::Stop and NDS::DeInit;
-    // before NDS::Stop the NAND may still be in use,
-    // and after NDS::DeInit the NANDImage is destroyed.
-    if (const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info()) {
-        // If this session involved a loaded DS game...
-
-        retro_assert(nds_info->data != nullptr);
-        const NDSHeader& header = *reinterpret_cast<const NDSHeader*>(nds_info->data);
-        if (header.IsDSiWare()) {
-            // And that game was a DSiWare game...
-            retro_assert(nds.ConsoleType == 1);
-            retro_assert(dynamic_cast<DSi*>(&nds) != nullptr);
-
-            DSi& dsi = *static_cast<DSi*>(&nds);
-            // DSiWare "cart" shouldn't have been cleaned up yet
-            // (a regular DS cart would've been moved-from at the start of the session)
-            MelonDsDs::dsi::uninstall_dsiware(dsi.GetNAND(), *nds_info);
-        }
-    }
-
-    Core.Console = nullptr;
-
-    MelonDsDs::isUnloading = false;
+    Core.UnloadGame();
 }
 
 PUBLIC_SYMBOL unsigned retro_get_region(void) {
@@ -561,21 +508,11 @@ PUBLIC_SYMBOL void retro_deinit(void) {
         MelonDsDs::isInDeinit = true;
         retro::debug("retro_deinit()");
         retro::task::deinit();
-        MelonDsDs::file::deinit();
-        retro::content::clear();
-        MelonDsDs::clear_memory_config();
-        MelonDsDs::sram::deinit();
-        MelonDsDs::mic_state_toggled = false;
         MelonDsDs::isUnloading = false;
-        MelonDsDs::deferred_initialization_pending = false;
-        MelonDsDs::first_frame_run = false;
         MelonDsDs::isInDeinit = false;
-        MelonDsDs::flushTaskId = 0;
-        MelonDsDs::_messageScreen = nullptr;
         MelonDsDs::Core.~CoreState(); // placement delete
         retro_assert(!MelonDsDs::Core.IsInitialized());
         retro_assert(MelonDsDs::Core.Console == nullptr);
-        MelonDsDs::cheats::deinit();
         retro::env::deinit();
     }
 

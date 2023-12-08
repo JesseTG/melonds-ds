@@ -16,6 +16,8 @@
 
 #include "dsi.hpp"
 
+#include "core.hpp"
+
 #include <optional>
 #include <string>
 #include <string_view>
@@ -67,9 +69,9 @@ namespace MelonDsDs::dsi {
 
     bool cache_tmd(const char *tmd_path, const void *tmd, size_t tmd_length) noexcept;
 
-    void import_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
+    void import_savedata(DSi_NAND::NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept;
 
-    void export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept;
+    void export_savedata(DSi_NAND::NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept;
 }
 
 void MelonDsDs::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) {
@@ -163,19 +165,19 @@ bool MelonDsDs::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) no
 
     if (bytes_read < 0) {
         // If there was an error reading the file...
-        error("Error reading title metadata");
+        retro::error("Error reading title metadata");
         return false;
     }
 
     if (static_cast<size_t>(bytes_read) < sizeof(TitleMetadata)) {
         // If the file was too small...
-        error("Title metadata file is too small, it may be corrupt");
+        retro::error("Title metadata file is too small, it may be corrupt");
         return false;
     }
 
     if (!validate_tmd(tmd)) {
         // If the file is corrupt...
-        error("Title metadata validation failed; the file is corrupt");
+        retro::error("Title metadata validation failed; the file is corrupt");
         return false;
     }
 
@@ -187,7 +189,7 @@ bool MelonDsDs::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) no
 
 bool MelonDsDs::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
     if (tmd.SignatureType != RSA256_SIGNATURE_TYPE) {
-        error("Invalid signature type {:#x}", tmd.SignatureType);
+        retro::error("Invalid signature type {:#x}", tmd.SignatureType);
         return false;
     }
 
@@ -208,7 +210,7 @@ bool MelonDsDs::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const 
     // Create the HTTP request
     struct http_connection_t *connection = net_http_connection_new(url, "GET", nullptr);
     if (!connection) {
-        error("Failed to create HTTP connection");
+        retro::error("Failed to create HTTP connection");
         return false;
     }
 
@@ -228,14 +230,14 @@ bool MelonDsDs::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const 
     // Signify that we're ready to send the request
     if (!net_http_connection_done(connection)) {
         // If initializing the connection failed...
-        error("Failed to initialize HTTP connection to {}", url);
+        retro::error("Failed to initialize HTTP connection to {}", url);
         goto done;
     }
 
     // And send it
     http = net_http_new(connection);
     if (!http) {
-        error("Failed to open HTTP connection to {}", url);
+        retro::error("Failed to open HTTP connection to {}", url);
         goto done;
     }
 
@@ -303,7 +305,7 @@ bool MelonDsDs::dsi::cache_tmd(const char *tmd_path, const void *tmd, size_t tmd
     path_basedir(tmd_dir);
 
     if (!path_mkdir(tmd_dir)) {
-        error("Error creating title metadata directory \"{}\"", tmd_dir);
+        retro::error("Error creating title metadata directory \"{}\"", tmd_dir);
         return false;
     }
 
@@ -311,12 +313,12 @@ bool MelonDsDs::dsi::cache_tmd(const char *tmd_path, const void *tmd, size_t tmd
         info("Cached title metadata to \"{}\"", tmd_path);
         return true;
     } else {
-        error("Error writing title metadata to \"{}\"", tmd_path);
+        retro::error("Error writing title metadata to \"{}\"", tmd_path);
         return false;
     }
 }
 
-bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_info, int type) noexcept {
+bool get_savedata_path(char *buffer, size_t length, const retro::GameInfo& nds_info, int type) noexcept {
     if (!buffer || !length) {
         return false;
     }
@@ -329,8 +331,8 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
 
     char sav_name[PATH_MAX]; // "/path/to/game.zip#game.nds"
     memset(sav_name, 0, sizeof(sav_name));
-    const char *ptr = path_basename(nds_info.path);  // "game.nds"
-    strlcpy(sav_name, ptr ? ptr : nds_info.path, sizeof(sav_name));
+    const char *ptr = path_basename(nds_info.GetPath().data());  // "game.nds"
+    strlcpy(sav_name, ptr ? ptr : nds_info.GetPath().data(), sizeof(sav_name));
     path_remove_extension(sav_name); // "game"
     switch (type) {
         case DSi_NAND::TitleData_PublicSav:
@@ -352,8 +354,8 @@ bool get_savedata_path(char *buffer, size_t length, const retro_game_info &nds_i
     return true;
 }
 
-void MelonDsDs::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
-    ZoneScopedN("MelonDsDs::dsi::import_savedata");
+void MelonDsDs::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept {
+    ZoneScopedN(TracyFunction);
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...
@@ -386,7 +388,7 @@ void MelonDsDs::dsi::import_savedata(DSi_NAND::NANDMount& nand, const retro_game
 }
 
 
-void MelonDsDs::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game_info &nds_info, const NDSHeader& header, int type) noexcept {
+void MelonDsDs::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept {
     ZoneScopedN("MelonDsDs::dsi::export_savedata");
 
     if (type == DSi_NAND::TitleData_PublicSav && header.DSiPublicSavSize == 0) {
@@ -416,21 +418,24 @@ void MelonDsDs::dsi::export_savedata(DSi_NAND::NANDMount& nand, const retro_game
 }
 
 // Reset for the next time
-void MelonDsDs::dsi::uninstall_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) noexcept {
-    ZoneScopedN("MelonDsDs::dsi::uninstall_dsiware");
+void MelonDsDs::CoreState::UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    if (!_ndsInfo) return;
 
     retro_assert(nand);
-    const NDSHeader& header = *reinterpret_cast<const NDSHeader*>(nds_info.data);
+
+    const NDSHeader& header = *reinterpret_cast<const NDSHeader*>(_ndsInfo->GetData().data());
     retro_assert(header.IsDSiWare());
 
     if (DSi_NAND::NANDMount mount = DSi_NAND::NANDMount(nand)) {
         // TODO: Report an error if the title doesn't exist
-        export_savedata(mount, nds_info, header, DSi_NAND::TitleData_PublicSav);
-        export_savedata(mount, nds_info, header, DSi_NAND::TitleData_PrivateSav);
-        export_savedata(mount, nds_info, header, DSi_NAND::TitleData_BannerSav);
+        dsi::export_savedata(mount, *_ndsInfo, header, DSi_NAND::TitleData_PublicSav);
+        dsi::export_savedata(mount, *_ndsInfo, header, DSi_NAND::TitleData_PrivateSav);
+        dsi::export_savedata(mount, *_ndsInfo, header, DSi_NAND::TitleData_BannerSav);
 
         mount.DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
-        info("Removed temporarily-installed DSiWare title \"{}\" from NAND image", nds_info.path);
+        info("Removed temporarily-installed DSiWare title \"{}\" from NAND image", _ndsInfo->GetPath());
     } else {
         retro::error("Failed to open DSi NAND for uninstallation");
     }

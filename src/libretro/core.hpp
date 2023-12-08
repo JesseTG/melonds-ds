@@ -17,6 +17,7 @@
 #ifndef MELONDSDS_CORE_HPP
 #define MELONDSDS_CORE_HPP
 
+#include <array>
 #include <cstddef>
 #include <memory>
 #include <regex>
@@ -33,6 +34,10 @@ struct retro_system_av_info;
 
 namespace melonDS {
     class NDS;
+
+    namespace DSi_NAND {
+        class NANDImage;
+    }
 }
 
 namespace MelonDsDs {
@@ -50,7 +55,7 @@ namespace MelonDsDs {
 
         // TODO: Make private
         CoreConfig Config {};
-        [[nodiscard]] bool IsInitialized() const noexcept { return initialized; }
+        [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
         [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
         void Reset();
@@ -65,7 +70,9 @@ namespace MelonDsDs {
         size_t GetMemorySize(unsigned id) noexcept;
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
+        void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         ScreenLayoutData _screenLayout {};
+        InputState _inputState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
@@ -76,9 +83,13 @@ namespace MelonDsDs {
         mutable std::optional<size_t> _savestateSize = std::nullopt;
         std::unique_ptr<error::ErrorScreen> _messageScreen = nullptr;
         // TODO: Switch to compile time regular expressions (see https://compile-time.re)
-        std::regex cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
-        std::regex tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };
-        bool initialized = false;
+        std::regex _cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
+        std::regex _tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };
+        bool _initialized = false;
+        bool _firstFrameRun = false;
+        bool _deferredInitializationPending = false;
+        bool _micStateToggled = false;
+        uint32_t _flushTaskId;
     };
 
     // TODO: Replace with a unique_ptr
