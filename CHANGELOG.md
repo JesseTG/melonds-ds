@@ -9,8 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ### Changed
 
-- Updated melonDS to commit 5dac65f.
+- Updated melonDS to commit f1f431c.
 - Updated libretro-common to commit fce57fd.
+
+### Fixed
+
+- GBA ROM and save data support is now supported with the built-in BIOS.
 
 ## [0.7.25] - 2023-11-06
 
