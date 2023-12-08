@@ -59,9 +59,9 @@ namespace MelonDsDs {
 
         [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
         void Reset();
-        void Run() noexcept;
+        [[gnu::hot]] void Run() noexcept;
         size_t SerializeSize() const noexcept;
-        bool Serialize(std::span<std::byte> data) const noexcept;
+        [[gnu::hot]] bool Serialize(std::span<std::byte> data) const noexcept;
         bool Unserialize(std::span<const std::byte> data) noexcept;
         void CheatSet(unsigned index, bool enabled, std::string_view code) noexcept;
         bool LoadGame(std::span<const retro_game_info> game);
@@ -70,7 +70,14 @@ namespace MelonDsDs {
         size_t GetMemorySize(unsigned id) noexcept;
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
-        void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
+        [[gnu::cold]] bool RunDeferredInitialization() noexcept;
+        [[gnu::cold]] void RunFirstFrame() noexcept;
+        [[gnu::cold]] void LoadGameDeferred();
+        [[gnu::cold]] static void SetConsoleTime(melonDS::NDS& nds) noexcept;
+        [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
+        [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
+        [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
+        void ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept;
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
@@ -89,10 +96,9 @@ namespace MelonDsDs {
         bool _firstFrameRun = false;
         bool _deferredInitializationPending = false;
         bool _micStateToggled = false;
-        uint32_t _flushTaskId;
+        uint32_t _flushTaskId = 0;
     };
 
-    // TODO: Replace with a unique_ptr
     extern CoreState Core;
 }
 #endif //MELONDSDS_CORE_HPP

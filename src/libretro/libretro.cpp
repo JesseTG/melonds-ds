@@ -47,7 +47,6 @@
 #include <fmt/format.h>
 #include <RTC.h>
 
-#include "cheats.hpp"
 #include "config.hpp"
 #include "content.hpp"
 #include "core.hpp"
@@ -79,7 +78,6 @@ using std::make_unique;
 using retro::task::TaskSpec;
 
 namespace MelonDsDs {
-    static bool mic_state_toggled = false;
     static const char *const INTERNAL_ERROR_MESSAGE =
         "An internal error occurred with melonDS DS. "
         "Please contact the developer with the log file.";
@@ -103,7 +101,6 @@ namespace MelonDsDs {
     static void set_up_direct_boot(NDS& nds, const retro_game_info &nds_info);
 
     // functions for running games
-    static void read_microphone(NDS& nds, MelonDsDs::InputState& inputState) noexcept;
     static void render_audio(NDS& nds);
     static void InitFlushFirmwareTask() noexcept
     {
@@ -117,20 +114,6 @@ namespace MelonDsDs {
         }
     }
 
-
-    bool IsUnloadingGame() noexcept
-    {
-        return isUnloading;
-    }
-
-    bool IsInDeinit() noexcept
-    {
-        return isInDeinit;
-    }
-
-    bool IsInErrorScreen() noexcept {
-        return _messageScreen != nullptr;
-    }
     retro::task::TaskSpec OnScreenDisplayTask() noexcept;
 }
 
@@ -253,224 +236,10 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
 
 PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
     {
-        ZoneScopedN("retro_run");
-        using namespace MelonDsDs;
-
-        if (deferred_initialization_pending) {
-            ZoneScopedN("retro_run::deferred_initialization");
-            try {
-                retro_assert(MelonDsDs::Core.Console != nullptr);
-                retro::debug("Starting deferred initialization");
-                MelonDsDs::load_games_deferred(
-                    *MelonDsDs::Core.Console,
-                    retro::content::get_loaded_nds_info(),
-                    retro::content::get_loaded_gba_info()
-                );
-                deferred_initialization_pending = false;
-
-                retro::debug("Completed deferred initialization");
-            }
-            catch (const MelonDsDs::config_exception &e) {
-                retro::error("Deferred initialization failed; displaying error screen");
-                retro::error("{}", e.what());
-                retro::set_error_message(e.user_message());
-                if (!InitErrorScreen(e))
-                    return;
-            }
-            catch (const MelonDsDs::emulator_exception &e) {
-                retro::error("Deferred initialization failed; exiting core");
-                retro::error("{}", e.what());
-                retro::set_error_message(e.user_message());
-                retro::shutdown();
-                return;
-            }
-            catch (const std::exception &e) {
-                retro::error("Deferred initialization failed; exiting core");
-                retro::set_error_message(e.what());
-                retro::shutdown();
-                return;
-            }
-            catch (...) {
-                retro::error("Deferred initialization failed; exiting core");
-                retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
-                retro::shutdown();
-                return;
-            }
-        }
-
-        if (_messageScreen) {
-            _messageScreen->Render(screenLayout);
-            return;
-        }
-
-        retro_assert(MelonDsDs::Core.Console != nullptr);
-        NDS& nds = *MelonDsDs::Core.Console;
-
-        if (!first_frame_run) {
-            ZoneScopedN("retro_run::first_frame");
-            using namespace sram;
-            // Apply the save data from the core's SRAM buffer to the cart's SRAM;
-            // we need to do this in the first frame of retro_run because
-            // retro_get_memory_data is used to copy the loaded SRAM
-            // in between retro_load and the first retro_run call.
-
-            // Nintendo DS SRAM is loaded by the frontend
-            // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
-            // This is where we install the SRAM data into the emulated DS.
-            if (retro::content::get_loaded_nds_info() && NdsSaveManager && NdsSaveManager->SramLength() > 0) {
-                // If we're loading a NDS game that has SRAM...
-                ZoneScopedN("NDS::LoadSave");
-                nds.SetGBASave(NdsSaveManager->Sram(), NdsSaveManager->SramLength());
-            }
-
-            // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
-            // but is not processed by retro_get_memory (again due to libretro limits).
-            if (retro::content::get_loaded_gba_info() && GbaSaveManager && GbaSaveManager->SramLength() > 0) {
-                // If we're loading a GBA game that has existing SRAM...
-                ZoneScopedN("GBACart::LoadSave");
-                // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
-                nds.SetGBASave(GbaSaveManager->Sram(), GbaSaveManager->SramLength());
-            }
-
-            // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
-            // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
-
-            // This has to be deferred even if we're not using OpenGL,
-            // because libretro doesn't set the SRAM until after retro_load_game
-            first_frame_run = true;
-        }
-
-        if (retro::is_variable_updated()) {
-            // If any settings have changed...
-            MelonDsDs::UpdateConfig(MelonDsDs::Core, screenLayout, input_state);
-        }
-
-        if (MelonDsDs::render::ReadyToRender(nds)) {
-            // If the global state needed for rendering is ready...
-            ZoneScopedN("retro_run::render");
-            HandleInput(nds, input_state, screenLayout);
-            read_microphone(nds, input_state);
-
-            if (screenLayout.Dirty()) {
-                // If the active screen layout has changed (either by settings or by hotkey)...
-                ZoneScopedN("retro_run::render::dirty");
-                Renderer renderer = MelonDsDs::render::CurrentRenderer();
-                retro_assert(renderer != Renderer::None);
-
-                // Apply the new screen layout
-                screenLayout.Update(renderer);
-
-                // And update the geometry
-                if (!retro::set_geometry(screenLayout.Geometry(renderer))) {
-                    retro::warn("Failed to update geometry after screen layout change");
-                }
-
-                MelonDsDs::opengl::RequestOpenGlRefresh();
-            }
-
-            // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
-            // which is then drawn to the screen by MelonDsDs::render::Render
-            {
-                ZoneScopedN("NDS::RunFrame");
-                nds.RunFrame();
-            }
-
-            render::Render(nds, input_state, screenLayout);
-            MelonDsDs::render_audio(nds);
-
-            retro::task::check();
-        }
+        ZoneScopedN(TracyFunction);
+        MelonDsDs::Core.Run();
     }
     FrameMark;
-}
-
-static void MelonDsDs::read_microphone(NDS& nds, MelonDsDs::InputState& inputState) noexcept {
-    ZoneScopedN("MelonDsDs::read_microphone");
-    MicInputMode mic_input_mode = config::audio::MicInputMode();
-    MicButtonMode mic_button_mode = config::audio::MicButtonMode();
-    bool should_mic_be_on = false;
-
-    switch (mic_button_mode) {
-        // If the microphone button...
-        case MicButtonMode::Hold: {
-            // ...must be held...
-            mic_state_toggled = false;
-            if (!inputState.MicButtonDown()) {
-                // ...but it isn't...
-                mic_input_mode = MicInputMode::None;
-            }
-            should_mic_be_on = inputState.MicButtonDown();
-            break;
-        }
-        case MicButtonMode::Toggle: {
-            // ...must be toggled...
-            if (inputState.MicButtonPressed()) {
-                // ...but it isn't...
-                mic_state_toggled = !mic_state_toggled;
-                if (!mic_state_toggled) {
-                    mic_input_mode = MicInputMode::None;
-                }
-            }
-            should_mic_be_on = mic_state_toggled;
-            break;
-        }
-        case MicButtonMode::Always: {
-            // ...is unnecessary...
-            // Do nothing, the mic input mode is already set
-            should_mic_be_on = true;
-            break;
-        }
-    }
-
-    if (retro::microphone::is_open()) {
-        // TODO: Don't set constantly, only when the mic button state changes (or when the input mode is set to Always)
-        retro::microphone::set_state(should_mic_be_on);
-    }
-
-    switch (mic_input_mode) {
-        case MicInputMode::WhiteNoise: // random noise
-        {
-            s16 tmp[735];
-            for (int i = 0; i < 735; i++) tmp[i] = rand() & 0xFFFF;
-            nds.MicInputFrame(tmp, 735);
-            break;
-        }
-        case MicInputMode::HostMic: // microphone input
-        {
-            const auto mic_state = retro::microphone::get_state();
-            if (mic_state.has_value() && mic_state.value()) {
-                // If the microphone is open and turned on...
-                s16 samples[735];
-                retro::microphone::read(samples, std::size(samples));
-                nds.MicInputFrame(samples, std::size(samples));
-                break;
-            }
-            // If the mic isn't available, feed silence instead
-        }
-        // Intentional fall-through
-        default:
-            nds.MicInputFrame(nullptr, 0);
-    }
-}
-
-static void MelonDsDs::render_audio(NDS& nds) {
-    ZoneScopedN("MelonDsDs::render_audio");
-    int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
-    u32 size = std::min(nds.SPU.GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
-    // Ensure that we don't overrun the buffer
-
-    size_t read = nds.SPU.ReadOutput(audio_buffer, size);
-    retro::audio_sample_batch(audio_buffer, read);
-}
-
-static void SetConsoleTime(NDS& nds) noexcept {
-    ZoneScopedN(TracyFunction);
-    time_t now = time(nullptr);
-    tm tm;
-    struct tm* tmPtr = localtime(&now);
-    memcpy(&tm, tmPtr, sizeof(tm)); // Reduce the odds of race conditions in case some other thread uses this
-    nds.RTC.SetDateTime(tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-    // tm.tm_mon is 0-indexed, but RTC::SetDateTime expects 1-indexed
 }
 
 PUBLIC_SYMBOL void retro_unload_game(void) {
@@ -503,13 +272,10 @@ PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_gam
 // It might be keeping the library around for debugging purposes,
 // or it might just be buggy.
 PUBLIC_SYMBOL void retro_deinit(void) {
-    {
-        ZoneScopedN("retro_deinit");
-        MelonDsDs::isInDeinit = true;
+    { // Scoped so that we can capture one last scope before shutting down the profiler
+        ZoneScopedN(TracyFunction);
         retro::debug("retro_deinit()");
         retro::task::deinit();
-        MelonDsDs::isUnloading = false;
-        MelonDsDs::isInDeinit = false;
         MelonDsDs::Core.~CoreState(); // placement delete
         retro_assert(!MelonDsDs::Core.IsInitialized());
         retro_assert(MelonDsDs::Core.Console == nullptr);
@@ -733,8 +499,6 @@ static void MelonDsDs::load_games(
     }
 }
 
-// melonDS tightly couples the renderer with the rest of the emulation code,
-// so we can't initialize the emulator until the OpenGL context is ready.
 static void MelonDsDs::load_games_deferred(
     NDS& nds,
     const optional<retro_game_info>& nds_info,
