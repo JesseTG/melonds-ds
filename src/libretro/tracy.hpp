@@ -17,12 +17,13 @@
 #ifndef MELONDS_DS_TRACY_HPP
 #define MELONDS_DS_TRACY_HPP
 
-#ifdef HAVE_TRACY
 #if defined(__clang__) || defined(__GNUC__)
 # define TracyFunction __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
 # define TracyFunction __FUNCSIG__
 #endif
+
+#ifdef HAVE_TRACY
 
 #include <tracy/Tracy.hpp>
 #else
