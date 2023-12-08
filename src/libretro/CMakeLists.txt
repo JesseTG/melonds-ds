@@ -7,7 +7,6 @@ add_library(melondsds_libretro MODULE
     buffer.cpp
     buffer.hpp
     cheats.cpp
-    cheats.hpp
     config.hpp
     config/config.cpp
     config/constants.cpp

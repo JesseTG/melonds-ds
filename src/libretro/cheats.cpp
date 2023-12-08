@@ -14,8 +14,6 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#include "cheats.hpp"
-
 #include <string_view>
 
 #include "core.hpp"
