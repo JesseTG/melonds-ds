@@ -27,7 +27,6 @@ namespace MelonDsDs {
     class PixelBuffer {
     public:
         PixelBuffer(glm::uvec2 size) noexcept;
-        ~PixelBuffer() noexcept;
         PixelBuffer(const PixelBuffer&) noexcept;
         PixelBuffer(PixelBuffer&&) noexcept;
         PixelBuffer& operator=(const PixelBuffer&) noexcept;
@@ -42,11 +41,11 @@ namespace MelonDsDs {
         }
 
         [[nodiscard]] uint32_t* operator[](unsigned row) noexcept {
-            return buffer + row * size.x;
+            return buffer.get() + row * size.x;
         }
 
         [[nodiscard]] const uint32_t* operator[](unsigned row) const noexcept {
-            return buffer + row * size.x;
+            return buffer.get() + row * size.x;
         }
 
         operator bool() const noexcept { return buffer != nullptr; }

@@ -29,10 +29,6 @@ MelonDsDs::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
     memset(buffer.get(), 0, size.x * size.y * sizeof(uint32_t));
 }
 
-MelonDsDs::PixelBuffer::~PixelBuffer() noexcept {
-    delete[] buffer;
-}
-
 MelonDsDs::PixelBuffer::PixelBuffer(const PixelBuffer& other) noexcept :
     size(other.size),
     stride(other.stride),
@@ -49,7 +45,6 @@ MelonDsDs::PixelBuffer::PixelBuffer(PixelBuffer&& other) noexcept :
 
 MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(const PixelBuffer& other) noexcept {
     if (this != &other) {
-        delete[] buffer;
         size = other.size;
         stride = other.stride;
         buffer = std::make_unique<uint32_t[]>(size.x * size.y);
