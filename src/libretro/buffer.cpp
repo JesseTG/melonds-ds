@@ -26,13 +26,8 @@ MelonDsDs::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
     size(size),
     stride(size.x * sizeof(uint32_t)),
     buffer(new uint32_t[size.x * size.y]) {
-    memset(buffer, 0, size.x * size.y * sizeof(uint32_t));
+    memset(buffer.get(), 0, size.x * size.y * sizeof(uint32_t));
 }
-
-MelonDsDs::PixelBuffer::PixelBuffer(std::nullptr_t) noexcept :
-    size(0, 0),
-    stride(0),
-    buffer(nullptr) {}
 
 MelonDsDs::PixelBuffer::~PixelBuffer() noexcept {
     delete[] buffer;
@@ -42,13 +37,13 @@ MelonDsDs::PixelBuffer::PixelBuffer(const PixelBuffer& other) noexcept :
     size(other.size),
     stride(other.stride),
     buffer(new uint32_t[other.size.x * other.size.y]) {
-    memcpy(buffer, other.buffer, size.x * size.y * sizeof(uint32_t));
+    memcpy(buffer.get(), other.buffer.get(), size.x * size.y * sizeof(uint32_t));
 }
 
 MelonDsDs::PixelBuffer::PixelBuffer(PixelBuffer&& other) noexcept :
     size(other.size),
     stride(other.stride),
-    buffer(other.buffer) {
+    buffer(std::move(other.buffer)) {
     other.buffer = nullptr;
 }
 
@@ -57,34 +52,24 @@ MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(const PixelBuffer& oth
         delete[] buffer;
         size = other.size;
         stride = other.stride;
-        buffer = new uint32_t[size.x * size.y];
-        memcpy(buffer, other.buffer, size.x * size.y * sizeof(uint32_t));
+        buffer = std::make_unique<uint32_t[]>(size.x * size.y);
+        memcpy(buffer.get(), other.buffer.get(), size.x * size.y * sizeof(uint32_t));
     }
     return *this;
 }
 
 MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(PixelBuffer&& other) noexcept {
     if (this != &other) {
-        delete[] buffer;
         size = other.size;
         stride = other.stride;
-        buffer = other.buffer;
-        other.buffer = nullptr;
+        buffer = std::move(other.buffer);
     }
-    return *this;
-}
-
-MelonDsDs::PixelBuffer& MelonDsDs::PixelBuffer::operator=(std::nullptr_t) noexcept {
-    delete[] buffer;
-    size = uvec2(0, 0);
-    stride = 0;
-    buffer = nullptr;
     return *this;
 }
 
 void MelonDsDs::PixelBuffer::Clear() noexcept {
     if (buffer) {
-        memset(buffer, 0, size.x * size.y * sizeof(uint32_t));
+        memset(buffer.get(), 0, size.x * size.y * sizeof(uint32_t));
     }
 }
 

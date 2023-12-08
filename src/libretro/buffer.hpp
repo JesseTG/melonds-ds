@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 #include <glm/vec2.hpp>
 
@@ -26,13 +27,11 @@ namespace MelonDsDs {
     class PixelBuffer {
     public:
         PixelBuffer(glm::uvec2 size) noexcept;
-        [[deprecated]] PixelBuffer(std::nullptr_t) noexcept;
         ~PixelBuffer() noexcept;
         PixelBuffer(const PixelBuffer&) noexcept;
         PixelBuffer(PixelBuffer&&) noexcept;
         PixelBuffer& operator=(const PixelBuffer&) noexcept;
         PixelBuffer& operator=(PixelBuffer&&) noexcept;
-        [[deprecated]] PixelBuffer& operator=(std::nullptr_t) noexcept;
 
         [[nodiscard]] uint32_t operator[](glm::uvec2 pos) const noexcept {
             return buffer[pos.y * size.x + pos.x];
@@ -56,15 +55,15 @@ namespace MelonDsDs {
         unsigned Width() const noexcept { return size.x; }
         unsigned Height() const noexcept { return size.y; }
         unsigned Stride() const noexcept { return stride; }
-        uint32_t *Buffer() noexcept { return buffer; }
-        const uint32_t *Buffer() const noexcept { return buffer; }
+        uint32_t *Buffer() noexcept { return buffer.get(); }
+        const uint32_t *Buffer() const noexcept { return buffer.get(); }
         void Clear() noexcept;
         void CopyDirect(const uint32_t* source, glm::uvec2 destination) noexcept;
         void CopyRows(const uint32_t* source, glm::uvec2 destination, glm::uvec2 destinationSize) noexcept;
     private:
         glm::uvec2 size;
         unsigned stride;
-        uint32_t *buffer;
+        std::unique_ptr<uint32_t[]> buffer;
     };
 }
 
