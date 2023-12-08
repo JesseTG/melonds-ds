@@ -30,6 +30,7 @@
 #include "exceptions.hpp"
 #include "microphone.hpp"
 #include "message/error.hpp"
+#include "render/render.hpp"
 #include "retro/task_queue.hpp"
 
 using std::byte;
@@ -122,7 +123,7 @@ void MelonDsDs::CoreState::Run() noexcept {
         MelonDsDs::UpdateConfig(MelonDsDs::Core, _screenLayout, _inputState);
     }
 
-    if (MelonDsDs::render::ReadyToRender(nds)) {
+    if (_renderState->Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
         ZoneScopedN("retro_run::render");
         HandleInput(nds, _inputState, _screenLayout);
@@ -138,11 +139,11 @@ void MelonDsDs::CoreState::Run() noexcept {
             _screenLayout.Update(renderer);
 
             // And update the geometry
-            if (!retro::set_geometry(_screenLayout.Geometry(renderer))) {
+            if (!retro::set_geometry(_screenLayout.Geometry(Console->GPU.GetRenderer3D()))) {
                 retro::warn("Failed to update geometry after screen layout change");
             }
 
-            MelonDsDs::opengl::RequestOpenGlRefresh();
+            _renderState->RequestRefresh();
         }
 
         // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
@@ -152,7 +153,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             nds.RunFrame();
         }
 
-        render::Render(nds, _inputState, _screenLayout);
+        _renderState->Render(nds, _inputState, Config, _screenLayout);
         RenderAudio(*Console);
 
         retro::task::check();

@@ -14,35 +14,17 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_OPENGL_HPP
-#define MELONDS_DS_OPENGL_HPP
+#ifndef MELONDSDS_RENDER_SOFTWARE_HPP
+#define MELONDSDS_RENDER_SOFTWARE_HPP
 
-namespace melonDS {
-    class NDS;
-}
+#include "render.hpp"
 
 namespace MelonDsDs {
-    class InputState;
-    class ScreenLayoutData;
+    class SoftwareRenderState final : public RenderState {
+    public:
+        bool Ready() const noexcept override { return true; }
+        void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, ScreenLayoutData& screenLayout) noexcept override;
+    };
 }
 
-namespace MelonDsDs::opengl {
-    // Requests that the OpenGL context be refreshed.
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    void RequestOpenGlRefresh();
-#else
-    inline void RequestOpenGlRefresh() {}
-#endif
-
-    bool Initialize() noexcept;
-
-    void Render(melonDS::NDS& nds, const InputState& state, const ScreenLayoutData& screenLayout) noexcept;
-
-    bool ContextInitialized();
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    bool UsingOpenGl();
-#else
-    inline bool UsingOpenGl() { return false; }
-#endif
-}
-#endif //MELONDS_DS_OPENGL_HPP
+#endif // MELONDSDS_RENDER_SOFTWARE_HPP

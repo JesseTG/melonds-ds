@@ -62,8 +62,6 @@
 #include "input.hpp"
 #include "libretro.hpp"
 #include "microphone.hpp"
-#include "opengl.hpp"
-#include "render.hpp"
 #include "retro/dirent.hpp"
 #include "screenlayout.hpp"
 #include "tracy.hpp"

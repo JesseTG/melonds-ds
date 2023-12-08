@@ -146,9 +146,19 @@ namespace MelonDsDs
         using emulator_exception::emulator_exception;
     };
 
-    class shader_compilation_failed_exception : public emulator_exception {
+    class opengl_exception : public emulator_exception {
     public:
         using emulator_exception::emulator_exception;
+    };
+
+    class shader_compilation_failed_exception : public opengl_exception {
+    public:
+        using opengl_exception::opengl_exception;
+    };
+
+    class opengl_not_initialized_exception : public opengl_exception {
+    public:
+        using opengl_exception::opengl_exception;
     };
 }
 

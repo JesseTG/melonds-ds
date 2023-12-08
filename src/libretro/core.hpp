@@ -41,6 +41,8 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
+    class RenderState;
+
     namespace error {
         class ErrorScreen;
     }
@@ -68,6 +70,8 @@ namespace MelonDsDs {
         void UnloadGame() noexcept;
         std::byte* GetMemoryData(unsigned id) noexcept;
         size_t GetMemorySize(unsigned id) noexcept;
+        void ResetRenderState();
+        void DestroyRenderState();
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
@@ -89,6 +93,7 @@ namespace MelonDsDs {
         std::optional<int> _timeToFirmwareFlush = std::nullopt;
         mutable std::optional<size_t> _savestateSize = std::nullopt;
         std::unique_ptr<error::ErrorScreen> _messageScreen = nullptr;
+        std::unique_ptr<RenderState> _renderState = nullptr;
         // TODO: Switch to compile time regular expressions (see https://compile-time.re)
         std::regex _cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
         std::regex _tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };

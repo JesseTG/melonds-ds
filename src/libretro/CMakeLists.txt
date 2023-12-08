@@ -63,8 +63,6 @@ add_library(melondsds_libretro MODULE
     PlatformOGLPrivate.h
     power.cpp
     power.hpp
-    render.cpp
-    render.hpp
     retro/dirent.cpp
     retro/dirent.hpp
     retro/info.cpp
@@ -151,7 +149,10 @@ if (TRACY_ENABLE)
 endif ()
 
 if (HAVE_OPENGL OR HAVE_OPENGLES)
-    target_sources(melondsds_libretro PRIVATE opengl.cpp)
+    target_sources(melondsds_libretro PRIVATE
+        render/opengl.cpp
+        render/opengl.hpp
+    )
 endif()
 
 if (HAVE_OPENGL)

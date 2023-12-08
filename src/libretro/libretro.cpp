@@ -61,7 +61,7 @@
 #include "microphone.hpp"
 #include "opengl.hpp"
 #include "power.hpp"
-#include "render.hpp"
+#include "render/render.hpp"
 #include "retro/task_queue.hpp"
 #include "screenlayout.hpp"
 #include "sram.hpp"
@@ -360,6 +360,35 @@ PUBLIC_SYMBOL void retro_reset(void) {
     }
 
     MelonDsDs::first_frame_run = false;
+}
+
+void MelonDsDs::HardwareContextReset() noexcept {
+    try {
+        Core.ResetRenderState();
+    }
+    catch (const opengl_exception& e) {
+        retro::error("{}", e.what());
+        retro::set_error_message(e.user_message());
+        retro::shutdown();
+        // TODO: Instead of shutting down, fall back to the software renderer
+    }
+    catch (const emulator_exception& e) {
+        retro::error("{}", e.what());
+        retro::set_error_message(e.user_message());
+        retro::shutdown();
+    }
+    catch (const std::exception& e) {
+        retro::set_error_message(e.what());
+        retro::shutdown();
+    }
+    catch (...) {
+        retro::set_error_message("OpenGL context initialization failed with an unknown error. Please report this issue.");
+        retro::shutdown();
+    }
+}
+
+void MelonDsDs::HardwareContextDestroyed() noexcept {
+    Core.DestroyRenderState();
 }
 
 static void MelonDsDs::load_games(
