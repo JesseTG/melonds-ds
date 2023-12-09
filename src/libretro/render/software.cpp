@@ -21,7 +21,12 @@
 #include <NDS.h>
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
-void MelonDsDs::SoftwareRenderState::Render(melonDS::NDS& nds, const InputState& inputState, const CoreConfig& config, ScreenLayoutData& screenLayout) noexcept {
+void MelonDsDs::SoftwareRenderState::Render(
+    const melonDS::NDS& nds,
+    const InputState& inputState,
+    const CoreConfig& config,
+    const ScreenLayoutData& screenLayout
+) noexcept {
     ZoneScopedN(TracyFunction);
 
     const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();

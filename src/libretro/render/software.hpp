@@ -23,7 +23,13 @@ namespace MelonDsDs {
     class SoftwareRenderState final : public RenderState {
     public:
         bool Ready() const noexcept override { return true; }
-        void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, ScreenLayoutData& screenLayout) noexcept override;
+        void Render(
+            const melonDS::NDS& nds,
+            const InputState& input,
+            const CoreConfig& config,
+            const ScreenLayoutData& screenLayout
+        ) noexcept override;
+
     };
 }
 

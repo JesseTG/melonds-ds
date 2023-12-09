@@ -278,7 +278,7 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState() {
 }
 
 void MelonDsDs::OpenGLRenderState::Render(
-    melonDS::NDS& nds,
+    const melonDS::NDS& nds,
     const InputState& input,
     const CoreConfig& config,
     ScreenLayoutData& screenLayout
@@ -381,7 +381,7 @@ void MelonDsDs::CoreState::DestroyRenderState() {
     }
 }
 
-void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
+void MelonDsDs::OpenGLRenderState::InitFrameState(const melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN("MelonDsDs::opengl::InitializeFrameState");
     TracyGpuZone("MelonDsDs::opengl::InitializeFrameState");
     retro_assert(nds.GPU.GetRenderer3D().Accelerated);
