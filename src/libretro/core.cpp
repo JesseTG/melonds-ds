@@ -381,6 +381,198 @@ void MelonDsDs::CoreState::ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputSta
     }
 }
 
+bool MelonDsDs::CoreState::LoadGame(int type, std::span<const retro_game_info> game) noexcept try {
+    ZoneScopedN(TracyFunction);
+
+    InitContent(type, game);
+
+    // ...then load the game.
+    if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
+        throw environment_exception(
+            "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
+    }
+
+    retro_assert(Console == nullptr);
+
+    span<byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<byte>();
+    const auto* header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(rom.data()) : nullptr;
+    // TODO: Apply config
+    InitConfig(header, _screenLayout, _inputState);
+
+    retro_assert(Console != nullptr);
+
+    melonDS::NDS& nds = *Console;
+
+    if (retro::supports_power_status()) {
+        retro::task::push(PowerStatusUpdateTask());
+    }
+
+    if (optional<unsigned> version = retro::message_interface_version(); version && version >= 1) {
+        // If the frontend supports on-screen notifications...
+        retro::task::push(OnScreenDisplayTask());
+    }
+
+    using retro::environment;
+    using retro::set_message;
+
+    std::unique_ptr<NdsCart> loadedNdsCart;
+    // First parse the ROMs...
+    if (_ndsInfo) {
+        {
+            ZoneScopedN("NDSCart::ParseROM");
+            loadedNdsCart = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(rom.data()), rom.size());
+            // TODO: Create FATStorageArgs if the cart is homebrew
+        }
+
+        if (!loadedNdsCart) {
+            throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
+        }
+
+        retro::debug("Loaded NDS ROM: \"{}\"", _ndsInfo->GetPath());
+
+        if (!loadedNdsCart->GetHeader().IsDSiWare()) {
+            // If this ROM represents a cartridge, rather than DSiWare...
+            sram::InitNdsSave(*loadedNdsCart);
+        }
+    }
+
+    std::unique_ptr<GbaCart> loadedGbaCart;
+    if (_gbaInfo) {
+        if (static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DSi) {
+            retro::set_warn_message(
+                "The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
+        }
+        else {
+            // TODO: Load the ROM and SRAM in one go
+
+            span<byte> gbaRom = _gbaInfo->GetData();
+            {
+                ZoneScopedN("GBACart::ParseROM");
+                loadedGbaCart = melonDS::GBACart::ParseROM(reinterpret_cast<const uint8_t*>(gbaRom.data()), gbaRom.size());
+            }
+
+            if (!loadedGbaCart) {
+                throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
+            }
+
+            retro::debug("Loaded GBA ROM: \"{}\"", _gbaInfo->GetPath());
+
+            if (_gbaSaveInfo) {
+                sram::InitGbaSram(*loadedGbaCart, *_gbaSaveInfo);
+            }
+            else {
+                retro::info("No GBA SRAM was provided.");
+            }
+        }
+    }
+
+    InitFlushFirmwareTask();
+
+    environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
+
+    InitRenderer();
+    // render::Initialize(config::video::ConfiguredRenderer());
+
+    // The ROM must be inserted in retro_load_game,
+    // as the frontend may try to query the savestate size
+    // in between retro_load_game and the first retro_run call.
+    retro_assert(nds.NDSCartSlot.GetCart() == nullptr);
+
+    if (loadedNdsCart) {
+        // If we want to insert a NDS ROM that was previously loaded...
+
+        if (!loadedNdsCart->GetHeader().IsDSiWare()) {
+            // If we're running a physical cartridge...
+
+            nds.SetNDSCart(std::move(loadedNdsCart));
+
+            // Just to be sure
+            retro_assert(loadedNdsCart == nullptr);
+            retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
+        }
+        else {
+            retro_assert(Core.Console->ConsoleType == 1);
+            auto& dsi = *static_cast<melonDS::DSi*>(Core.Console.get());
+            // We're running a DSiWare game, then
+            MelonDsDs::dsi::install_dsiware(dsi.GetNAND(), *_ndsInfo);
+        }
+    }
+
+    if (_gbaInfo && loadedGbaCart) {
+        // If we want to insert a GBA ROM that was previously loaded...
+        nds.SetGBACart(std::move(loadedGbaCart));
+
+        retro_assert(loadedGbaCart == nullptr);
+    }
+
+    if (Console->GPU.GetRenderer3D().Accelerated) {
+        retro::info("Deferring initialization until the OpenGL context is ready");
+        _deferredInitializationPending = true;
+    }
+    else {
+        retro::info("No need to defer initialization, proceeding now");
+        LoadGameDeferred();
+    }
+
+    return true;
+}
+catch (const config_exception& e) {
+    retro::error("{}", e.what());
+
+    return InitErrorScreen(e);
+}
+catch (const emulator_exception& e) {
+    // Thrown for invalid ROMs
+    retro::error("{}", e.what());
+    retro::set_error_message(e.user_message());
+    return false;
+}
+catch (const std::exception& e) {
+    retro::error("{}", e.what());
+    retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+    return false;
+}
+catch (...) {
+    retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
+    return false;
+}
+
+
+void MelonDsDs::CoreState::InitContent(int type, std::span<const retro_game_info> game) {
+    ZoneScopedN(TracyFunction);
+
+    // First initialize the content info...
+    switch (type) {
+        case MELONDSDS_GAME_TYPE_NDS:
+            // ...which refers to a Nintendo DS game...
+            if (game.size() > 0) {
+                _ndsInfo = game[0];
+            }
+            break;
+        case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
+            // ...which refers to both a Nintendo DS and Game Boy Advance game...
+            switch (game.size()) {
+                case 3: // NDS ROM, GBA ROM, and GBA SRAM
+                    _gbaSaveInfo = game[2];
+                    [[fallthrough]];
+                case 2: // NDS ROM and GBA ROM
+                    _ndsInfo = game[0];
+                    _gbaInfo = game[1];
+                    break;
+                default:
+                    retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", game.size());
+                    retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+                    throw std::runtime_error("Invalid number of ROMs for slot-1/2 boot");
+                // TODO: Throw an exception
+            }
+            break;
+        default:
+            retro::error("Unknown game type {}", type);
+            retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+            throw std::runtime_error("Unknown game type");
+    }
+}
+
 /// Savestates in melonDS can vary in size depending on the game,
 /// so we have to try saving the state first before we can know how big it'll be.
 /// RetroArch may try to call this function before the ROM is installed

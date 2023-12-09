@@ -65,30 +65,6 @@ using std::make_unique;
 using retro::task::TaskSpec;
 
 namespace MelonDsDs {
-    static const char *const INTERNAL_ERROR_MESSAGE =
-        "An internal error occurred with melonDS DS. "
-        "Please contact the developer with the log file.";
-
-    static const char *const UNKNOWN_ERROR_MESSAGE =
-        "An unknown error has occurred with melonDS DS. "
-        "Please contact the developer with the log file.";
-
-    // functions for loading games
-    static bool handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept;
-    static void load_games(
-        const optional<retro_game_info> &nds_info,
-        const optional<retro_game_info> &gba_info,
-        const optional<retro_game_info> &gba_save_info
-    );
-    static void load_games_deferred(
-        NDS& nds,
-        const optional<retro_game_info>& nds_info,
-        const optional<retro_game_info>& gba_info
-    );
-    static void set_up_direct_boot(NDS& nds, const retro_game_info &nds_info);
-
-    // functions for running games
-    static void render_audio(NDS& nds);
     static void InitFlushFirmwareTask() noexcept
     {
         string_view firmwareName = config::system::FirmwarePath(config::system::ConsoleType());
@@ -100,8 +76,6 @@ namespace MelonDsDs {
             retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
         }
     }
-
-    retro::task::TaskSpec OnScreenDisplayTask() noexcept;
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -122,67 +96,6 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro_assert(MelonDsDs::Core.IsInitialized());
 }
 
-
-
-static bool MelonDsDs::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
-    ZoneScopedN("MelonDsDs::handle_load_game");
-
-    // First initialize the content info...
-    switch (type) {
-        case MelonDsDs::MELONDSDS_GAME_TYPE_NDS:
-            // ...which refers to a Nintendo DS game...
-            retro::content::set_loaded_content_info(info, nullptr);
-            break;
-        case MelonDsDs::MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
-            // ...which refers to both a Nintendo DS and Game Boy Advance game...
-            switch (num) {
-                case 2: // NDS ROM and GBA ROM
-                    retro::content::set_loaded_content_info(info, info + 1);
-                    break;
-                case 3: // NDS ROM, GBA ROM, and GBA SRAM
-                    retro::content::set_loaded_content_info(info, info + 1, info + 2);
-                    break;
-                default:
-                    retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", num);
-                    retro::set_error_message(MelonDsDs::INTERNAL_ERROR_MESSAGE);
-            }
-            break;
-        default:
-            retro::error("Unknown game type {}", type);
-            retro::set_error_message(MelonDsDs::INTERNAL_ERROR_MESSAGE);
-            return false;
-    }
-
-    // ...then load the game.
-    MelonDsDs::load_games(
-        retro::content::get_loaded_nds_info(),
-        retro::content::get_loaded_gba_info(),
-        retro::content::get_loaded_gba_save_info()
-    );
-
-    return true;
-}
-catch (const MelonDsDs::config_exception& e) {
-    retro::error("{}", e.what());
-
-    return InitErrorScreen(e);
-}
-catch (const MelonDsDs::emulator_exception &e) {
-    // Thrown for invalid ROMs
-    retro::error("{}", e.what());
-    retro::set_error_message(e.user_message());
-    return false;
-}
-catch (const std::exception &e) {
-    retro::error("{}", e.what());
-    retro::set_error_message(MelonDsDs::INTERNAL_ERROR_MESSAGE);
-    return false;
-}
-catch (...) {
-    retro::set_error_message(MelonDsDs::UNKNOWN_ERROR_MESSAGE);
-    return false;
-}
-
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     ZoneScopedN(TracyFunction);
     if (info) {
@@ -193,7 +106,7 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
         retro::debug("retro_load_game(<no content>)");
     }
 
-    return MelonDsDs::handle_load_game(MelonDsDs::MELONDSDS_GAME_TYPE_NDS, info, 1);
+    return MelonDsDs::Core.LoadGame(MelonDsDs::MELONDSDS_GAME_TYPE_NDS, std::span(info, 1));
 }
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
@@ -359,182 +272,4 @@ void MelonDsDs::HardwareContextReset() noexcept {
 
 void MelonDsDs::HardwareContextDestroyed() noexcept {
     Core.DestroyRenderState();
-}
-
-static void MelonDsDs::load_games(
-    const optional<struct retro_game_info> &nds_info,
-    const optional<struct retro_game_info> &gba_info,
-    const optional<struct retro_game_info> &gba_save_info
-) {
-    ZoneScopedN("MelonDsDs::load_games");
-    using MelonDsDs::Core;
-
-    if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
-        throw environment_exception("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
-    }
-
-    retro_assert(Core.Console == nullptr);
-
-    const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
-    // TODO: Apply config
-    MelonDsDs::InitConfig(Core, header, screenLayout, input_state);
-
-    retro_assert(Core.Console != nullptr);
-
-    melonDS::NDS& nds = *Core.Console;
-
-    if (retro::supports_power_status())
-    {
-        retro::task::push(MelonDsDs::power::PowerStatusUpdateTask());
-    }
-
-    if (optional<unsigned> version = retro::message_interface_version(); version && version >= 1) {
-        // If the frontend supports on-screen notifications...
-        retro::task::push(MelonDsDs::OnScreenDisplayTask());
-    }
-
-    using retro::environment;
-    using retro::set_message;
-
-    std::unique_ptr<NdsCart> loadedNdsCart;
-    // First parse the ROMs...
-    if (nds_info) {
-        {
-            ZoneScopedN("NDSCart::ParseROM");
-            loadedNdsCart = NDSCart::ParseROM(static_cast<const u8*>(nds_info->data), nds_info->size);
-        }
-
-        if (!loadedNdsCart) {
-            throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
-        }
-
-        retro::debug("Loaded NDS ROM: \"{}\"", nds_info->path);
-
-        if (!loadedNdsCart->GetHeader().IsDSiWare()) {
-            // If this ROM represents a cartridge, rather than DSiWare...
-            sram::InitNdsSave(*loadedNdsCart);
-        }
-    }
-
-    std::unique_ptr<GbaCart> loadedGbaCart;
-    if (gba_info) {
-        if (config::system::ConsoleType() == ConsoleType::DSi) {
-            retro::set_warn_message("The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
-        } else {
-            // TODO: Load the ROM and SRAM in one go
-            {
-                ZoneScopedN("GBACart::ParseROM");
-                loadedGbaCart = GBACart::ParseROM(static_cast<const u8*>(gba_info->data), gba_info->size);
-            }
-
-            if (!loadedGbaCart) {
-                throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
-            }
-
-            retro::debug("Loaded GBA ROM: \"{}\"", gba_info->path);
-
-            if (gba_save_info) {
-                sram::InitGbaSram(*loadedGbaCart, *gba_save_info);
-            }
-            else {
-                retro::info("No GBA SRAM was provided.");
-            }
-        }
-    }
-
-    InitFlushFirmwareTask();
-
-    if (loadedGbaCart && (nds.IsLoadedARM9BIOSBuiltIn() || nds.IsLoadedARM7BIOSBuiltIn() || nds.SPI.GetFirmwareMem()->IsLoadedFirmwareBuiltIn())) {
-        // If we're using FreeBIOS and are trying to load a GBA cart...
-        retro::set_warn_message(
-            "FreeBIOS does not support GBA connectivity. "
-            "Please install a native BIOS and enable it in the options menu."
-        );
-    }
-
-    environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void *) &MelonDsDs::input_descriptors);
-
-    render::Initialize(config::video::ConfiguredRenderer());
-
-    // The ROM must be inserted in retro_load_game,
-    // as the frontend may try to query the savestate size
-    // in between retro_load_game and the first retro_run call.
-    retro_assert(nds.NDSCartSlot.GetCart() == nullptr);
-
-    if (loadedNdsCart) {
-        // If we want to insert a NDS ROM that was previously loaded...
-
-        if (!loadedNdsCart->GetHeader().IsDSiWare()) {
-            // If we're running a physical cartridge...
-
-            nds.SetNDSCart(std::move(loadedNdsCart));
-
-            // Just to be sure
-            retro_assert(loadedNdsCart == nullptr);
-            retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
-        }
-        else {
-            retro_assert(Core.Console->ConsoleType == 1);
-            auto& dsi = *static_cast<DSi*>(Core.Console.get());
-            // We're running a DSiWare game, then
-            MelonDsDs::dsi::install_dsiware(dsi.GetNAND(), *nds_info);
-        }
-    }
-
-    if (gba_info && loadedGbaCart) {
-        // If we want to insert a GBA ROM that was previously loaded...
-        nds.SetGBACart(std::move(loadedGbaCart));
-
-        retro_assert(loadedGbaCart == nullptr);
-    }
-
-    if (render::CurrentRenderer() == Renderer::OpenGl) {
-        retro::info("Deferring initialization until the OpenGL context is ready");
-        deferred_initialization_pending = true;
-    } else {
-        retro::info("No need to defer initialization, proceeding now");
-        load_games_deferred(nds, nds_info, gba_info);
-    }
-}
-
-static void MelonDsDs::load_games_deferred(
-    NDS& nds,
-    const optional<retro_game_info>& nds_info,
-    const optional<retro_game_info>& gba_info
-) {
-    ZoneScopedN("MelonDsDs::load_games_deferred");
-
-    {
-        ZoneScopedN("NDS::Reset");
-        nds.Reset();
-    }
-
-    SetConsoleTime(nds);
-
-    if (nds_info && nds.NDSCartSlot.GetCart() && !nds.NDSCartSlot.GetCart()->GetHeader().IsDSiWare()) {
-        set_up_direct_boot(nds, *nds_info);
-    }
-
-    nds.Start();
-
-    retro::info("Initialized emulated console and loaded emulated game");
-}
-
-// Decrypts the ROM's secure area
-static void MelonDsDs::set_up_direct_boot(NDS& nds, const retro_game_info &nds_info) {
-    ZoneScopedN("MelonDsDs::set_up_direct_boot");
-    if (config::system::DirectBoot() || nds.NeedsDirectBoot()) {
-        char game_name[256];
-        const char *ptr = path_basename(nds_info.path);
-        if (ptr)
-            strlcpy(game_name, ptr, sizeof(game_name));
-        else
-            strlcpy(game_name, nds_info.path, sizeof(game_name));
-
-        {
-            ZoneScopedN("NDS::SetupDirectBoot");
-            nds.SetupDirectBoot(game_name);
-        }
-        retro::debug("Initialized direct boot for \"{}\"", game_name);
-    }
 }
