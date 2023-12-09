@@ -138,9 +138,6 @@ PUBLIC_SYMBOL void retro_init(void) {
 
 static bool MelonDsDs::handle_load_game(unsigned type, const struct retro_game_info *info, size_t num) noexcept try {
     ZoneScopedN("MelonDsDs::handle_load_game");
-    retro_assert(retro::content::get_loaded_nds_info() == nullopt);
-    retro_assert(retro::content::get_loaded_gba_info() == nullopt);
-    retro_assert(retro::content::get_loaded_gba_save_info() == nullopt);
 
     // First initialize the content info...
     switch (type) {
@@ -199,7 +196,7 @@ catch (...) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
-    ZoneScopedN("retro_load_game");
+    ZoneScopedN(TracyFunction);
     if (info) {
         ZoneText(info->path, strlen(info->path));
         retro::debug("retro_load_game(\"{}\", {})", info->path, info->size);
