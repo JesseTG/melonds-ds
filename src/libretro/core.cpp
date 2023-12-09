@@ -381,7 +381,7 @@ void MelonDsDs::CoreState::ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputSta
     }
 }
 
-bool MelonDsDs::CoreState::LoadGame(int type, std::span<const retro_game_info> game) noexcept try {
+bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept try {
     ZoneScopedN(TracyFunction);
 
     InitContent(type, game);
