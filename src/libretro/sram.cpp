@@ -34,7 +34,6 @@
 
 #include "config.hpp"
 #include "config/constants.hpp"
-#include "content.hpp"
 #include "core.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
@@ -49,31 +48,6 @@ using std::make_unique;
 using std::string;
 using std::string_view;
 using namespace melonDS;
-
-unique_ptr<MelonDsDs::sram::SaveManager> MelonDsDs::sram::NdsSaveManager;
-unique_ptr<MelonDsDs::sram::SaveManager> MelonDsDs::sram::GbaSaveManager;
-static optional<int> TimeToGbaFlush = nullopt;
-static optional<int> TimeToFirmwareFlush = nullopt;
-
-void MelonDsDs::sram::init() {
-    ZoneScopedN("MelonDsDs::sram::init");
-    retro_assert(NdsSaveManager == nullptr);
-    retro_assert(GbaSaveManager == nullptr);
-    TimeToGbaFlush = nullopt;
-    TimeToFirmwareFlush = nullopt;
-}
-
-void MelonDsDs::sram::reset() noexcept {
-    ZoneScopedN("MelonDsDs::sram::reset");
-    TimeToGbaFlush = 0;
-    TimeToFirmwareFlush = 0;
-}
-
-void MelonDsDs::sram::deinit() noexcept {
-    ZoneScopedN("MelonDsDs::sram::deinit");
-    NdsSaveManager = nullptr;
-    GbaSaveManager = nullptr;
-}
 
 MelonDsDs::sram::SaveManager::SaveManager(u32 initialLength) :
         _sram(new u8[initialLength]),
