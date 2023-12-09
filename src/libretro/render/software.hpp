@@ -17,11 +17,21 @@
 #ifndef MELONDSDS_RENDER_SOFTWARE_HPP
 #define MELONDSDS_RENDER_SOFTWARE_HPP
 
+#include <optional>
+#include <span>
+
+#include <glm/mat3x3.hpp>
+#include <glm/vec2.hpp>
+
+#include "buffer.hpp"
 #include "render.hpp"
+#include "screenlayout.hpp"
+#include "retro/scaler.hpp"
 
 namespace MelonDsDs {
     class SoftwareRenderState final : public RenderState {
     public:
+        SoftwareRenderState() noexcept;
         bool Ready() const noexcept override { return true; }
         void Render(
             const melonDS::NDS& nds,
@@ -30,6 +40,24 @@ namespace MelonDsDs {
             const ScreenLayoutData& screenLayout
         ) noexcept override;
 
+        unsigned BufferWidth() const noexcept { return buffer.Width(); }
+        unsigned BufferHeight() const noexcept { return buffer.Height(); }
+        glm::uvec2 BufferSize() const noexcept { return buffer.Size(); }
+
+    private:
+        void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation, ScreenLayout layout) noexcept;
+        void DrawCursor(const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
+        void CombineScreens(
+            std::span<const uint32_t, NDS_SCREEN_AREA<size_t>> topBuffer,
+            std::span<const uint32_t, NDS_SCREEN_AREA<size_t>> bottomBuffer,
+            const ScreenLayoutData& screenLayout
+        ) noexcept;
+        void UpdateHybridState(const ScreenLayoutData& screenLayout) noexcept;
+
+        PixelBuffer buffer;
+        // Used as a staging area for the hybrid screen to be scaled
+        PixelBuffer hybridBuffer;
+        retro::Scaler hybridScaler;
     };
 }
 

@@ -51,98 +51,10 @@ MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
     hybridScreenMatrix(1),
     pointerMatrix(1),
     hybridRatio(2),
-    _numberOfLayouts(1),
-    buffer(nullptr),
-    hybridBuffer(nullptr) {
+    _numberOfLayouts(1) {
 }
 
 MelonDsDs::ScreenLayoutData::~ScreenLayoutData() noexcept {
-}
-
-void MelonDsDs::ScreenLayoutData::CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::CopyScreen");
-    // Only used for software rendering
-
-    // melonDS's software renderer draws each emulated screen to its own buffer,
-    // and then the frontend combines them based on the current layout.
-    // In the original buffer, all pixels are contiguous in memory.
-    // If a screen doesn't need anything drawn to its side (such as blank space or another screen),
-    // then we can just copy the entire screen at once.
-    // But if a screen *does* need anything drawn on either side of it,
-    // then its pixels can't all be contiguous in memory.
-    // In that case, we have to copy each row of pixels individually to a different offset.
-    if (LayoutSupportsDirectCopy(Layout())) {
-        buffer.CopyDirect(src, destTranslation);
-    } else {
-        // Not all of this screen's pixels will be contiguous in memory, so we have to copy them row by row
-        buffer.CopyRows(src, destTranslation, NDS_SCREEN_SIZE<unsigned>);
-    }
-}
-
-void MelonDsDs::ScreenLayoutData::DrawCursor(float cursorSize, glm::ivec2 touch) noexcept {
-    switch (Layout()) {
-        default:
-            DrawCursor(cursorSize, touch, bottomScreenMatrix);
-            break;
-        case ScreenLayout::TopOnly:
-            return;
-    }
-}
-
-void MelonDsDs::ScreenLayoutData::DrawCursor(float cursorSize, ivec2 touch, const mat3& matrix) noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::DrawCursor");
-    // Only used for software rendering
-    if (!buffer)
-        return;
-
-    ivec2 clampedTouch = glm::clamp(touch, ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
-    ivec2 transformedTouch = matrix * vec3(clampedTouch, 1);
-
-    uvec2 start = glm::clamp(transformedTouch - ivec2(cursorSize), ivec2(0), ivec2(bufferSize));
-    uvec2 end = glm::clamp(transformedTouch + ivec2(cursorSize), ivec2(0), ivec2(bufferSize));
-
-    for (uint32_t y = start.y; y < end.y; y++) {
-        for (uint32_t x = start.x; x < end.x; x++) {
-            // TODO: Replace with SIMD (does GLM have a SIMD version of this?)
-            uint32_t& pixel = buffer[uvec2(x, y)];
-            pixel = (0xFFFFFF - pixel) | 0xFF000000;
-        }
-    }
-}
-
-void MelonDsDs::ScreenLayoutData::CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::CombineScreens");
-    if (!buffer)
-        return;
-
-    Clear();
-    ScreenLayout layout = Layout();
-    if (IsHybridLayout(layout)) {
-        retro_assert(hybridBuffer);
-        const uint32_t* primaryBuffer = layout == ScreenLayout::HybridTop ? topBuffer : bottomBuffer;
-
-        hybridScaler.Scale(hybridBuffer.Buffer(), primaryBuffer);
-        buffer.CopyRows(hybridBuffer.Buffer(), hybridScreenTranslation, NDS_SCREEN_SIZE<unsigned> * hybridRatio);
-
-        HybridSideScreenDisplay smallScreenLayout = HybridSmallScreenLayout();
-
-        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom) {
-            // If we should display both screens, or if the bottom one is the primary...
-            buffer.CopyRows(topBuffer, topScreenTranslation, NDS_SCREEN_SIZE<unsigned>);
-        }
-
-        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop) {
-            // If we should display both screens, or if the top one is being focused...
-            buffer.CopyRows(bottomBuffer, bottomScreenTranslation, NDS_SCREEN_SIZE<unsigned>);
-        }
-
-    } else {
-        if (layout != ScreenLayout::BottomOnly)
-            CopyScreen(topBuffer, topScreenTranslation);
-
-        if (layout != ScreenLayout::TopOnly)
-            CopyScreen(bottomBuffer, bottomScreenTranslation);
-    }
 }
 
 /// For a screen in the top left corner
@@ -250,10 +162,8 @@ glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) con
     }
 }
 
-void MelonDsDs::ScreenLayoutData::Update(MelonDsDs::Renderer renderer, ScreenFilter filter) noexcept {
+void MelonDsDs::ScreenLayoutData::Update(ScreenFilter filter) noexcept {
     ZoneScopedN("MelonDsDs::ScreenLayoutData::Update");
-    unsigned scale = (renderer == Renderer::Software) ? 1 : resolutionScale;
-    uvec2 oldBufferSize = bufferSize;
 
     // These points represent the NDS screen coordinates without transformations
     array<vec2, 4> baseScreenPoints = {
@@ -265,9 +175,9 @@ void MelonDsDs::ScreenLayoutData::Update(MelonDsDs::Renderer renderer, ScreenFil
 
     // Get the matrices we'll be using
     // (except the pointer matrix, we need to compute the buffer size first)
-    topScreenMatrix = GetTopScreenMatrix(scale);
-    bottomScreenMatrix = GetBottomScreenMatrix(scale);
-    hybridScreenMatrix = GetHybridScreenMatrix(scale);
+    topScreenMatrix = GetTopScreenMatrix(resolutionScale);
+    bottomScreenMatrix = GetBottomScreenMatrix(resolutionScale);
+    hybridScreenMatrix = GetHybridScreenMatrix(resolutionScale);
     hybridScreenMatrixInverse = inverse(hybridScreenMatrix);
     bottomScreenMatrixInverse = inverse(bottomScreenMatrix);
 
@@ -312,41 +222,7 @@ void MelonDsDs::ScreenLayoutData::Update(MelonDsDs::Renderer renderer, ScreenFil
         retro::set_error_message("Failed to rotate screen.");
     }
 
-    if (renderer == Renderer::OpenGl) {
-        // not needed anymore :)
-        buffer = nullptr;
-        hybridBuffer = nullptr;
-    } else {
-        if (bufferSize != oldBufferSize || !buffer) {
-            buffer = PixelBuffer(bufferSize);
-        }
-
-        if (IsHybridLayout(Layout())) {
-            // TODO: Don't recreate this buffer if the hybrid ratio didn't change
-            // TODO: Maintain a separate _hybridDirty flag
-            hybridBuffer = PixelBuffer(NDS_SCREEN_SIZE<unsigned> * hybridRatio);
-            hybridScaler = retro::Scaler(
-                SCALER_FMT_ARGB8888,
-                SCALER_FMT_ARGB8888,
-                filter == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
-                NDS_SCREEN_WIDTH,
-                NDS_SCREEN_HEIGHT,
-                NDS_SCREEN_WIDTH * hybridRatio,
-                NDS_SCREEN_HEIGHT * hybridRatio
-            );
-        } else {
-            hybridBuffer = nullptr;
-        }
-    }
-
     _dirty = false;
-}
-
-
-void MelonDsDs::ScreenLayoutData::Clear() noexcept {
-    if (buffer) {
-        buffer.Clear();
-    }
 }
 
 retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(const melonDS::Renderer3D& renderer) const noexcept {

@@ -39,6 +39,8 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
+    class RenderState;
+
     /// The native width of a single Nintendo DS screen, in pixels
     constexpr int NDS_SCREEN_WIDTH = 256;
 
@@ -82,16 +84,10 @@ namespace MelonDsDs {
     public:
         ScreenLayoutData();
         ~ScreenLayoutData() noexcept;
-        void DrawCursor(float cursorSize, glm::ivec2 touch) noexcept;
-        void CombineScreens(const uint32_t* topBuffer, const uint32_t* bottomBuffer) noexcept;
 
-        void Update(Renderer renderer, ScreenFilter filter) noexcept;
+        void Update(ScreenFilter filter) noexcept;
 
         bool Dirty() const noexcept { return _dirty; }
-        void Clear() noexcept;
-
-        PixelBuffer& Buffer() noexcept { return buffer; }
-        const PixelBuffer& Buffer() const noexcept { return buffer; }
 
         /// The width of the image necessary to hold this layout, in pixels
         unsigned BufferWidth() const noexcept { return bufferSize.x; }
@@ -196,12 +192,14 @@ namespace MelonDsDs {
         [[nodiscard]] retro_game_geometry Geometry(const melonDS::Renderer3D& renderer) const noexcept;
 
         [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
+        [[nodiscard]] const glm::mat3& GetBottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
+        [[nodiscard]] glm::uvec2 GetTopScreenTranslation() const noexcept { return topScreenTranslation; }
+        [[nodiscard]] glm::uvec2 GetBottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
+        [[nodiscard]] glm::uvec2 GetHybridScreenTranslation() const noexcept { return hybridScreenTranslation; }
     private:
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
-        void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation) noexcept;
-        void DrawCursor(float cursorSize, glm::ivec2 touch, const glm::mat3& matrix) noexcept;
 
         bool _dirty;
         unsigned resolutionScale;
@@ -231,11 +229,6 @@ namespace MelonDsDs {
         glm::uvec2 hybridScreenTranslation;
 
         glm::uvec2 bufferSize;
-        PixelBuffer buffer;
-
-        // Used as a staging area for the hybrid screen to be scaled
-        PixelBuffer hybridBuffer;
-        retro::Scaler hybridScaler;
     };
 
     constexpr bool LayoutSupportsScreenGap(ScreenLayout layout) noexcept {
