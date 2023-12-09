@@ -33,34 +33,22 @@
 #include <streams/rzip_stream.h>
 
 #include <DSi.h>
-#include <DSi_I2C.h>
 #include <frontend/FrontendUtil.h>
 #include <GBACart.h>
-#include <GPU.h>
 #include <NDS.h>
 #include <NDSCart.h>
-#include <Platform.h>
 #include <SPI.h>
-#include <SPU.h>
-#include <ARM.h>
 #undef isnan
 #include <fmt/format.h>
-#include <RTC.h>
 
 #include "config.hpp"
-#include "content.hpp"
 #include "core.hpp"
 #include "dsi.hpp"
 #include "environment.hpp"
-#include "message/error.hpp"
 #include "exceptions.hpp"
 #include "file.hpp"
 #include "info.hpp"
 #include "input.hpp"
-#include "memory.hpp"
-#include "microphone.hpp"
-#include "power.hpp"
-#include "render/render.hpp"
 #include "retro/task_queue.hpp"
 #include "screenlayout.hpp"
 #include "sram.hpp"
