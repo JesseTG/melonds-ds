@@ -22,6 +22,10 @@
 
 using glm::uvec2;
 
+MelonDsDs::PixelBuffer::PixelBuffer(unsigned width, unsigned height) noexcept :
+    PixelBuffer(uvec2(width, height)) {
+}
+
 MelonDsDs::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
     size(size),
     stride(size.x * sizeof(uint32_t)),

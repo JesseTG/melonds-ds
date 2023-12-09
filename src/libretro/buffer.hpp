@@ -26,6 +26,7 @@
 namespace MelonDsDs {
     class PixelBuffer {
     public:
+        PixelBuffer(unsigned width, unsigned height) noexcept;
         PixelBuffer(glm::uvec2 size) noexcept;
         PixelBuffer(const PixelBuffer&) noexcept;
         PixelBuffer(PixelBuffer&&) noexcept;
