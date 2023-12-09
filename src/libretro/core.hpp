@@ -32,6 +32,10 @@
 struct retro_game_info;
 struct retro_system_av_info;
 
+namespace retro::task {
+    class TaskSpec;
+}
+
 namespace melonDS {
     class NDS;
 
@@ -83,6 +87,12 @@ namespace MelonDsDs {
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
+        [[gnu::cold]] void InitContent(int type, std::span<const retro_game_info> game);
+        [[gnu::cold]] void InitRenderer();
+
+        retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
+        retro::task::TaskSpec OnScreenDisplayTask() noexcept;
+        retro::task::TaskSpec
         void ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept;
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};

@@ -380,7 +380,6 @@ static void MelonDsDs::load_games(
 ) {
     ZoneScopedN("MelonDsDs::load_games");
     using MelonDsDs::Core;
-    MelonDsDs::clear_memory_config();
 
     if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
         throw environment_exception("Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
@@ -550,92 +549,4 @@ static void MelonDsDs::set_up_direct_boot(NDS& nds, const retro_game_info &nds_i
         }
         retro::debug("Initialized direct boot for \"{}\"", game_name);
     }
-}
-
-retro::task::TaskSpec MelonDsDs::OnScreenDisplayTask() noexcept {
-    return retro::task::TaskSpec(
-        [](retro::task::TaskHandle&) noexcept {
-            using std::to_string;
-            ZoneScopedN("MelonDsDs::OnScreenDisplayTask");
-            constexpr const char* const OSD_DELIMITER = " || ";
-            constexpr const char* const OSD_YES = "✔";
-            constexpr const char* const OSD_NO = "✘";
-
-            retro_assert(MelonDsDs::Core.Console != nullptr);
-            NDS& nds = *MelonDsDs::Core.Console;
-
-            // TODO: If an on-screen display isn't supported, finish the task
-            fmt::memory_buffer buf;
-            auto inserter = std::back_inserter(buf);
-
-            if (config::osd::ShowPointerCoordinates()) {
-                glm::i16vec2 pointerInput = input_state.PointerInput();
-                glm::ivec2 joystick = input_state.JoystickTouchPosition();
-                glm::ivec2 touch = input_state.PointerTouchPosition();
-                fmt::format_to(
-                    inserter,
-                    "Pointer: ({}, {}) → ({}, {}) || Joystick: ({}, {})",
-                    pointerInput.x, pointerInput.y,
-                    touch.x, touch.y,
-                    joystick.x, joystick.y
-                );
-            }
-
-            if (config::osd::ShowMicState()) {
-                optional<bool> mic_state = retro::microphone::get_state();
-
-                if (mic_state && *mic_state) {
-                    // If the microphone is open and turned on...
-                    fmt::format_to(
-                        inserter,
-                        "{}{}",
-                        buf.size() == 0 ? "" : OSD_DELIMITER,
-                        (nds.NumFrames % 120 > 60) ? "●" : "○"
-                    );
-                    // Toggle between a filled circle and an empty one every 1.5 seconds
-                    // (kind of like a blinking "recording" light)
-                }
-            }
-
-            if (config::osd::ShowCurrentLayout()) {
-                fmt::format_to(
-                    inserter,
-                    "{}Layout {}/{}",
-                    buf.size() == 0 ? "" : OSD_DELIMITER,
-                    screenLayout.LayoutIndex() + 1,
-                    screenLayout.NumberOfLayouts()
-                );
-            }
-
-            if (config::osd::ShowLidState() && nds.IsLidClosed()) {
-                fmt::format_to(
-                    inserter,
-                    "{}Closed",
-                    buf.size() == 0 ? "" : OSD_DELIMITER
-                );
-            }
-
-            // fmt::format_to does not append a null terminator
-            buf.push_back('\0');
-
-
-            if (buf.size() > 0) {
-                retro_message_ext message {
-                    .msg = buf.data(),
-                    .duration = 60,
-                    .priority = 0,
-                    .level = RETRO_LOG_DEBUG,
-                    .target = RETRO_MESSAGE_TARGET_OSD,
-                    .type = RETRO_MESSAGE_TYPE_STATUS,
-                    .progress = -1
-                };
-                retro::set_message(message);
-            }
-
-        },
-        nullptr,
-        nullptr,
-        retro::task::ASAP,
-        "OnScreenDisplayTask"
-    );
 }

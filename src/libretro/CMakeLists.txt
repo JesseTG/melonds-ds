@@ -24,8 +24,7 @@ add_library(melondsds_libretro MODULE
     config/parse.cpp
     config/parse.hpp
     config/types.hpp
-    content.cpp
-    content.hpp
+    core/tasks.cpp
     core.cpp
     core.hpp
     dsi.cpp
@@ -61,8 +60,6 @@ add_library(melondsds_libretro MODULE
     platform/semaphore.cpp
     platform/thread.cpp
     PlatformOGLPrivate.h
-    power.cpp
-    power.hpp
     retro/dirent.cpp
     retro/dirent.hpp
     retro/info.cpp
