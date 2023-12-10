@@ -33,7 +33,7 @@ namespace MelonDsDs {
         /// Returns true if all state necessary for rendering is ready.
         /// This includes the OpenGL context (if applicable) and the emulator's renderer.
         virtual bool Ready() const noexcept = 0;
-        virtual void Render(const melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept = 0;
+        virtual void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept = 0;
         virtual void RequestRefresh() {}
     };
 }

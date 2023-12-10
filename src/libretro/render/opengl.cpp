@@ -278,10 +278,10 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState() {
 }
 
 void MelonDsDs::OpenGLRenderState::Render(
-    const melonDS::NDS& nds,
+    melonDS::NDS& nds,
     const InputState& input,
     const CoreConfig& config,
-    ScreenLayoutData& screenLayout
+    const ScreenLayoutData& screenLayout
 ) noexcept {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);

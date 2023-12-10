@@ -34,7 +34,7 @@ namespace MelonDsDs {
         SoftwareRenderState() noexcept;
         bool Ready() const noexcept override { return true; }
         void Render(
-            const melonDS::NDS& nds,
+            melonDS::NDS& nds,
             const InputState& input,
             const CoreConfig& config,
             const ScreenLayoutData& screenLayout

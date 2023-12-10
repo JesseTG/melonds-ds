@@ -37,7 +37,7 @@ MelonDsDs::SoftwareRenderState::SoftwareRenderState() noexcept :
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
 void MelonDsDs::SoftwareRenderState::Render(
-    const melonDS::NDS& nds,
+    melonDS::NDS& nds,
     const InputState& inputState,
     const CoreConfig& config,
     const ScreenLayoutData& screenLayout
@@ -74,7 +74,7 @@ void MelonDsDs::SoftwareRenderState::Render(
         screenLayout
     );
 
-    if (!const_cast<melonDS::NDS&>(nds).IsLidClosed() && inputState.CursorVisible()) {
+    if (!nds.IsLidClosed() && inputState.CursorVisible()) {
         DrawCursor(inputState, config, screenLayout);
     }
 
