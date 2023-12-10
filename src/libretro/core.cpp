@@ -614,7 +614,7 @@ catch (...) {
 }
 
 
-void MelonDsDs::CoreState::InitContent(int type, std::span<const retro_game_info> game) {
+void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game_info> game) {
     ZoneScopedN(TracyFunction);
 
     // First initialize the content info...

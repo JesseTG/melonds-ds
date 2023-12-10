@@ -87,7 +87,7 @@ namespace MelonDsDs {
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
-        [[gnu::cold]] void InitContent(int type, std::span<const retro_game_info> game);
+        [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
         [[gnu::cold]] void InitRenderer();
 
         retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
