@@ -54,8 +54,8 @@ namespace MelonDsDs {
 
     class CoreState {
     public:
-        CoreState(bool init) noexcept;
-        ~CoreState() noexcept;
+        CoreState() noexcept = default;
+        ~CoreState() noexcept = default;
 
         // TODO: Make private
         std::unique_ptr<melonDS::NDS> Console = nullptr;
@@ -122,7 +122,5 @@ namespace MelonDsDs {
         bool _micStateToggled = false;
         uint32_t _flushTaskId = 0;
     };
-
-    extern CoreState Core;
 }
 #endif //MELONDSDS_CORE_HPP

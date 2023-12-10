@@ -64,6 +64,11 @@ using std::unique_ptr;
 using std::make_unique;
 using retro::task::TaskSpec;
 
+namespace MelonDsDs {
+    static std::array<std::byte, sizeof(CoreState)> CoreStateBuffer;
+    static CoreState& Core = *reinterpret_cast<CoreState*>(CoreStateBuffer.data());
+}
+
 PUBLIC_SYMBOL void retro_init(void) {
 #ifdef HAVE_TRACY
     tracy::StartupProfiler();
@@ -78,7 +83,8 @@ PUBLIC_SYMBOL void retro_init(void) {
 
     retro::task::init(false, nullptr);
 
-    new(&MelonDsDs::Core) MelonDsDs::CoreState(true); // placement-new the CoreState
+    memset(MelonDsDs::CoreStateBuffer.data(), 0, MelonDsDs::CoreStateBuffer.size());
+    new(&MelonDsDs::CoreStateBuffer) MelonDsDs::CoreState(); // placement-new the CoreState
     retro_assert(MelonDsDs::Core.IsInitialized());
 }
 
