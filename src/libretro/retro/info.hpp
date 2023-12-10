@@ -32,8 +32,8 @@ namespace retro {
         GameInfo(const retro_game_info& info) noexcept;
 
         std::string_view GetPath() const noexcept { return _path; }
-        std::span<std::byte> GetData() const noexcept {
-            return std::span<std::byte>(_data.get(), _size);
+        std::span<const std::byte> GetData() const noexcept {
+            return std::span(_data.get(), _size);
         }
         std::string_view GetMeta() const noexcept { return _meta; }
     private:
