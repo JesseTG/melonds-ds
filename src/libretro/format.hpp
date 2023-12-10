@@ -29,7 +29,7 @@
 #include <libretro.h>
 #include <gfx/scaler/scaler.h>
 
-#include "config.hpp"
+#include "config/config.hpp"
 
 namespace fmt {
     template<>

@@ -29,7 +29,7 @@
 
 #include "../memory.hpp"
 #include "../environment.hpp"
-#include "../config.hpp"
+#include "../config/config.hpp"
 #include "../format.hpp"
 #include "retro/scaler.hpp"
 #include "sram.hpp"

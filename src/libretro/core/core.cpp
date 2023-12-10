@@ -17,22 +17,22 @@
 #include "core.hpp"
 
 #include <charconv>
-#include <DSi.h>
+#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/DSi.h>
 
-#include <libretro.h>
-#include <retro_assert.h>
+#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/libretro.h>
+#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/retro_assert.h>
 
-#include <NDS.h>
-#include <compat/strl.h>
-#include <file/file_path.h>
+#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/NDS.h>
+#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/compat/strl.h>
+#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/file/file_path.h>
 
 #include "dsi.hpp"
-#include "exceptions.hpp"
-#include "info.hpp"
-#include "microphone.hpp"
-#include "message/error.hpp"
-#include "render/render.hpp"
-#include "retro/task_queue.hpp"
+#include "../exceptions.hpp"
+#include "../info.hpp"
+#include "../microphone.hpp"
+#include "../message/error.hpp"
+#include "../render/render.hpp"
+#include "../retro/task_queue.hpp"
 
 using std::byte;
 using std::span;
@@ -87,7 +87,7 @@ void MelonDsDs::CoreState::UnloadGame() noexcept {
         }
     }
 
-    Core.Console = nullptr;
+    Console = nullptr;
 }
 
 void MelonDsDs::CoreState::Run() noexcept {

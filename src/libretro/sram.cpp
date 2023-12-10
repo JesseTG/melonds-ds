@@ -32,9 +32,9 @@
 #include <SPI.h>
 #include <string/stdstring.h>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "config/constants.hpp"
-#include "core.hpp"
+#include "core/core.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "libretro.hpp"

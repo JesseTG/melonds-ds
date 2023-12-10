@@ -20,7 +20,7 @@
 #include <libretro.h>
 #include <glm/vec2.hpp>
 
-#include "config.hpp"
+#include "config/config.hpp"
 
 namespace melonDS {
     class NDS;

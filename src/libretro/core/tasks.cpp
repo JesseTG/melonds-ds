@@ -28,7 +28,7 @@
 #include <streams/file_stream.h>
 
 
-#include "config.hpp"
+#include "../config/config.hpp"
 #include "core.hpp"
 #include "environment.hpp"
 #include "microphone.hpp"

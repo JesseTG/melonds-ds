@@ -22,7 +22,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <features/features_cpu.h>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "environment.hpp"
 #include "libretro.hpp"
 #include "math.hpp"

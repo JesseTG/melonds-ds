@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "libretro.hpp"
-#include "memory.hpp"
 
 //! Definitions for managing SRAM.
 
@@ -32,8 +31,6 @@ namespace retro::task {
 struct retro_game_info;
 
 namespace MelonDsDs::sram  {
-    void InitNdsSave(const NdsCart &nds_cart);
-
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
     class SaveManager {
     public:

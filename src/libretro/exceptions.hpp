@@ -25,7 +25,7 @@
 #include <vector>
 #include <memory>
 #include <DSi_NAND.h>
-#include "config.hpp"
+#include "config/config.hpp"
 
 namespace MelonDsDs
 {

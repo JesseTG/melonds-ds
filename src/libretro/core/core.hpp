@@ -23,11 +23,11 @@
 #include <regex>
 #include <span>
 
-#include "config.hpp"
-#include "retro/info.hpp"
-#include "screenlayout.hpp"
-#include "PlatformOGLPrivate.h"
-#include "sram.hpp"
+#include "../config/config.hpp"
+#include "../retro/info.hpp"
+#include "../screenlayout.hpp"
+#include "../PlatformOGLPrivate.h"
+#include "../sram.hpp"
 
 struct retro_game_info;
 struct retro_system_av_info;

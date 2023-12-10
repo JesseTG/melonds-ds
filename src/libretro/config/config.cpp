@@ -54,7 +54,7 @@
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
 #include "config/definitions/categories.hpp"
-#include "core.hpp"
+#include "../core/core.hpp"
 #include "embedded/melondsds_default_wfc_config.h"
 #include "environment.hpp"
 #include "exceptions.hpp"

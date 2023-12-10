@@ -24,7 +24,7 @@
 #include <pcap/pcap.h>
 
 #include "../config/constants.hpp"
-#include "../config.hpp"
+#include "../config/config.hpp"
 #include "../environment.hpp"
 #include "tracy.hpp"
 #include "pcap.hpp"

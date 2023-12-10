@@ -20,6 +20,7 @@
 // This must come before <GPU.h>!
 #include "PlatformOGLPrivate.h"
 
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -30,27 +31,17 @@
 #include <libretro.h>
 #include <retro_assert.h>
 #include <retro_miscellaneous.h>
-#include <streams/rzip_stream.h>
 
-#include <DSi.h>
 #include <frontend/FrontendUtil.h>
-#include <GBACart.h>
-#include <NDS.h>
-#include <NDSCart.h>
-#include <SPI.h>
 #undef isnan
 #include <fmt/format.h>
 
-#include "config.hpp"
-#include "core.hpp"
-#include "dsi.hpp"
+#include "config/config.hpp"
+#include "core/core.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
-#include "file.hpp"
 #include "info.hpp"
-#include "input.hpp"
 #include "retro/task_queue.hpp"
-#include "screenlayout.hpp"
 #include "sram.hpp"
 #include "tracy.hpp"
 
@@ -58,11 +49,13 @@ using namespace melonDS;
 using std::make_optional;
 using std::optional;
 using std::nullopt;
+using std::span;
 using std::string;
 using std::string_view;
 using std::unique_ptr;
 using std::make_unique;
 using retro::task::TaskSpec;
+
 
 namespace MelonDsDs {
     static std::array<std::byte, sizeof(CoreState)> CoreStateBuffer;
@@ -201,6 +194,67 @@ PUBLIC_SYMBOL void retro_reset(void) {
         retro::set_error_message("An unknown error has occurred.");
         retro::shutdown();
     }
+}
+
+PUBLIC_SYMBOL void retro_cheat_reset(void) {
+    retro::debug("retro_cheat_reset()");
+}
+
+PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *code) {
+    // Cheat codes are small programs, so we can't exactly turn them off (that would be undoing them)
+    ZoneScopedN("retro_cheat_set");
+
+    MelonDsDs::Core.CheatSet(index, enabled, code);
+}
+
+static const char *memory_type_name(unsigned type)
+{
+    switch (type) {
+        case RETRO_MEMORY_SAVE_RAM:
+            return "RETRO_MEMORY_SAVE_RAM";
+        case RETRO_MEMORY_RTC:
+            return "RETRO_MEMORY_RTC";
+        case RETRO_MEMORY_SYSTEM_RAM:
+            return "RETRO_MEMORY_SYSTEM_RAM";
+        case RETRO_MEMORY_VIDEO_RAM:
+            return "RETRO_MEMORY_VIDEO_RAM";
+        case MelonDsDs::MELONDSDS_MEMORY_GBA_SAVE_RAM:
+            return "MELONDSDS_MEMORY_GBA_SAVE_RAM";
+        default:
+            return "<unknown>";
+    }
+}
+
+PUBLIC_SYMBOL size_t retro_serialize_size(void) {
+    ZoneScopedN(TracyFunction);
+
+    return MelonDsDs::Core.SerializeSize();
+}
+
+PUBLIC_SYMBOL bool retro_serialize(void *data, size_t size) {
+    ZoneScopedN(TracyFunction);
+
+    return MelonDsDs::Core.Serialize(std::span(static_cast<std::byte*>(data), size));
+}
+
+PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
+    ZoneScopedN(TracyFunction);
+    retro::debug("retro_unserialize({}, {})", data, size);
+
+    return MelonDsDs::Core.Unserialize(std::span(const_cast<std::byte*>(static_cast<const std::byte*>(data)), size));
+}
+
+PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
+    ZoneScopedN(TracyFunction);
+    retro::debug("retro_get_memory_data({})\n", memory_type_name(type));
+
+    return MelonDsDs::Core.GetMemoryData(type);
+}
+
+PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
+    ZoneScopedN(TracyFunction);
+
+    return MelonDsDs::Core.GetMemorySize(type);
 }
 
 void MelonDsDs::HardwareContextReset() noexcept {

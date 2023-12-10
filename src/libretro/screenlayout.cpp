@@ -26,7 +26,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <retro_assert.h>
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "math.hpp"
 #include "tracy.hpp"
 

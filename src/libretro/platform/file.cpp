@@ -33,7 +33,7 @@
 #include <vfs/vfs.h>
 #include <string/stdstring.h>
 
-#include "config.hpp"
+#include "../config/config.hpp"
 #include "environment.hpp"
 #include "tracy.hpp"
 #include "utils.hpp"
@@ -83,6 +83,10 @@ constexpr unsigned GetRetroVfsFileSeekOrigin(FileSeekOrigin origin) noexcept {
     }
 }
 
+struct melonDS::Platform::FileHandle {
+    RFILE *file;
+    unsigned hints;
+};
 
 Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode) {
     ZoneScopedN("Platform::OpenFile");

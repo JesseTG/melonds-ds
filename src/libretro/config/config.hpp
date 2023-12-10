@@ -25,14 +25,14 @@
 #include <optional>
 #include <memory>
 #include <span>
-#include <SPI_Firmware.h>
+#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/SPI_Firmware.h>
 #include <string>
 #include <string_view>
-#include <SPU.h>
+#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/SPU.h>
 
-#include "config/parse.hpp"
-#include "config/definitions.hpp"
-#include "config/types.hpp"
+#include "parse.hpp"
+#include "definitions.hpp"
+#include "types.hpp"
 
 namespace melonDS {
     struct NDSArgs;

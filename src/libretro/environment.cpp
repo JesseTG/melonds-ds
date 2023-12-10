@@ -35,7 +35,7 @@
 #include "microphone.hpp"
 #include "info.hpp"
 #include "libretro.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "tracy.hpp"
 
 using std::string;

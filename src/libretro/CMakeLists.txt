@@ -6,8 +6,7 @@ include(embed-binaries)
 add_library(melondsds_libretro MODULE
     buffer.cpp
     buffer.hpp
-    cheats.cpp
-    config.hpp
+    config/config.hpp
     config/config.cpp
     config/constants.cpp
     config/constants.hpp
@@ -24,16 +23,14 @@ add_library(melondsds_libretro MODULE
     config/parse.cpp
     config/parse.hpp
     config/types.hpp
+    core/core.cpp
+    core/core.hpp
+    core/dsi.cpp
     core/tasks.cpp
-    core.cpp
-    core.hpp
-    dsi.cpp
-    dsi.hpp
     environment.cpp
     environment.hpp
     exceptions.cpp
     exceptions.hpp
-    file.hpp
     format.cpp
     format.hpp
     glsym_private.cpp
@@ -49,8 +46,6 @@ add_library(melondsds_libretro MODULE
     message/error.hpp
     microphone.cpp
     microphone.hpp
-    memory.cpp
-    memory.hpp
     pcap.hpp
     platform/file.cpp
     platform/lan.cpp

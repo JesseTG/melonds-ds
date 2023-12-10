@@ -28,7 +28,7 @@
 #include <embedded/melondsds_fragment_shader.h>
 #include <embedded/melondsds_vertex_shader.h>
 
-#include "core.hpp"
+#include "../core/core.hpp"
 #include "exceptions.hpp"
 #include "screenlayout.hpp"
 
