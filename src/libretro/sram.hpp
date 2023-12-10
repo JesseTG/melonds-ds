@@ -33,23 +33,16 @@ struct retro_game_info;
 
 namespace MelonDsDs::sram  {
     void InitNdsSave(const NdsCart &nds_cart);
-    void InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info);
-
-    retro::task::TaskSpec FlushGbaSramTask(const retro_game_info& gba_save_info) noexcept;
-    retro::task::TaskSpec FlushFirmwareTask(std::string_view firmwareName) noexcept;
 
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
     class SaveManager {
     public:
-        SaveManager(uint32_t initialLength);
-
+        explicit SaveManager(uint32_t initialLength);
         ~SaveManager();
-
-        SaveManager(const SaveManager &) = delete;
-
-        SaveManager(SaveManager &&) = delete;
-
-        SaveManager &operator=(const SaveManager &) = delete;
+        SaveManager(const SaveManager&) = delete;
+        SaveManager(SaveManager&&) noexcept;
+        SaveManager& operator=(const SaveManager &) = delete;
+        SaveManager& operator=(SaveManager&&) noexcept;
 
         /// Signals that SRAM was recently updated.
         ///
@@ -61,26 +54,14 @@ namespace MelonDsDs::sram  {
         /// \param writelen Length of the updated data.
         void Flush(const uint8_t *savedata, uint32_t savelen, uint32_t writeoffset, uint32_t writelen);
 
-        [[nodiscard]] const uint8_t *Sram() const {
-            return _sram;
-        }
-
-        uint8_t *Sram() {
-            return _sram;
-        }
-
-        [[nodiscard]] uint32_t SramLength() const {
-            return _sram_length;
-        }
+        [[nodiscard]] const uint8_t *Sram() const { return _sram; }
+        uint8_t *Sram() { return _sram; }
+        [[nodiscard]] uint32_t SramLength() const { return _sram_length; }
 
     private:
         uint8_t *_sram;
         uint32_t _sram_length;
     };
-
-    extern std::unique_ptr<SaveManager> NdsSaveManager;
-
-    extern std::unique_ptr<SaveManager> GbaSaveManager;
 }
 
 #endif //MELONDS_DS_SRAM_HPP

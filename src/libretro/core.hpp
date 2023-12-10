@@ -92,10 +92,15 @@ namespace MelonDsDs {
 
         retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
         retro::task::TaskSpec OnScreenDisplayTask() noexcept;
+        retro::task::TaskSpec FlushGbaSramTask() noexcept;
+        void FlushGbaSram(const retro::GameInfo& gbaSaveInfo) noexcept;
         retro::task::TaskSpec FlushFirmwareTask(string_view firmwareName) noexcept;
         void InitFlushFirmwareTask() noexcept;
         void FlushFirmware(string_view firmwarePath, string_view wfcSettingsPath) noexcept;
-        [[gnu::hot]] void ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept;
+        void InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& gbaSaveInfo);
+        [[gnu::cold]] void InitNdsSave(const NdsCart &nds_cart);
+
+        [[gnu::hot]] void ReadMicrophone(melonDS::NDS& nds, InputState& inputState) noexcept;
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;

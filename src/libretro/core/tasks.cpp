@@ -207,6 +207,63 @@ void MelonDsDs::CoreState::FlushFirmware(string_view firmwarePath, string_view w
     }
 }
 
+// This task keeps running for the lifetime of the task queue.
+retro::task::TaskSpec MelonDsDs::CoreState::FlushGbaSramTask() noexcept {
+    ZoneScopedN(TracyFunction);
+    return {
+        [this](retro::task::TaskHandle &task) noexcept {
+            ZoneScopedN(TracyFunction "::Handler");
+
+            if (!_gbaSaveInfo) {
+                task.Finish();
+                return;
+            }
+
+            if (_timeToGbaFlush != nullopt && (*_timeToGbaFlush)-- <= 0) {
+                // If it's time to flush the GBA's SRAM...
+                retro::debug("GBA SRAM flush timer expired, flushing save data now");
+                FlushGbaSram(*_gbaSaveInfo);
+                _timeToGbaFlush = nullopt; // Reset the timer
+            }
+        },
+        nullptr,
+        [this](retro::task::TaskHandle& task) noexcept {
+            ZoneScopedN(TracyFunction "::Cleanup");
+
+            if (_gbaSaveInfo) {
+                FlushGbaSram(*_gbaSaveInfo);
+                _timeToGbaFlush = nullopt;
+            }
+        },
+        retro::task::ASAP,
+        "GBA SRAM Flush"
+    };
+}
+
+void MelonDsDs::CoreState::FlushGbaSram(const retro::GameInfo& gbaSaveInfo) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    auto save_data_path = gbaSaveInfo.GetPath();
+    if (save_data_path.empty() || !_gbaSaveManager) {
+        // No save data path was provided, or the GBA save manager isn't initialized
+        return; // TODO: Report this error
+    }
+    const u8* gba_sram = _gbaSaveManager->Sram();
+    u32 gba_sram_length = _gbaSaveManager->SramLength();
+
+    if (gba_sram == nullptr || gba_sram_length == 0) {
+        return; // TODO: Report this error
+    }
+
+    if (!filestream_write_file(save_data_path.data(), gba_sram, gba_sram_length)) {
+        retro::error("Failed to write {}-byte GBA SRAM to \"{}\"", gba_sram_length, save_data_path);
+        // TODO: Report this to the user
+    } else {
+        retro::debug("Flushed {}-byte GBA SRAM to \"{}\"", gba_sram_length, save_data_path);
+    }
+}
+
+
 retro::task::TaskSpec MelonDsDs::CoreState::FlushFirmwareTask(string_view firmwareName) noexcept {
     ZoneScopedN(TracyFunction);
     optional<string> firmwarePath = retro::get_system_path(firmwareName);
