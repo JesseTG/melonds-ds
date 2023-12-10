@@ -275,6 +275,11 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned PowerUpdateInterval() const noexcept { return _powerUpdateInterval; }
         void SetPowerUpdateInterval(unsigned powerUpdateInterval) noexcept { _powerUpdateInterval = powerUpdateInterval; }
 
+        [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() noexcept;
+        [[nodiscard]] string_view FirmwarePath(MelonDsDs::ConsoleType type) const noexcept {
+            return type == ConsoleType::DSi ? DsiFirmwarePath() : FirmwarePath();
+        }
+
         [[nodiscard]] string_view FirmwarePath() const noexcept { return _firmwarePath; }
         void SetFirmwarePath(string_view firmwarePath) noexcept { _firmwarePath = firmwarePath; }
         void SetFirmwarePath(string&& firmwarePath) noexcept { _firmwarePath = std::move(firmwarePath); }

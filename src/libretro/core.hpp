@@ -65,8 +65,8 @@ namespace MelonDsDs {
         [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
         [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
-        void Reset();
         [[gnu::hot]] void Run() noexcept;
+        void Reset();
         size_t SerializeSize() const noexcept;
         [[gnu::hot]] bool Serialize(std::span<std::byte> data) const noexcept;
         bool Unserialize(std::span<const std::byte> data) noexcept;
@@ -92,8 +92,10 @@ namespace MelonDsDs {
 
         retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
         retro::task::TaskSpec OnScreenDisplayTask() noexcept;
-        retro::task::TaskSpec
-        void ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept;
+        retro::task::TaskSpec FlushFirmwareTask(string_view firmwareName) noexcept;
+        void InitFlushFirmwareTask() noexcept;
+        void FlushFirmware(string_view firmwarePath, string_view wfcSettingsPath) noexcept;
+        [[gnu::hot]] void ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept;
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;

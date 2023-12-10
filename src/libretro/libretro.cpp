@@ -64,20 +64,6 @@ using std::unique_ptr;
 using std::make_unique;
 using retro::task::TaskSpec;
 
-namespace MelonDsDs {
-    static void InitFlushFirmwareTask() noexcept
-    {
-        string_view firmwareName = config::system::FirmwarePath(config::system::ConsoleType());
-        if (TaskSpec flushTask = sram::FlushFirmwareTask(firmwareName)) {
-            flushTaskId = flushTask.Identifier();
-            retro::task::push(std::move(flushTask));
-        }
-        else {
-            retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
-        }
-    }
-}
-
 PUBLIC_SYMBOL void retro_init(void) {
 #ifdef HAVE_TRACY
     tracy::StartupProfiler();
@@ -145,10 +131,10 @@ PUBLIC_SYMBOL unsigned retro_get_region(void) {
 }
 
 PUBLIC_SYMBOL bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num) {
-    ZoneScopedN("retro_load_game_special");
+    ZoneScopedN(TracyFunction);
     retro::debug("retro_load_game_special({}, {}, {})", MelonDsDs::get_game_type_name(type), fmt::ptr(info), num);
 
-    return MelonDsDs::handle_load_game(type, info, num);
+    return MelonDsDs::Core.LoadGame(type, std::span(info, num));
 }
 
 // We deinitialize all these variables just in case the frontend doesn't unload the dynamic library.
@@ -182,67 +168,32 @@ PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->valid_extensions = "nds|ids|dsi";
 }
 
-// TODO: Catch any thrown exceptions (in case the config is bad) and quit if needed
 PUBLIC_SYMBOL void retro_reset(void) {
-    ZoneScopedN("retro_reset");
+    ZoneScopedN(TracyFunction);
     retro::debug("retro_reset()\n");
 
-    if (MelonDsDs::_messageScreen) {
-        retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
-        return;
-        // TODO: Allow the game to be reset from the error screen
-        // (gotta reinitialize the DS here)
+    try {
+        MelonDsDs::Core.Reset();
     }
-
-    // Flush all data before resetting
-    MelonDsDs::sram::reset();
-    retro::task::find([](retro::task::TaskHandle& task) {
-        if (task.Identifier() == MelonDsDs::flushTaskId) {
-            // If this is the flush task we want to cancel...
-            task.Cancel();
-            return true;
-        }
-        return false; // Keep looking...
-    });
-    retro::task::check();
-    MelonDsDs::clear_memory_config();
-
-    const optional<struct retro_game_info>& nds_info = retro::content::get_loaded_nds_info();
-    const NDSHeader* header = nds_info ? reinterpret_cast<const NDSHeader*>(nds_info->data) : nullptr;
-    retro_assert(MelonDsDs::Core.Console != nullptr);
-    NDS& nds = *MelonDsDs::Core.Console;
-    MelonDsDs::InitConfig(MelonDsDs::Core, header, MelonDsDs::screenLayout, MelonDsDs::input_state);
-
-    MelonDsDs::InitFlushFirmwareTask();
-
-    if (nds_info) {
-        // We need to reload the ROM because it might need to be encrypted with a different key,
-        // depending on which console mode and BIOS mode is in effect.
-        std::unique_ptr<NDSCart::CartCommon> rom;
-        {
-            ZoneScopedN("NDSCart::ParseROM");
-            rom = NDSCart::ParseROM(static_cast<const u8*>(nds_info->data), nds_info->size);
-        }
-        if (rom->GetSaveMemory()) {
-            retro_assert(rom->GetSaveMemoryLength() == nds.NDSCartSlot.GetSaveMemoryLength());
-            memcpy(rom->GetSaveMemory(), nds.NDSCartSlot.GetSaveMemory(), nds.NDSCartSlot.GetSaveMemoryLength());
-        }
-
-        {
-            ZoneScopedN("NDSCart::InsertROM");
-            nds.SetNDSCart(std::move(rom));
-        }
-        // TODO: Only reload the ROM if the BIOS mode, boot mode, or console mode has changed
+    catch (const MelonDsDs::opengl_exception& e) {
+        retro::error("{}", e.what());
+        retro::set_error_message(e.user_message());
+        retro::shutdown();
+        // TODO: Instead of shutting down, fall back to the software renderer
     }
-
-    nds.Reset();
-
-    SetConsoleTime(nds);
-    if (nds.NDSCartSlot.GetCart() && !nds.NDSCartSlot.GetCart()->GetHeader().IsDSiWare()) {
-        MelonDsDs::set_up_direct_boot(nds, nds_info.value());
+    catch (const MelonDsDs::emulator_exception& e) {
+        retro::error("{}", e.what());
+        retro::set_error_message(e.user_message());
+        retro::shutdown();
     }
-
-    MelonDsDs::first_frame_run = false;
+    catch (const std::exception& e) {
+        retro::set_error_message(e.what());
+        retro::shutdown();
+    }
+    catch (...) {
+        retro::set_error_message("An unknown error has occurred.");
+        retro::shutdown();
+    }
 }
 
 void MelonDsDs::HardwareContextReset() noexcept {

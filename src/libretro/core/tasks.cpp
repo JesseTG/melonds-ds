@@ -22,7 +22,10 @@
 #include <SPI.h>
 
 #include <glm/vec2.hpp>
+
+#include <file/file_path.h>
 #include <retro_assert.h>
+#include <streams/file_stream.h>
 
 
 #include "config.hpp"
@@ -34,9 +37,11 @@
 
 using namespace melonDS;
 
+using std::nullopt;
 using std::optional;
 using glm::ivec2;
 using glm::i16vec2;
+
 
 constexpr const char* const OSD_DELIMITER = " || ";
 constexpr const char* const OSD_YES = "✔";
@@ -128,6 +133,117 @@ retro::task::TaskSpec MelonDsDs::CoreState::PowerStatusUpdateTask() noexcept {
     );
 
     return updatePowerStatus;
+}
+
+
+void MelonDsDs::CoreState::FlushFirmware(string_view firmwarePath, string_view wfcSettingsPath) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    retro_assert(!firmwarePath.empty());
+    retro_assert(path_is_absolute(firmwarePath.data()));
+    retro_assert(!wfcSettingsPath.empty());
+    retro_assert(path_is_absolute(wfcSettingsPath.data()));
+    retro_assert(Console != nullptr);
+
+    const Firmware& firmware = Console->GetFirmware();
+
+    retro_assert(firmware.Buffer() != nullptr);
+
+    if (firmware.GetHeader().Identifier != GENERATED_FIRMWARE_IDENTIFIER) {
+        // If this is a native firmware blob...
+        int32_t existingFirmwareFileSize = path_get_size(firmwarePath.data());
+        if (existingFirmwareFileSize == -1) {
+            retro::warn("Expected firmware \"{}\" to exist before updating, but it doesn't", firmwarePath);
+        }
+        else if (existingFirmwareFileSize != firmware.Length()) {
+            retro::warn(
+                "In-memory firmware is {} bytes, but destination file \"{}\" has {} bytes",
+                firmware.Length(),
+                firmwarePath,
+                existingFirmwareFileSize
+            );
+        }
+
+        retro_assert(!firmwarePath.ends_with("//notfound"));
+        Firmware firmwareCopy(firmware);
+        // TODO: Apply the original values of the settings that were overridden
+        if (filestream_write_file(firmwarePath.data(), firmware.Buffer(), firmware.Length())) {
+            // ...then write the whole thing back.
+            retro::debug("Flushed {}-byte firmware to \"{}\"", firmware.Length(), firmwarePath);
+        }
+        else {
+            retro::error("Failed to write {}-byte firmware to \"{}\"", firmware.Length(), firmwarePath);
+        }
+    }
+    else {
+        u32 expectedWfcSettingsSize = sizeof(firmware.GetExtendedAccessPoints()) + sizeof(firmware.GetAccessPoints());
+        int32_t existingWfcSettingsSize = path_get_size(wfcSettingsPath.data());
+        if (existingWfcSettingsSize == -1) {
+            retro::debug("Wi-Fi settings file at \"{}\" doesn't exist, creating it", wfcSettingsPath);
+        }
+        else if (existingWfcSettingsSize != expectedWfcSettingsSize) {
+            retro::warn(
+                "In-memory WFC settings is {} bytes, but destination file \"{}\" has {} bytes",
+                expectedWfcSettingsSize,
+                wfcSettingsPath,
+                existingWfcSettingsSize
+            );
+        }
+        retro_assert(wfcSettingsPath.ends_with("/wfcsettings.bin"));
+        u32 eapstart = firmware.GetExtendedAccessPointOffset();
+        u32 eapend = eapstart + sizeof(firmware.GetExtendedAccessPoints());
+        u32 apstart = firmware.GetWifiAccessPointOffset();
+
+        // assert that the extended access points come just before the regular ones
+        retro_assert(eapend == apstart);
+
+        const u8* buffer = firmware.GetExtendedAccessPointPosition();
+        if (filestream_write_file(wfcSettingsPath.data(), buffer, expectedWfcSettingsSize)) {
+            retro::debug("Flushed {}-byte WFC settings to \"{}\"", expectedWfcSettingsSize, wfcSettingsPath);
+        }
+        else {
+            retro::error("Failed to write {}-byte WFC settings to \"{}\"", expectedWfcSettingsSize, wfcSettingsPath);
+        }
+    }
+}
+
+retro::task::TaskSpec MelonDsDs::CoreState::FlushFirmwareTask(string_view firmwareName) noexcept {
+    ZoneScopedN(TracyFunction);
+    optional<string> firmwarePath = retro::get_system_path(firmwareName);
+    if (!firmwarePath) {
+        retro::error("Failed to get system path for firmware named \"{}\", firmware changes won't be saved.",
+                     firmwareName);
+        return {};
+    }
+
+    string_view wfcSettingsName = Config.GeneratedFirmwareSettingsPath();
+    optional<string> wfcSettingsPath = retro::get_system_path(wfcSettingsName);
+    if (!wfcSettingsPath) {
+        retro::error("Failed to get system path for WFC settings at \"{}\", firmware changes won't be saved.",
+                     wfcSettingsName);
+        return {};
+    }
+
+    return retro::task::TaskSpec(
+        [this, firmwarePath=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle&) noexcept {
+            ZoneScopedN(TracyFunction "::Handler");
+
+            if (_timeToFirmwareFlush != nullopt && (*_timeToFirmwareFlush)-- <= 0) {
+                // If it's time to flush the firmware...
+                retro::debug("Firmware flush timer expired, flushing data now");
+                FlushFirmware(firmwarePath, wfcSettingsPath);
+                _timeToFirmwareFlush = nullopt; // Reset the timer
+            }
+        },
+        nullptr,
+        [this, path=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle&) noexcept {
+            ZoneScopedN(TracyFunction "::Cleanup");
+            FlushFirmware(path, wfcSettingsPath);
+            _timeToFirmwareFlush = nullopt;
+        },
+        retro::task::ASAP,
+        "Firmware Flush"
+    );
 }
 
 retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {

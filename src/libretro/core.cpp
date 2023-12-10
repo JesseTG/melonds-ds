@@ -28,12 +28,15 @@
 
 #include "dsi.hpp"
 #include "exceptions.hpp"
+#include "info.hpp"
 #include "microphone.hpp"
 #include "message/error.hpp"
 #include "render/render.hpp"
 #include "retro/task_queue.hpp"
 
 using std::byte;
+using std::span;
+
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 static const char* const INTERNAL_ERROR_MESSAGE =
@@ -132,11 +135,9 @@ void MelonDsDs::CoreState::Run() noexcept {
         if (_screenLayout.Dirty()) {
             // If the active screen layout has changed (either by settings or by hotkey)...
             ZoneScopedN("retro_run::render::dirty");
-            Renderer renderer = MelonDsDs::render::CurrentRenderer();
-            retro_assert(renderer != Renderer::None);
 
             // Apply the new screen layout
-            _screenLayout.Update(renderer);
+            _screenLayout.Update(Config.ScreenFilter());
 
             // And update the geometry
             if (!retro::set_geometry(_screenLayout.Geometry(Console->GPU.GetRenderer3D()))) {
@@ -159,6 +160,68 @@ void MelonDsDs::CoreState::Run() noexcept {
         retro::task::check();
     }
 }
+
+void MelonDsDs::CoreState::Reset() {
+    ZoneScopedN(TracyFunction);
+
+    if (_messageScreen) {
+        retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
+        return;
+        // TODO: Allow the game to be reset from the error screen
+        // (gotta reinitialize the DS here)
+    }
+
+    // Flush all data before resetting
+    _timeToFirmwareFlush = 0;
+    _timeToGbaFlush = 0;
+    retro::task::find([this](retro::task::TaskHandle& task) {
+        if (task.Identifier() == _flushTaskId) {
+            // If this is the flush task we want to cancel...
+            task.Cancel();
+            return true;
+        }
+        return false; // Keep looking...
+    });
+    retro::task::check();
+    _savestateSize = std::nullopt;
+
+    auto header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data()) : nullptr;
+    retro_assert(Console != nullptr);
+    InitConfig(*Console, header, _screenLayout, _inputState);
+
+    InitFlushFirmwareTask();
+
+    if (_ndsInfo) {
+        // We need to reload the ROM because it might need to be encrypted with a different key,
+        // depending on which console mode and BIOS mode is in effect.
+        std::unique_ptr<melonDS::NDSCart::CartCommon> rom;
+        {
+            span<const byte> romSpan = _ndsInfo->GetData();
+            ZoneScopedN("NDSCart::ParseROM");
+            rom = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(romSpan.data()), romSpan.size());
+        }
+        if (rom->GetSaveMemory()) {
+            retro_assert(rom->GetSaveMemoryLength() == Console->GetNDSSaveLength());
+            memcpy(rom->GetSaveMemory(), Console->GetNDSSave(), Console->GetNDSSaveLength());
+        }
+
+        {
+            ZoneScopedN("NDSCart::InsertROM");
+            Console->SetNDSCart(std::move(rom));
+        }
+        // TODO: Only reload the ROM if the BIOS mode, boot mode, or console mode has changed
+    }
+
+    Console->Reset();
+
+    SetConsoleTime(*Console);
+    if (_ndsInfo && Console->GetNDSCart() && !Console->GetNDSCart()->GetHeader().IsDSiWare()) {
+        SetUpDirectBoot(*Console, *_ndsInfo);
+    }
+
+    _firstFrameRun = false;
+}
+
 
 void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) {
     ZoneScopedN("MelonDsDs::render_audio");
@@ -217,7 +280,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
 
     retro::task::reset();
     _messageScreen = make_unique<error::ErrorScreen>(e);
-    _screenLayout.Update(MelonDsDs::Renderer::Software, Config.ScreenFilter());
+    _screenLayout.Update(Config.ScreenFilter());
     retro::error("Error screen initialized");
     return true;
 }
@@ -273,7 +336,7 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
 void MelonDsDs::CoreState::LoadGameDeferred() {
     ZoneScopedN(TracyFunction);
 
-    retro_assert(Console != nullptr);
+    retro_assert(Console != nullptr); // This function should only be called if the console is initialized
 
     {
         ZoneScopedN("NDS::Reset");
@@ -381,6 +444,19 @@ void MelonDsDs::CoreState::ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputSta
     }
 }
 
+void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept
+{
+    retro_assert(Console != nullptr);
+    string_view firmwareName = Config.FirmwarePath(static_cast<ConsoleType>(Console->ConsoleType));
+    if (retro::task::TaskSpec flushTask = FlushFirmwareTask(firmwareName)) {
+        _flushTaskId = flushTask.Identifier();
+        retro::task::push(std::move(flushTask));
+    }
+    else {
+        retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
+    }
+}
+
 bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept try {
     ZoneScopedN(TracyFunction);
 
@@ -394,7 +470,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     retro_assert(Console == nullptr);
 
-    span<byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<byte>();
+    span<const byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<const byte>();
     const auto* header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(rom.data()) : nullptr;
     // TODO: Apply config
     InitConfig(header, _screenLayout, _inputState);
@@ -445,7 +521,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         else {
             // TODO: Load the ROM and SRAM in one go
 
-            span<byte> gbaRom = _gbaInfo->GetData();
+            span<const byte> gbaRom = _gbaInfo->GetData();
             {
                 ZoneScopedN("GBACart::ParseROM");
                 loadedGbaCart = melonDS::GBACart::ParseROM(reinterpret_cast<const uint8_t*>(gbaRom.data()), gbaRom.size());
