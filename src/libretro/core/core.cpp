@@ -17,16 +17,15 @@
 #include "core.hpp"
 
 #include <charconv>
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/DSi.h>
+#include <DSi.h>
 
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/libretro.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/retro_assert.h>
+#include <libretro.h>
+#include <retro_assert.h>
 
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/NDS.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/compat/strl.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/file/file_path.h>
+#include <NDS.h>
+#include <compat/strl.h>
+#include <file/file_path.h>
 
-#include "dsi.hpp"
 #include "../exceptions.hpp"
 #include "../info.hpp"
 #include "../microphone.hpp"

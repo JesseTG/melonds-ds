@@ -25,10 +25,10 @@
 #include <optional>
 #include <memory>
 #include <span>
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/SPI_Firmware.h>
+#include <SPI_Firmware.h>
 #include <string>
 #include <string_view>
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/SPU.h>
+#include <SPU.h>
 
 #include "parse.hpp"
 #include "definitions.hpp"

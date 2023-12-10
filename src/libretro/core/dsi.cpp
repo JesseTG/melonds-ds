@@ -13,9 +13,6 @@
     You should have received a copy of the GNU General Public License along
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
-
-#include "../dsi.hpp"
-
 #include "core.hpp"
 
 #include <optional>
@@ -23,19 +20,19 @@
 #include <string_view>
 
 #ifdef HAVE_NETWORKING
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/net/net_http.h>
+#include <net/net_http.h>
 #endif
 
 #include "../PlatformOGLPrivate.h"
 
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/DSi_NAND.h>
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/DSi_TMD.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/retro_assert.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/file/file_path.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/compat/strl.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/streams/file_stream.h>
-#include <../../../cmake-build-debug-windows/_deps/libretro-common-src/include/retro_timers.h>
-#include <../../../cmake-build-debug-windows/_deps/melonds-src/src/DSi.h>
+#include <DSi_NAND.h>
+#include <DSi_TMD.h>
+#include <retro_assert.h>
+#include <file/file_path.h>
+#include <compat/strl.h>
+#include <streams/file_stream.h>
+#include <retro_timers.h>
+#include <DSi.h>
 
 #include "../environment.hpp"
 #include "../exceptions.hpp"

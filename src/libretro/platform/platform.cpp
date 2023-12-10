@@ -27,7 +27,6 @@
 #include <retro_assert.h>
 #include <retro_endianness.h>
 
-#include "../memory.hpp"
 #include "../environment.hpp"
 #include "../config/config.hpp"
 #include "../format.hpp"

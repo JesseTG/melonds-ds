@@ -14,7 +14,6 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#include "file.hpp"
 #define SKIP_STDIO_REDEFINES
 
 #include <cerrno>
