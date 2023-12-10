@@ -73,7 +73,7 @@ void MelonDsDs::CoreState::UnloadGame() noexcept {
     if (_ndsInfo) {
         // If this session involved a loaded DS game...
 
-        retro_assert(_ndsInfo->GetData().size() > 0);
+        retro_assert(!_ndsInfo->GetData().empty());
         const melonDS::NDSHeader& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
         if (header.IsDSiWare()) {
             // And that game was a DSiWare game...
@@ -213,7 +213,7 @@ void MelonDsDs::CoreState::Reset() {
 }
 
 
-void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) {
+void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) noexcept {
     ZoneScopedN("MelonDsDs::render_audio");
     int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
     uint32_t size = std::min(nds.SPU.GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
@@ -225,7 +225,7 @@ void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) {
 
 bool MelonDsDs::CoreState::RunDeferredInitialization() noexcept {
     ZoneScopedN(TracyFunction);
-    retro_assert(MelonDsDs::Core.Console != nullptr);
+    retro_assert(Console != nullptr);
     try {
         retro::debug("Starting deferred initialization");
         LoadGameDeferred();
@@ -524,7 +524,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             retro::debug("Loaded GBA ROM: \"{}\"", _gbaInfo->GetPath());
 
             if (_gbaSaveInfo) {
-                sram::InitGbaSram(*loadedGbaCart, *_gbaSaveInfo);
+                InitGbaSram(*loadedGbaCart, *_gbaSaveInfo);
             }
             else {
                 retro::info("No GBA SRAM was provided.");
@@ -557,8 +557,8 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
         }
         else {
-            retro_assert(Core.Console->ConsoleType == 1);
-            auto& dsi = *static_cast<melonDS::DSi*>(Core.Console.get());
+            retro_assert(Console->ConsoleType == 1);
+            auto& dsi = *static_cast<melonDS::DSi*>(Console.get());
             // We're running a DSiWare game, then
             MelonDsDs::dsi::install_dsiware(dsi.GetNAND(), *_ndsInfo);
         }
@@ -611,7 +611,7 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
     switch (type) {
         case MELONDSDS_GAME_TYPE_NDS:
             // ...which refers to a Nintendo DS game...
-            if (game.size() > 0) {
+            if (!game.empty()) {
                 _ndsInfo = game[0];
             }
             break;

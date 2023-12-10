@@ -85,8 +85,8 @@ void MelonDsDs::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 wr
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
 // But it will allocate the SRAM buffer
-void MelonDsDs::sram::InitNdsSave(const NdsCart &nds_cart) {
-    ZoneScopedN("MelonDsDs::sram::InitNdsSave");
+void MelonDsDs::CoreState::InitNdsSave(const NdsCart &nds_cart) {
+    ZoneScopedN(TracyFunction);
     using std::runtime_error;
     if (nds_cart.GetHeader().IsHomebrew()) {
         // If this is a homebrew ROM...
@@ -94,12 +94,12 @@ void MelonDsDs::sram::InitNdsSave(const NdsCart &nds_cart) {
         // Homebrew is a special case, as it uses an SD card rather than SRAM.
         // No need to explicitly load or save homebrew SD card images;
         // the CartHomebrew class does that.
-        if (config::save::DldiFolderSync()) {
+        if (Config.DldiFolderSync()) {
             // If we're syncing the homebrew SD card image to the host filesystem...
-            if (!path_mkdir(config::save::DldiFolderPath().c_str())) {
+            if (!path_mkdir(Config.DldiFolderPath().data())) {
                 // Create the directory. If that fails...
                 // (note that an existing directory is not an error)
-                throw runtime_error("Failed to create virtual SD card directory at " + config::save::DldiFolderPath());
+                throw runtime_error("Failed to create virtual SD card directory at " + Config.DldiFolderPath());
             }
         }
     }
@@ -108,7 +108,7 @@ void MelonDsDs::sram::InitNdsSave(const NdsCart &nds_cart) {
         u32 sram_length = nds_cart.GetSaveMemoryLength();
 
         if (sram_length > 0) {
-            sram::NdsSaveManager = make_unique<SaveManager>(sram_length);
+            _ndsSaveManager = std::make_optional<sram::SaveManager>(sram_length);
             retro::debug("Allocated {}-byte SRAM buffer for loaded NDS ROM.", sram_length);
         } else {
             retro::debug("Loaded NDS ROM does not use SRAM.");
@@ -119,13 +119,13 @@ void MelonDsDs::sram::InitNdsSave(const NdsCart &nds_cart) {
 }
 
 // Loads the GBA SRAM
-void MelonDsDs::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_info& gba_save_info) {
+void MelonDsDs::CoreState::InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& gbaSaveInfo) {
     ZoneScopedN("MelonDsDs::sram::InitGbaSram");
     // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
     // because we'll overwrite it later and don't want the frontend to hold open any file handles.
     // Due to libretro limitations, we can't use retro_get_memory_data to load the GBA SRAM
     // without asking the user to move their SRAM into the melonDS DS save folder.
-    if (path_contains_compressed_file(gba_save_info.path)) {
+    if (path_contains_compressed_file(gbaSaveInfo.GetPath().data())) {
         // If this save file is in an archive (e.g. /path/to/file.7z#mygame.srm)...
 
         // We don't support GBA SRAM files in archives right now;
@@ -141,7 +141,7 @@ void MelonDsDs::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_inf
     }
 
     // rzipstream opens the file as-is if it's not rzip-formatted
-    rzipstream_t* gba_save_file = rzipstream_open(gba_save_info.path, RETRO_VFS_FILE_ACCESS_READ);
+    rzipstream_t* gba_save_file = rzipstream_open(gbaSaveInfo.GetPath().data(), RETRO_VFS_FILE_ACCESS_READ);
     if (!gba_save_file) {
         throw std::runtime_error("Failed to open GBA save file");
     }
@@ -181,20 +181,20 @@ void MelonDsDs::sram::InitGbaSram(GbaCart& gba_cart, const struct retro_game_inf
         throw std::runtime_error("Failed to read GBA save file");
     }
 
-    sram::GbaSaveManager = make_unique<SaveManager>(gba_save_file_size);
-    gba_cart.SetSaveMemory(static_cast<const u8*>(gba_save_data), gba_save_file_size);
+    _gbaSaveManager = std::make_optional<sram::SaveManager>(gba_save_file_size);
+    gbaCart.SetSaveMemory(static_cast<const u8*>(gba_save_data), gba_save_file_size);
     // LoadSave's subclasses will call Platform::WriteGBASave.
     // The data will be in the buffer soon enough.
-    retro::debug("Allocated {}-byte GBA SRAM", gba_cart.GetSaveMemoryLength());
+    retro::debug("Allocated {}-byte GBA SRAM", gbaCart.GetSaveMemoryLength());
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);
-    retro::task::push(sram::FlushGbaSramTask(gba_save_info));
+    retro::task::push(sram::FlushGbaSramTask(gbaSaveInfo));
 }
 
 void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
-    ZoneScopedN("Platform::WriteNDSSave");
+    ZoneScopedN(TracyFunction);
     if (MelonDsDs::sram::NdsSaveManager) {
         MelonDsDs::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
 

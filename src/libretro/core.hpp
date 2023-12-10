@@ -77,6 +77,10 @@ namespace MelonDsDs {
         size_t GetMemorySize(unsigned id) noexcept;
         void ResetRenderState();
         void DestroyRenderState();
+        bool LanInit();
+        void LanDeinit();
+        int LanSendPacket(std::span<std::byte> data);
+        void LanRecvPacket(uint8_t* data);
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
@@ -116,7 +120,7 @@ namespace MelonDsDs {
         // TODO: Switch to compile time regular expressions (see https://compile-time.re)
         std::regex _cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
         std::regex _tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };
-        bool _initialized = false;
+        const bool _initialized = true;
         bool _firstFrameRun = false;
         bool _deferredInitializationPending = false;
         bool _micStateToggled = false;
