@@ -61,6 +61,7 @@ namespace MelonDsDs {
     static unique_ptr<melonDS::NDSCart::CartCommon> LoadNdsCart(const CoreConfig& config, const retro::GameInfo& ndsInfo);
     static unique_ptr<melonDS::GBACart::CartCommon> LoadGbaCart(const retro::GameInfo& gbaInfo, const retro::GameInfo* gbaSaveInfo);
     static std::pair<unique_ptr<uint8_t[]>, size_t> LoadGbaSram(const retro::GameInfo& gbaSaveInfo);
+    static void InstallDsiware(NANDImage& nand, const retro::GameInfo& nds_info);
     static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept;
     static bool LoadBios(const string_view& name, BiosType type, std::span<uint8_t> buffer) noexcept;
     static void CustomizeFirmware(const CoreConfig& config, Firmware& firmware);
@@ -309,6 +310,12 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
     }
 
     unique_ptr<melonDS::NDSCart::CartCommon> ndsRom = ndsInfo ? LoadNdsCart(config, *ndsInfo) : nullptr;
+    if (ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
+        // TODO: Install on the NAND instead of inserting it into the cart slot
+        auto& dsi = *static_cast<melonDS::DSi*>(Console.get());
+        // We're running a DSiWare game, then
+        InstallDsiware(nand, *ndsInfo);
+    }
     melonDS::DSiArgs dsiargs {
         {
             .NDSROM = std::move(ndsRom),

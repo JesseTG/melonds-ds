@@ -47,6 +47,13 @@ static const char* const UNKNOWN_ERROR_MESSAGE =
     "An unknown error has occurred with melonDS DS. "
     "Please contact the developer with the log file.";
 
+MelonDsDs::CoreState::~CoreState() noexcept {
+    ZoneScopedN(TracyFunction);
+    // TODO: Clean up loaded DSiWare here
+    Console = nullptr;
+    melonDS::NDS::Current = nullptr;
+}
+
 retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 #ifndef NDEBUG
     if (!_messageScreen) {

@@ -65,7 +65,7 @@ namespace MelonDsDs {
     class CoreState {
     public:
         CoreState() noexcept = default;
-        ~CoreState() noexcept = default;
+        ~CoreState() noexcept;
 
         [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
