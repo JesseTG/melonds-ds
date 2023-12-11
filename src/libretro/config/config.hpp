@@ -100,7 +100,7 @@ namespace MelonDsDs {
         void SetAlarmMinute(optional<unsigned> minute) noexcept { _alarmMinute = minute; }
 
         [[nodiscard]] optional<hh_mm_ss<minutes>> Alarm() const noexcept {
-            if (!_alarmHour.has_value() || !_alarmMinute.has_value()) {
+            if (!_alarmHour.has_value() || !_alarmMinute.has_value() || _alarmMode != AlarmMode::Enabled) {
                 return std::nullopt;
             }
 
@@ -116,8 +116,8 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned BirthdayDay() const noexcept { return _birthdayDay; }
         void SetBirthdayDay(unsigned day) noexcept { _birthdayDay = day; }
 
-        [[nodiscard]] month_day Birthday() const noexcept {
-            return month(_birthdayMonth) / day(_birthdayDay);
+        [[nodiscard]] optional<month_day> Birthday() const noexcept {
+            return (_birthdayDay > 0 && _birthdayMonth > 0) ? month(_birthdayMonth) / day(_birthdayDay) : std::nullopt;
         }
 
         [[nodiscard]] Color FavoriteColor() const noexcept { return _favoriteColor; }
@@ -279,7 +279,15 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned PowerUpdateInterval() const noexcept { return _powerUpdateInterval; }
         void SetPowerUpdateInterval(unsigned powerUpdateInterval) noexcept { _powerUpdateInterval = powerUpdateInterval; }
 
-        [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() noexcept;
+        // TODO: Allow these paths to be customized
+        string_view Bios9Path() const noexcept { return "bios9.bin"; }
+        string_view Bios7Path() const noexcept { return "bios7.bin"; }
+        string_view DsiBios9Path() const noexcept { return "dsi_bios9.bin"; }
+        string_view DsiBios7Path() const noexcept { return "dsi_bios7.bin"; }
+
+        [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() const noexcept {
+            return "melonDS DS/wfcsettings.bin";
+        }
         [[nodiscard]] string_view FirmwarePath(MelonDsDs::ConsoleType type) const noexcept {
             return type == ConsoleType::DSi ? DsiFirmwarePath() : FirmwarePath();
         }
