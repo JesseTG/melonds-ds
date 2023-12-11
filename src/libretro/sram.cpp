@@ -99,7 +99,7 @@ void MelonDsDs::CoreState::InitNdsSave(const NdsCart &nds_cart) {
             if (!path_mkdir(Config.DldiFolderPath().data())) {
                 // Create the directory. If that fails...
                 // (note that an existing directory is not an error)
-                throw runtime_error("Failed to create virtual SD card directory at " + Config.DldiFolderPath());
+                throw runtime_error(fmt::format("Failed to create virtual SD card directory at {}", Config.DldiFolderPath()));
             }
         }
     }
@@ -189,7 +189,7 @@ void MelonDsDs::CoreState::InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& 
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);
-    retro::task::push(sram::FlushGbaSramTask(gbaSaveInfo));
+    retro::task::push(FlushGbaSramTask(gbaSaveInfo));
 }
 
 void MelonDsDs::CoreState::WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {

@@ -496,7 +496,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
         if (!loadedNdsCart->GetHeader().IsDSiWare()) {
             // If this ROM represents a cartridge, rather than DSiWare...
-            sram::InitNdsSave(*loadedNdsCart);
+            InitNdsSave(*loadedNdsCart);
         }
     }
 
@@ -558,7 +558,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             retro_assert(Console->ConsoleType == 1);
             auto& dsi = *static_cast<melonDS::DSi*>(Console.get());
             // We're running a DSiWare game, then
-            MelonDsDs::dsi::install_dsiware(dsi.GetNAND(), *_ndsInfo);
+            InstallDsiware(dsi.GetNAND(), *_ndsInfo);
         }
     }
 

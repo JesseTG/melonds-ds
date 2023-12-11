@@ -53,7 +53,7 @@ using DSi_TMD::TitleMetadata;
 const char *TMD_DIR_NAME = "tmd";
 constexpr u32 RSA256_SIGNATURE_TYPE = 16777472;
 namespace MelonDsDs::dsi {
-    static void get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length);
+    static void get_tmd_path(const retro::GameInfo& nds_info, char *buffer, size_t buffer_length);
 
     bool get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept;
 
@@ -71,11 +71,13 @@ namespace MelonDsDs::dsi {
     void export_savedata(DSi_NAND::NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept;
 }
 
-void MelonDsDs::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game_info &nds_info) {
-    ZoneScopedN("MelonDsDs::dsi::install_dsiware");
-    info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", nds_info.path);
+void MelonDsDs::CoreState::InstallDsiware(DSi_NAND::NANDImage& nand, const retro::GameInfo& nds_info) {
+    ZoneScopedN(TracyFunction);
+    std::string_view path = nds_info.GetPath();
+    info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", path);
     retro_assert(nand);
-    const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(nds_info.data);
+    auto data = nds_info.GetData();
+    const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(data.data());
     retro_assert(header.IsDSiWare());
     // The NAND should've been installed in InitConfig by this point
 
@@ -87,7 +89,7 @@ void MelonDsDs::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game
     }
 
     if (mount.TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
-        retro::info("Title \"{}\" already exists on loaded NAND; skipping installation, and won't uninstall it later.", nds_info.path);
+        retro::info("Title \"{}\" already exists on loaded NAND; skipping installation, and won't uninstall it later.", path);
         // TODO: Allow player to forcibly install the title anyway
         // TODO: Install a sentinel file in the NAND to indicate that it's temporarily installed
 
@@ -95,18 +97,18 @@ void MelonDsDs::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game
         // TODO: Import Game.private.sav if it exists, unless the internal save file is newer
         // TODO: Import Game.banner.sav if it exists, unless the internal save file is newer
     } else {
-        retro::info("Title \"{}\" is not on loaded NAND; will install it for the duration of this session.", nds_info.path);
+        retro::info("Title \"{}\" is not on loaded NAND; will install it for the duration of this session.", path);
 
         char tmd_path[PATH_MAX];
-        get_tmd_path(nds_info, tmd_path, sizeof(tmd_path));
+        dsi::get_tmd_path(nds_info, tmd_path, sizeof(tmd_path));
 
         TitleMetadata tmd{};
 
-        if (!get_cached_tmd(tmd_path, tmd)) {
+        if (!dsi::get_cached_tmd(tmd_path, tmd)) {
             // If the TMD isn't available locally...
 
 #ifdef HAVE_NETWORKING
-            if (!get_tmd(header, tmd, tmd_path)) {
+            if (!dsi::get_tmd(header, tmd, tmd_path)) {
                 // ...then download it and save it to disk. If that didn't work...
                 throw missing_metadata_exception("Cannot get title metadata for installation");
             }
@@ -115,21 +117,22 @@ void MelonDsDs::dsi::install_dsiware(DSi_NAND::NANDImage& nand, const retro_game
 #endif
         }
 
-        if (!mount.ImportTitle(static_cast<const u8 *>(nds_info.data), nds_info.size, tmd, false)) {
+        if (!mount.ImportTitle(reinterpret_cast<const u8 *>(data.data()), data.size(), tmd, false)) {
             throw emulator_exception("Failed to import DSiWare title into NAND image");
         }
 
-        import_savedata(mount, nds_info, header, DSi_NAND::TitleData_PublicSav);
-        import_savedata(mount, nds_info, header, DSi_NAND::TitleData_PrivateSav);
-        import_savedata(mount, nds_info, header, DSi_NAND::TitleData_BannerSav);
+        dsi::import_savedata(mount, nds_info, header, DSi_NAND::TitleData_PublicSav);
+        dsi::import_savedata(mount, nds_info, header, DSi_NAND::TitleData_PrivateSav);
+        dsi::import_savedata(mount, nds_info, header, DSi_NAND::TitleData_BannerSav);
     }
 }
 
-static void MelonDsDs::dsi::get_tmd_path(const retro_game_info &nds_info, char *buffer, size_t buffer_length) {
+static void MelonDsDs::dsi::get_tmd_path(const retro::GameInfo &nds_info, char *buffer, size_t buffer_length) {
+    auto path = nds_info.GetPath();
     char tmd_name[PATH_MAX]; // "/path/to/game.zip#game.nds"
     memset(tmd_name, 0, sizeof(tmd_name));
-    const char *ptr = path_basename(nds_info.path);  // "game.nds"
-    strlcpy(tmd_name, ptr ? ptr : nds_info.path, sizeof(tmd_name));
+    const char *ptr = path_basename(path.data());  // "game.nds"
+    strlcpy(tmd_name, ptr ? ptr : path.data(), sizeof(tmd_name));
     path_remove_extension(tmd_name); // "game"
     strlcat(tmd_name, ".tmd", sizeof(tmd_name)); // "game.tmd"
 
@@ -149,7 +152,7 @@ static void MelonDsDs::dsi::get_tmd_path(const retro_game_info &nds_info, char *
 }
 
 bool MelonDsDs::dsi::get_cached_tmd(const char *tmd_path, TitleMetadata &tmd) noexcept {
-    ZoneScopedN("MelonDsDs::dsi::get_cached_tmd");
+    ZoneScopedN(TracyFunction);
     RFILE *tmd_file = filestream_open(tmd_path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
     if (!tmd_file) {
         info("Could not find local copy of title metadata at \"{}\"", tmd_path);
@@ -195,7 +198,7 @@ bool MelonDsDs::dsi::validate_tmd(const TitleMetadata &tmd) noexcept {
 
 #ifdef HAVE_NETWORKING
 bool MelonDsDs::dsi::get_tmd(const NDSHeader &header, TitleMetadata &tmd, const char* tmd_path) noexcept {
-    ZoneScopedN("MelonDsDs::dsi::get_tmd");
+    ZoneScopedN(TracyFunction);
     char url[256];
     snprintf(url, sizeof(url), "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd",
              header.DSiTitleIDHigh, header.DSiTitleIDLow);
