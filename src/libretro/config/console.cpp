@@ -109,6 +109,11 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
 
     if (type == ConsoleType::DSi) {
         // If we're in DSi mode...
+        if (gbaInfo || gbaSaveInfo) {
+            retro::set_warn_message(
+                "The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM."
+            );
+        }
         return std::make_unique<melonDS::DSi>(GetDSiArgs(config, ndsInfo));
     }
     else {
