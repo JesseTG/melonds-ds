@@ -64,7 +64,7 @@ namespace MelonDsDs {
         InputState& inputState
     );
 
-    void LoadConfig(CoreConfig& config) noexcept;
+    void ParseConfig(CoreConfig& config) noexcept;
 
     /// Called when settings have been updated mid-game
     void UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;

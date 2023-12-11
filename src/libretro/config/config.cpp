@@ -101,16 +101,16 @@ const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
 namespace MelonDsDs::config {
-    static void LoadSystemOptions(CoreConfig& config) noexcept;
-    static void LoadOsdOptions(CoreConfig& config) noexcept;
-    static void LoadJitOptions(CoreConfig& config) noexcept;
-    static void LoadHomebrewSaveOptions(CoreConfig& config) noexcept;
-    static void LoadDsiStorageOptions(CoreConfig& config) noexcept;
-    static void LoadFirmwareOptions(CoreConfig& config) noexcept;
-    static void LoadAudioOptions(CoreConfig& config) noexcept;
-    static void LoadNetworkOptions(CoreConfig& config) noexcept;
-    static void LoadScreenOptions(CoreConfig& config) noexcept;
-    static void LoadVideoOptions(CoreConfig& config) noexcept;
+    static void ParseSystemOptions(CoreConfig& config) noexcept;
+    static void ParseOsdOptions(CoreConfig& config) noexcept;
+    static void ParseJitOptions(CoreConfig& config) noexcept;
+    static void ParseHomebrewSaveOptions(CoreConfig& config) noexcept;
+    static void ParseDsiStorageOptions(CoreConfig& config) noexcept;
+    static void ParseFirmwareOptions(CoreConfig& config) noexcept;
+    static void ParseAudioOptions(CoreConfig& config) noexcept;
+    static void ParseNetworkOptions(CoreConfig& config) noexcept;
+    static void ParseScreenOptions(CoreConfig& config) noexcept;
+    static void ParseVideoOptions(CoreConfig& config) noexcept;
 
     static void apply_system_options(MelonDsDs::CoreState& core, const NDSHeader* header);
 
@@ -120,18 +120,18 @@ namespace MelonDsDs::config {
 
 }
 
-void MelonDsDs::LoadConfig(CoreConfig& config) noexcept {
+void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
-    config::LoadSystemOptions(config);
-    config::LoadOsdOptions(config);
-    config::LoadJitOptions(config);
-    config::LoadHomebrewSaveOptions(config);
-    config::LoadDsiStorageOptions(config);
-    config::LoadFirmwareOptions(config);
-    config::LoadAudioOptions(config);
-    config::LoadNetworkOptions(config);
-    config::LoadScreenOptions(config);
-    config::LoadVideoOptions(config);
+    config::ParseSystemOptions(config);
+    config::ParseOsdOptions(config);
+    config::ParseJitOptions(config);
+    config::ParseHomebrewSaveOptions(config);
+    config::ParseDsiStorageOptions(config);
+    config::ParseFirmwareOptions(config);
+    config::ParseAudioOptions(config);
+    config::ParseNetworkOptions(config);
+    config::ParseScreenOptions(config);
+    config::ParseVideoOptions(config);
 }
 
 void MelonDsDs::InitConfig(
@@ -175,7 +175,7 @@ void MelonDsDs::InitConfig(
     update_option_visibility();
 }
 
-static void MelonDsDs::config::LoadSystemOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::system;
     using retro::get_variable;
@@ -220,7 +220,7 @@ static void MelonDsDs::config::LoadSystemOptions(CoreConfig& config) noexcept {
     }
 }
 
-void MelonDsDs::config::LoadOsdOptions(CoreConfig& config) noexcept {
+void MelonDsDs::config::ParseOsdOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::osd;
     using retro::get_variable;
@@ -277,7 +277,7 @@ void MelonDsDs::config::LoadOsdOptions(CoreConfig& config) noexcept {
     }
 }
 
-static void MelonDsDs::config::LoadJitOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseJitOptions(CoreConfig& config) noexcept {
 #ifdef HAVE_JIT
     ZoneScopedN(TracyFunction);
     using retro::get_variable;
@@ -326,7 +326,7 @@ static void MelonDsDs::config::LoadJitOptions(CoreConfig& config) noexcept {
 #endif
 }
 
-static void MelonDsDs::config::LoadHomebrewSaveOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseHomebrewSaveOptions(CoreConfig& config) noexcept {
     ZoneScopedN("MelonDsDs::config::parse_homebrew_save_options");
     using retro::get_variable;
 
@@ -358,7 +358,7 @@ static void MelonDsDs::config::LoadHomebrewSaveOptions(CoreConfig& config) noexc
     }
 }
 
-static void MelonDsDs::config::LoadDsiStorageOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using retro::get_variable;
 
@@ -406,7 +406,7 @@ static void MelonDsDs::config::LoadDsiStorageOptions(CoreConfig& config) noexcep
     }
 }
 
-static void MelonDsDs::config::LoadFirmwareOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using retro::get_variable;
 
@@ -489,7 +489,7 @@ static void MelonDsDs::config::LoadFirmwareOptions(CoreConfig& config) noexcept 
     // TODO: Make MAC address configurable with a file at runtime
 }
 
-static void MelonDsDs::config::LoadAudioOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseAudioOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::audio;
     using retro::get_variable;
@@ -523,7 +523,7 @@ static void MelonDsDs::config::LoadAudioOptions(CoreConfig& config) noexcept {
     }
 }
 
-static void MelonDsDs::config::LoadNetworkOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseNetworkOptions(CoreConfig& config) noexcept {
 #ifdef HAVE_NETWORKING
     ZoneScopedN(TracyFunction);
     using retro::get_variable;
@@ -546,7 +546,7 @@ static void MelonDsDs::config::LoadNetworkOptions(CoreConfig& config) noexcept {
 #endif
 }
 
-static void MelonDsDs::config::LoadScreenOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::screen;
     using retro::get_variable;
@@ -613,7 +613,7 @@ static void MelonDsDs::config::LoadScreenOptions(CoreConfig& config) noexcept {
     config.SetScreenLayouts(layouts);
 }
 
-static void MelonDsDs::config::LoadVideoOptions(CoreConfig& config) noexcept {
+static void MelonDsDs::config::ParseVideoOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::video;
     using retro::get_variable;
