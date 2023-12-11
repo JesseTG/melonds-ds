@@ -310,8 +310,8 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
             using std::to_string;
             ZoneScopedN(TracyFunction);
 
-            retro_assert(MelonDsDs::Core.Console != nullptr);
-            NDS& nds = *MelonDsDs::Core.Console;
+            retro_assert(Console != nullptr);
+            NDS& nds = *Console;
 
             // TODO: If an on-screen display isn't supported, finish the task
             fmt::memory_buffer buf;
