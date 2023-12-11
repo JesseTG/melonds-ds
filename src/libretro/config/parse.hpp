@@ -42,7 +42,7 @@ namespace MelonDsDs {
         if (value.empty()) return std::nullopt;
 
         T parsed_number = 0;
-        std::from_chars_result result = std::from_chars(value, &value.back(), parsed_number);
+        std::from_chars_result result = std::from_chars(value.data(), value.data() + value.size(), parsed_number);
 
         if (result.ec != std::errc()) return std::nullopt;
         if (parsed_number < min || parsed_number > max) return std::nullopt;
