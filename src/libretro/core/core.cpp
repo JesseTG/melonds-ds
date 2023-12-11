@@ -466,9 +466,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
-    retro_assert(Console == nullptr);
-
-    span<const std::byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<const std::byte>();
 
     if (RegisterCoreOptions()) {
         ParseConfig(Config);
@@ -477,6 +474,8 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     _screenLayout.Apply(Config);
     _inputState.Apply(Config);
     ApplyConfig(Config);
+
+    retro_assert(Console == nullptr);
     Console = CreateConsole(
         Config,
         _ndsInfo ? &*_ndsInfo : nullptr,
