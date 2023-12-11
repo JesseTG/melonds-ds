@@ -643,6 +643,10 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
     }
 }
 
+bool MelonDsDs::CoreState::UpdateOptionVisibility() noexcept {
+    return _optionVisibility.Update();
+}
+
 /// Savestates in melonDS can vary in size depending on the game,
 /// so we have to try saving the state first before we can know how big it'll be.
 /// RetroArch may try to call this function before the ROM is installed
