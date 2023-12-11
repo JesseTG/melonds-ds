@@ -22,6 +22,7 @@
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <FATStorage.h>
 #include <optional>
 #include <memory>
 #include <span>
@@ -212,6 +213,15 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned DldiImageSize() const noexcept { return _dldiImageSize; }
         void SetDldiImageSize(unsigned size) noexcept { _dldiImageSize = size; }
 
+        [[nodiscard]] optional<melonDS::FATStorageArgs> DldiSdCardArgs() const noexcept {
+            return _dldiEnable ? melonDS::FATStorageArgs {
+                .Filename = _dldiImagePath,
+                .Size = _dldiImageSize,
+                .ReadOnly = _dldiReadOnly,
+                .SourceDir = _dldiFolderSync ? _dldiFolderPath : std::nullopt
+            } : std::nullopt;
+        }
+
         [[nodiscard]] bool DsiSdEnable() const noexcept { return _dsiSdEnable; }
         void SetDsiSdEnable(bool enable) noexcept { _dsiSdEnable = enable; }
 
@@ -231,6 +241,14 @@ namespace MelonDsDs {
 
         [[nodiscard]] unsigned DsiSdImageSize() const noexcept { return _dsiSdImageSize; }
         void SetDsiSdImageSize(unsigned size) noexcept { _dsiSdImageSize = size; }
+        [[nodiscard]] optional<melonDS::FATStorageArgs> DsiSdCardArgs() const noexcept {
+            return _dsiSdEnable ? melonDS::FATStorageArgs {
+                .Filename = _dsiSdImagePath,
+                .Size = _dsiSdImageSize,
+                .ReadOnly = _dsiSdReadOnly,
+                .SourceDir = _dsiSdFolderSync ? _dsiSdFolderPath : std::nullopt
+            } : std::nullopt;
+        }
 
         [[nodiscard]] unsigned FlushDelay() const noexcept { return _flushDelay; }
         void SetFlushDelay(unsigned delay) noexcept { _flushDelay = delay; }
