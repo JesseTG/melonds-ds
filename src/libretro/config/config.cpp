@@ -101,7 +101,6 @@ const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 
 namespace MelonDsDs::config {
-    static void set_core_options() noexcept;
     namespace visibility {
         static bool ShowMicButtonMode = true;
 #ifdef HAVE_NETWORKING_DIRECT_MODE
@@ -125,24 +124,37 @@ namespace MelonDsDs::config {
 #endif
     }
 
-    static void parse_jit_options() noexcept;
-    static void parse_osd_options() noexcept;
-    static void parse_system_options() noexcept;
-    static void parse_firmware_options() noexcept;
-    static void parse_audio_options() noexcept;
-    static void parse_network_options() noexcept;
-
-    /// @returns true if the OpenGL state needs to be rebuilt
-    static bool parse_video_options(bool initializing) noexcept;
-    static void parse_screen_options() noexcept;
-    static void parse_homebrew_save_options(const NDSHeader* header);
-    static void parse_dsi_storage_options() noexcept;
+    static void LoadSystemOptions(CoreConfig& config) noexcept;
+    static void LoadOsdOptions(CoreConfig& config) noexcept;
+    static void LoadJitOptions(CoreConfig& config) noexcept;
+    static void LoadHomebrewSaveOptions(CoreConfig& config) noexcept;
+    static void LoadDsiStorageOptions(CoreConfig& config) noexcept;
+    static void LoadFirmwareOptions(CoreConfig& config) noexcept;
+    static void LoadAudioOptions(CoreConfig& config) noexcept;
+    static void LoadNetworkOptions(CoreConfig& config) noexcept;
+    static void LoadScreenOptions(CoreConfig& config) noexcept;
+    static void LoadVideoOptions(CoreConfig& config) noexcept;
 
     static void apply_system_options(MelonDsDs::CoreState& core, const NDSHeader* header);
 
     static void apply_audio_options(NDS& nds) noexcept;
     static void apply_save_options(const NDSHeader* header);
     static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
+
+}
+
+void MelonDsDs::LoadConfig(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    config::LoadSystemOptions(config);
+    config::LoadOsdOptions(config);
+    config::LoadJitOptions(config);
+    config::LoadHomebrewSaveOptions(config);
+    config::LoadDsiStorageOptions(config);
+    config::LoadFirmwareOptions(config);
+    config::LoadAudioOptions(config);
+    config::LoadNetworkOptions(config);
+    config::LoadScreenOptions(config);
+    config::LoadVideoOptions(config);
 }
 
 void MelonDsDs::InitConfig(
@@ -152,7 +164,6 @@ void MelonDsDs::InitConfig(
     InputState& inputState
 ) {
     ZoneScopedN("MelonDsDs::InitConfig");
-    config::set_core_options();
     config::parse_system_options();
     config::parse_osd_options();
     config::parse_jit_options();
@@ -185,6 +196,489 @@ void MelonDsDs::InitConfig(
     }
 
     update_option_visibility();
+}
+
+static void MelonDsDs::config::LoadSystemOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::system;
+    using retro::get_variable;
+
+    // All of these options take effect when a game starts, so there's no need to update them mid-game
+
+    if (optional<MelonDsDs::ConsoleType> type = ParseConsoleType(get_variable(CONSOLE_MODE))) {
+        config.SetConsoleType(*type);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", CONSOLE_MODE, values::DS);
+        config.SetConsoleType(ConsoleType::DS);
+    }
+
+    if (optional<BootMode> value = ParseBootMode(get_variable(BOOT_MODE))) {
+        config.SetBootMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", BOOT_MODE, values::NATIVE);
+        config.SetBootMode(BootMode::Direct);
+    }
+
+    if (optional<SysfileMode> value = ParseSysfileMode(get_variable(SYSFILE_MODE))) {
+        config.SetSysfileMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SYSFILE_MODE, values::BUILT_IN);
+        config.SetSysfileMode(SysfileMode::BuiltIn);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInList(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
+        config.SetDsPowerOkayThreshold(*value);
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to 20%", DS_POWER_OK);
+        config.SetDsPowerOkayThreshold(20);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInList(get_variable(BATTERY_UPDATE_INTERVAL), POWER_UPDATE_INTERVALS)) {
+        config.SetPowerUpdateInterval(*value);
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to 15 seconds", BATTERY_UPDATE_INTERVAL);
+        config.SetPowerUpdateInterval(15);
+    }
+}
+
+void MelonDsDs::config::LoadOsdOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::osd;
+    using retro::get_variable;
+
+#ifndef NDEBUG
+    if (optional<bool> value = ParseBoolean(get_variable(osd::POINTER_COORDINATES))) {
+        config.SetShowPointerCoordinates(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", POINTER_COORDINATES, values::DISABLED);
+        config.SetShowPointerCoordinates(false);
+    }
+#endif
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::UNSUPPORTED_FEATURES))) {
+        config.SetShowUnsupportedFeatureWarnings(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", UNSUPPORTED_FEATURES, values::ENABLED);
+        config.SetShowUnsupportedFeatureWarnings(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::MIC_STATE))) {
+        config.SetShowMicState(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", MIC_STATE, values::ENABLED);
+        config.SetShowMicState(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::CAMERA_STATE))) {
+        config.SetShowCameraState(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", CAMERA_STATE, values::ENABLED);
+        config.SetShowCameraState(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::BIOS_WARNINGS))) {
+        config.SetShowBiosWarnings(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", BIOS_WARNINGS, values::ENABLED);
+        config.SetShowBiosWarnings(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::CURRENT_LAYOUT))) {
+        config.SetShowCurrentLayout(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", CURRENT_LAYOUT, values::ENABLED);
+        config.SetShowCurrentLayout(true);
+    }
+
+    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::LID_STATE))) {
+        config.SetShowLidState(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", LID_STATE, values::DISABLED);
+        config.SetShowLidState(false);
+    }
+}
+
+static void MelonDsDs::config::LoadJitOptions(CoreConfig& config) noexcept {
+#ifdef HAVE_JIT
+    ZoneScopedN(TracyFunction);
+    using retro::get_variable;
+
+    if (optional<bool> value = ParseBoolean(get_variable(cpu::JIT_ENABLE))) {
+        config.SetJitEnable(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_ENABLE, values::ENABLED);
+        config.SetJitEnable(true);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(cpu::JIT_BLOCK_SIZE), 1, 32)) {
+        config.SetMaxBlockSize(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 32", cpu::JIT_BLOCK_SIZE);
+        config.SetMaxBlockSize(32);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(cpu::JIT_BRANCH_OPTIMISATIONS))) {
+        config.SetBranchOptimizations(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_BRANCH_OPTIMISATIONS, values::ENABLED);
+        config.SetBranchOptimizations(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(cpu::JIT_LITERAL_OPTIMISATIONS))) {
+        config.SetLiteralOptimizations(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_LITERAL_OPTIMISATIONS, values::ENABLED);
+        config.SetLiteralOptimizations(true);
+    }
+
+#ifdef HAVE_JIT_FASTMEM
+    if (optional<bool> value = ParseBoolean(get_variable(cpu::JIT_FAST_MEMORY))) {
+        config.SetFastMemory(*value);
+    } else {
+#ifdef NDEBUG
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_FAST_MEMORY, values::ENABLED);
+        config.SetFastMemory(true);
+#else
+        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_FAST_MEMORY, values::DISABLED);
+        config.SetFastMemory(false);
+#endif
+    }
+#endif
+#endif
+}
+
+static void MelonDsDs::config::LoadHomebrewSaveOptions(CoreConfig& config) noexcept {
+    ZoneScopedN("MelonDsDs::config::parse_homebrew_save_options");
+    using retro::get_variable;
+
+    optional<string> save_directory = retro::get_save_directory();
+    if (!save_directory) {
+        config.SetDldiEnable(false);
+        retro::error("Failed to get save directory; disabling homebrew SD card");
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_READ_ONLY))) {
+        config.SetDldiReadOnly(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_READ_ONLY, values::DISABLED);
+        config.SetDldiReadOnly(false);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_SYNC_TO_HOST))) {
+        config.SetDldiFolderSync(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_SYNC_TO_HOST, values::ENABLED);
+        config.SetDldiFolderSync(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_READ_ONLY))) {
+        config.SetDldiEnable(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_READ_ONLY, values::DISABLED);
+        config.SetDldiEnable(false);
+    }
+}
+
+static void MelonDsDs::config::LoadDsiStorageOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using retro::get_variable;
+
+    if (optional<bool> value = ParseBoolean(get_variable(storage::DSI_SD_READ_ONLY))) {
+        config.SetDsiSdReadOnly(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_READ_ONLY, values::DISABLED);
+        config.SetDsiSdReadOnly(false);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(storage::DSI_SD_SYNC_TO_HOST))) {
+        config.SetDsiSdFolderSync(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SYNC_TO_HOST, values::ENABLED);
+        config.SetDsiSdFolderSync(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(storage::DSI_SD_SAVE_MODE))) {
+        config.SetDsiSdEnable(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SAVE_MODE, values::ENABLED);
+        config.SetDsiSdEnable(true);
+    }
+
+    // If these firmware/BIOS files don't exist, an exception will be thrown later
+    if (const char* value = get_variable(storage::DSI_NAND_PATH); !string_is_empty(value)) {
+        config.SetDsiNandPath(string_view(value));
+    } else {
+        retro::warn("Failed to get value for {}", storage::DSI_NAND_PATH);
+        config.SetDsiNandPath(string_view(values::NOT_FOUND));
+    }
+
+    if (const char* value = get_variable(system::FIRMWARE_PATH); !string_is_empty(value)) {
+        config.SetFirmwarePath(string_view(value));
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_PATH);
+        config.SetFirmwarePath(string_view(values::NOT_FOUND));
+    }
+
+    if (const char* value = get_variable(system::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
+        config.SetDsiFirmwarePath(string_view(value));
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_DSI_PATH);
+        config.SetDsiFirmwarePath(string_view(values::NOT_FOUND));
+    }
+}
+
+static void MelonDsDs::config::LoadFirmwareOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using retro::get_variable;
+
+    if (optional<MelonDsDs::FirmwareLanguage> value = ParseLanguage(get_variable(firmware::LANGUAGE))) {
+        config.SetLanguage(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::LANGUAGE);
+        config.SetLanguage(FirmwareLanguage::Default);
+    }
+
+    if (const char* value = get_variable(firmware::FAVORITE_COLOR); string_is_equal(value, values::DEFAULT)) {
+        config.SetFavoriteColor(Color::Default);
+    } else if (!string_is_empty(value)) {
+        config.SetFavoriteColor(static_cast<Color>(std::clamp(std::stoi(value), 0, 15)));
+        // TODO: Warn if invalid
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::FAVORITE_COLOR);
+        config.SetFavoriteColor(Color::Default);
+    }
+
+    if (optional<UsernameMode> username = ParseUsernameMode(get_variable(firmware::USERNAME))) {
+        config.SetUsernameMode(*username);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to \"melonDS DS\"", firmware::USERNAME);
+        config.SetUsernameMode(UsernameMode::MelonDSDS);
+    }
+
+    if (optional<AlarmMode> alarmMode = ParseAlarmMode(get_variable(firmware::ENABLE_ALARM))) {
+         config.SetAlarmMode(*alarmMode);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ENABLE_ALARM);
+        config.SetAlarmMode(AlarmMode::Default);
+    }
+
+    if (const char* alarmHourText = get_variable(firmware::ALARM_HOUR); string_is_equal(alarmHourText, values::DEFAULT)) {
+        config.SetAlarmHour(nullopt);
+    } else if (optional<unsigned> alarmHour = ParseIntegerInRange(alarmHourText, 0u, 23u)) {
+        config.SetAlarmHour(alarmHour);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ALARM_HOUR);
+        config.SetAlarmHour(nullopt);
+    }
+
+    if (const char* alarmMinuteText = get_variable(firmware::ALARM_MINUTE); string_is_equal(alarmMinuteText, values::DEFAULT)) {
+        config.SetAlarmMinute(nullopt);
+    } else if (optional<unsigned> alarmMinute = ParseIntegerInRange(alarmMinuteText, 0u, 59u)) {
+        config.SetAlarmMinute(alarmMinute);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ALARM_MINUTE);
+        config.SetAlarmMinute(nullopt);
+    }
+
+    if (const char* birthMonthText = get_variable(firmware::BIRTH_MONTH); string_is_equal(birthMonthText, values::DEFAULT)) {
+        config.SetBirthdayMonth(0);
+    } else if (optional<unsigned> birthMonth = ParseIntegerInRange(birthMonthText, 1u, 12u)) {
+        config.SetBirthdayMonth(*birthMonth);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::BIRTH_MONTH);
+        config.SetBirthdayMonth(0);
+    }
+
+    if (const char* birthDayText = get_variable(firmware::BIRTH_DAY); string_is_equal(birthDayText, values::DEFAULT)) {
+        config.SetBirthdayDay(0);
+    } else if (optional<unsigned> birthDay = ParseIntegerInRange(birthDayText, 1u, 31u)) {
+        config.SetBirthdayDay(*birthDay);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::BIRTH_DAY);
+        config.SetBirthdayDay(0);
+    }
+
+    if (const char* wfcDnsText = get_variable(firmware::WFC_DNS); string_is_equal(wfcDnsText, values::DEFAULT)) {
+        config.SetDnsServer(nullopt);
+    } else if (optional<IpAddress> wfcDns = ParseIpAddress(wfcDnsText)) {
+        config.SetDnsServer(*wfcDns);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::WFC_DNS);
+        config.SetDnsServer(nullopt);
+    }
+
+    // TODO: Make MAC address configurable with a file at runtime
+}
+
+static void MelonDsDs::config::LoadAudioOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::audio;
+    using retro::get_variable;
+
+    if (optional<MicButtonMode> value = ParseMicButtonMode(get_variable(MIC_INPUT_BUTTON))) {
+        config.SetMicButtonMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT_BUTTON, values::HOLD);
+        config.SetMicButtonMode(MicButtonMode::Hold);
+    }
+
+    if (optional<MelonDsDs::MicInputMode> value = MelonDsDs::ParseMicInputMode(get_variable(MIC_INPUT))) {
+        config.SetMicInputMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT, values::SILENCE);
+        config.SetMicInputMode(MicInputMode::None);
+    }
+
+    if (optional<AudioBitDepth> value = ParseBitDepth(get_variable(AUDIO_BITDEPTH))) {
+        config.SetBitDepth(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_BITDEPTH, values::AUTO);
+        config.SetBitDepth(AudioBitDepth::Auto);
+    }
+
+    if (optional<AudioInterpolation> value = ParseInterpolation(get_variable(AUDIO_INTERPOLATION))) {
+        config.SetInterpolation(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_INTERPOLATION, values::DISABLED);
+        config.SetInterpolation(AudioInterpolation::None);
+    }
+}
+
+static void MelonDsDs::config::LoadNetworkOptions(CoreConfig& config) noexcept {
+#ifdef HAVE_NETWORKING
+    ZoneScopedN(TracyFunction);
+    using retro::get_variable;
+
+    if (optional<NetworkMode> value = ParseNetworkMode(get_variable(network::NETWORK_MODE))) {
+        config.SetNetworkMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", network::NETWORK_MODE, values::INDIRECT);
+        config.SetNetworkMode(NetworkMode::Indirect);
+    }
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    if (const char* value = get_variable(network::DIRECT_NETWORK_INTERFACE); !string_is_empty(value)) {
+        config.SetNetworkInterface(string_view(value));
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", network::DIRECT_NETWORK_INTERFACE, values::AUTO);
+        config.SetNetworkInterface(string_view(values::AUTO));
+    }
+#endif
+#endif
+}
+
+static void MelonDsDs::config::LoadScreenOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::screen;
+    using retro::get_variable;
+
+    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(SCREEN_GAP), SCREEN_GAP_LENGTHS)) {
+        config.SetScreenGap(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_GAP, 0);
+        config.SetScreenGap(0);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
+        config.SetCursorTimeout(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", CURSOR_TIMEOUT, 3);
+        config.SetCursorTimeout(3);
+    }
+
+    if (optional<MelonDsDs::TouchMode> value = ParseTouchMode(get_variable(TOUCH_MODE))) {
+        config.SetTouchMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", TOUCH_MODE, values::AUTO);
+        config.SetTouchMode(TouchMode::Auto);
+    }
+
+    if (optional<MelonDsDs::CursorMode> value = ParseCursorMode(get_variable(SHOW_CURSOR))) {
+        config.SetCursorMode(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SHOW_CURSOR, values::ALWAYS);
+        config.SetCursorMode(CursorMode::Always);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(HYBRID_RATIO), 2u, 3u)) {
+        config.SetHybridRatio(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", HYBRID_RATIO, 2);
+        config.SetHybridRatio(2);
+    }
+
+    if (optional<HybridSideScreenDisplay> value = ParseHybridSideScreenDisplay(get_variable(HYBRID_SMALL_SCREEN))) {
+        config.SetSmallScreenLayout(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", HYBRID_SMALL_SCREEN, values::BOTH);
+        config.SetSmallScreenLayout(HybridSideScreenDisplay::Both);
+    }
+
+    if (optional<unsigned> value = MelonDsDs::ParseIntegerInRange(get_variable(NUMBER_OF_SCREEN_LAYOUTS), 1u, MAX_SCREEN_LAYOUTS)) {
+        config.SetNumberOfScreenLayouts(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", NUMBER_OF_SCREEN_LAYOUTS, 2);
+        config.SetNumberOfScreenLayouts(2);
+    }
+
+    array<ScreenLayout, MAX_SCREEN_LAYOUTS> layouts {};
+    for (unsigned i = 0; i < MAX_SCREEN_LAYOUTS; i++) {
+        if (optional<MelonDsDs::ScreenLayout> value = MelonDsDs::ParseScreenLayout(get_variable(SCREEN_LAYOUTS[i]))) {
+            layouts[i] = *value;
+        } else {
+            retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_LAYOUTS[i], values::TOP_BOTTOM);
+            layouts[i] = ScreenLayout::TopBottom;
+        }
+    }
+
+    config.SetScreenLayouts(layouts);
+}
+
+static void MelonDsDs::config::LoadVideoOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::video;
+    using retro::get_variable;
+
+    if (optional<ScreenFilter> value = ParseScreenFilter(get_variable(OPENGL_FILTERING))) {
+        config.SetScreenFilter(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_FILTERING, values::NEAREST);
+        config.SetScreenFilter(*value);
+    }
+
+#if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
+    if (optional<bool> value = ParseBoolean(get_variable(THREADED_RENDERER))) {
+        config.SetThreadedSoftRenderer(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", THREADED_RENDERER, values::ENABLED);
+        config.SetThreadedSoftRenderer(true);
+    }
+#endif
+
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    if (optional<Renderer> renderer = ParseRenderer(get_variable(RENDER_MODE))) {
+        config.SetConfiguredRenderer(*renderer);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", RENDER_MODE, values::SOFTWARE);
+        config.SetConfiguredRenderer(Renderer::Software);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(OPENGL_RESOLUTION), 1, MAX_OPENGL_SCALE)) {
+        config.SetScaleFactor(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 1", OPENGL_RESOLUTION);
+        config.SetScaleFactor(1);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(OPENGL_BETTER_POLYGONS))) {
+        config.SetBetterPolygonSplitting(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_BETTER_POLYGONS, values::DISABLED);
+        config.SetBetterPolygonSplitting(false);
+    }
+#endif
 }
 
 void MelonDsDs::UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
@@ -396,548 +890,6 @@ static Firmware::Language get_firmware_language(retro_language language) noexcep
     }
 }
 
-static void MelonDsDs::config::parse_osd_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_osd_options");
-    using namespace MelonDsDs::config::osd;
-    using retro::get_variable;
-
-#ifndef NDEBUG
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::POINTER_COORDINATES))) {
-        showPointerCoordinates = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", POINTER_COORDINATES, values::DISABLED);
-        showPointerCoordinates = false;
-    }
-#endif
-
-    if (optional<bool> value = ParseBoolean(get_variable(osd::UNSUPPORTED_FEATURES))) {
-        showUnsupportedFeatureWarnings = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", UNSUPPORTED_FEATURES, values::ENABLED);
-        showUnsupportedFeatureWarnings = true;
-    }
-
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::MIC_STATE))) {
-        showMicState = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", MIC_STATE, values::ENABLED);
-        showMicState = true;
-    }
-
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::CAMERA_STATE))) {
-        showCameraState = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", CAMERA_STATE, values::ENABLED);
-        showCameraState = true;
-    }
-
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::BIOS_WARNINGS))) {
-        showBiosWarnings = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", BIOS_WARNINGS, values::ENABLED);
-        showBiosWarnings = true;
-    }
-
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::CURRENT_LAYOUT))) {
-        showCurrentLayout = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", CURRENT_LAYOUT, values::ENABLED);
-        showCurrentLayout = true;
-    }
-
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(osd::LID_STATE))) {
-        showLidState = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", LID_STATE, values::DISABLED);
-        showLidState = false;
-    }
-}
-
-static void MelonDsDs::config::parse_jit_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_jit_options");
-#ifdef HAVE_JIT
-    using namespace MelonDsDs::config::jit;
-    using retro::get_variable;
-
-    if (const char* value = get_variable(cpu::JIT_ENABLE); !string_is_empty(value)) {
-        _jitEnable = string_is_equal(value, values::ENABLED);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_ENABLE, values::ENABLED);
-        _jitEnable = true;
-    }
-
-    if (const char* value = get_variable(cpu::JIT_BLOCK_SIZE); !string_is_empty(value)) {
-        _maxBlockSize = std::stoi(value);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to 32", cpu::JIT_BLOCK_SIZE);
-        _maxBlockSize = 32;
-    }
-
-    if (const char* value = get_variable(cpu::JIT_BRANCH_OPTIMISATIONS); !string_is_empty(value)) {
-        _branchOptimizations = string_is_equal(value, values::ENABLED);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_BRANCH_OPTIMISATIONS, values::ENABLED);
-        _branchOptimizations = true;
-    }
-
-    if (const char* value = get_variable(cpu::JIT_LITERAL_OPTIMISATIONS); !string_is_empty(value)) {
-        _literalOptimizations = string_is_equal(value, values::ENABLED);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_LITERAL_OPTIMISATIONS, values::ENABLED);
-        _literalOptimizations = true;
-    }
-
-#ifdef HAVE_JIT_FASTMEM
-    if (const char* value = get_variable(cpu::JIT_FAST_MEMORY); !string_is_empty(value)) {
-        _fastMemory = string_is_equal(value, values::ENABLED);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", cpu::JIT_FAST_MEMORY, values::ENABLED);
-        _fastMemory = true;
-    }
-#endif
-#endif
-}
-
-static void MelonDsDs::config::parse_system_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_system_options");
-    using namespace MelonDsDs::config::system;
-    using retro::get_variable;
-
-    // All of these options take effect when a game starts, so there's no need to update them mid-game
-
-    if (optional<MelonDsDs::ConsoleType> type = MelonDsDs::ParseConsoleType(get_variable(CONSOLE_MODE))) {
-        _consoleType = *type;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", CONSOLE_MODE, values::DS);
-        _consoleType = ConsoleType::DS;
-    }
-
-    if (optional<BootMode> value = MelonDsDs::ParseBootMode(get_variable(BOOT_MODE))) {
-        _bootMode = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", BOOT_MODE, values::NATIVE);
-        _bootMode = BootMode::Direct;
-    }
-
-    if (optional<SysfileMode> value = MelonDsDs::ParseSysfileMode(get_variable(SYSFILE_MODE))) {
-        _sysfileMode = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", SYSFILE_MODE, values::BUILT_IN);
-        _sysfileMode = SysfileMode::BuiltIn;
-    }
-
-    if (optional<unsigned> value = MelonDsDs::ParseIntegerInList(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
-        _dsPowerOkayThreshold = *value;
-    }
-    else {
-        retro::warn("Failed to get value for {}; defaulting to 20%", DS_POWER_OK);
-        _dsPowerOkayThreshold = 20;
-    }
-
-    if (optional<unsigned> value = MelonDsDs::ParseIntegerInList(get_variable(BATTERY_UPDATE_INTERVAL), POWER_UPDATE_INTERVALS)) {
-        _powerUpdateInterval = *value;
-    }
-    else {
-        retro::warn("Failed to get value for {}; defaulting to 15 seconds", BATTERY_UPDATE_INTERVAL);
-        _powerUpdateInterval = 15;
-    }
-}
-
-static void MelonDsDs::config::parse_firmware_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_firmware_options");
-    using namespace MelonDsDs::config::firmware;
-    using retro::get_variable;
-
-    if (optional<MelonDsDs::FirmwareLanguage> value = MelonDsDs::ParseLanguage(get_variable(firmware::LANGUAGE))) {
-        _language = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::LANGUAGE);
-        _language = FirmwareLanguage::Default;
-    }
-
-    if (const char* value = get_variable(firmware::FAVORITE_COLOR); string_is_equal(value, values::DEFAULT)) {
-        _favoriteColor = Color::Default;
-    } else if (!string_is_empty(value)) {
-        _favoriteColor = static_cast<Color>(std::clamp(std::stoi(value), 0, 15));
-        // TODO: Warn if invalid
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::FAVORITE_COLOR);
-        _favoriteColor = Color::Default;
-    }
-
-    if (optional<UsernameMode> username = MelonDsDs::ParseUsernameMode(get_variable(firmware::USERNAME))) {
-        _usernameMode = *username;
-    } else {
-        retro::warn("Failed to get the user's name; defaulting to \"melonDS DS\"");
-        _usernameMode = UsernameMode::MelonDSDS;
-    }
-
-    if (optional<AlarmMode> alarmMode = MelonDsDs::ParseAlarmMode(get_variable(firmware::ENABLE_ALARM))) {
-        _alarmMode = *alarmMode;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ENABLE_ALARM);
-        _alarmHour = nullopt;
-    }
-
-    if (const char* alarmHourText = get_variable(firmware::ALARM_HOUR); string_is_equal(alarmHourText, values::DEFAULT)) {
-        _alarmHour = nullopt;
-    } else if (optional<unsigned> alarmHour = MelonDsDs::ParseIntegerInRange(alarmHourText, 0u, 23u)) {
-        _alarmHour = alarmHour;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ALARM_HOUR);
-        _alarmHour = nullopt;
-    }
-
-    if (const char* alarmMinuteText = get_variable(firmware::ALARM_MINUTE); string_is_equal(alarmMinuteText, values::DEFAULT)) {
-        _alarmMinute = nullopt;
-    } else if (optional<unsigned> alarmMinute = MelonDsDs::ParseIntegerInRange(alarmMinuteText, 0u, 59u)) {
-        _alarmMinute = alarmMinute;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::ALARM_MINUTE);
-        _alarmMinute = nullopt;
-    }
-
-    if (const char* birthMonthText = get_variable(firmware::BIRTH_MONTH); string_is_equal(birthMonthText, values::DEFAULT)) {
-        _birthdayMonth = 0;
-    } else if (optional<unsigned> birthMonth = MelonDsDs::ParseIntegerInRange(birthMonthText, 1u, 12u)) {
-        _birthdayMonth = *birthMonth;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::BIRTH_MONTH);
-        _birthdayMonth = 0;
-    }
-
-    if (const char* birthDayText = get_variable(firmware::BIRTH_DAY); string_is_equal(birthDayText, values::DEFAULT)) {
-        _birthdayDay = 0;
-    } else if (optional<unsigned> birthDay = MelonDsDs::ParseIntegerInRange(birthDayText, 1u, 31u)) {
-        _birthdayDay = *birthDay;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::BIRTH_DAY);
-        _birthdayDay = 0;
-    }
-
-    if (const char* wfcDnsText = get_variable(firmware::WFC_DNS); string_is_equal(wfcDnsText, values::DEFAULT)) {
-        _dnsServer = nullopt;
-    } else if (optional<IpAddress> wfcDns = MelonDsDs::ParseIpAddress(wfcDnsText)) {
-        _dnsServer = *wfcDns;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::WFC_DNS);
-        _dnsServer = nullopt;
-    }
-
-    // TODO: Make MAC address configurable with a file at runtime
-}
-
-static void MelonDsDs::config::parse_audio_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_audio_options");
-    using namespace MelonDsDs::config::audio;
-    using retro::get_variable;
-
-    if (const char* value = get_variable(MIC_INPUT_BUTTON); !string_is_empty(value)) {
-        if (string_is_equal(value, values::HOLD)) {
-            _micButtonMode = MicButtonMode::Hold;
-        } else if (string_is_equal(value, values::TOGGLE)) {
-            _micButtonMode = MicButtonMode::Toggle;
-        } else if (string_is_equal(value, values::ALWAYS)) {
-            _micButtonMode = MicButtonMode::Always;
-        } else {
-            _micButtonMode = MicButtonMode::Hold;
-        }
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT_BUTTON, values::HOLD);
-        _micButtonMode = MicButtonMode::Hold;
-    }
-
-    if (optional<MelonDsDs::MicInputMode> value = MelonDsDs::ParseMicInputMode(get_variable(MIC_INPUT))) {
-        _micInputMode = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", MIC_INPUT, values::SILENCE);
-        _micInputMode = MicInputMode::None;
-    }
-
-    if (const char* value = get_variable(AUDIO_BITDEPTH); !string_is_empty(value)) {
-        if (string_is_equal(value, values::_10BIT))
-            _bitDepth = AudioBitDepth::_10Bit;
-        else if (string_is_equal(value, values::_16BIT))
-            _bitDepth = AudioBitDepth::_16Bit;
-        else
-            _bitDepth = AudioBitDepth::Auto;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_BITDEPTH, values::AUTO);
-        _bitDepth = AudioBitDepth::Auto;
-    }
-
-    if (const char* value = get_variable(AUDIO_INTERPOLATION); !string_is_empty(value)) {
-        if (string_is_equal(value, values::CUBIC))
-            _interpolation = AudioInterpolation::Cubic;
-        else if (string_is_equal(value, values::COSINE))
-            _interpolation = AudioInterpolation::Cosine;
-        else if (string_is_equal(value, values::LINEAR))
-            _interpolation = AudioInterpolation::Linear;
-        else
-            _interpolation = AudioInterpolation::None;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_INTERPOLATION, values::DISABLED);
-        _interpolation = AudioInterpolation::None;
-    }
-}
-
-#ifdef HAVE_NETWORKING
-static void MelonDsDs::config::parse_network_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_network_options");
-    using retro::get_variable;
-
-    if (optional<NetworkMode> networkMode = MelonDsDs::ParseNetworkMode(get_variable(network::NETWORK_MODE))) {
-#ifdef HAVE_NETWORKING_DIRECT_MODE
-        if (*networkMode == NetworkMode::Direct && !net::_interfacesInitialized) {
-            // If we're using direct mode, but we couldn't enumerate the interfaces when we tried...
-            retro::warn("Failed to enumerate network devices, falling back to Indirect mode.");
-            networkMode = NetworkMode::Indirect;
-        }
-#endif
-        net::_networkMode = *networkMode;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", network::NETWORK_MODE, values::INDIRECT);
-        net::_networkMode = NetworkMode::Indirect;
-    }
-
-#ifdef HAVE_NETWORKING_DIRECT_MODE
-    if (const char* value = get_variable(network::DIRECT_NETWORK_INTERFACE); !string_is_empty(value)) {
-        strlcpy(net::_networkInterface, value, sizeof(net::_networkInterface));
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", network::DIRECT_NETWORK_INTERFACE, values::AUTO);
-        strlcpy(net::_networkInterface, values::AUTO, sizeof(net::_networkInterface));
-    }
-#endif
-}
-#endif
-
-static bool MelonDsDs::config::parse_video_options(bool initializing) noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_video_options");
-    using namespace MelonDsDs::config::video;
-    using retro::get_variable;
-
-    bool needsOpenGlRefresh = false;
-
-#if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
-    if (const char* value = get_variable(THREADED_RENDERER); !string_is_empty(value)) {
-        // Only relevant for software-rendered 3D, so no OpenGL state reset needed
-        _threadedSoftRenderer = string_is_equal(value, values::ENABLED);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", THREADED_RENDERER, values::ENABLED);
-        _threadedSoftRenderer = true;
-    }
-#endif
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (initializing) {
-        // Can't change the renderer mid-game
-        // TODO: Allow this to be changed mid-game (may need to reinit the driver)
-        if (optional<Renderer> renderer = MelonDsDs::ParseRenderer(get_variable(RENDER_MODE))) {
-            _configuredRenderer = *renderer;
-        } else {
-            retro::warn("Failed to get value for {}; defaulting to {}", RENDER_MODE, values::SOFTWARE);
-            _configuredRenderer = Renderer::Software;
-        }
-    }
-
-    if (const char* value = get_variable(OPENGL_RESOLUTION); !string_is_empty(value)) {
-        int newScaleFactor = std::clamp(atoi(value), 1, 8);
-
-        if (_scaleFactor != newScaleFactor)
-            needsOpenGlRefresh = true;
-
-        _scaleFactor = newScaleFactor;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to 1", OPENGL_RESOLUTION);
-        _scaleFactor = 1;
-    }
-
-    if (const char* value = get_variable(OPENGL_BETTER_POLYGONS); !string_is_empty(value)) {
-        bool enabled = string_is_equal(value, values::ENABLED);
-
-        if (_betterPolygonSplitting != enabled)
-            needsOpenGlRefresh = true;
-
-        _betterPolygonSplitting = enabled;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_BETTER_POLYGONS, values::DISABLED);
-        _betterPolygonSplitting = false;
-    }
-
-    if (const char* value = get_variable(OPENGL_FILTERING); !string_is_empty(value)) {
-        if (string_is_equal(value, values::LINEAR))
-            _screenFilter = ScreenFilter::Linear;
-        else
-            _screenFilter = ScreenFilter::Nearest;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_FILTERING, values::NEAREST);
-        _screenFilter = ScreenFilter::Nearest;
-    }
-#endif
-
-    return needsOpenGlRefresh;
-}
-
-static void MelonDsDs::config::parse_screen_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_screen_options");
-    using namespace MelonDsDs::config::screen;
-    using retro::get_variable;
-
-    if (optional<unsigned> value = MelonDsDs::ParseIntegerInList<unsigned>(get_variable(SCREEN_GAP), SCREEN_GAP_LENGTHS)) {
-        _screenGap = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_GAP, 0);
-        _screenGap = 0;
-    }
-
-    if (optional<unsigned> value = MelonDsDs::ParseIntegerInList<unsigned>(get_variable(CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
-        _cursorTimeout = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", CURSOR_TIMEOUT, 3);
-        _cursorTimeout = 3;
-    }
-
-    if (optional<MelonDsDs::TouchMode> value = MelonDsDs::ParseTouchMode(get_variable(TOUCH_MODE))) {
-        _touchMode = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", TOUCH_MODE, values::AUTO);
-        _touchMode = TouchMode::Auto;
-    }
-
-    if (optional<MelonDsDs::CursorMode> value = MelonDsDs::ParseCursorMode(get_variable(SHOW_CURSOR))) {
-        _cursorMode = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", SHOW_CURSOR, values::ALWAYS);
-        _cursorMode = CursorMode::Always;
-    }
-
-    if (optional<unsigned> value = MelonDsDs::ParseIntegerInRange(get_variable(HYBRID_RATIO), 2u, 3u)) {
-        _hybridRatio = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", HYBRID_RATIO, 2);
-        _hybridRatio = 2;
-    }
-
-    if (optional<HybridSideScreenDisplay> value = MelonDsDs::ParseHybridSideScreenDisplay(get_variable(HYBRID_SMALL_SCREEN))) {
-        _smallScreenLayout = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", HYBRID_SMALL_SCREEN, values::BOTH);
-        _smallScreenLayout = HybridSideScreenDisplay::Both;
-    }
-
-    if (optional<unsigned> value = MelonDsDs::ParseIntegerInRange(get_variable(NUMBER_OF_SCREEN_LAYOUTS), 1u, MAX_SCREEN_LAYOUTS)) {
-        _numberOfScreenLayouts = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", NUMBER_OF_SCREEN_LAYOUTS, 2);
-        _numberOfScreenLayouts = 2;
-    }
-
-    for (unsigned i = 0; i < MAX_SCREEN_LAYOUTS; i++) {
-        if (optional<MelonDsDs::ScreenLayout> value = MelonDsDs::ParseScreenLayout(get_variable(SCREEN_LAYOUTS[i]))) {
-            _screenLayouts[i] = *value;
-        } else {
-            retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_LAYOUTS[i], values::TOP_BOTTOM);
-            _screenLayouts[i] = ScreenLayout::TopBottom;
-        }
-    }
-}
-
-/**
- * Reads the frontend's saved homebrew save data options and applies them to the emulator.
- */
-static void MelonDsDs::config::parse_homebrew_save_options(const NDSHeader* header) {
-    ZoneScopedN("MelonDsDs::config::parse_homebrew_save_options");
-    using namespace MelonDsDs::config::save;
-    using retro::get_variable;
-
-    if (!header || !header->IsHomebrew()) {
-        // If no game is loaded, or if a non-homebrew game is loaded...
-        _dldiEnable = false;
-        retro::debug("Not parsing homebrew save options, as no homebrew game is loaded");
-        return;
-    }
-
-    optional<string> save_directory = retro::get_save_directory();
-    if (!save_directory) {
-        _dldiEnable = false;
-        retro::error("Failed to get save directory; disabling homebrew SD card");
-        return;
-    }
-
-    if (const char* value = get_variable(storage::HOMEBREW_READ_ONLY); !string_is_empty(value)) {
-        _dldiReadOnly = string_is_equal(value, values::ENABLED);
-    } else {
-        _dldiReadOnly = false;
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_READ_ONLY, values::DISABLED);
-    }
-
-    if (const char* value = get_variable(storage::HOMEBREW_SYNC_TO_HOST); !string_is_empty(value)) {
-        _dldiFolderSync = string_is_equal(value, values::ENABLED);
-    } else {
-        _dldiFolderSync = true;
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_SYNC_TO_HOST, values::ENABLED);
-    }
-
-    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE))) {
-        _dldiEnable = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_SAVE_MODE, values::ENABLED);
-        _dldiEnable = true;
-    }
-}
-
-/**
- * Reads the frontend's saved DSi save data options and applies them to the emulator.
- */
-static void MelonDsDs::config::parse_dsi_storage_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_dsi_storage_options");
-    using namespace MelonDsDs::config::save;
-    using retro::get_variable;
-
-    if (const char* value = get_variable(storage::DSI_SD_READ_ONLY); !string_is_empty(value)) {
-        _dsiSdReadOnly = string_is_equal(value, values::ENABLED);
-    } else {
-        _dsiSdReadOnly = false;
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_READ_ONLY, values::DISABLED);
-    }
-
-    if (const char* value = get_variable(storage::DSI_SD_SYNC_TO_HOST); !string_is_empty(value)) {
-        _dsiSdFolderSync = string_is_equal(value, values::ENABLED);
-    } else {
-        _dsiSdFolderSync = true;
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SYNC_TO_HOST, values::ENABLED);
-    }
-
-    if (optional<bool> value = MelonDsDs::ParseBoolean(get_variable(storage::DSI_SD_SAVE_MODE))) {
-        _dsiSdEnable = *value;
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SAVE_MODE, values::ENABLED);
-        _dsiSdEnable = true;
-    }
-
-    // If these firmware/BIOS files don't exist, an exception will be thrown later
-    if (const char* value = get_variable(storage::DSI_NAND_PATH); !string_is_empty(value)) {
-        strncpy(system::_dsiNandPath, value, sizeof(system::_dsiNandPath));
-    } else {
-        strncpy(system::_dsiNandPath, values::NOT_FOUND, sizeof(system::_dsiNandPath));
-        retro::warn("Failed to get value for {}", storage::DSI_NAND_PATH);
-    }
-
-    if (const char* value = get_variable(system::FIRMWARE_PATH); !string_is_empty(value)) {
-        strncpy(system::_firmwarePath, value, sizeof(system::_firmwarePath));
-    } else {
-        strncpy(system::_firmwarePath, values::NOT_FOUND, sizeof(system::_firmwarePath));
-        retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_PATH);
-    }
-
-    if (const char* value = get_variable(system::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
-        strncpy(system::_dsiFirmwarePath, value, sizeof(system::_dsiFirmwarePath));
-    } else {
-        strncpy(system::_dsiFirmwarePath, values::NOT_FOUND, sizeof(system::_dsiFirmwarePath));
-        retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_DSI_PATH);
-    }
-}
-
 static bool LoadBios(const string_view& name, MelonDsDs::BiosType type, std::span<u8> buffer) noexcept {
     ZoneScopedN(TracyFunction);
 
@@ -1062,14 +1014,13 @@ static DSi_NAND::NANDImage LoadNANDImage(const string& nandPath, const u8* es_ke
     return nand;
 }
 
-static void CustomizeFirmware(Firmware& firmware) {
-    ZoneScopedN("MelonDsDs::config::CustomizeFirmware");
-    using namespace MelonDsDs;
+void MelonDsDs::CoreConfig::CustomizeFirmware(Firmware& firmware) {
+    ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::firmware;
     using namespace Platform;
 
     // We don't need to save the whole firmware, just the part that may actually change.
-    optional<string> wfcsettingspath = retro::get_system_subdir_path(config::system::GeneratedFirmwareSettingsPath());
+    optional<string> wfcsettingspath = retro::get_system_subdir_path(GeneratedFirmwareSettingsPath());
     if (!wfcsettingspath) {
         throw environment_exception("No system directory is available");
     }
@@ -1129,7 +1080,7 @@ static void CustomizeFirmware(Firmware& firmware) {
                 "Corrupted firmware detected!\n"
                 "Any game that alters Wi-fi settings will break this firmware, even on real hardware.\n";
 
-            if (config::osd::ShowBiosWarnings()) {
+            if (showBiosWarnings) {
                 retro::set_warn_message(WARNING_MESSAGE);
             } else {
                 retro::warn(WARNING_MESSAGE);
@@ -1190,7 +1141,7 @@ static void CustomizeFirmware(Firmware& firmware) {
     }
 
     if (_macAddress) {
-        MacAddress mac = *_macAddress;
+        melonDS::MacAddress mac = *_macAddress;
         mac[0] &= 0xFC; // ensure the MAC isn't a broadcast MAC
         firmware.GetHeader().MacAddr = mac;
     }
@@ -1639,23 +1590,6 @@ static void MelonDsDs::config::apply_save_options(const NDSHeader* header) {
     }
 }
 
-static void MelonDsDs::config::apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
-    ZoneScopedN("MelonDsDs::config::apply_screen_options");
-    using namespace config::video;
-    using namespace render;
-
-    Renderer renderer = CurrentRenderer() == Renderer::None ?  ConfiguredRenderer() : CurrentRenderer();
-    screenLayout.SetScale(renderer == Renderer::OpenGl ? ScaleFactor() : 1);
-    screenLayout.SetLayouts(screen::ScreenLayouts(), screen::NumberOfScreenLayouts());
-    screenLayout.HybridSmallScreenLayout(screen::SmallScreenLayout());
-    screenLayout.ScreenGap(screen::ScreenGap());
-    screenLayout.HybridRatio(screen::HybridRatio());
-
-    inputState.SetCursorMode(screen::CursorMode());
-    inputState.SetMaxCursorTimeout(screen::CursorTimeout());
-    inputState.SetTouchMode(screen::TouchMode());
-}
-
 struct FirmwareEntry {
     std::string path;
     Firmware::FirmwareHeader header;
@@ -1755,8 +1689,9 @@ static vector<string_view> fmt_flags(const pcap_if_t& interface) noexcept {
 
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
-static void MelonDsDs::config::set_core_options() noexcept {
-    ZoneScopedN("MelonDsDs::config::set_core_options");
+bool MelonDsDs::RegisterCoreOptions() noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config;
 
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
     array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
@@ -1895,10 +1830,8 @@ static void MelonDsDs::config::set_core_options() noexcept {
             wifiAdapterOption->values[i + 1] = { adapter.value.c_str(), adapter.label.c_str() };
         }
         wifiAdapterOption->values[numAdapters + 1] = { nullptr, nullptr };
-        net::_interfacesInitialized = true;
     } else {
-        retro::warn("Failed to enumerate Wi-fi adapters; falling back to indirect mode");
-        net::_interfacesInitialized = false;
+        retro::warn("Failed to enumerate Wi-fi adapters");
     }
 #endif
 
@@ -1921,5 +1854,8 @@ static void MelonDsDs::config::set_core_options() noexcept {
 
     if (!retro::set_core_options(optionsUs)) {
         retro::set_error_message("Failed to set core option definitions, functionality will be limited.");
+        return false;
     }
+
+    return true;
 }

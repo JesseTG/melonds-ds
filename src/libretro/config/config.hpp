@@ -39,6 +39,7 @@ namespace melonDS {
     struct DSiArgs;
     struct NDSHeader;
     struct RenderSettings;
+    class Firmware;
     class NDS;
 }
 
@@ -50,10 +51,10 @@ struct retro_core_options_v2;
 struct retro_core_option_v2_definition;
 struct retro_game_info;
 
-// TODO: Move everything into MelonDsDs::config
 namespace MelonDsDs {
     class ScreenLayoutData;
     class InputState;
+    class CoreConfig;
 
     /// Called when loading a game
     [[deprecated("Split into LoadConfig and ApplyConfig")]] void InitConfig(
@@ -63,9 +64,13 @@ namespace MelonDsDs {
         InputState& inputState
     );
 
+    void LoadConfig(CoreConfig& config) noexcept;
+
     /// Called when settings have been updated mid-game
     void UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
     bool update_option_visibility();
+
+    [[nodiscard]] bool RegisterCoreOptions() noexcept;
 
     using std::string;
     using std::string_view;
@@ -130,7 +135,7 @@ namespace MelonDsDs {
         void SetMacAddress(std::optional<melonDS::MacAddress> macAddress) noexcept { _macAddress = macAddress; }
 
         [[nodiscard]] optional<melonDS::IpAddress> DnsServer() const noexcept { return _dnsServer; }
-        void SetDnsServer(melonDS::IpAddress dnsServer) noexcept { _dnsServer = std::move(dnsServer); }
+        void SetDnsServer(optional<melonDS::IpAddress> dnsServer) noexcept { _dnsServer = dnsServer; }
 
 #ifdef HAVE_JIT
         [[nodiscard]] bool JitEnable() const noexcept { return _jitEnable; }
@@ -307,6 +312,7 @@ namespace MelonDsDs {
         [[nodiscard]] MelonDsDs::ScreenFilter ScreenFilter() const noexcept { return _screenFilter; }
         void SetScreenFilter(MelonDsDs::ScreenFilter screenFilter) noexcept { _screenFilter = screenFilter; }
     private:
+        void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
         MelonDsDs::MicInputMode _micInputMode = *ParseMicInputMode(config::definitions::MicInput.default_value);
         melonDS::AudioBitDepth _bitDepth;
