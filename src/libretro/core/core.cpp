@@ -33,7 +33,6 @@
 #include "../render/render.hpp"
 #include "../retro/task_queue.hpp"
 
-using std::byte;
 using std::span;
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
@@ -185,7 +184,7 @@ void MelonDsDs::CoreState::Reset() {
         // depending on which console mode and BIOS mode is in effect.
         std::unique_ptr<melonDS::NDSCart::CartCommon> rom;
         {
-            span<const byte> romSpan = _ndsInfo->GetData();
+            span<const std::byte> romSpan = _ndsInfo->GetData();
             ZoneScopedN("NDSCart::ParseROM");
             rom = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(romSpan.data()), romSpan.size());
         }
@@ -459,7 +458,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     retro_assert(Console == nullptr);
 
-    span<const byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<const byte>();
+    span<const std::byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<const std::byte>();
     const auto* header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(rom.data()) : nullptr;
     // TODO: Apply config
     InitConfig(header, _screenLayout, _inputState);
@@ -510,7 +509,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         else {
             // TODO: Load the ROM and SRAM in one go
 
-            span<const byte> gbaRom = _gbaInfo->GetData();
+            span<const std::byte> gbaRom = _gbaInfo->GetData();
             {
                 ZoneScopedN("GBACart::ParseROM");
                 loadedGbaCart = melonDS::GBACart::ParseROM(reinterpret_cast<const uint8_t*>(gbaRom.data()), gbaRom.size());
@@ -758,7 +757,7 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
     return Console->DoSavestate(&savestate) && !savestate.Error;
 }
 
-byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
+std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
     ZoneScopedN(TracyFunction);
     if (_messageScreen)
         return nullptr;
@@ -766,10 +765,10 @@ byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
     switch (id) {
         case RETRO_MEMORY_SYSTEM_RAM:
             retro_assert(Console != nullptr);
-            return reinterpret_cast<byte*>(Console->MainRAM);
+            return reinterpret_cast<std::byte*>(Console->MainRAM);
         case RETRO_MEMORY_SAVE_RAM:
             if (_ndsSaveManager) {
-                return (byte*)_ndsSaveManager->Sram();
+                return (std::byte*)_ndsSaveManager->Sram();
             }
             [[fallthrough]];
         default:
