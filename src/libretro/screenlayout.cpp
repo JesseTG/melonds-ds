@@ -152,7 +152,7 @@ mat3 MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const no
 }
 
 glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) const noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix");
+    ZoneScopedN(TracyFunction);
     switch (Layout()) {
         case ScreenLayout::HybridBottom:
         case ScreenLayout::HybridTop:
@@ -171,10 +171,10 @@ void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config) noexcept {
 }
 
 void MelonDsDs::ScreenLayoutData::Update(ScreenFilter filter) noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::Update");
+    ZoneScopedN(TracyFunction);
 
     // These points represent the NDS screen coordinates without transformations
-    array<vec2, 4> baseScreenPoints = {
+    constexpr array<vec2, 4> baseScreenPoints = {
         vec2(0, 0), // northwest
         vec2(NDS_SCREEN_WIDTH, 0), // northeast
         vec2(NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT), // southeast
