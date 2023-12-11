@@ -321,7 +321,7 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
                 i16vec2 pointerInput = _inputState.PointerInput();
                 ivec2 joystick = _inputState.JoystickTouchPosition();
                 ivec2 touch = _inputState.PointerTouchPosition();
-                format_to(
+                fmt::format_to(
                     inserter,
                     "Pointer: ({}, {}) → ({}, {}) || Joystick: ({}, {})",
                     pointerInput.x, pointerInput.y,
