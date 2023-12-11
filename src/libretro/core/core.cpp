@@ -28,6 +28,7 @@
 
 #include "../config/console.hpp"
 #include "../exceptions.hpp"
+#include "../format.hpp"
 #include "../info.hpp"
 #include "../microphone.hpp"
 #include "../message/error.hpp"
@@ -176,7 +177,8 @@ void MelonDsDs::CoreState::Reset() {
 
     auto header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data()) : nullptr;
     retro_assert(Console != nullptr);
-    InitConfig(*Console, header, _screenLayout, _inputState);
+    RegisterCoreOptions();
+    InitConfig(*this, header, _screenLayout, _inputState);
 
     InitFlushFirmwareTask();
 
@@ -460,14 +462,13 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     retro_assert(Console == nullptr);
 
     span<const std::byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<const std::byte>();
-    const auto* header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(rom.data()) : nullptr;
-
 
     if (RegisterCoreOptions()) {
-        LoadConfig(Config);
+        ParseConfig(Config);
         _optionVisibility.Update();
     }
-
+    _screenLayout.Apply(Config);
+    _inputState.Apply(Config);
     ApplyConfig(Config);
     Console = CreateConsole(
         Config,
@@ -547,7 +548,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
 
     InitRenderer();
-    // render::Initialize(config::video::ConfiguredRenderer());
 
     // The ROM must be inserted in retro_load_game,
     // as the frontend may try to query the savestate size
