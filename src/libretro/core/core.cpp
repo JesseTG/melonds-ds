@@ -748,8 +748,8 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
         return false;
     }
 
-    if (data.size() != _savestateSize) {
-        retro::error("Expected a {}-byte savestate, got one of {} bytes", _savestateSize, data.size());
+    if (data.size() != *_savestateSize) {
+        retro::error("Expected a {}-byte savestate, got one of {} bytes", *_savestateSize, data.size());
         retro::set_error_message("Can't load this savestate, most likely the ROM or the core is wrong.");
         return false;
     }

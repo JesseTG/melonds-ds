@@ -176,9 +176,9 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
 }
 
 void MelonDsDs::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
-    ZoneScopedN("MelonDsDs::error::ErrorScreen::Render");
+    ZoneScopedN(TracyFunction);
     if (screenLayout.Dirty()) {
-        screenLayout.Update(MelonDsDs::Renderer::Software);
+        screenLayout.Update(MelonDsDs::ScreenFilter::Linear);
     }
 
     screenLayout.Clear();
