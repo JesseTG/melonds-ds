@@ -189,7 +189,7 @@ void MelonDsDs::CoreState::InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& 
     // Actually installing the SRAM will be done later, after NDS::Reset is called
     free(gba_save_data);
     rzipstream_close(gba_save_file);
-    retro::task::push(FlushGbaSramTask(gbaSaveInfo));
+    retro::task::push(FlushGbaSramTask());
 }
 
 void MelonDsDs::CoreState::WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
