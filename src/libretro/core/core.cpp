@@ -480,6 +480,22 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
 
+    if (Console->GetNDSCart()) {
+        assert(!Console->GetNDSCart()->GetHeader().IsDSiWare());
+        // DSi mode should've been forced if loading a DSiWare game
+        InitNdsSave(*Console->GetNDSCart());
+    }
+
+    if (Console->GetGBASave() && Console->GetGBASaveLength()) {
+        // If we inserted a GBA ROM with SRAM...
+        _gbaSaveManager = std::make_optional<sram::SaveManager>(Console->GetGBASaveLength());
+        retro::task::push(FlushGbaSramTask());
+        retro::debug("Initialized and loaded GBA SRAM, and started GBA SRAM flush task.");
+    }
+    else {
+        retro::info("No GBA SRAM was provided.");
+    }
+
     if (retro::supports_power_status()) {
         retro::task::push(PowerStatusUpdateTask());
     }
@@ -490,60 +506,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     }
 
     retro::environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
-
-    using retro::environment;
-    using retro::set_message;
-
-    std::unique_ptr<NdsCart> loadedNdsCart;
-    // First parse the ROMs...
-    if (_ndsInfo) {
-        {
-            ZoneScopedN("NDSCart::ParseROM");
-            loadedNdsCart = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(rom.data()), rom.size());
-            // TODO: Create FATStorageArgs if the cart is homebrew
-        }
-
-        if (!loadedNdsCart) {
-            throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
-        }
-
-        retro::debug("Loaded NDS ROM: \"{}\"", _ndsInfo->GetPath());
-
-        if (!loadedNdsCart->GetHeader().IsDSiWare()) {
-            // If this ROM represents a cartridge, rather than DSiWare...
-            InitNdsSave(*loadedNdsCart);
-        }
-    }
-
-    std::unique_ptr<GbaCart> loadedGbaCart;
-    if (_gbaInfo) {
-        if (static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DSi) {
-            retro::set_warn_message(
-                "The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM.");
-        }
-        else {
-            // TODO: Load the ROM and SRAM in one go
-
-            span<const std::byte> gbaRom = _gbaInfo->GetData();
-            {
-                ZoneScopedN("GBACart::ParseROM");
-                loadedGbaCart = melonDS::GBACart::ParseROM(reinterpret_cast<const uint8_t*>(gbaRom.data()), gbaRom.size());
-            }
-
-            if (!loadedGbaCart) {
-                throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
-            }
-
-            retro::debug("Loaded GBA ROM: \"{}\"", _gbaInfo->GetPath());
-
-            if (_gbaSaveInfo) {
-                InitGbaSram(*loadedGbaCart, *_gbaSaveInfo);
-            }
-            else {
-                retro::info("No GBA SRAM was provided.");
-            }
-        }
-    }
 
     // The ROM must be inserted in retro_load_game,
     // as the frontend may try to query the savestate size

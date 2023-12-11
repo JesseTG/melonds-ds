@@ -19,6 +19,7 @@
 #include <codecvt>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string_view>
 
 #include <FreeBIOS.h>
@@ -26,7 +27,9 @@
 #include <DSi.h>
 
 #include <retro_assert.h>
+#include <file/file_path.h>
 #include <streams/file_stream.h>
+#include <streams/rzip_stream.h>
 #include <string/stdstring.h>
 
 #include "config.hpp"
@@ -39,6 +42,7 @@ using std::make_optional;
 using std::make_unique;
 using std::nullopt;
 using std::optional;
+using std::span;
 using std::string_view;
 using std::unique_ptr;
 using melonDS::Firmware;
@@ -54,6 +58,9 @@ namespace MelonDsDs {
     );
     static melonDS::DSiArgs GetDSiArgs(const CoreConfig& config, const retro::GameInfo* ndsInfo);
     static void ApplyCommonArgs(const CoreConfig& config, melonDS::NDSArgs& args) noexcept;
+    static unique_ptr<melonDS::NDSCart::CartCommon> LoadNdsCart(const CoreConfig& config, const retro::GameInfo& ndsInfo);
+    static unique_ptr<melonDS::GBACart::CartCommon> LoadGbaCart(const retro::GameInfo& gbaInfo, const retro::GameInfo* gbaSaveInfo);
+    static std::pair<unique_ptr<uint8_t[]>, size_t> LoadGbaSram(const retro::GameInfo& gbaSaveInfo);
     static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept;
     static bool LoadBios(const string_view& name, BiosType type, std::span<uint8_t> buffer) noexcept;
     static void CustomizeFirmware(const CoreConfig& config, Firmware& firmware);
@@ -214,6 +221,14 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
     CustomizeFirmware(config, *firmware);
     ndsargs.Firmware = std::move(*firmware);
 
+    if (ndsInfo) {
+        ndsargs.NDSROM = LoadNdsCart(config, *ndsInfo);
+    }
+
+    if (gbaInfo) {
+        ndsargs.GBAROM = LoadGbaCart(*gbaInfo, gbaSaveInfo);
+    }
+
     return ndsargs;
 }
 
@@ -293,9 +308,10 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
         CustomizeNAND(config, mount, header, nandName);
     }
 
+    unique_ptr<melonDS::NDSCart::CartCommon> ndsRom = ndsInfo ? LoadNdsCart(config, *ndsInfo) : nullptr;
     melonDS::DSiArgs dsiargs {
         {
-            .NDSROM = nullptr, // Inserted later
+            .NDSROM = std::move(ndsRom),
             .GBAROM = nullptr, // Irrelevant on DSi
             .ARM9BIOS = arm9,
             .ARM7BIOS = arm7,
@@ -311,7 +327,6 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
 
     return dsiargs;
 }
-
 
 static void MelonDsDs::ApplyCommonArgs(const CoreConfig& config, melonDS::NDSArgs& args) noexcept {
     ZoneScopedN(TracyFunction);
@@ -338,6 +353,125 @@ static void MelonDsDs::ApplyCommonArgs(const CoreConfig& config, melonDS::NDSArg
 #endif
 }
 
+static unique_ptr<melonDS::NDSCart::CartCommon> MelonDsDs::LoadNdsCart(const CoreConfig& config, const retro::GameInfo& ndsInfo) {
+    ZoneScopedN(TracyFunction);
+    span<const std::byte> rom = ndsInfo.GetData();
+
+    melonDS::NDSCart::NDSCartArgs sdargs = {
+        .SRAM = nullopt, // SRAM is loaded separately by retro_get_memory
+        .SDCard = config.DldiSdCardArgs(),
+    };
+
+    std::unique_ptr<melonDS::NDSCart::CartCommon> cart;
+    {
+        ZoneScopedN("NDSCart::ParseROM");
+        cart = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(rom.data()), rom.size(), std::move(sdargs));
+    }
+
+    if (!cart) {
+        throw invalid_rom_exception("Failed to parse the DS ROM image. Is it valid?");
+    }
+
+    retro::debug("Parsed NDS ROM: \"{}\"", ndsInfo.GetPath());
+
+    return cart;
+}
+
+static unique_ptr<melonDS::GBACart::CartCommon> MelonDsDs::LoadGbaCart(
+    const retro::GameInfo& gbaInfo,
+    const retro::GameInfo* gbaSaveInfo
+) {
+    ZoneScopedN(TracyFunction);
+
+    unique_ptr<uint8_t[]> sram;
+    size_t sramSize = 0;
+    if (gbaSaveInfo) {
+        auto result = LoadGbaSram(*gbaSaveInfo);
+        sram = std::move(result.first);
+        sramSize = result.second;
+    }
+    span<const std::byte> gbaRom = gbaInfo.GetData();
+
+    unique_ptr<melonDS::GBACart::CartCommon> cart;
+    {
+        ZoneScopedN("GBACart::ParseROM");
+        cart = melonDS::GBACart::ParseROM(
+            reinterpret_cast<const uint8_t*>(gbaRom.data()),
+            gbaRom.size(),
+            sram.get(),
+            sramSize
+        );
+    }
+
+    if (!cart) {
+        throw invalid_rom_exception("Failed to parse the GBA ROM image. Is it valid?");
+    }
+
+    retro::debug("Loaded GBA ROM: \"{}\"", gbaInfo.GetPath());
+
+    return cart;
+}
+
+static std::pair<unique_ptr<uint8_t[]>, size_t> MelonDsDs::LoadGbaSram(const retro::GameInfo& gbaSaveInfo) {
+    ZoneScopedN(TracyFunction);
+    // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
+    // because we'll overwrite it later and don't want the frontend to hold open any file handles.
+    // Due to libretro limitations, we can't use retro_get_memory_data to load the GBA SRAM
+    // without asking the user to move their SRAM into the melonDS DS save folder.
+    if (path_contains_compressed_file(gbaSaveInfo.GetPath().data())) {
+        // If this save file is in an archive (e.g. /path/to/file.7z#mygame.srm)...
+
+        // We don't support GBA SRAM files in archives right now;
+        // libretro-common has APIs for extracting and re-inserting them,
+        // but I just can't be bothered.
+        retro::set_error_message(
+            "melonDS DS does not support archived GBA save data right now. "
+            "Please extract it and try again. "
+            "Continuing without using the save data."
+        );
+
+        return { nullptr, 0 };
+    }
+
+    // rzipstream opens the file as-is if it's not rzip-formatted
+    rzipstream_t* gba_save_file = rzipstream_open(gbaSaveInfo.GetPath().data(), RETRO_VFS_FILE_ACCESS_READ);
+    if (!gba_save_file) {
+        throw std::runtime_error("Failed to open GBA save file");
+    }
+
+    if (rzipstream_is_compressed(gba_save_file)) {
+        // If this save data is compressed in libretro's rzip format...
+        // (not to be confused with a standard archive format like zip or 7z)
+
+        // We don't support rzip-compressed GBA save files right now;
+        // I can't be bothered.
+        retro::set_error_message(
+            "melonDS DS does not support compressed GBA save data right now. "
+            "Please disable save data compression in the frontend and try again. "
+            "Continuing without using the save data."
+        );
+
+        rzipstream_close(gba_save_file);
+        return { nullptr, 0 };
+    }
+
+    int64_t gba_save_file_size = rzipstream_get_size(gba_save_file);
+    if (gba_save_file_size < 0) {
+        // If we couldn't get the uncompressed size of the GBA save file...
+        rzipstream_close(gba_save_file);
+        throw std::runtime_error("Failed to get GBA save file size");
+    }
+
+    unique_ptr<uint8_t[]> gba_save_data = make_unique<uint8_t[]>(gba_save_file_size);
+    int64_t bytesRead = rzipstream_read(gba_save_file, gba_save_data.get(), gba_save_file_size);
+    rzipstream_close(gba_save_file);
+    if (bytesRead != gba_save_file_size) {
+        throw std::runtime_error("Failed to read GBA save file");
+    }
+
+    retro::debug("Loaded {}-byte GBA SRAM from {}.", gba_save_file_size, gbaSaveInfo.GetPath());
+    return {std::move(gba_save_data), gba_save_file_size};
+}
 
 static bool MelonDsDs::LoadBios(const string_view& name, MelonDsDs::BiosType type, std::span<uint8_t> buffer) noexcept {
     ZoneScopedN(TracyFunction);
