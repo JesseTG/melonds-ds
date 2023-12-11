@@ -29,6 +29,8 @@ namespace retro {
 
 namespace MelonDsDs {
     class CoreConfig;
+
+    /// Creates a new console instance, for when the player is starting a session.
     std::unique_ptr<melonDS::NDS> CreateConsole(
         const CoreConfig& config,
         const retro::GameInfo* ndsInfo,
@@ -36,8 +38,10 @@ namespace MelonDsDs {
         const retro::GameInfo* gbaSaveInfo
     );
 
+    /// Modify a console instance with core options that are safe to adjust at runtime.
     void UpdateConsole(const CoreConfig& config, melonDS::NDS& nds);
 
+    /// Modify a console instance with core options that require a reset to adjust.
     void ResetConsole(const CoreConfig& config, melonDS::NDS& nds);
 }
 
