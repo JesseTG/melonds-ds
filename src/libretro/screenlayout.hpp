@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 
 #include <libretro.h>
 #include <gfx/scaler/scaler.h>
@@ -29,6 +30,7 @@
 #include <glm/mat3x3.hpp>
 #include <glm/trigonometric.hpp>
 
+#include "config/constants.hpp"
 #include "environment.hpp"
 #include "input.hpp"
 #include "buffer.hpp"
@@ -120,6 +122,18 @@ namespace MelonDsDs {
             }
             _layouts = layouts;
             _numberOfLayouts = numberOfLayouts;
+
+            if (oldLayout != Layout()) _dirty = true;
+        }
+
+        void SetLayouts(const std::span<const ScreenLayout> layouts) noexcept {
+            ScreenLayout oldLayout = Layout();
+
+            if (_layoutIndex >= layouts.size()) {
+                _layoutIndex = layouts.size() - 1;
+            }
+            memcpy(_layouts.data(), layouts.data(), layouts.size() * sizeof(ScreenLayout));
+            _numberOfLayouts = layouts.size();
 
             if (oldLayout != Layout()) _dirty = true;
         }
