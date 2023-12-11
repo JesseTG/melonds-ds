@@ -26,6 +26,7 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 
+#include "../config/console.hpp"
 #include "../exceptions.hpp"
 #include "../info.hpp"
 #include "../microphone.hpp"
@@ -468,10 +469,15 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     }
 
     ApplyConfig(Config);
+    Console = CreateConsole(
+        Config,
+        _ndsInfo ? &*_ndsInfo : nullptr,
+        _gbaInfo ? &*_gbaInfo : nullptr,
+        _gbaSaveInfo ? &*_gbaSaveInfo : nullptr
+    );
 
     retro_assert(Console != nullptr);
-
-    melonDS::NDS& nds = *Console;
+    melonDS::NDS::Current = Console.get();
 
     if (retro::supports_power_status()) {
         retro::task::push(PowerStatusUpdateTask());
@@ -546,7 +552,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     // The ROM must be inserted in retro_load_game,
     // as the frontend may try to query the savestate size
     // in between retro_load_game and the first retro_run call.
-    retro_assert(nds.NDSCartSlot.GetCart() == nullptr);
+    retro_assert(Console->GetNDSCart() == nullptr);
 
     if (loadedNdsCart) {
         // If we want to insert a NDS ROM that was previously loaded...
@@ -554,11 +560,11 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         if (!loadedNdsCart->GetHeader().IsDSiWare()) {
             // If we're running a physical cartridge...
 
-            nds.SetNDSCart(std::move(loadedNdsCart));
+            Console->SetNDSCart(std::move(loadedNdsCart));
 
             // Just to be sure
             retro_assert(loadedNdsCart == nullptr);
-            retro_assert(nds.NDSCartSlot.GetCart() != nullptr);
+            retro_assert(Console->GetNDSCart() != nullptr);
         }
         else {
             retro_assert(Console->ConsoleType == 1);
@@ -570,7 +576,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     if (_gbaInfo && loadedGbaCart) {
         // If we want to insert a GBA ROM that was previously loaded...
-        nds.SetGBACart(std::move(loadedGbaCart));
+        Console->SetGBACart(std::move(loadedGbaCart));
 
         retro_assert(loadedGbaCart == nullptr);
     }
