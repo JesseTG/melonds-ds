@@ -53,11 +53,11 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 #endif
 
     return {
+        .geometry = _screenLayout.Geometry(Console->GPU.GetRenderer3D()),
         .timing {
             .fps = 32.0f * 1024.0f * 1024.0f / 560190.0f,
             .sample_rate = 32.0f * 1024.0f,
         },
-        .geometry = _screenLayout.Geometry(Console->GPU.GetRenderer3D()),
     };
 }
 
