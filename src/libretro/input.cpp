@@ -290,6 +290,12 @@ bool MelonDsDs::InputState::IsCursorInputInBounds() const noexcept {
     // but the screen's resolution probably isn't big enough for that to happen in practice.
 }
 
+void MelonDsDs::InputState::Apply(const CoreConfig& config) noexcept {
+    SetCursorMode(config.CursorMode());
+    SetMaxCursorTimeout(config.CursorTimeout());
+    SetTouchMode(config.TouchMode());
+}
+
 bool MelonDsDs::InputState::CursorVisible() const noexcept {
     bool modeAllowsCursor = false;
     switch (cursorMode) {

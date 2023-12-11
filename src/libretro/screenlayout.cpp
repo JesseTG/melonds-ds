@@ -162,6 +162,14 @@ glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) con
     }
 }
 
+void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config) noexcept {
+    SetScale(config.ScaleFactor());
+    SetLayouts(config.ScreenLayouts());
+    HybridSmallScreenLayout(config.SmallScreenLayout());
+    ScreenGap(config.ScreenGap());
+    HybridRatio(config.HybridRatio());
+}
+
 void MelonDsDs::ScreenLayoutData::Update(ScreenFilter filter) noexcept {
     ZoneScopedN("MelonDsDs::ScreenLayoutData::Update");
 

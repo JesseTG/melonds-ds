@@ -20,19 +20,21 @@
 #include <libretro.h>
 #include <glm/vec2.hpp>
 
-#include "config/config.hpp"
+#include "config/types.hpp"
 
 namespace melonDS {
     class NDS;
 }
 
 namespace MelonDsDs {
+    class CoreConfig;
     class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
 
     class InputState
     {
     public:
+        void Apply(const CoreConfig& config) noexcept;
         [[nodiscard]] bool CursorVisible() const noexcept;
         [[nodiscard]] bool IsTouchingScreen() const noexcept;
         [[nodiscard]] bool ScreenTouched() const noexcept { return isPointerTouching && !previousIsPointerTouching; }
