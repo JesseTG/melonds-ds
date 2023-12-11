@@ -26,6 +26,7 @@
 #include <NDS.h>
 
 #include "../config/config.hpp"
+#include "../config/visibility.hpp"
 #include "../message/error.hpp"
 #include "../render/render.hpp"
 #include "../retro/info.hpp"
@@ -66,11 +67,6 @@ namespace MelonDsDs {
         CoreState() noexcept = default;
         ~CoreState() noexcept = default;
 
-        // TODO: Make private
-        std::unique_ptr<melonDS::NDS> Console = nullptr;
-
-        // TODO: Make private
-        CoreConfig Config {};
         [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
         [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
@@ -97,12 +93,13 @@ namespace MelonDsDs {
         bool UpdateOptionVisibility() noexcept;
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
+        [[gnu::cold]] void ApplyConfig(const CoreConfig& config);
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
         [[gnu::cold]] void RunFirstFrame() noexcept;
         [[gnu::cold]] void LoadGameDeferred();
         [[gnu::cold]] static void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
-        [[gnu::cold]] void InstallDsiware(melonDS::DSi_NAND::NANDImage& nand, const retro::GameInfo& nds_info);
+        [[gnu::cold]] static void InstallDsiware(melonDS::DSi_NAND::NANDImage& nand, const retro::GameInfo& nds_info);
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
@@ -122,6 +119,9 @@ namespace MelonDsDs {
         [[gnu::cold]] void InitNdsSave(const NdsCart &nds_cart);
 
         [[gnu::hot]] void ReadMicrophone(melonDS::NDS& nds, InputState& inputState) noexcept;
+
+        std::unique_ptr<melonDS::NDS> Console = nullptr;
+        CoreConfig Config {};
         CoreOptionVisibility _optionVisibility {};
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
