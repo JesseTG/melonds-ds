@@ -8,6 +8,8 @@ add_library(melondsds_libretro MODULE
     buffer.hpp
     config/config.hpp
     config/config.cpp
+    config/console.hpp
+    config/console.cpp
     config/constants.cpp
     config/constants.hpp
     config/definitions.hpp

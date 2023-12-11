@@ -35,35 +35,6 @@ using std::nullopt;
 using std::string;
 using namespace melonDS;
 
-string MelonDsDs::config::GetUsername(MelonDsDs::UsernameMode mode) noexcept {
-    ZoneScopedN("MelonDsDs::config::GetUsername");
-    char result[DS_NAME_LIMIT + 1];
-    result[DS_NAME_LIMIT] = '\0';
-
-    switch (mode) {
-        case MelonDsDs::UsernameMode::Firmware:
-            return values::firmware::FIRMWARE_USERNAME;
-        case MelonDsDs::UsernameMode::Guess: {
-            if (optional<string> frontendGuess = retro::username(); frontendGuess && !frontendGuess->empty()) {
-                return *frontendGuess;
-            } else if (const char* user = getenv("USER"); !string_is_empty(user)) {
-                strncpy(result, user, DS_NAME_LIMIT);
-            } else if (const char* username = getenv("USERNAME"); !string_is_empty(username)) {
-                strncpy(result, username, DS_NAME_LIMIT);
-            } else if (const char* logname = getenv("LOGNAME"); !string_is_empty(logname)) {
-                strncpy(result, logname, DS_NAME_LIMIT);
-            } else {
-                strncpy(result, values::firmware::DEFAULT_USERNAME, DS_NAME_LIMIT);
-            }
-
-            return result;
-        }
-        case MelonDsDs::UsernameMode::MelonDSDS:
-        default:
-            return values::firmware::DEFAULT_USERNAME;
-    }
-}
-
 bool MelonDsDs::config::IsDsiNandImage(const retro::dirent &file) noexcept {
     ZoneScopedN("MelonDsDs::config::IsDsiNandImage");
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
