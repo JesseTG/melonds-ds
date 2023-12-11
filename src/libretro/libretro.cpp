@@ -286,6 +286,10 @@ void MelonDsDs::HardwareContextDestroyed() noexcept {
     Core.DestroyRenderState();
 }
 
+bool MelonDsDs::UpdateOptionVisibility() noexcept {
+    return Core.UpdateOptionVisibility();
+}
+
 bool Platform::LAN_Init() {
     ZoneScopedN(TracyFunction);
 

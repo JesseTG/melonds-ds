@@ -94,6 +94,7 @@ namespace MelonDsDs {
         void WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
         void WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
         void WriteFirmware(const melonDS::Firmware& firmware, uint32_t writeoffset, uint32_t writelen) noexcept;
+        bool UpdateOptionVisibility() noexcept;
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
@@ -121,6 +122,7 @@ namespace MelonDsDs {
         [[gnu::cold]] void InitNdsSave(const NdsCart &nds_cart);
 
         [[gnu::hot]] void ReadMicrophone(melonDS::NDS& nds, InputState& inputState) noexcept;
+        CoreOptionVisibility _optionVisibility {};
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;

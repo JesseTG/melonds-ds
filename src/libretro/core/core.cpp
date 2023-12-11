@@ -460,8 +460,14 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     span<const std::byte> rom = _ndsInfo ? _ndsInfo->GetData() : span<const std::byte>();
     const auto* header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(rom.data()) : nullptr;
-    // TODO: Apply config
-    InitConfig(header, _screenLayout, _inputState);
+
+
+    if (RegisterCoreOptions()) {
+        LoadConfig(Config);
+        _optionVisibility.Update();
+    }
+
+    ApplyConfig(Config);
 
     retro_assert(Console != nullptr);
 

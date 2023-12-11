@@ -23,6 +23,8 @@ add_library(melondsds_libretro MODULE
     config/parse.cpp
     config/parse.hpp
     config/types.hpp
+    config/visibility.hpp
+    config/visibility.cpp
     core/core.cpp
     core/core.hpp
     core/dsi.cpp

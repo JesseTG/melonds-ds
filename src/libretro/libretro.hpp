@@ -42,6 +42,7 @@ namespace MelonDsDs {
 
     void HardwareContextReset() noexcept;
     void HardwareContextDestroyed() noexcept;
+    bool UpdateOptionVisibility() noexcept;
 }
 
 #endif //MELONDS_DS_LIBRETRO_HPP

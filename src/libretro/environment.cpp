@@ -607,7 +607,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro::_environment = cb;
 
     // TODO: Handle potential errors with each environment call below
-    struct retro_core_options_update_display_callback update_display_cb{MelonDsDs::update_option_visibility};
+    retro_core_options_update_display_callback update_display_cb {MelonDsDs::UpdateOptionVisibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
 
     environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void*) MelonDsDs::content_overrides);
