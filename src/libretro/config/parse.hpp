@@ -18,6 +18,7 @@
 #define MELONDSDS_PARSE_HPP
 
 #include <optional>
+#include <SPU.h>
 #include <string_view>
 
 #include "constants.hpp"
@@ -164,10 +165,42 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
+    constexpr std::optional<MicButtonMode> ParseMicButtonMode(std::string_view value) noexcept {
+        if (value == config::values::HOLD) return MicButtonMode::Hold;
+        if (value == config::values::TOGGLE) return MicButtonMode::Toggle;
+        if (value == config::values::ALWAYS) return MicButtonMode::Always;
+
+        return std::nullopt;
+    }
+
     constexpr std::optional<MelonDsDs::TouchMode> ParseTouchMode(std::string_view value) noexcept {
         if (value == config::values::AUTO) return TouchMode::Auto;
         if (value == config::values::TOUCH) return TouchMode::Pointer;
         if (value == config::values::JOYSTICK) return TouchMode::Joystick;
+
+        return std::nullopt;
+    }
+
+    constexpr std::optional<melonDS::AudioBitDepth> ParseBitDepth(std::string_view value) noexcept {
+        if (value == config::values::_10BIT) return melonDS::AudioBitDepth::_10Bit;
+        if (value == config::values::_16BIT) return melonDS::AudioBitDepth::_16Bit;
+        if (value == config::values::AUTO) return melonDS::AudioBitDepth::Auto;
+
+        return std::nullopt;
+    }
+
+    constexpr std::optional<melonDS::AudioInterpolation> ParseInterpolation(std::string_view value) noexcept {
+        if (value == config::values::CUBIC) return melonDS::AudioInterpolation::Cubic;
+        if (value == config::values::COSINE) return melonDS::AudioInterpolation::Cosine;
+        if (value == config::values::LINEAR) return melonDS::AudioInterpolation::Linear;
+        if (value == config::values::DISABLED) return melonDS::AudioInterpolation::None;
+
+        return std::nullopt;
+    }
+
+    constexpr std::optional<ScreenFilter> ParseScreenFilter(std::string_view value) noexcept {
+        if (value == config::values::LINEAR) return ScreenFilter::Linear;
+        if (value == config::values::NEAREST) return ScreenFilter::Nearest;
 
         return std::nullopt;
     }
