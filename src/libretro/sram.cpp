@@ -192,34 +192,34 @@ void MelonDsDs::CoreState::InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& 
     retro::task::push(sram::FlushGbaSramTask(gbaSaveInfo));
 }
 
-void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+void MelonDsDs::CoreState::WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
     ZoneScopedN(TracyFunction);
-    if (MelonDsDs::sram::NdsSaveManager) {
-        MelonDsDs::sram::NdsSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+    if (_ndsSaveManager) {
+        _ndsSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
 
         // No need to maintain a flush timer for NDS SRAM,
         // because retro_get_memory lets us delegate autosave to the frontend.
     }
 }
 
-void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
-    ZoneScopedN("Platform::WriteGBASave");
-    if (MelonDsDs::sram::GbaSaveManager) {
-        MelonDsDs::sram::GbaSaveManager->Flush(savedata, savelen, writeoffset, writelen);
+void MelonDsDs::CoreState::WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
+    ZoneScopedN(TracyFunction);
+    if (_gbaSaveManager) {
+        _gbaSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
 
         // Start the countdown until we flush the SRAM back to disk.
         // The timer resets every time we write to SRAM,
         // so that a sequence of SRAM writes doesn't result in
         // a sequence of disk writes.
-        TimeToGbaFlush = MelonDsDs::config::save::FlushDelay();
+        _timeToGbaFlush = Config.FlushDelay();
     }
 }
 
-void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writelen) {
-    ZoneScopedN("Platform::WriteFirmware");
+void MelonDsDs::CoreState::WriteFirmware(const Firmware& firmware, uint32_t writeoffset, uint32_t writelen) noexcept {
+    ZoneScopedN(TracyFunction);
 
-    TimeToFirmwareFlush = MelonDsDs::config::save::FlushDelay();
+    _timeToFirmwareFlush = Config.FlushDelay();
 }
 
 

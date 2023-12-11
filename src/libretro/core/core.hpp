@@ -23,11 +23,19 @@
 #include <regex>
 #include <span>
 
+#include <NDS.h>
+
 #include "../config/config.hpp"
+#include "../message/error.hpp"
+#include "../render/render.hpp"
 #include "../retro/info.hpp"
 #include "../screenlayout.hpp"
 #include "../PlatformOGLPrivate.h"
 #include "../sram.hpp"
+
+namespace LAN_PCap {
+    struct AdapterData;
+}
 
 struct retro_game_info;
 struct retro_system_av_info;
@@ -35,6 +43,7 @@ struct retro_system_av_info;
 namespace retro::task {
     class TaskSpec;
 }
+
 
 namespace melonDS {
     class NDS;
@@ -77,10 +86,14 @@ namespace MelonDsDs {
         size_t GetMemorySize(unsigned id) noexcept;
         void ResetRenderState();
         void DestroyRenderState();
-        bool LanInit();
-        void LanDeinit();
-        int LanSendPacket(std::span<std::byte> data);
-        void LanRecvPacket(uint8_t* data);
+        bool LanInit() noexcept;
+        void LanDeinit() noexcept;
+        int LanSendPacket(std::span<std::byte> data) noexcept;
+        int LanRecvPacket(uint8_t* data) noexcept;
+
+        void WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
+        void WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
+        void WriteFirmware(const melonDS::Firmware& firmware, uint32_t writeoffset, uint32_t writelen) noexcept;
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
@@ -88,11 +101,14 @@ namespace MelonDsDs {
         [[gnu::cold]] void LoadGameDeferred();
         [[gnu::cold]] static void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
+        [[gnu::cold]] void InstallDsiware(melonDS::DSi_NAND::NANDImage& nand, const retro::GameInfo& nds_info);
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
         [[gnu::cold]] void InitRenderer();
+
+        const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept;
 
         retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
         retro::task::TaskSpec OnScreenDisplayTask() noexcept;
@@ -125,6 +141,7 @@ namespace MelonDsDs {
         bool _deferredInitializationPending = false;
         bool _micStateToggled = false;
         uint32_t _flushTaskId = 0;
+        NetworkMode _activeNetworkMode = NetworkMode::None;
     };
 }
 #endif //MELONDSDS_CORE_HPP

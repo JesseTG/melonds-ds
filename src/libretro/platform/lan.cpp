@@ -23,6 +23,7 @@
 #include <retro_assert.h>
 #include <pcap/pcap.h>
 
+#include "../core/core.hpp"
 #include "../config/constants.hpp"
 #include "../config/config.hpp"
 #include "../environment.hpp"
@@ -32,7 +33,6 @@
 using namespace melonDS;
 using std::string;
 using std::string_view;
-static MelonDsDs::NetworkMode _activeNetworkMode;
 struct Slirp;
 
 namespace LAN_Socket
@@ -55,7 +55,7 @@ namespace Config {
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
 bool MelonDsDs::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
-    ZoneScopedN("Platform::LAN_Init::LAN_PCap::IsAdapterAcceptable");
+    ZoneScopedN(TracyFunction);
     const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC);
 
     if (mac == BAD_MAC || mac == BROADCAST_MAC)
@@ -72,16 +72,16 @@ bool MelonDsDs::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexce
     return true;
 }
 
-static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) noexcept {
-    ZoneScopedN("Platform::LAN_Init::LAN_PCap::SelectNetworkInterface");
+const LAN_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept {
+    ZoneScopedN(TracyFunction);
     using namespace MelonDsDs;
 
 
-    if (config::net::NetworkInterface() != config::values::AUTO) {
-        const auto* selected = std::find_if(adapters, adapters + numAdapters, [](const LAN_PCap::AdapterData& a) {
+    if (Config.NetworkInterface() != config::values::AUTO) {
+        const auto* selected = std::find_if(adapters, adapters + numAdapters, [this](const LAN_PCap::AdapterData& a) {
 
             string mac = fmt::format("{:02x}", fmt::join(a.MAC, ":"));
-            return config::net::NetworkInterface() == mac;
+            return Config.NetworkInterface() == mac;
         });
 
         retro_assert(selected != nullptr);
@@ -127,9 +127,8 @@ static const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::Adapt
 }
 #endif
 
-bool Platform::LAN_Init() {
-    ZoneScopedN("Platform::LAN_Init");
-    using namespace MelonDsDs::config::net;
+bool MelonDsDs::CoreState::LanInit() noexcept {
+    ZoneScopedN(TracyFunction);
     retro_assert(_activeNetworkMode == MelonDsDs::NetworkMode::None);
     retro_assert(LAN_Socket::Ctx == nullptr);
 
@@ -173,8 +172,9 @@ bool Platform::LAN_Init() {
     }
 }
 
-void Platform::LAN_DeInit() {
-    ZoneScopedN("Platform::LAN_DeInit");
+void MelonDsDs::CoreState::LanDeinit() noexcept {
+    ZoneScopedN(TracyFunction);
+
 #ifdef HAVE_NETWORKING_DIRECT_MODE
     LAN_PCap::DeInit();
     retro_assert(LAN_PCap::PCapLib == nullptr);
@@ -185,21 +185,21 @@ void Platform::LAN_DeInit() {
     _activeNetworkMode = MelonDsDs::NetworkMode::None;
 }
 
-int Platform::LAN_SendPacket(u8 *data, int len) {
-    ZoneScopedN("Platform::LAN_SendPacket");
+int MelonDsDs::CoreState::LanSendPacket(std::span<std::byte> data) noexcept {
+    ZoneScopedN(TracyFunction);
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case MelonDsDs::NetworkMode::Direct:
-            return LAN_PCap::SendPacket(data, len);
+            return LAN_PCap::SendPacket((u8*)data.data(), data.size());
 #endif
         case MelonDsDs::NetworkMode::Indirect:
-            return LAN_Socket::SendPacket(data, len);
+            return LAN_Socket::SendPacket((u8*)data.data(), data.size());
         default:
             return 0;
     }
 }
 
-int Platform::LAN_RecvPacket(u8 *data) {
+int MelonDsDs::CoreState::LanRecvPacket(u8 *data) noexcept {
     ZoneScopedN("Platform::LAN_RecvPacket");
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
@@ -215,17 +215,17 @@ int Platform::LAN_RecvPacket(u8 *data) {
 
 #ifdef HAVE_DYLIB
 Platform::DynamicLibrary *Platform::DynamicLibrary_Load(const char *lib) {
-    ZoneScopedN("Platform::DynamicLibrary_Load");
+    ZoneScopedN(TracyFunction);
     return static_cast<DynamicLibrary *>(dylib_load(lib));
 }
 
 void Platform::DynamicLibrary_Unload(Platform::DynamicLibrary *lib) {
-    ZoneScopedN("Platform::DynamicLibrary_Unload");
+    ZoneScopedN(TracyFunction);
     dylib_close(lib);
 }
 
 void *Platform::DynamicLibrary_LoadFunction(Platform::DynamicLibrary *lib, const char *name) {
-    ZoneScopedN("Platform::DynamicLibrary_LoadFunction");
+    ZoneScopedN(TracyFunction);
     return reinterpret_cast<void *>(dylib_proc(lib, name));
 }
 #endif

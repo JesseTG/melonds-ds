@@ -285,3 +285,47 @@ void MelonDsDs::HardwareContextReset() noexcept {
 void MelonDsDs::HardwareContextDestroyed() noexcept {
     Core.DestroyRenderState();
 }
+
+bool Platform::LAN_Init() {
+    ZoneScopedN(TracyFunction);
+
+    return MelonDsDs::Core.LanInit();
+}
+
+void Platform::LAN_DeInit() {
+    ZoneScopedN(TracyFunction);
+
+    MelonDsDs::Core.LanDeinit();
+}
+
+int Platform::LAN_SendPacket(u8* data, int len) {
+    ZoneScopedN(TracyFunction);
+
+    return MelonDsDs::Core.LanSendPacket(std::span((std::byte*)data, len));
+}
+
+int LAN_RecvPacket(u8* data) {
+    ZoneScopedN(TracyFunction);
+
+    return MelonDsDs::Core.LanRecvPacket(data);
+}
+
+void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    ZoneScopedN(TracyFunction);
+
+    MelonDsDs::Core.WriteNdsSave(span((const std::byte*)savedata, savelen), writeoffset, writelen);
+}
+
+void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+    ZoneScopedN(TracyFunction);
+
+    MelonDsDs::Core.WriteGbaSave(span((const std::byte*)savedata, savelen), writeoffset, writelen);
+}
+
+void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writelen) {
+    ZoneScopedN(TracyFunction);
+
+    MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
+}
+
+
