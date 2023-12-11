@@ -489,6 +489,8 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         retro::task::push(OnScreenDisplayTask());
     }
 
+    retro::environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
+
     using retro::environment;
     using retro::set_message;
 
@@ -543,12 +545,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         }
     }
 
-    InitFlushFirmwareTask();
-
-    environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
-
-    InitRenderer();
-
     // The ROM must be inserted in retro_load_game,
     // as the frontend may try to query the savestate size
     // in between retro_load_game and the first retro_run call.
@@ -580,6 +576,10 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
         retro_assert(loadedGbaCart == nullptr);
     }
+
+    InitFlushFirmwareTask();
+
+    InitRenderer();
 
     if (Console->GPU.GetRenderer3D().Accelerated) {
         retro::info("Deferring initialization until the OpenGL context is ready");
