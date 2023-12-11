@@ -1468,33 +1468,33 @@ static vector<string_view> fmt_flags(const pcap_if_t& interface) noexcept {
 
     vector<string_view> flagNames;
     if (interface.flags & PCAP_IF_LOOPBACK) {
-        flagNames.push_back("Loopback");
+        flagNames.emplace_back("Loopback");
     }
 
     if (interface.flags & PCAP_IF_UP) {
-        flagNames.push_back("Up");
+        flagNames.emplace_back("Up");
     }
 
     if (interface.flags & PCAP_IF_RUNNING) {
-        flagNames.push_back("Running");
+        flagNames.emplace_back("Running");
     }
 
     if (interface.flags & PCAP_IF_WIRELESS) {
-        flagNames.push_back("Wireless");
+        flagNames.emplace_back("Wireless");
     }
 
     switch (interface.flags & PCAP_IF_CONNECTION_STATUS) {
         case PCAP_IF_CONNECTION_STATUS_UNKNOWN:
-            flagNames.push_back("UnknownStatus");
+            flagNames.emplace_back("UnknownStatus");
             break;
         case PCAP_IF_CONNECTION_STATUS_CONNECTED:
-            flagNames.push_back("Connected");
+            flagNames.emplace_back("Connected");
             break;
         case PCAP_IF_CONNECTION_STATUS_DISCONNECTED:
-            flagNames.push_back("Disconnected");
+            flagNames.emplace_back("Disconnected");
             break;
         case PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE:
-            flagNames.push_back("ConnectionStatusNotApplicable");
+            flagNames.emplace_back("ConnectionStatusNotApplicable");
             break;
     }
 
