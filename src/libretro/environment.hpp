@@ -105,6 +105,8 @@ namespace retro {
 
     bool shutdown() noexcept;
 
+    std::optional<retro_microphone_interface> get_microphone_interface() noexcept;
+
     const std::optional<std::string>& get_save_directory();
     const std::optional<std::string>& get_system_directory();
     std::optional<std::string> get_system_path(const std::string_view& name) noexcept;

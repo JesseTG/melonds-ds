@@ -236,6 +236,17 @@ bool retro::shutdown() noexcept {
     return isShuttingDown;
 }
 
+std::optional<retro_microphone_interface> retro::get_microphone_interface() noexcept {
+    retro_microphone_interface micInterface {};
+    micInterface.interface_version = RETRO_MICROPHONE_INTERFACE_VERSION;
+
+    if (!environment(RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE, &micInterface)) {
+        return std::nullopt;
+    }
+
+    return micInterface;
+}
+
 bool retro::is_variable_updated() noexcept {
     ZoneScopedN("retro::is_variable_updated");
 
