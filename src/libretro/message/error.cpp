@@ -38,6 +38,9 @@ static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't sta
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
 static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
 
+using std::span;
+using MelonDsDs::NDS_SCREEN_AREA;
+
 // I intentionally fix the error message to the DS screen size to simplify the layout.
 MelonDsDs::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
     ZoneScopedN("MelonDsDs::error::ErrorScreen::ErrorScreen");
@@ -76,7 +79,7 @@ MelonDsDs::error::ErrorScreen::~ErrorScreen() {
 }
 
 void MelonDsDs::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
-    ZoneScopedN("MelonDsDs::error::ErrorScreen::DrawTopScreen");
+    ZoneScopedN(TracyFunction);
     assert(titleFont != nullptr);
 
     pntr_image* errorIcon = pntr_load_image_from_memory(
@@ -121,7 +124,7 @@ void MelonDsDs::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_fon
 }
 
 void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept {
-    ZoneScopedN("MelonDsDs::error::ErrorScreen::DrawBottomScreen");
+    ZoneScopedN(TracyFunction);
     assert(titleFont != nullptr);
 
     pntr_image* sorryIcon = pntr_load_image_from_memory(
@@ -175,22 +178,10 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
     );
 }
 
-void MelonDsDs::error::ErrorScreen::Render(ScreenLayoutData& screenLayout) const noexcept {
-    ZoneScopedN(TracyFunction);
-    if (screenLayout.Dirty()) {
-        screenLayout.Update(MelonDsDs::ScreenFilter::Linear);
-    }
+span<const uint32_t, NDS_SCREEN_AREA<size_t>> MelonDsDs::error::ErrorScreen::TopScreen() const noexcept {
+    return span<const uint32_t, NDS_SCREEN_AREA<size_t>>{(const uint32_t*)topScreen->data, NDS_SCREEN_AREA<size_t>};
+}
 
-    screenLayout.Clear();
-    screenLayout.CombineScreens(
-        reinterpret_cast<const uint32_t*>(topScreen->data),
-        reinterpret_cast<const uint32_t*>(bottomScreen->data)
-    );
-
-    retro::video_refresh(
-        screenLayout.Buffer()[0],
-        screenLayout.Buffer().Width(),
-        screenLayout.Buffer().Height(),
-        screenLayout.Buffer().Stride()
-    );
+span<const uint32_t, NDS_SCREEN_AREA<size_t>> MelonDsDs::error::ErrorScreen::BottomScreen() const noexcept {
+    return span<const uint32_t, NDS_SCREEN_AREA<size_t>>{(const uint32_t*)bottomScreen->data, NDS_SCREEN_AREA<size_t>};
 }

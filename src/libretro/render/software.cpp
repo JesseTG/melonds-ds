@@ -20,8 +20,11 @@
 
 #include <NDS.h>
 
+#include "config/config.hpp"
 #include "input.hpp"
+#include "message/error.hpp"
 #include "screenlayout.hpp"
+#include "tracy.hpp"
 
 using glm::ivec2;
 using glm::mat3;
@@ -97,7 +100,19 @@ void MelonDsDs::SoftwareRenderState::Render(
 #endif
 }
 
-void MelonDsDs::SoftwareRenderState::CopyScreen(const uint32_t* src, uvec2 destTranslation, ScreenLayout layout) noexcept {
+void MelonDsDs::SoftwareRenderState::Render(
+    const error::ErrorScreen& error,
+    const ScreenLayoutData& screenLayout
+) noexcept {
+    ZoneScopedN(TracyFunction);
+    buffer.Clear();
+    CombineScreens(error.TopScreen(), error.BottomScreen(), screenLayout);
+
+    retro::video_refresh(buffer[0], buffer.Width(), buffer.Height(), buffer.Stride());
+}
+
+void MelonDsDs::SoftwareRenderState::CopyScreen(const uint32_t* src, uvec2 destTranslation, ScreenLayout layout
+) noexcept {
     ZoneScopedN(TracyFunction);
     // Only used for software rendering
 

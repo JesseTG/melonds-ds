@@ -29,6 +29,10 @@
 #include "retro/scaler.hpp"
 
 namespace MelonDsDs {
+    namespace error {
+        class ErrorScreen;
+    }
+
     class SoftwareRenderState final : public RenderState {
     public:
         SoftwareRenderState() noexcept;
@@ -39,6 +43,11 @@ namespace MelonDsDs {
             const CoreConfig& config,
             const ScreenLayoutData& screenLayout
         ) noexcept override;
+
+        void Render(
+            const error::ErrorScreen& error,
+            const ScreenLayoutData& screenLayout
+        ) noexcept;
 
         unsigned BufferWidth() const noexcept { return buffer.Width(); }
         unsigned BufferHeight() const noexcept { return buffer.Height(); }

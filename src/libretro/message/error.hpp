@@ -18,6 +18,7 @@
 #define MELONDS_DS_ERROR_HPP
 
 #include "exceptions.hpp"
+#include "screenlayout.hpp"
 
 struct pntr_font;
 struct pntr_image;
@@ -37,7 +38,8 @@ namespace MelonDsDs::error {
         ErrorScreen(ErrorScreen&&) = delete;
         ErrorScreen& operator=(ErrorScreen&&) = delete;
 
-        void Render(ScreenLayoutData& screenLayout) const noexcept;
+        std::span<const uint32_t, NDS_SCREEN_AREA<size_t>> TopScreen() const noexcept;
+        std::span<const uint32_t, NDS_SCREEN_AREA<size_t>> BottomScreen() const noexcept;
     private:
         void DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
         void DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;

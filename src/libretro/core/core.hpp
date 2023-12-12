@@ -108,6 +108,7 @@ namespace MelonDsDs {
         ) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
+        [[gnu::cold]] void RenderErrorScreen() noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
         [[gnu::cold]] void UpdateRenderState(const CoreConfig& config) noexcept;
         [[gnu::cold]] void UpdateRenderer(melonDS::NDS& nds) noexcept;

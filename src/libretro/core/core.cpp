@@ -114,7 +114,7 @@ void MelonDsDs::CoreState::Run() noexcept {
     }
 
     if (_messageScreen) [[unlikely]] {
-        _messageScreen->Render(_screenLayout);
+        RenderErrorScreen();
         return;
     }
 
@@ -284,10 +284,20 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
     }
 
     retro::task::reset();
+    _renderState = std::make_unique<SoftwareRenderState>();
     _messageScreen = make_unique<error::ErrorScreen>(e);
     _screenLayout.Update(Config.ScreenFilter());
     retro::error("Error screen initialized");
     return true;
+}
+
+void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
+    assert(_messageScreen != nullptr);
+    auto renderer = dynamic_cast<SoftwareRenderState*>(_renderState.get());
+    assert(renderer != nullptr);
+
+    _screenLayout.Update(Config.ScreenFilter());
+    renderer->Render(*_messageScreen, _screenLayout);
 }
 
 void MelonDsDs::CoreState::RunFirstFrame() noexcept {
