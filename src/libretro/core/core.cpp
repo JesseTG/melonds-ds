@@ -124,7 +124,7 @@ void MelonDsDs::CoreState::Run() noexcept {
         RunFirstFrame();
     }
 
-    if (retro::is_variable_updated()) {
+    if (retro::is_variable_updated()) [[unlikely]] {
         // If any settings have changed...
         MelonDsDs::UpdateConfig(*this, _screenLayout, _inputState);
     }
