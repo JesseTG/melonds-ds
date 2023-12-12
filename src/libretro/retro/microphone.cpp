@@ -36,7 +36,7 @@ retro::Microphone::Microphone(Microphone&& other) noexcept :
     other._microphone = {};
 }
 
-retro::Microphone::Microphone& retro::Microphone::operator=(retro::Microphone&& other) noexcept {
+retro::Microphone& retro::Microphone::operator=(Microphone&& other) noexcept {
     if (this != &other) {
         if (_microphoneInterface.close_mic && _microphone) {
             _microphoneInterface.close_mic(_microphone);
@@ -86,14 +86,18 @@ bool retro::Microphone::IsActive() const noexcept {
     return _microphoneInterface.get_mic_state(_microphone);
 }
 
-int retro::Microphone::Read(std::span<int16_t> buffer) noexcept {
+std::optional<unsigned> retro::Microphone::Read(std::span<int16_t> buffer) noexcept {
     if (!_microphoneInterface.get_params)
         return -1;
 
     if (!_microphone)
         return -1;
 
-    return _microphoneInterface.read_mic(_microphone, buffer.data(), buffer.size() / 2);
+    int samplesRead = _microphoneInterface.read_mic(_microphone, buffer.data(), buffer.size());
+    if (samplesRead < 0)
+        return nullopt;
+
+    return samplesRead;
 }
 
 std::optional<retro::Microphone> retro::Microphone::Open(

@@ -33,7 +33,7 @@ namespace retro {
         std::optional<retro_microphone_params_t> GetParams() const noexcept;
         bool SetActive(bool on) noexcept;
         bool IsActive() const noexcept;
-        int Read(std::span<int16_t> buffer) noexcept;
+        std::optional<unsigned> Read(std::span<int16_t> buffer) noexcept;
 
         static std::optional<Microphone> Open(const retro_microphone_interface& micInterface, retro_microphone_params_t params) noexcept;
     private:
