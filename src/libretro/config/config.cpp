@@ -153,11 +153,8 @@ void MelonDsDs::InitConfig(
     bool openGlNeedsRefresh = config::parse_video_options(true);
     config::parse_screen_options();
 
-    retro_assert(core.Console == nullptr);
     config::apply_system_options(core, header);
-    retro_assert(core.Console != nullptr);
     config::apply_save_options(header);
-    config::apply_audio_options(*core.Console);
     config::apply_screen_options(screenLayout, inputState);
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)

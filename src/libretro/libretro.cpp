@@ -72,7 +72,6 @@ PUBLIC_SYMBOL void retro_init(void) {
     retro::debug("retro_init");
     retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
     retro_assert(!MelonDsDs::Core.IsInitialized());
-    retro_assert(MelonDsDs::Core.Console == nullptr);
 
     retro::task::init(false, nullptr);
 
@@ -147,7 +146,6 @@ PUBLIC_SYMBOL void retro_deinit(void) {
         MelonDsDs::Core.~CoreState(); // placement delete
         memset(MelonDsDs::CoreStateBuffer.data(), 0, MelonDsDs::CoreStateBuffer.size());
         retro_assert(!MelonDsDs::Core.IsInitialized());
-        retro_assert(MelonDsDs::Core.Console == nullptr);
         retro::env::deinit();
     }
 
