@@ -48,8 +48,7 @@ namespace MelonDsDs {
     };
 
     enum class Renderer {
-        None = -1,
-        Software = 0, // To match with values that melonDS expects
+        Software = 0,
         OpenGl = 1,
     };
 
