@@ -129,6 +129,17 @@ extern retro_hw_render_callback hw_render;
 
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 
+
+std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New() noexcept {
+    ZoneScopedN(TracyFunction);
+    try {
+        return std::make_unique<OpenGLRenderState>();
+    } catch (const opengl_not_initialized_exception& e) {
+        retro::debug("OpenGL context could not be initialized: %s", e.what());
+        return nullptr;
+    }
+}
+
 MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     ZoneScopedN(TracyFunction);
     retro::debug(TracyFunction);

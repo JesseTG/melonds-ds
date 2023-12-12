@@ -18,6 +18,8 @@
 #ifndef MELONDSDS_RENDER_OPENGL_HPP
 #define MELONDSDS_RENDER_OPENGL_HPP
 
+#include <memory>
+
 #include "render.hpp"
 
 #include "PlatformOGLPrivate.h"
@@ -29,13 +31,14 @@ namespace MelonDsDs {
     using glm::vec4;
 
     class OpenGLRenderState final : public RenderState {
+    public:
+        static std::unique_ptr<OpenGLRenderState> New() noexcept;
         OpenGLRenderState();
         ~OpenGLRenderState() noexcept override;
         OpenGLRenderState(const OpenGLRenderState&) = delete;
         OpenGLRenderState(OpenGLRenderState&&) = delete;
         OpenGLRenderState& operator=(const OpenGLRenderState&) = delete;
         OpenGLRenderState& operator=(OpenGLRenderState&&) = delete;
-    public:
         bool Ready() const noexcept override { return _contextInitialized; }
         void Render(
             melonDS::NDS& nds,
