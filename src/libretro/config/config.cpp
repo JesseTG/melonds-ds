@@ -353,6 +353,26 @@ static void MelonDsDs::config::ParseHomebrewSaveOptions(CoreConfig& config) noex
         retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_READ_ONLY, values::DISABLED);
         config.SetDldiEnable(false);
     }
+
+    {
+        const optional<string> save_directory = retro::get_save_directory();
+        char path[PATH_MAX];
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_DIR_NAME, sizeof(path));
+        config.SetDldiFolderPath(string_view(path));
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME, sizeof(path));
+        config.SetDldiImagePath(string_view(path));
+
+        if (path_is_valid(config.DldiImagePath().data())) {
+            // If the SD card image exists...
+            retro::info("Using existing homebrew SD card image \"{}\"", config.DldiImagePath());
+            config.SetDldiImageSize(AUTO_SDCARD_SIZE);
+        } else {
+            retro::info("No homebrew SD card image found at \"{}\"; will create an image.", config.DldiImagePath());
+            config.SetDldiImageSize(DEFAULT_SDCARD_SIZE);
+        }
+    }
 }
 
 static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexcept {
@@ -378,6 +398,26 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_SD_SAVE_MODE, values::ENABLED);
         config.SetDsiSdEnable(true);
+    }
+
+    {
+        const optional<string> save_directory = retro::get_save_directory();
+        char path[PATH_MAX];
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_DIR_NAME, sizeof(path));
+        config.SetDsiSdFolderPath(string_view(path));
+
+        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_IMAGE_NAME, sizeof(path));
+        config.SetDsiSdImagePath(string_view(path));
+
+        if (path_is_valid(config.DsiSdImagePath().data())) {
+            // If the SD card image exists...
+            retro::info("Using existing DSi SD card image \"{}\"", config.DsiSdImagePath());
+            config.SetDsiSdImageSize(AUTO_SDCARD_SIZE);
+        } else {
+            retro::info("No DSi SD card image found at \"{}\"; will create an image.", _dsiSdImagePath);
+            config.SetDsiSdImageSize(DEFAULT_SDCARD_SIZE);
+        }
     }
 
     // If these firmware/BIOS files don't exist, an exception will be thrown later
@@ -675,26 +715,6 @@ void MelonDsDs::UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& scree
 #endif
 
     update_option_visibility();
-}
-
-static void MelonDsDs::config::apply_audio_options(NDS& nds) noexcept {
-    ZoneScopedN("MelonDsDs::config::apply_audio_options");
-    bool is_using_host_mic = audio::MicInputMode() == MicInputMode::HostMic;
-    if (retro::microphone::is_interface_available()) {
-        // Open the mic if the user wants it (and it isn't already open)
-        // Close the mic if the user wants it (and it is open)
-        bool ok = retro::microphone::set_open(is_using_host_mic);
-        if (!ok) {
-            // If we couldn't open or close the microphone...
-            retro::warn("Failed to {} microphone", is_using_host_mic ? "open" : "close");
-        }
-    } else {
-        if (is_using_host_mic && osd::ShowUnsupportedFeatureWarnings()) {
-            retro::set_warn_message("This frontend doesn't support microphones.");
-        }
-    }
-
-    nds.SPU.SetInterpolation(config::audio::Interpolation());
 }
 
 static void MelonDsDs::config::apply_save_options(const NDSHeader* header) {
