@@ -131,13 +131,11 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (_renderState->Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
-        ZoneScopedN("retro_run::render");
         HandleInput(nds, _inputState, _screenLayout);
         ReadMicrophone(nds, _inputState);
 
         if (_screenLayout.Dirty()) {
             // If the active screen layout has changed (either by settings or by hotkey)...
-            ZoneScopedN("retro_run::render::dirty");
 
             // Apply the new screen layout
             _screenLayout.Update(Config.ScreenFilter());
