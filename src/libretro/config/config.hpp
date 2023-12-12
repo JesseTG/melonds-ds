@@ -118,7 +118,9 @@ namespace MelonDsDs {
         void SetBirthdayDay(unsigned day) noexcept { _birthdayDay = day; }
 
         [[nodiscard]] optional<month_day> Birthday() const noexcept {
-            return (_birthdayDay > 0 && _birthdayMonth > 0) ? month(_birthdayMonth) / day(_birthdayDay) : std::nullopt;
+            return (_birthdayDay > 0 && _birthdayMonth > 0)
+                ? std::make_optional(month(_birthdayMonth) / day(_birthdayDay))
+                : std::nullopt;
         }
 
         [[nodiscard]] Color FavoriteColor() const noexcept { return _favoriteColor; }
@@ -214,12 +216,12 @@ namespace MelonDsDs {
         void SetDldiImageSize(unsigned size) noexcept { _dldiImageSize = size; }
 
         [[nodiscard]] optional<melonDS::FATStorageArgs> DldiSdCardArgs() const noexcept {
-            return _dldiEnable ? melonDS::FATStorageArgs {
+            return _dldiEnable ? std::make_optional(melonDS::FATStorageArgs {
                 .Filename = _dldiImagePath,
                 .Size = _dldiImageSize,
                 .ReadOnly = _dldiReadOnly,
-                .SourceDir = _dldiFolderSync ? _dldiFolderPath : std::nullopt
-            } : std::nullopt;
+                .SourceDir = _dldiFolderSync ? std::make_optional(_dldiFolderPath) : std::nullopt
+            }) : std::nullopt;
         }
 
         [[nodiscard]] bool DsiSdEnable() const noexcept { return _dsiSdEnable; }
@@ -242,12 +244,12 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned DsiSdImageSize() const noexcept { return _dsiSdImageSize; }
         void SetDsiSdImageSize(unsigned size) noexcept { _dsiSdImageSize = size; }
         [[nodiscard]] optional<melonDS::FATStorageArgs> DsiSdCardArgs() const noexcept {
-            return _dsiSdEnable ? melonDS::FATStorageArgs {
+            return _dsiSdEnable ? std::make_optional(melonDS::FATStorageArgs {
                 .Filename = _dsiSdImagePath,
                 .Size = _dsiSdImageSize,
                 .ReadOnly = _dsiSdReadOnly,
-                .SourceDir = _dsiSdFolderSync ? _dsiSdFolderPath : std::nullopt
-            } : std::nullopt;
+                .SourceDir = _dsiSdFolderSync ? std::make_optional(_dsiSdFolderPath) : std::nullopt
+            }) : std::nullopt;
         }
 
         [[nodiscard]] unsigned FlushDelay() const noexcept { return _flushDelay; }

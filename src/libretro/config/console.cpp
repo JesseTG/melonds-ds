@@ -36,6 +36,7 @@
 #include "config.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "format.hpp"
 #include "retro/http.hpp"
 #include "retro/info.hpp"
 #include "types.hpp"
@@ -377,8 +378,8 @@ static unique_ptr<melonDS::NDSCart::CartCommon> MelonDsDs::LoadNdsCart(const Cor
     span<const std::byte> rom = ndsInfo.GetData();
 
     melonDS::NDSCart::NDSCartArgs sdargs = {
-        .SRAM = nullopt, // SRAM is loaded separately by retro_get_memory
         .SDCard = config.DldiSdCardArgs(),
+        .SRAM = nullopt, // SRAM is loaded separately by retro_get_memory
     };
 
     std::unique_ptr<melonDS::NDSCart::CartCommon> cart;
@@ -733,7 +734,7 @@ static void MelonDsDs::ImportDsiwareSaveData(NANDMount& nand, const retro::GameI
     }
 }
 
-static bool MelonDsDs::GetDsiwareSaveDataHostPath(std::span<char> buffer, const retro::GameInfo& nds_info, int type) noexcept {
+bool MelonDsDs::GetDsiwareSaveDataHostPath(std::span<char> buffer, const retro::GameInfo& nds_info, int type) noexcept {
     if (buffer.empty()) {
         return false;
     }
