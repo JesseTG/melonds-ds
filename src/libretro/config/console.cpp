@@ -144,6 +144,13 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
     }
 }
 
+void MelonDsDs::UpdateConsole(const CoreConfig& config, melonDS::NDS& nds) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    nds.SPU.SetInterpolation(config.Interpolation());
+    nds.SPU.SetDegrade10Bit(config.BitDepth());
+}
+
 // First, load the system files
 // Then, validate the system files
 // Then, fall back to other system files if needed and possible

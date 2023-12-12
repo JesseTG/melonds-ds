@@ -40,7 +40,7 @@ namespace MelonDsDs {
     );
 
     /// Modify a console instance with core options that are safe to adjust at runtime.
-    void UpdateConsole(const CoreConfig& config, melonDS::NDS& nds);
+    void UpdateConsole(const CoreConfig& config, melonDS::NDS& nds) noexcept;
 
     /// Modify a console instance with core options that require a reset to adjust.
     void ResetConsole(const CoreConfig& config, melonDS::NDS& nds);
