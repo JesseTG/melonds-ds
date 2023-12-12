@@ -677,26 +677,6 @@ void MelonDsDs::UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& scree
     update_option_visibility();
 }
 
-static void MelonDsDs::config::apply_system_options(MelonDsDs::CoreState& core, const NDSHeader* header) {
-    ZoneScopedN("MelonDsDs::config::apply_system_options");
-    using namespace MelonDsDs::config::system;
-    if (header && header->IsDSiWare()) {
-        // If we're loading a DSiWare game...
-        _consoleType = ConsoleType::DSi;
-        retro::warn("Forcing DSi mode for DSiWare game");
-    }
-
-    if (_consoleType == ConsoleType::DSi) {
-        // If we're in DSi mode...
-        core.Console = std::make_unique<DSi>(GetDSiArgs(header));
-    } else {
-        // If we're in DS mode...
-        core.Console = std::make_unique<NDS>(GetNdsArgs(header, _bootMode, _sysfileMode));
-    }
-
-    NDS::Current = core.Console.get();
-}
-
 static void MelonDsDs::config::apply_audio_options(NDS& nds) noexcept {
     ZoneScopedN("MelonDsDs::config::apply_audio_options");
     bool is_using_host_mic = audio::MicInputMode() == MicInputMode::HostMic;
