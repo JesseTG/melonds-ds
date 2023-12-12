@@ -45,7 +45,7 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
-    struct CoreState;
+    class CoreState;
 }
 
 struct retro_core_options_v2;
