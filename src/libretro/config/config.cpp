@@ -200,7 +200,7 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
         config.SetSysfileMode(SysfileMode::BuiltIn);
     }
 
-    if (optional<unsigned> value = ParseIntegerInList(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
+    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
         config.SetDsPowerOkayThreshold(*value);
     }
     else {
