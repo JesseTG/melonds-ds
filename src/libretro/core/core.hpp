@@ -109,7 +109,8 @@ namespace MelonDsDs {
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
-        [[gnu::cold]] static void UpdateRenderer(melonDS::NDS& nds, const CoreConfig& config) noexcept;
+        [[gnu::cold]] void UpdateRenderState(const CoreConfig& config) noexcept;
+        [[gnu::cold]] void UpdateRenderer(melonDS::NDS& nds) noexcept;
 
         const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept;
 

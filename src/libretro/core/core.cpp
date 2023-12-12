@@ -18,6 +18,8 @@
 
 #include <charconv>
 #include <DSi.h>
+#include <GPU3D_OpenGL.h>
+#include <GPU3D_Soft.h>
 
 #include <libretro.h>
 #include <retro_assert.h>
@@ -34,6 +36,11 @@
 #include "../message/error.hpp"
 #include "../render/render.hpp"
 #include "../retro/task_queue.hpp"
+#include "render/software.hpp"
+
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+#include "../render/opengl.hpp"
+#endif
 
 using std::span;
 using namespace melonDS::DSi_NAND;
@@ -466,16 +473,15 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
-
     if (RegisterCoreOptions()) {
         ParseConfig(Config);
         _optionVisibility.Update();
     }
-    _screenLayout.Apply(Config);
-    _inputState.Apply(Config);
     ApplyConfig(Config);
+    // Must initialize the render state if using OpenGL (so the function pointers can be loaded
 
     retro_assert(Console == nullptr);
+    retro_assert(_renderState != nullptr);
     // Instantiates the console with games and save data installed
     Console = CreateConsole(
         Config,
@@ -486,6 +492,8 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
+
+    UpdateRenderer(*Console);
 
     if (Console->GetNDSCart()) {
         assert(!Console->GetNDSCart()->GetHeader().IsDSiWare());
@@ -515,8 +523,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     retro::environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
 
     InitFlushFirmwareTask();
-
-    InitRenderer();
 
     if (Console->GPU.GetRenderer3D().Accelerated) {
         retro::info("Deferring initialization until the OpenGL context is ready");
@@ -611,13 +617,71 @@ void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::G
 [[gnu::cold]] void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) {
     _screenLayout.Apply(config);
     _inputState.Apply(config);
+    UpdateRenderState(config);
 
-
-
-    // TODO: Reinitialize OpenGL state if needed
+    // TODO: Reinitialize OpenGL state if certain settings have changed
+    // TODO: Reinitialize the video driver if enabling OpenGL
     // TODO: Configure the console
 }
 
+void MelonDsDs::CoreState::UpdateRenderState(const CoreConfig& config) noexcept {
+    switch (config.ConfiguredRenderer()) {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+        case Renderer::OpenGl: {
+            if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) != nullptr) {
+                // If we already have the OpenGL renderer configured...
+                break;
+            }
+
+            if (auto state = OpenGLRenderState::New()) {
+                _renderState = std::move(state);
+                retro::debug("Initialized OpenGL render state");
+                break;
+            }
+
+            retro::set_warn_message("Failed to initialize OpenGL render state, falling back to software mode.");
+            [[fallthrough]];
+        }
+#endif
+        case Renderer::Software: {
+            if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) != nullptr) {
+                // If we already have the software renderer configured...
+                break;
+            }
+
+            _renderState = std::make_unique<SoftwareRenderState>();
+            retro::debug("Initialized software render state");
+            break;
+        }
+    }
+
+    retro_assert(_renderState != nullptr);
+}
+
+void MelonDsDs::CoreState::UpdateRenderer(melonDS::NDS& nds) noexcept {
+    assert(_renderState != nullptr);
+
+    if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) && nds.GPU.GetRenderer3D().Accelerated) {
+        // If we're configured to use the software renderer, and we aren't already...
+        nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, Config.ThreadedSoftRenderer()));
+        return;
+    }
+
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) && !nds.GPU.GetRenderer3D().Accelerated) {
+        // If we're configured to use the OpenGL renderer, and we aren't already...
+
+        if (auto renderer = melonDS::GLRenderer::New(nds.GPU)) {
+            nds.GPU.SetRenderer3D(std::move(renderer));
+        }
+        else {
+            retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
+            _renderState = std::make_unique<SoftwareRenderState>();
+            nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, Config.ThreadedSoftRenderer()));
+        }
+    }
+#endif
+}
 
 void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game_info> game) {
     ZoneScopedN(TracyFunction);
