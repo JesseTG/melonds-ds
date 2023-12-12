@@ -393,8 +393,8 @@ void MelonDsDs::CoreState::DestroyRenderState() {
 }
 
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
-    ZoneScopedN("MelonDsDs::opengl::InitializeFrameState");
-    TracyGpuZone("MelonDsDs::opengl::InitializeFrameState");
+    ZoneScopedN(TracyFunction);
+    TracyGpuZone(TracyFunction);
     retro_assert(nds.GPU.GetRenderer3D().Accelerated);
 
     melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GPU.GetRenderer3D());
@@ -416,7 +416,7 @@ void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreC
 }
 
 void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLayout) noexcept {
-    ZoneScopedN("MelonDsDs::opengl::InitializeVertices");
+    ZoneScopedN(TracyFunction);
     ScreenLayout layout = screenLayout.Layout();
     HybridSideScreenDisplay hybridSideScreenDisplay = screenLayout.HybridSmallScreenLayout();
     vertexCount = GetVertexCount(layout, hybridSideScreenDisplay);
