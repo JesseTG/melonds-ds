@@ -99,12 +99,17 @@ namespace MelonDsDs {
         [[gnu::cold]] void LoadGameDeferred();
         [[gnu::cold]] static void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
-        [[gnu::cold]] static void InstallDsiware(melonDS::DSi_NAND::NANDImage& nand, const retro::GameInfo& nds_info);
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
+        [[gnu::cold]] static void ExportDsiwareSaveData(
+            melonDS::DSi_NAND::NANDMount& nand,
+            const retro::GameInfo& nds_info,
+            const melonDS::NDSHeader& header,
+            int type
+        ) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
-        [[gnu::cold]] void InitRenderer();
+        [[gnu::cold]] static void UpdateRenderer(melonDS::NDS& nds, const CoreConfig& config) noexcept;
 
         const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept;
 

@@ -36,6 +36,7 @@
 #include "../retro/task_queue.hpp"
 
 using std::span;
+using namespace melonDS::DSi_NAND;
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
@@ -88,13 +89,12 @@ void MelonDsDs::CoreState::UnloadGame() noexcept {
             retro_assert(dynamic_cast<melonDS::DSi*>(Console.get()) != nullptr);
 
             melonDS::DSi& dsi = *static_cast<melonDS::DSi*>(Console.get());
-            // DSiWare "cart" shouldn't have been cleaned up yet
-            // (a regular DS cart would've been moved-from at the start of the session)
             UninstallDsiware(dsi.GetNAND());
         }
     }
 
     Console = nullptr;
+    melonDS::NDS::Current = nullptr;
 }
 
 void MelonDsDs::CoreState::Run() noexcept {
@@ -476,6 +476,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     ApplyConfig(Config);
 
     retro_assert(Console == nullptr);
+    // Instantiates the console with games and save data installed
     Console = CreateConsole(
         Config,
         _ndsInfo ? &*_ndsInfo : nullptr,
@@ -513,38 +514,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     retro::environment(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)&MelonDsDs::input_descriptors);
 
-    // The ROM must be inserted in retro_load_game,
-    // as the frontend may try to query the savestate size
-    // in between retro_load_game and the first retro_run call.
-    retro_assert(Console->GetNDSCart() == nullptr);
-
-    if (loadedNdsCart) {
-        // If we want to insert a NDS ROM that was previously loaded...
-
-        if (!loadedNdsCart->GetHeader().IsDSiWare()) {
-            // If we're running a physical cartridge...
-
-            Console->SetNDSCart(std::move(loadedNdsCart));
-
-            // Just to be sure
-            retro_assert(loadedNdsCart == nullptr);
-            retro_assert(Console->GetNDSCart() != nullptr);
-        }
-        else {
-            retro_assert(Console->ConsoleType == 1);
-            auto& dsi = *static_cast<melonDS::DSi*>(Console.get());
-            // We're running a DSiWare game, then
-            InstallDsiware(dsi.GetNAND(), *_ndsInfo);
-        }
-    }
-
-    if (_gbaInfo && loadedGbaCart) {
-        // If we want to insert a GBA ROM that was previously loaded...
-        Console->SetGBACart(std::move(loadedGbaCart));
-
-        retro_assert(loadedGbaCart == nullptr);
-    }
-
     InitFlushFirmwareTask();
 
     InitRenderer();
@@ -579,6 +548,74 @@ catch (const std::exception& e) {
 catch (...) {
     retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
     return false;
+}
+
+// Reset for the next time
+void MelonDsDs::CoreState::UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    if (!_ndsInfo) return;
+
+    retro_assert(nand);
+
+    const auto& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
+    retro_assert(header.IsDSiWare());
+
+    if (NANDMount mount = NANDMount(nand)) {
+        // TODO: Report an error if the title doesn't exist
+        // TODO: Only delete the title if the sentinel exists
+        ExportDsiwareSaveData(mount, *_ndsInfo, header, TitleData_PublicSav);
+        ExportDsiwareSaveData(mount, *_ndsInfo, header, TitleData_PrivateSav);
+        ExportDsiwareSaveData(mount, *_ndsInfo, header, TitleData_BannerSav);
+
+        mount.DeleteTitle(header.DSiTitleIDHigh, header.DSiTitleIDLow);
+        retro::info("Removed temporarily-installed DSiWare title \"{}\" from NAND image", _ndsInfo->GetPath());
+    } else {
+        retro::error("Failed to open DSi NAND for uninstallation");
+    }
+}
+
+void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::GameInfo& nds_info, const melonDS::NDSHeader& header, int type) noexcept {
+    ZoneScopedN(ZoneScopedN());
+
+    if (type == TitleData_PublicSav && header.DSiPublicSavSize == 0) {
+        // If there's no public save data...
+        retro::info("Game does not use public save data");
+        return;
+    }
+
+    if (type == TitleData_PrivateSav && header.DSiPrivateSavSize == 0) {
+        // If this game doesn't use private save data...
+        retro::info("Game does not use private save data");
+        return;
+    }
+
+    if (type == TitleData_BannerSav && !(header.AppFlags & 0x4)) {
+        // If there's no banner save data...
+        retro::info("Game does not use banner save data");
+        return;
+    }
+
+    char sav_file[PATH_MAX]; // "/path/to/game.zip#game.nds"
+    if (!GetDsiwareSaveDataHostPath(sav_file, nds_info, type)) {
+        return;
+    }
+
+    if (nand.ExportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
+        retro::info("Exported DSiWare save data to \"{}\"", sav_file);
+    } else {
+        retro::warn("Couldn't export DSiWare save data to \"{}\"", sav_file);
+    }
+}
+
+[[gnu::cold]] void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) {
+    _screenLayout.Apply(config);
+    _inputState.Apply(config);
+
+
+
+    // TODO: Reinitialize OpenGL state if needed
+    // TODO: Configure the console
 }
 
 

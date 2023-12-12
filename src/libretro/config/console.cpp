@@ -26,8 +26,9 @@
 #include <NDS.h>
 #include <DSi.h>
 
-#include <retro_assert.h>
 #include <file/file_path.h>
+#include <retro_assert.h>
+#include <retro_timers.h>
 #include <streams/file_stream.h>
 #include <streams/rzip_stream.h>
 #include <string/stdstring.h>
@@ -35,6 +36,7 @@
 #include "config.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "retro/http.hpp"
 #include "retro/info.hpp"
 #include "types.hpp"
 
@@ -48,8 +50,13 @@ using std::unique_ptr;
 using melonDS::Firmware;
 using melonDS::NDSHeader;
 using namespace melonDS::DSi_NAND;
+using melonDS::DSi_TMD::TitleMetadata;
 
 namespace MelonDsDs {
+    const char *TMD_DIR_NAME = "tmd";
+    const char* SENTINEL_NAME = "melon.dat";
+    constexpr uint32_t RSA256_SIGNATURE_TYPE = 16777472;
+
     static melonDS::NDSArgs GetNdsArgs(
         const CoreConfig& config,
         const retro::GameInfo* ndsInfo,
@@ -61,7 +68,13 @@ namespace MelonDsDs {
     static unique_ptr<melonDS::NDSCart::CartCommon> LoadNdsCart(const CoreConfig& config, const retro::GameInfo& ndsInfo);
     static unique_ptr<melonDS::GBACart::CartCommon> LoadGbaCart(const retro::GameInfo& gbaInfo, const retro::GameInfo* gbaSaveInfo);
     static std::pair<unique_ptr<uint8_t[]>, size_t> LoadGbaSram(const retro::GameInfo& gbaSaveInfo);
-    static void InstallDsiware(NANDImage& nand, const retro::GameInfo& nds_info);
+    static void InstallDsiware(NANDMount& mount, const retro::GameInfo& nds_info);
+    static void GetTmdPath(const retro::GameInfo &nds_info, std::span<char> buffer);
+    static optional<TitleMetadata> GetCachedTmd(string_view tmdPath) noexcept;
+    static bool ValidateTmd(const TitleMetadata &tmd) noexcept;
+    static optional<TitleMetadata> DownloadTmd(const NDSHeader& header, string_view tmdPath) noexcept;
+    static bool CacheTmd(string_view tmd_path, std::span<const std::byte> tmd) noexcept;
+    static void ImportDsiwareSaveData(NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept;
     static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept;
     static bool LoadBios(const string_view& name, BiosType type, std::span<uint8_t> buffer) noexcept;
     static void CustomizeFirmware(const CoreConfig& config, Firmware& firmware);
@@ -297,6 +310,7 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
     }
 
     NANDImage nand = LoadNANDImage(*nandPath, &arm7i[0x8308]);
+    unique_ptr<melonDS::NDSCart::CartCommon> ndsRom = ndsInfo ? LoadNdsCart(config, *ndsInfo) : nullptr;
 
     { // Scoped to limit the mount's lifetime
         NANDMount mount(nand);
@@ -307,15 +321,13 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
 
         const NDSHeader* header = ndsInfo ? reinterpret_cast<const NDSHeader*>(ndsInfo->GetData().data()) : nullptr;
         CustomizeNAND(config, mount, header, nandName);
+
+        if (ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
+            // If we're trying to play a DSiWare game...
+            InstallDsiware(mount, *ndsInfo); // Temporarily install the game on the NAND
+        }
     }
 
-    unique_ptr<melonDS::NDSCart::CartCommon> ndsRom = ndsInfo ? LoadNdsCart(config, *ndsInfo) : nullptr;
-    if (ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
-        // TODO: Install on the NAND instead of inserting it into the cart slot
-        auto& dsi = *static_cast<melonDS::DSi*>(Console.get());
-        // We're running a DSiWare game, then
-        InstallDsiware(nand, *ndsInfo);
-    }
     melonDS::DSiArgs dsiargs {
         {
             .NDSROM = std::move(ndsRom),
@@ -480,7 +492,283 @@ static std::pair<unique_ptr<uint8_t[]>, size_t> MelonDsDs::LoadGbaSram(const ret
     return {std::move(gba_save_data), gba_save_file_size};
 }
 
-static bool MelonDsDs::LoadBios(const string_view& name, MelonDsDs::BiosType type, std::span<uint8_t> buffer) noexcept {
+void MelonDsDs::InstallDsiware(NANDMount& mount, const retro::GameInfo& nds_info) {
+    ZoneScopedN(TracyFunction);
+    std::string_view path = nds_info.GetPath();
+    retro::info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", path);
+    auto data = nds_info.GetData();
+    const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(data.data());
+    retro_assert(header.IsDSiWare());
+
+    if (mount.TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
+        retro::info("Title \"{}\" already exists on loaded NAND; skipping installation, and won't uninstall it later.", path);
+
+    } else {
+        retro::info("Title \"{}\" is not on loaded NAND; will install it for the duration of this session.", path);
+
+        char tmd_path[PATH_MAX];
+        GetTmdPath(nds_info, tmd_path);
+
+        optional<TitleMetadata> tmd = GetCachedTmd(tmd_path);
+
+        if (!tmd) {
+            // If the TMD isn't available locally...
+
+#ifdef HAVE_NETWORKING
+            if (tmd = DownloadTmd(header, tmd_path); !tmd) {
+                // ...then download it and save it to disk. If that didn't work...
+                throw missing_metadata_exception("Cannot get title metadata for installation");
+            }
+#else
+            throw missing_metadata_exception("Cannot get title metadata for installation, and this build does not support downloading it");
+#endif
+        }
+
+        if (!mount.ImportTitle(reinterpret_cast<const uint8_t*>(data.data()), data.size(), *tmd, false)) {
+            throw emulator_exception("Failed to import DSiWare title into NAND image");
+        }
+
+        ImportDsiwareSaveData(mount, nds_info, header, TitleData_PublicSav);
+        ImportDsiwareSaveData(mount, nds_info, header, TitleData_PrivateSav);
+        ImportDsiwareSaveData(mount, nds_info, header, TitleData_BannerSav);
+
+        uint8_t zero = 0;
+        auto sentinel = fmt::format("0:/title/{:08x}/{:08x}/data/{}", header.DSiTitleIDHigh, header.DSiTitleIDLow, SENTINEL_NAME);
+        mount.RemoveFile(sentinel.c_str());
+        mount.ImportFile(sentinel.c_str(), &zero, sizeof(zero));
+    }
+}
+
+static void MelonDsDs::GetTmdPath(const retro::GameInfo &nds_info, std::span<char> buffer) {
+    auto path = nds_info.GetPath();
+    char tmd_name[PATH_MAX] {}; // "/path/to/game.zip#game.nds"
+    const char *ptr = path_basename(path.data());  // "game.nds"
+    strlcpy(tmd_name, ptr ? ptr : path.data(), sizeof(tmd_name));
+    path_remove_extension(tmd_name); // "game"
+    strlcat(tmd_name, ".tmd", sizeof(tmd_name)); // "game.tmd"
+
+    const optional<string> &system_subdir = retro::get_system_subdirectory();
+    if (!system_subdir) {
+        throw emulator_exception("System directory not set");
+    }
+
+    char tmd_dir[PATH_MAX] {};
+    fill_pathname_join_special(tmd_dir, system_subdir->c_str(), TMD_DIR_NAME, sizeof(tmd_dir));
+    // "/libretro/system/melonDS DS/tmd"
+
+    memset(buffer.data(), 0, buffer.size());
+    fill_pathname_join_special(buffer.data(), tmd_dir, tmd_name, buffer.size());
+    // "/libretro/system/melonDS DS/tmd/game.tmd"
+}
+
+static optional<TitleMetadata> MelonDsDs::GetCachedTmd(string_view tmdPath) noexcept {
+    ZoneScopedN(TracyFunction);
+    RFILE *tmd_file = filestream_open(tmdPath.data(), RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!tmd_file) {
+        retro::info("Could not find local copy of title metadata at \"{}\"", tmdPath);
+        return nullopt;
+    }
+
+    retro::info("Found title metadata at \"{}\"", tmdPath);
+    TitleMetadata tmd {};
+    int64_t bytes_read = filestream_read(tmd_file, &tmd, sizeof(TitleMetadata));
+    filestream_close(tmd_file); // Not null, so it always succeeds
+
+    if (bytes_read < 0) {
+        // If there was an error reading the file...
+        retro::error("Error reading title metadata");
+        return nullopt;
+    }
+
+    if (static_cast<size_t>(bytes_read) < sizeof(TitleMetadata)) {
+        // If the file was too small...
+        retro::error("Title metadata file is too small, it may be corrupt");
+        return nullopt;
+    }
+
+    if (!ValidateTmd(tmd)) {
+        // If the file is corrupt...
+        retro::error("Title metadata validation failed; the file is corrupt");
+        return nullopt;
+    }
+
+    retro::info("Title metadata OK");
+
+    return tmd;
+}
+
+static bool MelonDsDs::ValidateTmd(const TitleMetadata &tmd) noexcept {
+    if (tmd.SignatureType != RSA256_SIGNATURE_TYPE) {
+        retro::error("Invalid signature type {:#x}", tmd.SignatureType);
+        return false;
+    }
+
+    return true;
+}
+
+static optional<TitleMetadata> MelonDsDs::DownloadTmd(const NDSHeader &header, string_view tmdPath) noexcept {
+    ZoneScopedN(TracyFunction);
+    auto url = fmt::format(
+        "http://nus.cdn.t.shop.nintendowifi.net/ccs/download/{:08x}{:08x}/tmd",
+        header.DSiTitleIDHigh,
+        header.DSiTitleIDLow
+    );
+    // The URL comes from here https://problemkaputt.de/gbatek.htm#dsisdmmcdsiwarefilesfromnintendosserver
+    // Example: http://nus.cdn.t.shop.nintendowifi.net/ccs/download/00030015484e4250/tmd
+
+    retro::info("Downloading title metadata from \"{}\"", url);
+
+    // Create and send the HTTP request
+    retro::HttpConnection connection(url, "GET");
+
+    size_t progress = 0, total = 0;
+    while (!connection.Update(progress, total)) {
+        retro_sleep(20);
+        // TODO: Use select with a timeout instead of a busy loop
+    }
+
+    if (connection.IsError()) {
+        // If there was a problem...
+        if (int status = connection.Status(); status > 0) {
+            // ...but we did manage to get a status code...
+            retro::error("HTTP request to {} failed with {}", url, connection.Status());
+        } else {
+            retro::error("HTTP request to {} failed with unknown error", url);
+        }
+
+        return nullopt;
+    }
+
+    // If the request succeeded, get the payload
+    span<const std::byte> payload = connection.Data(false);
+    if (payload.empty()) {
+        // If there was no payload...
+        retro::error("HTTP request to {} succeeded, but it sent no data", url);
+        return nullopt;
+    }
+
+    if (payload.size() < sizeof(TitleMetadata)) {
+        // Or if the payload was too small...
+        retro::error(
+            "HTTP request to {} returned a response of {} bytes, expected one at least {} bytes long",
+            url,
+            payload.size(),
+            sizeof(TitleMetadata)
+        );
+
+        return nullopt;
+    }
+
+    // It's okay if the payload is too big; we don't need the entire TMD
+    retro::info("HTTP request succeeded with {} bytes", payload.size());
+    TitleMetadata tmd {};
+    memcpy(&tmd, payload.data(), sizeof(TitleMetadata));
+
+    if (!ValidateTmd(tmd)) {
+        // If the TMD isn't what we expected...
+        retro::error("Title metadata validation failed; the server sent invalid data");
+        return nullopt;
+    }
+
+    retro::info("Downloaded TMD successfully");
+
+    CacheTmd(tmdPath, payload);
+
+    return tmd;
+}
+
+static bool MelonDsDs::CacheTmd(string_view tmd_path, std::span<const std::byte> tmd) noexcept {
+    ZoneScopedN(TracyFunction);
+    char tmd_dir[PATH_MAX];
+    strlcpy(tmd_dir, tmd_path.data(), sizeof(tmd_dir));
+    path_basedir(tmd_dir);
+
+    if (!path_mkdir(tmd_dir)) {
+        retro::error("Error creating title metadata directory \"{}\"", tmd_dir);
+        return false;
+    }
+
+    if (filestream_write_file(tmd_path.data(), tmd.data(), tmd.size())) {
+        retro::info("Cached title metadata to \"{}\"", tmd_path);
+        return true;
+    } else {
+        retro::error("Error writing title metadata to \"{}\"", tmd_path);
+        return false;
+    }
+}
+
+static void MelonDsDs::ImportDsiwareSaveData(NANDMount& nand, const retro::GameInfo& nds_info, const NDSHeader& header, int type) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    if (type == TitleData_PublicSav && header.DSiPublicSavSize == 0) {
+        // If there's no public save data...
+        retro::info("Game does not use public save data");
+        return;
+    }
+
+    if (type == TitleData_PrivateSav && header.DSiPrivateSavSize == 0) {
+        // If this game doesn't use private save data...
+        retro::info("Game does not use private save data");
+        return;
+    }
+
+    if (type == TitleData_BannerSav && !(header.AppFlags & 0x4)) {
+        // If there's no banner save data...
+        retro::info("Game does not use banner save data");
+        return;
+    }
+
+    char sav_file[PATH_MAX]; // "/path/to/game.zip#game.nds"
+    if (!GetDsiwareSaveDataHostPath(sav_file, nds_info, type)) {
+        return;
+    }
+
+    if (path_stat(sav_file) != RETRO_VFS_STAT_IS_VALID) {
+        // If this path is not a valid file...
+        retro::info("No DSiWare save data found at \"{}\"", sav_file);
+    } else if (nand.ImportTitleData(header.DSiTitleIDHigh, header.DSiTitleIDLow, type, sav_file)) {
+        retro::info("Imported DSiWare save data from \"{}\"", sav_file);
+    } else {
+        retro::warn("Couldn't import DSiWare save data from \"{}\"", sav_file);
+    }
+}
+
+static bool MelonDsDs::GetDsiwareSaveDataHostPath(std::span<char> buffer, const retro::GameInfo& nds_info, int type) noexcept {
+    if (buffer.empty()) {
+        return false;
+    }
+
+    const optional<string> &save_directory = retro::get_save_directory();
+    if (!save_directory) {
+        retro::error("Save directory not available, cannot import DSiWare save data");
+        return false;
+    }
+
+    char sav_name[PATH_MAX] {}; // "/path/to/game.zip#game.nds"
+    const char *ptr = path_basename(nds_info.GetPath().data());  // "game.nds"
+    strlcpy(sav_name, ptr ? ptr : nds_info.GetPath().data(), sizeof(sav_name));
+    path_remove_extension(sav_name); // "game"
+    switch (type) {
+        case TitleData_PublicSav:
+            strlcat(sav_name, ".public.sav", sizeof(sav_name)); // "game.public.sav"
+            break;
+        case TitleData_PrivateSav:
+            strlcat(sav_name, ".private.sav", sizeof(sav_name)); // "game.private.sav"
+            break;
+        case TitleData_BannerSav:
+            strlcat(sav_name, ".banner.sav", sizeof(sav_name)); // "game.banner.sav"
+            break;
+        default:
+            retro::error("Unknown save type {}", type);
+            return false;
+    }
+
+    fill_pathname_join_special(buffer.data(), save_directory->c_str(), sav_name, buffer.size());
+    // "/path/to/saves/game.public.sav"
+    return true;
+}
+
+static bool MelonDsDs::LoadBios(const string_view& name, BiosType type, std::span<uint8_t> buffer) noexcept {
     ZoneScopedN(TracyFunction);
 
     auto LoadBiosImpl = [&](const string& path) -> bool {

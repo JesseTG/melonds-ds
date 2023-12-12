@@ -29,7 +29,6 @@ add_library(melondsds_libretro MODULE
     config/visibility.cpp
     core/core.cpp
     core/core.hpp
-    core/dsi.cpp
     core/tasks.cpp
     environment.cpp
     environment.hpp

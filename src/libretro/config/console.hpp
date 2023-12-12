@@ -18,6 +18,7 @@
 #define MELONDSDS_CONFIG_CONSOLE_HPP
 
 #include <memory>
+#include <span>
 
 namespace melonDS {
     class NDS;
@@ -43,6 +44,8 @@ namespace MelonDsDs {
 
     /// Modify a console instance with core options that require a reset to adjust.
     void ResetConsole(const CoreConfig& config, melonDS::NDS& nds);
+
+    bool GetDsiwareSaveDataHostPath(std::span<char> buffer, const retro::GameInfo& nds_info, int type) noexcept;
 }
 
 #endif // MELONDSDS_CONFIG_CONSOLE_HPP
