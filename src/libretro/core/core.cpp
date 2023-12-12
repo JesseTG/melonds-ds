@@ -229,7 +229,7 @@ void MelonDsDs::CoreState::Reset() {
 
 
 void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) noexcept {
-    ZoneScopedN("MelonDsDs::render_audio");
+    ZoneScopedN(TracyFunction);
     int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
     uint32_t size = std::min(nds.SPU.GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
     // Ensure that we don't overrun the buffer
@@ -279,6 +279,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_messageScreen == nullptr);
     if (getenv("MELONDSDS_SKIP_ERROR_SCREEN")) {
+        // This part is for the test suite
         retro::error("Skipping error screen due to the environment variable MELONDSDS_SKIP_ERROR_SCREEN");
         return false;
     }
@@ -372,7 +373,7 @@ void MelonDsDs::CoreState::LoadGameDeferred() {
 // Decrypts the ROM's secure area
 void MelonDsDs::CoreState::SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept {
     ZoneScopedN(TracyFunction);
-    if (Config.BootMode() == BootMode::Direct || Console->NeedsDirectBoot()) {
+    if (Config.BootMode() == BootMode::Direct || nds.NeedsDirectBoot()) {
         char game_name[256];
 
         if (const char* ptr = path_basename(game.GetPath().data()); ptr)
@@ -553,7 +554,8 @@ void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::G
     }
 }
 
-[[gnu::cold]] void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) {
+void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
     _screenLayout.Apply(config);
     _inputState.Apply(config);
     _micState.Apply(config);

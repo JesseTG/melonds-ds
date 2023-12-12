@@ -94,7 +94,7 @@ namespace MelonDsDs {
         bool UpdateOptionVisibility() noexcept;
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
-        [[gnu::cold]] void ApplyConfig(const CoreConfig& config);
+        [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
         [[gnu::cold]] void RunFirstFrame() noexcept;
         [[gnu::cold]] void LoadGameDeferred();
