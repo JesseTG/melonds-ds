@@ -36,6 +36,7 @@
 #include <libretro.h>
 #include <retro_assert.h>
 #include <string/stdstring.h>
+#undef isnan
 #include <fmt/ranges.h>
 
 #include <Args.h>
