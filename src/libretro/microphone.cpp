@@ -16,125 +16,126 @@
 
 #include "microphone.hpp"
 
-#include "environment.hpp"
-#include "tracy.hpp"
-
 #include <optional>
 
 #include <libretro.h>
 
+#include "config/config.hpp"
+#include "environment.hpp"
+#include "input.hpp"
+#include "tracy.hpp"
+
 using std::optional;
 using std::nullopt;
 
-namespace retro::microphone {
-    static optional<struct retro_microphone_interface> _microphone_interface;
-    static retro_microphone_t* _microphone_handle;
-}
-
-void retro::microphone::init_interface() noexcept {
-    ZoneScopedN("retro::microphone::init_interface");
-    if (!_microphone_interface) {
-        // If we haven't yet initialized a microphone interface...
-        // (retro_environment can be called multiple times)
-        struct retro_microphone_interface microphoneInterface;
-        microphoneInterface.interface_version = RETRO_MICROPHONE_INTERFACE_VERSION;
-        if (environment(RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE, &microphoneInterface)) {
-            _microphone_interface = microphoneInterface;
-
-            if (microphoneInterface.interface_version == RETRO_MICROPHONE_INTERFACE_VERSION) {
-                retro::debug("Microphone support available (version {})\n", microphoneInterface.interface_version);
-            } else {
-                retro::warn("Expected mic interface version {}, got {}.\n",
-                            RETRO_MICROPHONE_INTERFACE_VERSION, microphoneInterface.interface_version);
-            }
-        } else {
-            retro::warn("Microphone interface not available; substituting silence instead.\n");
+MelonDsDs::MicrophoneState::MicrophoneState() noexcept :
+    _micInterface(retro::get_microphone_interface()) {
+    if (_micInterface) {
+        if (_micInterface->interface_version == RETRO_MICROPHONE_INTERFACE_VERSION) {
+            retro::debug("Microphone support available (version {})\n", _micInterface->interface_version);
         }
-    }
-}
-
-bool retro::microphone::is_interface_available() noexcept
-{
-    return _microphone_interface.has_value();
-}
-
-void retro::microphone::clear_interface() noexcept {
-    ZoneScopedN("retro::microphone::clear_interface");
-    if (_microphone_interface && _microphone_handle) {
-        _microphone_interface->close_mic(_microphone_handle);
-    }
-    _microphone_interface = nullopt;
-    _microphone_handle = nullptr;
-}
-
-bool retro::microphone::set_open(bool open) noexcept {
-    ZoneScopedN("retro::microphone::set_open");
-    if (!_microphone_interface) {
-        // If we don't have microphone support available...
-        return false;
-    }
-
-    if (open) {
-        // If we want a microphone...
-        if (_microphone_handle) {
-            // If we already have an open microphone...
-            return true;
+        else {
+            retro::warn("Expected mic interface version {}, got {}.\n", RETRO_MICROPHONE_INTERFACE_VERSION, _micInterface->interface_version);
         }
-
-        retro_microphone_params_t params = {
-            .rate = 44100, // melonDS expects this rate
-        };
-        _microphone_handle = _microphone_interface->open_mic(&params);
-        return _microphone_handle != nullptr;
     }
     else {
-        // If we want to close the microphone...
-        if (!_microphone_handle) {
-            // If we don't have an open microphone...
-            return true; // Good; we want it closed anyway
+        retro::warn("Microphone interface not available; substituting silence instead.\n");
+    }
+}
+
+void MelonDsDs::MicrophoneState::Apply(const CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    SetMicInputMode(config.MicInputMode());
+    SetMicButtonMode(config.MicButtonMode());
+}
+
+void MelonDsDs::MicrophoneState::SetMicInputMode(MicInputMode mode) noexcept {
+    if (_micInputMode == mode)
+        // If the microphone input mode is already set to the desired mode...
+        return; // Do nothing
+
+    _micInputMode = mode;
+
+    if (_microphone && _micInputMode != MicInputMode::HostMic) {
+        // If we have a host microphone open and we don't want it anymore...
+        _microphone = nullopt;
+    }
+
+    if (_micInterface && _micInputMode == MicInputMode::HostMic) {
+        // If we can access the host microphone and we want to use it...
+        _microphone = retro::Microphone::Open(*_micInterface, { 44100 });
+    }
+}
+
+
+void MelonDsDs::MicrophoneState::SetMicButtonMode(MicButtonMode mode) noexcept {
+    _micButtonMode = mode;
+    _shouldCaptureAudio = false;
+    _prevShouldCaptureAudio = false;
+    _prevMicButtonDown = false;
+    _micButtonDown = false;
+}
+
+void MelonDsDs::MicrophoneState::SetMicButtonState(bool down) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    _prevMicButtonDown = _micButtonDown;
+    _micButtonDown = down;
+    _prevShouldCaptureAudio = _shouldCaptureAudio;
+
+    switch (_micButtonMode) {
+        case MicButtonMode::Hold: {
+            _shouldCaptureAudio = _micButtonDown;
+            break;
         }
+        case MicButtonMode::Toggle: {
+            if (_micButtonDown && !_prevMicButtonDown) {
+                // If the player just pressed the mic button (but isn't holding it)...
+                _shouldCaptureAudio = !_shouldCaptureAudio;
+            }
+            break;
+        }
+        case MicButtonMode::Always: {
+            _shouldCaptureAudio = true;
+            break;
+        }
+    }
 
-        _microphone_interface->close_mic(_microphone_handle);
-        _microphone_handle = nullptr;
-
-        return true;
+    if (_shouldCaptureAudio != _prevShouldCaptureAudio) {
+        // If we should either start or stop the audio feed...
+        if (_microphone) {
+            _microphone->SetActive(_shouldCaptureAudio);
+        }
     }
 }
 
-bool retro::microphone::is_open() noexcept {
-    return _microphone_interface && _microphone_handle;
-}
 
-bool retro::microphone::set_state(bool on) noexcept {
-    if (!_microphone_interface || !_microphone_handle) {
-        // If we don't have microphone support available...
-        return false; // Can't set the state
+void MelonDsDs::MicrophoneState::Read(std::span<int16_t> buffer) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    if (!_shouldCaptureAudio) {
+        memset(buffer.data(), 0, buffer.size_bytes());
+        return;
     }
 
-    if (_microphone_interface->get_mic_state(_microphone_handle) == on) {
-        // If the microphone is already in the desired state...
-        return true; // Good; we want it in that state anyway
+    switch (_micInputMode) {
+        case MicInputMode::WhiteNoise: {
+            for (short& i : buffer)
+                i = rand() & 0xFFFF;
+
+            break;
+        }
+        case MicInputMode::HostMic: {
+            if (_microphone && _microphone->IsActive() && _microphone->Read(buffer)) {
+                // If the microphone is open and turned on, and we read from it successfully...
+                break;
+            }
+            // If the mic isn't available, feed silence instead
+            [[fallthrough]];
+        }
+        default:
+            memset(buffer.data(), 0, buffer.size_bytes());
+            break;
     }
-
-    return _microphone_interface->set_mic_state(_microphone_handle, on);
-}
-optional<bool> retro::microphone::get_state() noexcept
-{
-    if (!_microphone_interface || !_microphone_handle) {
-        // If we don't have microphone support available...
-        return nullopt; // Can't get the state
-    }
-
-    return _microphone_interface->get_mic_state(_microphone_handle);
-}
-
-optional<int> retro::microphone::read(int16_t* samples, size_t num_samples) noexcept
-{
-    ZoneScopedN("retro::microphone::read");
-    if (!_microphone_interface || !_microphone_handle) {
-        // If we don't have microphone support available...
-        return nullopt; // Can't read
-    }
-
-    return _microphone_interface->read_mic(_microphone_handle, samples, num_samples);
 }

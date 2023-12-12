@@ -330,20 +330,16 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
                 );
             }
 
-            if (Config.ShowMicState()) {
-                optional<bool> mic_state = retro::microphone::get_state();
-
-                if (mic_state && *mic_state) {
-                    // If the microphone is open and turned on...
-                    fmt::format_to(
-                        inserter,
-                        "{}{}",
-                        buf.size() == 0 ? "" : OSD_DELIMITER,
-                        (nds.NumFrames % 120 > 60) ? "●" : "○"
-                    );
-                    // Toggle between a filled circle and an empty one every 1.5 seconds
-                    // (kind of like a blinking "recording" light)
-                }
+            if (Config.ShowMicState() && _micState.IsHostMicActive()) {
+                // If the microphone is open and turned on...
+                fmt::format_to(
+                    inserter,
+                    "{}{}",
+                    buf.size() == 0 ? "" : OSD_DELIMITER,
+                    (nds.NumFrames % 120 > 60) ? "●" : "○"
+                );
+                // Toggle between a filled circle and an empty one every second
+                // (kind of like a blinking "recording" light)
             }
 
             if (Config.ShowCurrentLayout()) {

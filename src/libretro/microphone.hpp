@@ -20,16 +20,42 @@
 #include <cstdint>
 #include <optional>
 
-namespace retro::microphone {
-    [[deprecated("Wrap this in a class instead")]] void init_interface() noexcept;
-    [[deprecated("Wrap this in a class instead")]] void clear_interface() noexcept;
+#include "config/types.hpp"
+#include "retro/microphone.hpp"
 
-    [[deprecated("Wrap this in a class instead")]] bool is_interface_available() noexcept;
-    [[deprecated("Wrap this in a class instead")]] bool set_open(bool open) noexcept;
-    [[deprecated("Wrap this in a class instead")]] bool is_open() noexcept;
-    [[deprecated("Wrap this in a class instead")]] bool set_state(bool on) noexcept;
-    [[deprecated("Wrap this in a class instead")]] std::optional<bool> get_state() noexcept;
-    [[deprecated("Wrap this in a class instead")]] std::optional<int> read(int16_t* samples, size_t num_samples) noexcept;
+namespace MelonDsDs {
+    class InputState;
+    class CoreConfig;
+
+    class MicrophoneState {
+    public:
+        MicrophoneState() noexcept;
+
+        void Apply(const CoreConfig& config) noexcept;
+        bool IsMicInterfaceAvailable() const noexcept { return _micInterface.has_value(); }
+        bool IsHostMicOpen() const noexcept { return _microphone.has_value(); }
+        bool IsHostMicActive() const noexcept { return _microphone && _microphone->IsActive(); }
+
+        void Read(std::span<int16_t> buffer) noexcept;
+
+        MicInputMode GetMicInputMode() const noexcept { return _micInputMode; }
+        void SetMicInputMode(MicInputMode mode) noexcept;
+
+        MicButtonMode GetMicButtonMode() const noexcept { return _micButtonMode; }
+        void SetMicButtonMode(MicButtonMode mode) noexcept;
+
+        void SetMicButtonState(bool down) noexcept;
+
+    private:
+        std::optional<retro_microphone_interface> _micInterface {};
+        std::optional<retro::Microphone> _microphone {};
+        MicInputMode _micInputMode = MicInputMode::None;
+        MicButtonMode _micButtonMode = MicButtonMode::Hold;
+        bool _micButtonDown = false;
+        bool _prevMicButtonDown = false;
+        bool _shouldCaptureAudio = false;
+        bool _prevShouldCaptureAudio = false;
+    };
 }
 
 #endif //MELONDS_DS_MICROPHONE_HPP

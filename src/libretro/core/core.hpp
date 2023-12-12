@@ -28,6 +28,7 @@
 #include "../config/config.hpp"
 #include "../config/visibility.hpp"
 #include "../message/error.hpp"
+#include "../microphone.hpp"
 #include "../render/render.hpp"
 #include "../retro/info.hpp"
 #include "../screenlayout.hpp"
@@ -125,13 +126,12 @@ namespace MelonDsDs {
         void InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& gbaSaveInfo);
         [[gnu::cold]] void InitNdsSave(const NdsCart &nds_cart);
 
-        [[gnu::hot]] void ReadMicrophone(melonDS::NDS& nds, InputState& inputState) noexcept;
-
         std::unique_ptr<melonDS::NDS> Console = nullptr;
         CoreConfig Config {};
         CoreOptionVisibility _optionVisibility {};
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
+        MicrophoneState _micState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
@@ -148,7 +148,6 @@ namespace MelonDsDs {
         const bool _initialized = true;
         bool _firstFrameRun = false;
         bool _deferredInitializationPending = false;
-        bool _micStateToggled = false;
         uint32_t _flushTaskId = 0;
         NetworkMode _activeNetworkMode = NetworkMode::None;
     };

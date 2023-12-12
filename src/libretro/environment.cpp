@@ -590,8 +590,6 @@ void retro::env::init() noexcept {
 
     if (retro::_supportsPowerStatus)
         retro::debug("Power state available\n");
-
-    retro::microphone::init_interface();
 }
 
 void retro::env::deinit() noexcept {
@@ -599,7 +597,6 @@ void retro::env::deinit() noexcept {
     _save_directory = nullopt;
     _system_directory = nullopt;
     _system_subdir = nullopt;
-    microphone::clear_interface();
     _environment = nullptr;
     _log = nullptr;
     _supports_bitmasks = false;

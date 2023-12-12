@@ -132,7 +132,10 @@ void MelonDsDs::CoreState::Run() noexcept {
     if (_renderState->Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
         HandleInput(nds, _inputState, _screenLayout);
-        ReadMicrophone(nds, _inputState);
+        _micState.SetMicButtonState(_inputState.MicButtonDown());
+        std::array<int16_t, 735> buffer {};
+        _micState.Read(buffer);
+        nds.MicInputFrame(buffer.data(), buffer.size());
 
         if (_screenLayout.Dirty()) {
             // If the active screen layout has changed (either by settings or by hotkey)...
@@ -385,77 +388,6 @@ void MelonDsDs::CoreState::SetUpDirectBoot(melonDS::NDS& nds, const retro::GameI
     }
 }
 
-
-
-void MelonDsDs::CoreState::ReadMicrophone(melonDS::NDS& nds, MelonDsDs::InputState& inputState) noexcept {
-    ZoneScopedN(TracyFunction);
-    MicInputMode mic_input_mode = Config.MicInputMode();
-    MicButtonMode mic_button_mode = Config.MicButtonMode();
-    bool should_mic_be_on = false;
-
-    switch (mic_button_mode) {
-        // If the microphone button...
-        case MicButtonMode::Hold: {
-            // ...must be held...
-            _micStateToggled = false;
-            if (!inputState.MicButtonDown()) {
-                // ...but it isn't...
-                mic_input_mode = MicInputMode::None;
-            }
-            should_mic_be_on = inputState.MicButtonDown();
-            break;
-        }
-        case MicButtonMode::Toggle: {
-            // ...must be toggled...
-            if (inputState.MicButtonPressed()) {
-                // ...but it isn't...
-                _micStateToggled = !_micStateToggled;
-                if (!_micStateToggled) {
-                    mic_input_mode = MicInputMode::None;
-                }
-            }
-            should_mic_be_on = _micStateToggled;
-            break;
-        }
-        case MicButtonMode::Always: {
-            // ...is unnecessary...
-            // Do nothing, the mic input mode is already set
-            should_mic_be_on = true;
-            break;
-        }
-    }
-
-    if (retro::microphone::is_open()) {
-        // TODO: Don't set constantly, only when the mic button state changes (or when the input mode is set to Always)
-        retro::microphone::set_state(should_mic_be_on);
-    }
-
-    switch (mic_input_mode) {
-        case MicInputMode::WhiteNoise: // random noise
-        {
-            int16_t tmp[735];
-            for (int i = 0; i < 735; i++) tmp[i] = rand() & 0xFFFF;
-            nds.MicInputFrame(tmp, 735);
-            break;
-        }
-        case MicInputMode::HostMic: // microphone input
-        {
-            const auto mic_state = retro::microphone::get_state();
-            if (mic_state.has_value() && mic_state.value()) {
-                // If the microphone is open and turned on...
-                int16_t samples[735];
-                retro::microphone::read(samples, std::size(samples));
-                nds.MicInputFrame(samples, std::size(samples));
-                break;
-            }
-            // If the mic isn't available, feed silence instead
-        }
-        // Intentional fall-through
-        default:
-            nds.MicInputFrame(nullptr, 0);
-    }
-}
-
 void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept
 {
     retro_assert(Console != nullptr);
@@ -624,6 +556,19 @@ void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::G
 [[gnu::cold]] void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) {
     _screenLayout.Apply(config);
     _inputState.Apply(config);
+    _micState.Apply(config);
+
+    if (config.MicInputMode() == MicInputMode::HostMic) {
+        // If we want to use the host's microphone...
+        if (!_micState.IsMicInterfaceAvailable() && config.ShowUnsupportedFeatureWarnings()) {
+            // ...but this frontend doesn't support it...
+            retro::set_warn_message("This frontend doesn't support microphones.");
+        }
+        else if (!_micState.IsHostMicOpen()) {
+            retro::warn("Failed to open host microphone");
+        }
+    }
+
     UpdateRenderState(config);
 
     // TODO: Reinitialize OpenGL state if certain settings have changed
