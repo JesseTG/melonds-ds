@@ -108,7 +108,7 @@ PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned devi
 }
 
 void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
-    ZoneScopedN("MelonDsDs::HandleInput");
+    ZoneScopedN(TracyFunction);
     using glm::clamp;
     using glm::all;
 
@@ -147,7 +147,7 @@ void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLay
     } while (false)
 
 void MelonDsDs::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
-    ZoneScopedN("MelonDsDs::InputState::Update");
+    ZoneScopedN(TracyFunction);
     uint32_t retroInputBits; // Input bits from libretro
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 
