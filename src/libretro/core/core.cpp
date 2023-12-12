@@ -57,7 +57,6 @@ static const char* const UNKNOWN_ERROR_MESSAGE =
 
 MelonDsDs::CoreState::~CoreState() noexcept {
     ZoneScopedN(TracyFunction);
-    // TODO: Clean up loaded DSiWare here
     Console = nullptr;
     melonDS::NDS::Current = nullptr;
 }
