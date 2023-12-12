@@ -64,6 +64,8 @@ add_library(melondsds_libretro MODULE
     retro/http.hpp
     retro/info.cpp
     retro/info.hpp
+    retro/microphone.cpp
+    retro/microphone.hpp
     retro/scaler.cpp
     retro/scaler.hpp
     retro/task_queue.cpp
