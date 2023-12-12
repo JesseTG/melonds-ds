@@ -333,8 +333,12 @@ namespace MelonDsDs {
         [[nodiscard]] Renderer ConfiguredRenderer() const noexcept { return _configuredRenderer; }
         void SetConfiguredRenderer(Renderer configuredRenderer) noexcept { _configuredRenderer = configuredRenderer; }
 
+#ifdef HAVE_THREADED_RENDERER
         [[nodiscard]] bool ThreadedSoftRenderer() const noexcept { return _threadedSoftRenderer; }
         void SetThreadedSoftRenderer(bool threadedSoftRenderer) noexcept { _threadedSoftRenderer = threadedSoftRenderer; }
+#else
+        bool ThreadedSoftRenderer() const noexcept { return false; }
+#endif
 
         [[nodiscard]] MelonDsDs::ScreenFilter ScreenFilter() const noexcept { return _screenFilter; }
         void SetScreenFilter(MelonDsDs::ScreenFilter screenFilter) noexcept { _screenFilter = screenFilter; }
