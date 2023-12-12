@@ -50,7 +50,6 @@
 #include <FreeBIOS.h>
 #include <file/config_file.h>
 #include <LAN_PCap.h>
-#include <pcap/pcap.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"
