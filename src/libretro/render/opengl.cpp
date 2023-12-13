@@ -366,6 +366,7 @@ void MelonDsDs::OpenGLRenderState::Render(
 
 void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     ZoneScopedN(TracyFunction);
+    TracyGpuZone(TracyFunction);
     retro::debug(TracyFunction);
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     glDeleteTextures(1, &screen_framebuffer_texture);
@@ -376,20 +377,6 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     melonDS::OpenGL::DeleteShaderProgram(shader);
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
     _contextInitialized = false;
-}
-
-void MelonDsDs::CoreState::ResetRenderState() {
-    if (auto glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get())) {
-        retro_assert(Console != nullptr);
-        glRenderState->ContextReset(*Console, Config);
-    }
-}
-
-void MelonDsDs::CoreState::DestroyRenderState() {
-    if (auto glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get())) {
-        retro_assert(Console != nullptr);
-        glRenderState->ContextDestroyed();
-    }
 }
 
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {

@@ -58,6 +58,10 @@ add_library(melondsds_libretro MODULE
     platform/semaphore.cpp
     platform/thread.cpp
     PlatformOGLPrivate.h
+    render/render.cpp
+    render/render.hpp
+    render/software.cpp
+    render/software.hpp
     retro/dirent.cpp
     retro/dirent.hpp
     retro/http.cpp

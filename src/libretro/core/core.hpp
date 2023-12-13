@@ -111,8 +111,6 @@ namespace MelonDsDs {
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void RenderErrorScreen() noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
-        [[gnu::cold]] void UpdateRenderState(const CoreConfig& config) noexcept;
-        [[gnu::cold]] void UpdateRenderer(melonDS::NDS& nds) noexcept;
 
         const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept;
 
@@ -132,6 +130,7 @@ namespace MelonDsDs {
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
         MicrophoneState _micState {};
+        RenderStateWrapper _renderState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
@@ -141,7 +140,6 @@ namespace MelonDsDs {
         std::optional<int> _timeToFirmwareFlush = std::nullopt;
         mutable std::optional<size_t> _savestateSize = std::nullopt;
         std::unique_ptr<error::ErrorScreen> _messageScreen = nullptr;
-        std::unique_ptr<RenderState> _renderState = nullptr;
         // TODO: Switch to compile time regular expressions (see https://compile-time.re)
         std::regex _cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
         std::regex _tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };

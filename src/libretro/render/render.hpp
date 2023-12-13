@@ -17,6 +17,10 @@
 #ifndef MELONDS_DS_RENDER_HPP
 #define MELONDS_DS_RENDER_HPP
 
+#include <memory>
+
+#include "config/types.hpp"
+
 namespace melonDS {
     class NDS;
 }
@@ -26,6 +30,10 @@ namespace MelonDsDs {
     class ScreenLayoutData;
     class CoreConfig;
 
+    namespace error {
+        class ErrorScreen;
+    }
+
     class RenderState {
     public:
         virtual ~RenderState() noexcept = default;
@@ -34,7 +42,24 @@ namespace MelonDsDs {
         /// This includes the OpenGL context (if applicable) and the emulator's renderer.
         virtual bool Ready() const noexcept = 0;
         virtual void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept = 0;
-        virtual void RequestRefresh() {}
+        virtual void RequestRefresh() noexcept {}
+    };
+
+    class RenderStateWrapper {
+    public:
+        RenderStateWrapper();
+        bool Ready() const noexcept { return _renderState && _renderState->Ready(); }
+        void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
+        void Render(const error::ErrorScreen& error, const ScreenLayoutData& screenLayout) noexcept;
+        void RequestRefresh() noexcept;
+
+        void Apply(const CoreConfig& config) noexcept;
+        void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
+        void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
+        void ContextDestroyed();
+    private:
+        void SetRenderer(Renderer renderer);
+        std::unique_ptr<RenderState> _renderState;
     };
 }
 

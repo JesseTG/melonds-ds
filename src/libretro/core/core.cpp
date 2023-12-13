@@ -126,10 +126,12 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (retro::is_variable_updated()) [[unlikely]] {
         // If any settings have changed...
-        MelonDsDs::UpdateConfig(*this, _screenLayout, _inputState);
+        ParseConfig(Config);
+        ApplyConfig(Config);
+        UpdateConsole(Config, nds);
     }
 
-    if (_renderState->Ready()) [[likely]] {
+    if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
         HandleInput(nds, _inputState, _screenLayout);
         _micState.SetMicButtonState(_inputState.MicButtonDown());
@@ -148,7 +150,7 @@ void MelonDsDs::CoreState::Run() noexcept {
                 retro::warn("Failed to update geometry after screen layout change");
             }
 
-            _renderState->RequestRefresh();
+            _renderState.RequestRefresh();
         }
 
         // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
@@ -158,7 +160,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             nds.RunFrame();
         }
 
-        _renderState->Render(nds, _inputState, Config, _screenLayout);
+        _renderState.Render(nds, _inputState, Config, _screenLayout);
         RenderAudio(*Console);
 
         retro::task::check();
@@ -192,7 +194,6 @@ void MelonDsDs::CoreState::Reset() {
     auto header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data()) : nullptr;
     retro_assert(Console != nullptr);
     RegisterCoreOptions();
-    InitConfig(*this, header, _screenLayout, _inputState);
 
     InitFlushFirmwareTask();
 
@@ -285,7 +286,6 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
     }
 
     retro::task::reset();
-    _renderState = std::make_unique<SoftwareRenderState>();
     _messageScreen = make_unique<error::ErrorScreen>(e);
     _screenLayout.Update(Config.ScreenFilter());
     retro::error("Error screen initialized");
@@ -294,11 +294,9 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
 
 void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     assert(_messageScreen != nullptr);
-    auto renderer = dynamic_cast<SoftwareRenderState*>(_renderState.get());
-    assert(renderer != nullptr);
 
     _screenLayout.Update(Config.ScreenFilter());
-    renderer->Render(*_messageScreen, _screenLayout);
+    _renderState.Render(*_messageScreen, _screenLayout);
 }
 
 void MelonDsDs::CoreState::RunFirstFrame() noexcept {
@@ -402,6 +400,14 @@ void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept
     }
 }
 
+void MelonDsDs::CoreState::ResetRenderState() {
+    _renderState.ContextReset(*Console, Config);
+}
+
+void MelonDsDs::CoreState::DestroyRenderState() {
+    _renderState.ContextDestroyed();
+}
+
 bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept try {
     ZoneScopedN(TracyFunction);
 
@@ -421,7 +427,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     // Must initialize the render state if using OpenGL (so the function pointers can be loaded
 
     retro_assert(Console == nullptr);
-    retro_assert(_renderState != nullptr);
     // Instantiates the console with games and save data installed
     Console = CreateConsole(
         Config,
@@ -433,7 +438,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
 
-    UpdateRenderer(*Console);
+    _renderState.UpdateRenderer(Config, *Console);
 
     if (Console->GetNDSCart()) {
         assert(!Console->GetNDSCart()->GetHeader().IsDSiWare());
@@ -556,12 +561,15 @@ void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::G
 
 void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
+    MicInputMode oldMicInputMode = config.MicInputMode();
     _screenLayout.Apply(config);
     _inputState.Apply(config);
     _micState.Apply(config);
+    _renderState.Apply(config);
 
-    if (config.MicInputMode() == MicInputMode::HostMic) {
-        // If we want to use the host's microphone...
+    if (oldMicInputMode != MicInputMode::HostMic && config.MicInputMode() == MicInputMode::HostMic) {
+        // If we want to use the host's microphone, and we're coming from another setting...
+        // (so that excessive warnings aren't shown)
         if (!_micState.IsMicInterfaceAvailable() && config.ShowUnsupportedFeatureWarnings()) {
             // ...but this frontend doesn't support it...
             retro::set_warn_message("This frontend doesn't support microphones.");
@@ -571,71 +579,12 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         }
     }
 
-    UpdateRenderState(config);
-
     // TODO: Reinitialize OpenGL state if certain settings have changed
     // TODO: Reinitialize the video driver if enabling OpenGL
     // TODO: Configure the console
 }
 
-void MelonDsDs::CoreState::UpdateRenderState(const CoreConfig& config) noexcept {
-    switch (config.ConfiguredRenderer()) {
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-        case Renderer::OpenGl: {
-            if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) != nullptr) {
-                // If we already have the OpenGL renderer configured...
-                break;
-            }
 
-            if (auto state = OpenGLRenderState::New()) {
-                _renderState = std::move(state);
-                retro::debug("Initialized OpenGL render state");
-                break;
-            }
-
-            retro::set_warn_message("Failed to initialize OpenGL render state, falling back to software mode.");
-            [[fallthrough]];
-        }
-#endif
-        case Renderer::Software: {
-            if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) != nullptr) {
-                // If we already have the software renderer configured...
-                break;
-            }
-
-            _renderState = std::make_unique<SoftwareRenderState>();
-            retro::debug("Initialized software render state");
-            break;
-        }
-    }
-
-    retro_assert(_renderState != nullptr);
-}
-
-void MelonDsDs::CoreState::UpdateRenderer(melonDS::NDS& nds) noexcept {
-    assert(_renderState != nullptr);
-
-    if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) && nds.GPU.GetRenderer3D().Accelerated) {
-        // If we're configured to use the software renderer, and we aren't already...
-        nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, Config.ThreadedSoftRenderer()));
-        return;
-    }
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) && !nds.GPU.GetRenderer3D().Accelerated) {
-        // If we're configured to use the OpenGL renderer, and we aren't already...
-
-        if (auto renderer = melonDS::GLRenderer::New(nds.GPU)) {
-            nds.GPU.SetRenderer3D(std::move(renderer));
-        }
-        else {
-            retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
-            _renderState = std::make_unique<SoftwareRenderState>();
-            nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, Config.ThreadedSoftRenderer()));
-        }
-    }
-#endif
-}
 
 void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game_info> game) {
     ZoneScopedN(TracyFunction);
