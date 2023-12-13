@@ -56,7 +56,7 @@ namespace MelonDsDs {
         if (value.empty()) return std::nullopt;
 
         T parsed_number = 0;
-        std::from_chars_result result = std::from_chars(value.data(), &value.back(), parsed_number);
+        std::from_chars_result result = std::from_chars(value.begin(), value.end(), parsed_number);
 
         if (result.ec != std::errc()) return std::nullopt;
         for (T t: list) {
