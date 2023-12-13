@@ -161,6 +161,9 @@ namespace MelonDsDs {
 #ifndef NDEBUG
         [[nodiscard]] bool ShowPointerCoordinates() const noexcept { return showPointerCoordinates; }
         void SetShowPointerCoordinates(bool show) noexcept { showPointerCoordinates = show; }
+#else
+        [[nodiscard]] bool ShowPointerCoordinates() const noexcept { return false; }
+        void SetShowPointerCoordinates(bool show) noexcept {}
 #endif
 
         [[nodiscard]] bool ShowUnsupportedFeatureWarnings() const noexcept { return showUnsupportedFeatureWarnings; }
