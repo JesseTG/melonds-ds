@@ -111,13 +111,17 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
 }
 
 void MelonDsDs::RenderStateWrapper::ContextReset(melonDS::NDS& nds, const CoreConfig& config) {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (auto glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get())) {
         glRenderState->ContextReset(nds, config);
     }
+#endif
 }
 
 void MelonDsDs::RenderStateWrapper::ContextDestroyed() {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (auto glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get())) {
         glRenderState->ContextDestroyed();
     }
+#endif
 }
