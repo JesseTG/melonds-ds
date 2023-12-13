@@ -579,12 +579,8 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         }
     }
 
-    // TODO: Reinitialize OpenGL state if certain settings have changed
     // TODO: Reinitialize the video driver if enabling OpenGL
-    // TODO: Configure the console
 }
-
-
 
 void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game_info> game) {
     ZoneScopedN(TracyFunction);
