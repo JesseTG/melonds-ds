@@ -35,7 +35,6 @@ namespace MelonDsDs::sram  {
     class SaveManager {
     public:
         explicit SaveManager(uint32_t initialLength);
-        ~SaveManager();
         SaveManager(const SaveManager&) = delete;
         SaveManager(SaveManager&&) noexcept;
         SaveManager& operator=(const SaveManager &) = delete;
@@ -51,12 +50,12 @@ namespace MelonDsDs::sram  {
         /// \param writelen Length of the updated data.
         void Flush(const uint8_t *savedata, uint32_t savelen, uint32_t writeoffset, uint32_t writelen);
 
-        [[nodiscard]] const uint8_t *Sram() const { return _sram; }
-        uint8_t *Sram() { return _sram; }
+        [[nodiscard]] const uint8_t *Sram() const { return _sram.get(); }
+        uint8_t *Sram() { return _sram.get(); }
         [[nodiscard]] uint32_t SramLength() const { return _sram_length; }
 
     private:
-        uint8_t *_sram;
+        std::unique_ptr<uint8_t[]> _sram;
         uint32_t _sram_length;
     };
 }

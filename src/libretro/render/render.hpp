@@ -48,7 +48,6 @@ namespace MelonDsDs {
 
     class RenderStateWrapper {
     public:
-        RenderStateWrapper();
         bool Ready() const noexcept { return _renderState && _renderState->Ready(); }
         void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void Render(const error::ErrorScreen& error, const ScreenLayoutData& screenLayout) noexcept;

@@ -306,7 +306,7 @@ int Platform::LAN_SendPacket(u8* data, int len) {
     return MelonDsDs::Core.LanSendPacket(std::span((std::byte*)data, len));
 }
 
-int LAN_RecvPacket(u8* data) {
+int Platform::LAN_RecvPacket(u8* data) {
     ZoneScopedN(TracyFunction);
 
     return MelonDsDs::Core.LanRecvPacket(data);

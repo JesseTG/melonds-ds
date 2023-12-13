@@ -50,35 +50,47 @@ using std::string_view;
 using namespace melonDS;
 
 MelonDsDs::sram::SaveManager::SaveManager(u32 initialLength) :
-        _sram(new u8[initialLength]),
-        _sram_length(initialLength) {
+    _sram(std::make_unique<u8[]>(initialLength)),
+    _sram_length(initialLength) {
 }
 
-MelonDsDs::sram::SaveManager::~SaveManager() {
-    delete[] _sram; // deleting null pointers is a no-op, no need to check
+MelonDsDs::sram::SaveManager::SaveManager(SaveManager&& other) noexcept :
+    _sram(std::move(other._sram)),
+    _sram_length(other._sram_length) {
+    other._sram = nullptr;
+    other._sram_length = 0;
 }
+
+MelonDsDs::sram::SaveManager& MelonDsDs::sram::SaveManager::operator=(SaveManager&& other) noexcept {
+    if (this != &other) {
+        _sram = std::move(other._sram);
+        _sram_length = other._sram_length;
+        other._sram = nullptr;
+        other._sram_length = 0;
+    }
+    return *this;
+}
+
 
 void MelonDsDs::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
     ZoneScopedN("MelonDsDs::sram::SaveManager::Flush");
     if (_sram_length != savelen) {
         // If we loaded a game with a different SRAM length...
 
-        delete[] _sram;
-
         _sram_length = savelen;
-        _sram = new u8[_sram_length];
+        _sram = std::make_unique<u8[]>(_sram_length);
 
-        memcpy(_sram, savedata, _sram_length);
+        memcpy(_sram.get(), savedata, _sram_length);
     } else {
         if ((writeoffset + writelen) > savelen) {
             // If the write goes past the end of the SRAM, we have to wrap around
             u32 len = savelen - writeoffset;
-            memcpy(_sram + writeoffset, savedata + writeoffset, len);
+            memcpy(_sram.get() + writeoffset, savedata + writeoffset, len);
             len = writelen - len;
             if (len > savelen) len = savelen;
-            memcpy(_sram, savedata, len);
+            memcpy(_sram.get(), savedata, len);
         } else {
-            memcpy(_sram + writeoffset, savedata + writeoffset, writelen);
+            memcpy(_sram.get() + writeoffset, savedata + writeoffset, writelen);
         }
     }
 }

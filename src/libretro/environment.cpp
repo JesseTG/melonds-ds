@@ -226,9 +226,6 @@ bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
 }
 
 bool retro::shutdown() noexcept {
-    if (MelonDsDs::IsInDeinit() || MelonDsDs::IsUnloadingGame())
-        return true;
-
     if (isShuttingDown)
         return true;
 
