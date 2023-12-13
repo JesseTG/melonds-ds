@@ -44,6 +44,7 @@
 #include "retro/task_queue.hpp"
 #include "sram.hpp"
 #include "tracy.hpp"
+#include "version.hpp"
 
 using namespace melonDS;
 using std::make_optional;

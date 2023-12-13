@@ -210,10 +210,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "(.+)?
     target_compile_options(melondsds_libretro PUBLIC -Werror=return-type -fms-extensions)
 endif()
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/version.hpp")
+
 target_compile_definitions(melondsds_libretro PUBLIC
-    MELONDSDS_VERSION="${MELONDSDS_VERSION}"
-    MELONDSDS_NAME="${CMAKE_PROJECT_NAME}"
-    MELONDSDS_VERSION_STRING="${CMAKE_PROJECT_NAME} ${MELONDSDS_VERSION}"
     PNTR_ENABLE_DEFAULT_FONT
     PNTR_ENABLE_FILTER_SMOOTH
     PNTR_ENABLE_TTF

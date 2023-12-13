@@ -37,6 +37,7 @@
 #include "libretro.hpp"
 #include "config/config.hpp"
 #include "tracy.hpp"
+#include "version.hpp"
 
 using std::string;
 using std::string_view;

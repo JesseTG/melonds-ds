@@ -64,12 +64,15 @@ include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
 
-if (NOT GIT_STATE)
-    set(GIT_STATE "no-git")
-endif ()
+if (GIT_STATE)
+    set(MELONDSDS_VERSION_STRING "${GIT_STATE} (upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
+else ()
+    set(MELONDSDS_VERSION_STRING "${CMAKE_PROJECT_VERSION} (no-git, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
+endif()
 
-set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION} (${GIT_STATE}, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
-message(STATUS "${CMAKE_PROJECT_NAME} Version: ${MELONDSDS_VERSION}")
+set(MELONDSDS_NAME "${CMAKE_PROJECT_NAME}")
+set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION}")
+message(STATUS "${CMAKE_PROJECT_NAME} Version: ${MELONDSDS_VERSION_STRING}")
 
 # Disabled by default due to https://github.com/JesseTG/melonds-ds/issues/81
 # Enable it if you're going to work on it.
