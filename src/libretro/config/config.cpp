@@ -134,44 +134,6 @@ void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
     config::ParseVideoOptions(config);
 }
 
-void MelonDsDs::InitConfig(
-    MelonDsDs::CoreState& core,
-    const melonDS::NDSHeader* header,
-    ScreenLayoutData& screenLayout,
-    InputState& inputState
-) {
-    ZoneScopedN("MelonDsDs::InitConfig");
-    config::parse_system_options();
-    config::parse_osd_options();
-    config::parse_jit_options();
-    config::parse_homebrew_save_options(header);
-    config::parse_dsi_storage_options();
-    config::parse_firmware_options();
-    config::parse_audio_options();
-    config::parse_network_options();
-    bool openGlNeedsRefresh = config::parse_video_options(true);
-    config::parse_screen_options();
-
-    config::apply_system_options(core, header);
-    config::apply_save_options(header);
-    config::apply_screen_options(screenLayout, inputState);
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (MelonDsDs::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
-        // If we're using OpenGL and the settings changed, or the screen layout changed...
-        MelonDsDs::opengl::RequestOpenGlRefresh();
-    }
-#endif
-
-    if (MelonDsDs::render::CurrentRenderer() == Renderer::None) {
-        screenLayout.Update(config::video::ConfiguredRenderer());
-    } else {
-        screenLayout.Update(MelonDsDs::render::CurrentRenderer());
-    }
-
-    update_option_visibility();
-}
-
 static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config::system;
@@ -415,7 +377,7 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
             retro::info("Using existing DSi SD card image \"{}\"", config.DsiSdImagePath());
             config.SetDsiSdImageSize(AUTO_SDCARD_SIZE);
         } else {
-            retro::info("No DSi SD card image found at \"{}\"; will create an image.", _dsiSdImagePath);
+            retro::info("No DSi SD card image found at \"{}\"; will create an image.", config.DsiSdImagePath());
             config.SetDsiSdImageSize(DEFAULT_SDCARD_SIZE);
         }
     }
@@ -693,106 +655,6 @@ static void MelonDsDs::config::ParseVideoOptions(CoreConfig& config) noexcept {
         config.SetBetterPolygonSplitting(false);
     }
 #endif
-}
-
-void MelonDsDs::UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept {
-    ZoneScopedN("MelonDsDs::config::UpdateConfig");
-    config::parse_audio_options();
-    bool openGlNeedsRefresh = config::parse_video_options(false);
-    config::parse_screen_options();
-    config::parse_osd_options();
-
-    retro_assert(core.Console != nullptr);
-
-    config::apply_audio_options(*core.Console);
-    config::apply_screen_options(screenLayout, inputState);
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (MelonDsDs::opengl::UsingOpenGl() && (openGlNeedsRefresh || screenLayout.Dirty())) {
-        // If we're using OpenGL and the settings changed, or the screen layout changed...
-        MelonDsDs::opengl::RequestOpenGlRefresh();
-    }
-#endif
-
-    update_option_visibility();
-}
-
-static void MelonDsDs::config::apply_save_options(const NDSHeader* header) {
-    ZoneScopedN("MelonDsDs::config::apply_save_options");
-    using namespace config::save;
-
-    const optional<string> save_directory = retro::get_save_directory();
-    if (!save_directory && (DldiEnable() || DsiSdEnable())) {
-        // If we want to use SD cards, but we can't get the save directory...
-        _dsiSdEnable = false;
-        _dldiEnable = false;
-        retro::set_error_message("Failed to get save directory; SD cards will not be available.");
-        return;
-    }
-
-    if (header && header->IsHomebrew() && DldiEnable()) {
-        // If we're loading a homebrew game with an SD card...
-        char path[PATH_MAX];
-
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_DIR_NAME, sizeof(path));
-        _dldiFolderPath = string(path);
-
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME, sizeof(path));
-        _dldiImagePath = string(path);
-
-        if (path_is_valid(_dldiImagePath.c_str())) {
-            // If the SD card image exists...
-            retro::info("Using existing homebrew SD card image \"{}\"", _dldiImagePath);
-            _dldiImageSize = AUTO_SDCARD_SIZE;
-        } else {
-            retro::info("No homebrew SD card image found at \"{}\"; will create an image.", _dldiImagePath);
-            _dldiImageSize = DEFAULT_SDCARD_SIZE;
-        }
-
-        if (DldiFolderSync()) {
-            // If we want to sync the homebrew SD card to the host...
-            if (!path_mkdir(_dldiFolderPath.c_str())) {
-                // Create the save directory. If that failed...
-                throw emulator_exception("Failed to create homebrew save directory at " + _dldiFolderPath);
-            }
-
-            retro::info("Created (or using existing) homebrew save directory \"{}\"", _dldiFolderPath);
-        }
-    } else {
-        retro::info("Not using homebrew SD card");
-    }
-
-    if (system::ConsoleType() == ConsoleType::DSi && DsiSdEnable()) {
-        // If we're running in DSi mode and we want to sync its SD card image to the host...
-        char path[PATH_MAX];
-
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_DIR_NAME, sizeof(path));
-        _dsiSdFolderPath = string(path);
-
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_IMAGE_NAME, sizeof(path));
-        _dsiSdImagePath = string(path);
-
-        if (path_is_valid(_dsiSdImagePath.c_str())) {
-            // If the SD card image exists...
-            retro::info("Using existing DSi SD card image \"{}\"", _dsiSdImagePath);
-            _dsiSdImageSize = AUTO_SDCARD_SIZE;
-        } else {
-            retro::info("No DSi SD card image found at \"{}\"; will create an image.", _dsiSdImagePath);
-            _dsiSdImageSize = DEFAULT_SDCARD_SIZE;
-        }
-
-        if (DsiSdFolderSync()) {
-            // If we want to sync the homebrew SD card to the host...
-            if (!path_mkdir(_dsiSdFolderPath.c_str())) {
-                // Create the save directory. If that failed...
-                throw emulator_exception("Failed to create DSi SD card save directory at " + _dsiSdFolderPath);
-            }
-
-            retro::info("Created (or using existing) DSi SD card save directory \"{}\"", _dsiSdFolderPath);
-        }
-    } else {
-        retro::info("Not using DSi SD card");
-    }
 }
 
 struct FirmwareEntry {

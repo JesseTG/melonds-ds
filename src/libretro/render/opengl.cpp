@@ -302,8 +302,6 @@ void MelonDsDs::OpenGLRenderState::Render(
     glBindFramebuffer(GL_FRAMEBUFFER, glsm_get_current_framebuffer());
 
     if (_needsRefresh) {
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         InitFrameState(nds, config, screenLayout);
         _needsRefresh = false;
     }
@@ -379,11 +377,33 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     _contextInitialized = false;
 }
 
+void MelonDsDs::OpenGLRenderState::Apply(const CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    TracyGpuZone(TracyFunction);
+    retro::debug(TracyFunction);
+    if (_lastBetterPolygonSplitting != config.BetterPolygonSplitting()) {
+        _lastBetterPolygonSplitting = config.BetterPolygonSplitting();
+        _needsRefresh = true;
+    }
+
+    if (_lastScreenFilter != config.ScreenFilter()) {
+        _lastScreenFilter = config.ScreenFilter();
+        _needsRefresh = true;
+    }
+
+    if (_lastResolutionScale != config.ScaleFactor()) {
+        _lastResolutionScale = config.ScaleFactor();
+        _needsRefresh = true;
+    }
+}
+
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);
     retro_assert(nds.GPU.GetRenderer3D().Accelerated);
 
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GPU.GetRenderer3D());
     renderer.SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
 

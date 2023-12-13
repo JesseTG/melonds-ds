@@ -57,18 +57,7 @@ namespace MelonDsDs {
     class InputState;
     class CoreConfig;
 
-    /// Called when loading a game
-    [[deprecated("Split into LoadConfig and ApplyConfig")]] void InitConfig(
-        MelonDsDs::CoreState& core,
-        const melonDS::NDSHeader* header, // I'd like to have an optional<NDSHeader&>, but C++ doesn't allow it
-        ScreenLayoutData& screenLayout,
-        InputState& inputState
-    );
-
     void ParseConfig(CoreConfig& config) noexcept;
-
-    /// Called when settings have been updated mid-game
-    void UpdateConfig(MelonDsDs::CoreState& core, ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
 
     bool RegisterCoreOptions() noexcept;
 

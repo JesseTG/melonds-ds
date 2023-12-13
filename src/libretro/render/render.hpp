@@ -43,6 +43,7 @@ namespace MelonDsDs {
         virtual bool Ready() const noexcept = 0;
         virtual void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept = 0;
         virtual void RequestRefresh() noexcept {}
+        virtual void Apply(const CoreConfig& config) noexcept {}
     };
 
     class RenderStateWrapper {
@@ -51,7 +52,11 @@ namespace MelonDsDs {
         bool Ready() const noexcept { return _renderState && _renderState->Ready(); }
         void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void Render(const error::ErrorScreen& error, const ScreenLayoutData& screenLayout) noexcept;
-        void RequestRefresh() noexcept;
+        void RequestRefresh() noexcept {
+            if (_renderState) {
+                _renderState->RequestRefresh();
+            }
+        }
 
         void Apply(const CoreConfig& config) noexcept;
         void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;

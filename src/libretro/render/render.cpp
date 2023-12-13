@@ -46,6 +46,8 @@ void MelonDsDs::RenderStateWrapper::Render(const error::ErrorScreen& error, cons
 
 void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config) noexcept {
     SetRenderer(config.ConfiguredRenderer());
+
+    _renderState->Apply(config);
 }
 
 

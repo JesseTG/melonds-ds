@@ -111,8 +111,7 @@ void MelonDsDs::SoftwareRenderState::Render(
     retro::video_refresh(buffer[0], buffer.Width(), buffer.Height(), buffer.Stride());
 }
 
-void MelonDsDs::SoftwareRenderState::CopyScreen(const uint32_t* src, uvec2 destTranslation, ScreenLayout layout
-) noexcept {
+void MelonDsDs::SoftwareRenderState::CopyScreen(const uint32_t* src, uvec2 destTranslation, ScreenLayout layout) noexcept {
     ZoneScopedN(TracyFunction);
     // Only used for software rendering
 

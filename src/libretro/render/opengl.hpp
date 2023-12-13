@@ -19,6 +19,7 @@
 #define MELONDSDS_RENDER_OPENGL_HPP
 
 #include <memory>
+#include <optional>
 
 #include "render.hpp"
 
@@ -50,6 +51,7 @@ namespace MelonDsDs {
         void RequestOpenGlRefresh() {
             _needsRefresh = true;
         }
+        void Apply(const CoreConfig& config) noexcept override;
 
         bool ContextInitialized();
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
@@ -90,6 +92,9 @@ namespace MelonDsDs {
         } GL_ShaderConfig {};
 
         GLuint ubo = 0;
+        std::optional<bool> _lastBetterPolygonSplitting {};
+        std::optional<ScreenFilter> _lastScreenFilter {};
+        std::optional<unsigned> _lastResolutionScale {};
     };
 }
 
