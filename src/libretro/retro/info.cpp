@@ -16,6 +16,7 @@ Copyright 2023 Jesse Talavera-Greenberg
 
 #include "info.hpp"
 
+#include <cstring>
 #include <libretro.h>
 
 retro::GameInfo::GameInfo(const retro_game_info& info) noexcept :
