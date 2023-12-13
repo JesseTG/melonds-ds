@@ -16,6 +16,8 @@
 
 #include "http.hpp"
 
+#include <stdexcept>
+
 #include <net/net_http.h>
 #include <retro_assert.h>
 
