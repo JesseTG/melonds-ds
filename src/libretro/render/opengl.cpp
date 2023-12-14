@@ -379,7 +379,6 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
 
 void MelonDsDs::OpenGLRenderState::Apply(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
-    TracyGpuZone(TracyFunction);
     retro::debug(TracyFunction);
     if (_lastBetterPolygonSplitting != config.BetterPolygonSplitting()) {
         _lastBetterPolygonSplitting = config.BetterPolygonSplitting();
