@@ -191,7 +191,6 @@ void MelonDsDs::CoreState::Reset() {
     retro::task::check();
     _savestateSize = std::nullopt;
 
-    auto header = _ndsInfo ? reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data()) : nullptr;
     retro_assert(Console != nullptr);
     RegisterCoreOptions();
 
