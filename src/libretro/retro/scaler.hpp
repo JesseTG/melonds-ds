@@ -32,6 +32,8 @@ namespace retro {
         Scaler& operator=(const Scaler&) = delete;
         Scaler& operator=(Scaler&&) noexcept;
 
+        [[nodiscard]] scaler_type GetScalerType() const noexcept { return scaler.scaler_type; }
+        void SetScalerType(scaler_type type) noexcept { scaler.scaler_type = type; }
         void Scale(void *output, const void *input) noexcept;
         unsigned InWidth() const noexcept { return scaler.in_width; }
         unsigned InHeight() const noexcept { return scaler.in_height; }
