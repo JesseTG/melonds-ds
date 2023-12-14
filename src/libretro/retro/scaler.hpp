@@ -40,7 +40,7 @@ namespace retro {
         unsigned OutHeight() const noexcept { return scaler.out_height; }
         unsigned OutStride() const noexcept { return scaler.out_stride; }
     private:
-        scaler_ctx scaler;
+        scaler_ctx scaler {};
     };
 }
 
