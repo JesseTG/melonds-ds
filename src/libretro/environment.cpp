@@ -498,6 +498,11 @@ bool retro::set_geometry(const retro_game_geometry& geometry) noexcept {
     return retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, (void*) &geometry);
 }
 
+bool retro::set_system_av_info(const retro_system_av_info& av_info) noexcept {
+    ZoneScopedN("RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO");
+    return retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, (void*)&av_info);
+}
+
 optional<string> retro::username() noexcept {
     ZoneScopedN("retro::username");
     const char* username = nullptr;
