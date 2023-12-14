@@ -50,12 +50,12 @@ namespace MelonDsDs {
             return buffer.data() + row * size.x;
         }
 
-        glm::uvec2 Size() const noexcept { return size; }
-        unsigned Width() const noexcept { return size.x; }
-        unsigned Height() const noexcept { return size.y; }
-        unsigned Stride() const noexcept { return stride; }
-        uint32_t *Buffer() noexcept { return buffer.data(); }
-        const uint32_t *Buffer() const noexcept { return buffer.data(); }
+        [[nodiscard]] glm::uvec2 Size() const noexcept { return size; }
+        [[nodiscard]] unsigned Width() const noexcept { return size.x; }
+        [[nodiscard]] unsigned Height() const noexcept { return size.y; }
+        [[nodiscard]] unsigned Stride() const noexcept { return stride; }
+        [[nodiscard]] uint32_t *Buffer() noexcept { return buffer.data(); }
+        [[nodiscard]] const uint32_t *Buffer() const noexcept { return buffer.data(); }
         void Clear() noexcept;
         void CopyDirect(const uint32_t* source, glm::uvec2 destination) noexcept;
         void CopyRows(const uint32_t* source, glm::uvec2 destination, glm::uvec2 destinationSize) noexcept;
