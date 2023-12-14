@@ -237,6 +237,15 @@ add_emutest_test(
     TEST_SCRIPT "loads-core.lua"
 )
 
+## Loading invalid data ####################################################
+
+add_emutest_test(
+    NAME "Loading invalid ROM does not cause a crash"
+    CONTENT "$<TARGET_FILE:melondsds_libretro>"
+    TEST_SCRIPT "no-crash-on-invalid-rom.lua"
+    WILL_FAIL
+)
+
 # See https://github.com/JesseTG/melonds-ds/issues/70
 add_retroarch_test(
     NAME "Core unloads with threaded software rendering"
