@@ -125,3 +125,17 @@ void MelonDsDs::RenderStateWrapper::ContextDestroyed() {
     }
 #endif
 }
+
+std::optional<MelonDsDs::Renderer> MelonDsDs::RenderStateWrapper::GetRenderer() const noexcept {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    if (dynamic_cast<SoftwareRenderState*>(_renderState.get()))
+        return Renderer::Software;
+
+    if (dynamic_cast<OpenGLRenderState*>(_renderState.get()))
+        return Renderer::OpenGl;
+
+    return std::nullopt;
+#else
+    return _renderState ? std::make_optional(Renderer::Software) : std::nullopt;
+#endif
+}

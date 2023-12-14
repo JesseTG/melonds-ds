@@ -558,10 +558,10 @@ void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::G
 void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     MicInputMode oldMicInputMode = config.MicInputMode();
-    _screenLayout.Apply(config);
+    _renderState.Apply(config);
+    _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
     _micState.Apply(config);
-    _renderState.Apply(config);
 
     if (oldMicInputMode != MicInputMode::HostMic && config.MicInputMode() == MicInputMode::HostMic) {
         // If we want to use the host's microphone, and we're coming from another setting...

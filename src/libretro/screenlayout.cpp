@@ -29,6 +29,7 @@
 #include "config/config.hpp"
 #include "math.hpp"
 #include "tracy.hpp"
+#include "render/render.hpp"
 
 using std::array;
 using std::max;
@@ -162,8 +163,12 @@ glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) con
     }
 }
 
-void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config) noexcept {
-    SetScale(config.ScaleFactor());
+void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config, const RenderStateWrapper& renderState) noexcept {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    SetScale(renderState.GetRenderer() == Renderer::Software ? 1 : config.ScaleFactor());
+#else
+    SetScale(1);
+#endif
     SetLayouts(config.ScreenLayouts());
     HybridSmallScreenLayout(config.SmallScreenLayout());
     ScreenGap(config.ScreenGap());

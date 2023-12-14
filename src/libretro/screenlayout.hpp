@@ -42,6 +42,7 @@ namespace melonDS {
 
 namespace MelonDsDs {
     class RenderState;
+    class RenderStateWrapper;
 
     /// The native width of a single Nintendo DS screen, in pixels
     constexpr int NDS_SCREEN_WIDTH = 256;
@@ -87,7 +88,7 @@ namespace MelonDsDs {
         ScreenLayoutData();
         ~ScreenLayoutData() noexcept;
 
-        void Apply(const CoreConfig& config) noexcept;
+        void Apply(const CoreConfig& config, const RenderStateWrapper& renderState) noexcept;
         void Update() noexcept;
 
         bool Dirty() const noexcept { return _dirty; }

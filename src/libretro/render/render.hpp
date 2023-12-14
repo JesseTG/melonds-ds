@@ -18,6 +18,7 @@
 #define MELONDS_DS_RENDER_HPP
 
 #include <memory>
+#include <optional>
 
 #include "config/types.hpp"
 
@@ -61,6 +62,7 @@ namespace MelonDsDs {
         void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
+        std::optional<Renderer> GetRenderer() const noexcept;
     private:
         void SetRenderer(Renderer renderer);
         std::unique_ptr<RenderState> _renderState;
