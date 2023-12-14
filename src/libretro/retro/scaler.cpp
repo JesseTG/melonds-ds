@@ -110,6 +110,15 @@ retro::Scaler& retro::Scaler::operator=(Scaler&& other) noexcept {
     return *this;
 }
 
+void retro::Scaler::SetOutSize(unsigned width, unsigned height) noexcept {
+    if (scaler.out_width == width && scaler.out_height == height)
+        return;
+
+    scaler.out_width = width;
+    scaler.out_height = height;
+    scaler.out_stride = width * PixelSize(scaler.out_fmt);
+    scaler_ctx_gen_filter(&scaler);
+}
 
 void retro::Scaler::Scale(void *output, const void *input) noexcept {
     ZoneScopedN("scaler_ctx_scale");

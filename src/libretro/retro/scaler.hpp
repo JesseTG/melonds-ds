@@ -36,6 +36,8 @@ namespace retro {
         unsigned InWidth() const noexcept { return scaler.in_width; }
         unsigned InHeight() const noexcept { return scaler.in_height; }
         unsigned InStride() const noexcept { return scaler.in_stride; }
+
+        void SetOutSize(unsigned width, unsigned height) noexcept;
         unsigned OutWidth() const noexcept { return scaler.out_width; }
         unsigned OutHeight() const noexcept { return scaler.out_height; }
         unsigned OutStride() const noexcept { return scaler.out_stride; }
