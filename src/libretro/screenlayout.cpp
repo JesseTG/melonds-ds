@@ -18,8 +18,8 @@
 
 #include "screenlayout.hpp"
 
-#include <algorithm>
 #include <array>
+#include <cmath>
 
 #include <GPU3D.h>
 
@@ -249,6 +249,13 @@ retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(const melonDS::Rendere
         geometry.max_height = MaxOpenGlRenderedHeight();
     }
 #endif
+    static_assert(MaxSoftwareRenderedWidth() > 0);
+    static_assert(MaxSoftwareRenderedHeight() > 0);
+    retro_assert(geometry.base_width > 0);
+    retro_assert(geometry.base_height > 0);
+    retro_assert(geometry.max_height >= geometry.base_height);
+    retro_assert(geometry.max_width >= geometry.base_width);
+    retro_assert(std::isfinite(geometry.aspect_ratio));
 
     return geometry;
 }
