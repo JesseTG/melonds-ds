@@ -196,7 +196,16 @@ void MelonDsDs::CoreState::Reset() {
     ParseConfig(Config);
     ApplyConfig(Config);
 
-    // If we're switching between DS and DSi mode...
+    std::vector<uint8_t> ndsSram(Console->GetNDSSaveLength());
+    if (Console->GetNDSSaveLength() && Console->GetNDSSave()) {
+        memcpy(ndsSram.data(), Console->GetNDSSave(), Console->GetNDSSaveLength());
+    }
+
+    std::vector<uint8_t> gbaSram(Console->GetGBASaveLength());
+    if (Console->GetGBASaveLength() && Console->GetGBASave()) {
+        memcpy(gbaSram.data(), Console->GetGBASave(), Console->GetGBASaveLength());
+    }
+
     Console = nullptr;
     melonDS::NDS::Current = nullptr;
     Console = CreateConsole(
@@ -205,21 +214,20 @@ void MelonDsDs::CoreState::Reset() {
         _gbaInfo ? &*_gbaInfo : nullptr,
         _gbaSaveInfo ? &*_gbaSaveInfo : nullptr
     );
-
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
+    // TODO: Don't throw out the NDS object (unless changing console type), customize it instead
+    if (!ndsSram.empty()) {
+        Console->SetNDSSave(ndsSram.data(), ndsSram.size());
+    }
 
-    // TODO: Don't throw out the NDS object (unless changing console type),
-    // customize it instead
+    if (!gbaSram.empty()) {
+        Console->SetGBASave(gbaSram.data(), gbaSram.size());
+    }
 
     InitFlushFirmwareTask();
 
-    Console->Reset();
-
-    SetConsoleTime(*Console);
-    if (_ndsInfo && Console->GetNDSCart() && !Console->GetNDSCart()->GetHeader().IsDSiWare()) {
-        SetUpDirectBoot(*Console, *_ndsInfo);
-    }
+    StartConsole();
 
     _firstFrameRun = false;
 }
@@ -351,7 +359,7 @@ void MelonDsDs::CoreState::StartConsole() {
 
     Console->Start();
 
-    retro::info("Initialized emulated console and loaded emulated game");
+    retro::info("Started emulated console");
 }
 
 // Decrypts the ROM's secure area
