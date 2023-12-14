@@ -283,7 +283,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
 
     retro::task::reset();
     _messageScreen = make_unique<error::ErrorScreen>(e);
-    _screenLayout.Update(Config.ScreenFilter());
+    _screenLayout.Update();
     retro::error("Error screen initialized");
     return true;
 }
@@ -291,7 +291,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
 void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     assert(_messageScreen != nullptr);
 
-    _screenLayout.Update(Config.ScreenFilter());
+    _screenLayout.Update();
     _renderState.Render(*_messageScreen, _screenLayout);
 }
 
