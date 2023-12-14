@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include <glm/vec2.hpp>
 
@@ -27,11 +28,11 @@ namespace MelonDsDs {
     class PixelBuffer {
     public:
         PixelBuffer(unsigned width, unsigned height) noexcept;
-        PixelBuffer(glm::uvec2 size) noexcept;
-        PixelBuffer(const PixelBuffer&) noexcept;
-        PixelBuffer(PixelBuffer&&) noexcept;
-        PixelBuffer& operator=(const PixelBuffer&) noexcept;
-        PixelBuffer& operator=(PixelBuffer&&) noexcept;
+        explicit PixelBuffer(glm::uvec2 size) noexcept;
+        PixelBuffer(const PixelBuffer&) noexcept = default;
+        PixelBuffer(PixelBuffer&&) noexcept = default;
+        PixelBuffer& operator=(const PixelBuffer&) noexcept = default;
+        PixelBuffer& operator=(PixelBuffer&&) noexcept = default;
 
         [[nodiscard]] uint32_t operator[](glm::uvec2 pos) const noexcept {
             return buffer[pos.y * size.x + pos.x];
@@ -42,28 +43,26 @@ namespace MelonDsDs {
         }
 
         [[nodiscard]] uint32_t* operator[](unsigned row) noexcept {
-            return buffer.get() + row * size.x;
+            return buffer.data() + row * size.x;
         }
 
         [[nodiscard]] const uint32_t* operator[](unsigned row) const noexcept {
-            return buffer.get() + row * size.x;
+            return buffer.data() + row * size.x;
         }
-
-        operator bool() const noexcept { return buffer != nullptr; }
 
         glm::uvec2 Size() const noexcept { return size; }
         unsigned Width() const noexcept { return size.x; }
         unsigned Height() const noexcept { return size.y; }
         unsigned Stride() const noexcept { return stride; }
-        uint32_t *Buffer() noexcept { return buffer.get(); }
-        const uint32_t *Buffer() const noexcept { return buffer.get(); }
+        uint32_t *Buffer() noexcept { return buffer.data(); }
+        const uint32_t *Buffer() const noexcept { return buffer.data(); }
         void Clear() noexcept;
         void CopyDirect(const uint32_t* source, glm::uvec2 destination) noexcept;
         void CopyRows(const uint32_t* source, glm::uvec2 destination, glm::uvec2 destinationSize) noexcept;
     private:
         glm::uvec2 size;
         unsigned stride;
-        std::unique_ptr<uint32_t[]> buffer;
+        std::vector<uint32_t> buffer;
     };
 }
 
