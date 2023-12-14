@@ -384,6 +384,24 @@ static unique_ptr<melonDS::NDSCart::CartCommon> MelonDsDs::LoadNdsCart(const Cor
     ZoneScopedN(TracyFunction);
     span<const std::byte> rom = ndsInfo.GetData();
 
+    if (rom.size() < sizeof(NDSHeader)) {
+        retro::error("ROM is only {} bytes, smaller than an NDS ROM header", rom.size());
+        throw invalid_rom_exception("ROM is too small to be valid.");
+    }
+
+    const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(rom.data());
+
+    // These checks aren't comprehensive, but they should be good enough
+    if (header.ARM9EntryAddress < 0x2000000 || header.ARM9EntryAddress > 0x23BFE00) {
+        retro::error("Expected ARM9 entry address between 0x2000000 and 0x23BFE00, got 0x{:08x}", header.ARM9EntryAddress);
+        throw invalid_rom_exception("ROM isn't valid, did you select the right file?");
+    }
+
+    if (header.NintendoLogoCRC16 != 0xCF56) {
+        retro::error("Expected logo CRC16 of 0xCF56, got 0x{:04x}", header.NintendoLogoCRC16);
+        throw invalid_rom_exception("ROM isn't valid, did you select the right file?");
+    }
+
     melonDS::NDSCart::NDSCartArgs sdargs = {
         .SDCard = config.DldiSdCardArgs(),
         .SRAM = nullptr, // SRAM is loaded separately by retro_get_memory
