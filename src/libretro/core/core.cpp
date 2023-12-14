@@ -193,29 +193,26 @@ void MelonDsDs::CoreState::Reset() {
 
     retro_assert(Console != nullptr);
     RegisterCoreOptions();
+    ParseConfig(Config);
+    ApplyConfig(Config);
+
+    // If we're switching between DS and DSi mode...
+    Console = nullptr;
+    melonDS::NDS::Current = nullptr;
+    Console = CreateConsole(
+        Config,
+        _ndsInfo ? &*_ndsInfo : nullptr,
+        _gbaInfo ? &*_gbaInfo : nullptr,
+        _gbaSaveInfo ? &*_gbaSaveInfo : nullptr
+    );
+
+    retro_assert(Console != nullptr);
+    melonDS::NDS::Current = Console.get();
+
+    // TODO: Don't throw out the NDS object (unless changing console type),
+    // customize it instead
 
     InitFlushFirmwareTask();
-
-    if (_ndsInfo) {
-        // We need to reload the ROM because it might need to be encrypted with a different key,
-        // depending on which console mode and BIOS mode is in effect.
-        std::unique_ptr<melonDS::NDSCart::CartCommon> rom;
-        {
-            span<const std::byte> romSpan = _ndsInfo->GetData();
-            ZoneScopedN("NDSCart::ParseROM");
-            rom = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(romSpan.data()), romSpan.size());
-        }
-        if (rom->GetSaveMemory()) {
-            retro_assert(rom->GetSaveMemoryLength() == Console->GetNDSSaveLength());
-            memcpy(rom->GetSaveMemory(), Console->GetNDSSave(), Console->GetNDSSaveLength());
-        }
-
-        {
-            ZoneScopedN("NDSCart::InsertROM");
-            Console->SetNDSCart(std::move(rom));
-        }
-        // TODO: Only reload the ROM if the BIOS mode, boot mode, or console mode has changed
-    }
 
     Console->Reset();
 
