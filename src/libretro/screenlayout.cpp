@@ -168,6 +168,7 @@ void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config) noexcept {
     HybridSmallScreenLayout(config.SmallScreenLayout());
     ScreenGap(config.ScreenGap());
     HybridRatio(config.HybridRatio());
+    Update();
 }
 
 void MelonDsDs::ScreenLayoutData::Update() noexcept {
