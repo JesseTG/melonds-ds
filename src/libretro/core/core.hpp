@@ -134,7 +134,6 @@ namespace MelonDsDs {
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
-        std::optional<sram::SaveManager> _ndsSaveManager = std::nullopt;
         std::optional<sram::SaveManager> _gbaSaveManager = std::nullopt;
         std::optional<int> _timeToGbaFlush = std::nullopt;
         std::optional<int> _timeToFirmwareFlush = std::nullopt;

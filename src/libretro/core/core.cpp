@@ -301,19 +301,8 @@ void MelonDsDs::CoreState::RunFirstFrame() noexcept {
 
     if (_firstFrameRun) return;
 
-    // Apply the save data from the core's SRAM buffer to the cart's SRAM;
-    // we need to do this in the first frame of retro_run because
-    // retro_get_memory_data is used to copy the loaded SRAM
-    // in between retro_load and the first retro_run call.
-
     // Nintendo DS SRAM is loaded by the frontend
-    // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
-    // This is where we install the SRAM data into the emulated DS.
-    if (_ndsInfo && _ndsSaveManager && _ndsSaveManager->SramLength() > 0) {
-        // If we're loading a NDS game that has SRAM...
-        ZoneScopedN("NDS::LoadSave");
-        Console->SetNDSSave(_ndsSaveManager->Sram(), _ndsSaveManager->SramLength());
-    }
+    // and copied into the cartridge via the pointer returned by retro_get_memory.
 
     // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
     // but is not processed by retro_get_memory (again due to libretro limits).
