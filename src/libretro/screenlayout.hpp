@@ -88,7 +88,7 @@ namespace MelonDsDs {
         ~ScreenLayoutData() noexcept;
 
         void Apply(const CoreConfig& config) noexcept;
-        void Update(ScreenFilter filter) noexcept;
+        void Update() noexcept;
 
         bool Dirty() const noexcept { return _dirty; }
 

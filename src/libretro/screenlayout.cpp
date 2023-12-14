@@ -170,7 +170,7 @@ void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config) noexcept {
     HybridRatio(config.HybridRatio());
 }
 
-void MelonDsDs::ScreenLayoutData::Update(ScreenFilter filter) noexcept {
+void MelonDsDs::ScreenLayoutData::Update() noexcept {
     ZoneScopedN(TracyFunction);
 
     // These points represent the NDS screen coordinates without transformations
