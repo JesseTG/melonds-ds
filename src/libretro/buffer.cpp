@@ -30,22 +30,29 @@ MelonDsDs::PixelBuffer::PixelBuffer(uvec2 size) noexcept :
     size(size),
     stride(size.x * sizeof(uint32_t)),
     buffer(size.x * size.y, 0) {
-    memset(buffer.get(), 0, size.x * size.y * sizeof(uint32_t));
+}
+
+void MelonDsDs::PixelBuffer::SetSize(uvec2 newSize) noexcept {
+    ZoneScopedN(TracyFunction);
+    if (newSize == size)
+        return;
+
+    size = newSize;
+    stride = size.x * sizeof(uint32_t);
+    buffer.resize(size.x * size.y);
 }
 
 void MelonDsDs::PixelBuffer::Clear() noexcept {
-    if (buffer) {
-        memset(buffer.get(), 0, size.x * size.y * sizeof(uint32_t));
-    }
+    memset(buffer.data(), 0, buffer.size());
 }
 
 void MelonDsDs::PixelBuffer::CopyDirect(const uint32_t* source, uvec2 destination) noexcept {
-    ZoneScopedN("MelonDsDs::PixelBuffer::CopyDirect");
+    ZoneScopedN(TracyFunction);
     memcpy(&this->operator[](destination), source, NDS_SCREEN_AREA<size_t> * PIXEL_SIZE);
 }
 
 void MelonDsDs::PixelBuffer::CopyRows(const uint32_t* source, uvec2 destination, uvec2 destinationSize) noexcept {
-    ZoneScopedN("MelonDsDs::PixelBuffer::CopyRows");
+    ZoneScopedN(TracyFunction);
     for (unsigned y = 0; y < destinationSize.y; y++) {
         // For each row of the rendered screen...
         memcpy(

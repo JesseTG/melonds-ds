@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <vector>
 
 #include <glm/vec2.hpp>
@@ -51,11 +52,12 @@ namespace MelonDsDs {
         }
 
         [[nodiscard]] glm::uvec2 Size() const noexcept { return size; }
+        void SetSize(glm::uvec2 newSize) noexcept;
         [[nodiscard]] unsigned Width() const noexcept { return size.x; }
         [[nodiscard]] unsigned Height() const noexcept { return size.y; }
         [[nodiscard]] unsigned Stride() const noexcept { return stride; }
-        [[nodiscard]] uint32_t *Buffer() noexcept { return buffer.data(); }
-        [[nodiscard]] const uint32_t *Buffer() const noexcept { return buffer.data(); }
+        [[nodiscard]] std::span<uint32_t> Buffer() noexcept { return buffer; }
+        [[nodiscard]] std::span<const uint32_t> Buffer() const noexcept { return buffer; }
         void Clear() noexcept;
         void CopyDirect(const uint32_t* source, glm::uvec2 destination) noexcept;
         void CopyRows(const uint32_t* source, glm::uvec2 destination, glm::uvec2 destinationSize) noexcept;
