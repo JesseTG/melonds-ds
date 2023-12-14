@@ -154,7 +154,7 @@ void MelonDsDs::CoreState::Run() noexcept {
         }
 
         // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
-        // which is then drawn to the screen by MelonDsDs::render::Render
+        // which is then drawn to the screen by _renderState.Render
         {
             ZoneScopedN("NDS::RunFrame");
             nds.RunFrame();
