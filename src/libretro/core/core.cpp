@@ -240,7 +240,7 @@ bool MelonDsDs::CoreState::RunDeferredInitialization() noexcept {
     retro_assert(Console != nullptr);
     try {
         retro::debug("Starting deferred initialization");
-        LoadGameDeferred();
+        StartConsole();
         _deferredInitializationPending = false;
 
         retro::debug("Completed deferred initialization");
@@ -333,7 +333,7 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
 
 // melonDS tightly couples the renderer with the rest of the emulation code,
 // so we can't initialize the emulator until the OpenGL context is ready.
-void MelonDsDs::CoreState::LoadGameDeferred() {
+void MelonDsDs::CoreState::StartConsole() {
     ZoneScopedN(TracyFunction);
 
     retro_assert(Console != nullptr); // This function should only be called if the console is initialized
@@ -461,7 +461,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     }
     else {
         retro::info("No need to defer initialization, proceeding now");
-        LoadGameDeferred();
+        StartConsole();
     }
 
     return true;
