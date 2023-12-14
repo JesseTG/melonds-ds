@@ -73,7 +73,7 @@ MelonDsDs::sram::SaveManager& MelonDsDs::sram::SaveManager::operator=(SaveManage
 
 
 void MelonDsDs::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
-    ZoneScopedN("MelonDsDs::sram::SaveManager::Flush");
+    ZoneScopedN(TracyFunction);
     if (_sram_length != savelen) {
         // If we loaded a game with a different SRAM length...
 
@@ -118,7 +118,7 @@ void MelonDsDs::CoreState::InitNdsSave(const NdsCart &nds_cart) {
 
 // Loads the GBA SRAM
 void MelonDsDs::CoreState::InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& gbaSaveInfo) {
-    ZoneScopedN("MelonDsDs::sram::InitGbaSram");
+    ZoneScopedN(TracyFunction);
     // We load the GBA SRAM file ourselves (rather than letting the frontend do it)
     // because we'll overwrite it later and don't want the frontend to hold open any file handles.
     // Due to libretro limitations, we can't use retro_get_memory_data to load the GBA SRAM

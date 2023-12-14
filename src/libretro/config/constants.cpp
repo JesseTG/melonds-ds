@@ -36,7 +36,7 @@ using std::string;
 using namespace melonDS;
 
 bool MelonDsDs::config::IsDsiNandImage(const retro::dirent &file) noexcept {
-    ZoneScopedN("MelonDsDs::config::IsDsiNandImage");
+    ZoneScopedN(TracyFunction);
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
 
     // TODO: Validate the NoCash footer
@@ -50,7 +50,7 @@ bool MelonDsDs::config::IsDsiNandImage(const retro::dirent &file) noexcept {
 }
 
 bool MelonDsDs::config::IsFirmwareImage(const retro::dirent& file, Firmware::FirmwareHeader& header) noexcept {
-    ZoneScopedN("MelonDsDs::config::IsFirmwareImage");
+    ZoneScopedN(TracyFunction);
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
 
     retro_assert(path_is_absolute(file.path));

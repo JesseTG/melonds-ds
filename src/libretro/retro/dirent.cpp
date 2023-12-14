@@ -25,19 +25,19 @@
 #include "tracy.hpp"
 
 retro::dirent_tree retro::readdir(const std::string &path, bool hidden) noexcept {
-    ZoneScopedN("retro::readdir");
+    ZoneScopedN(TracyFunction);
     ZoneText(path.c_str(), path.size());
     return dirent_tree(path, hidden);
 }
 
 retro::dirent_tree::dirent_tree(const std::string &path, bool hidden) noexcept: originalPath(path) {
-    ZoneScopedN("retro::dirent_tree::dirent_tree");
+    ZoneScopedN(TracyFunction);
     ZoneText(path.c_str(), path.size());
     dir = retro_opendir_include_hidden(path.c_str(), hidden);
 }
 
 retro::dirent_tree::~dirent_tree() noexcept {
-    ZoneScopedN("retro::dirent_tree::~dirent_tree");
+    ZoneScopedN(TracyFunction);
     if (dir) {
         retro_closedir(dir);
     }
@@ -52,7 +52,7 @@ retro::dirent_tree::dirent_iterator retro::dirent_tree::end() const noexcept {
 }
 
 retro::dirent_tree::dirent_iterator::dirent_iterator(dirent_tree *ptr) noexcept: m_ptr(ptr) {
-    ZoneScopedN("retro::dirent_tree::dirent_iterator::dirent_iterator");
+    ZoneScopedN(TracyFunction);
     if (m_ptr) {
         ++(*this); // Find the first file
     } else {
@@ -70,7 +70,7 @@ retro::dirent_tree::dirent_iterator retro::dirent_tree::dirent_iterator::operato
 
 // Go to the next file
 retro::dirent_tree::dirent_iterator &retro::dirent_tree::dirent_iterator::operator++() noexcept {
-    ZoneScopedN("retro::dirent_tree::dirent_iterator::operator++");
+    ZoneScopedN(TracyFunction);
     if (!m_ptr) {
         // If this iterator is at its end...
         return *this;

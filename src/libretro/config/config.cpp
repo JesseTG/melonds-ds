@@ -286,7 +286,7 @@ static void MelonDsDs::config::ParseJitOptions(CoreConfig& config) noexcept {
 }
 
 static void MelonDsDs::config::ParseHomebrewSaveOptions(CoreConfig& config) noexcept {
-    ZoneScopedN("MelonDsDs::config::parse_homebrew_save_options");
+    ZoneScopedN(TracyFunction);
     using retro::get_variable;
 
     optional<string> save_directory = retro::get_save_directory();
@@ -677,7 +677,7 @@ static bool ConsoleTypeMatches(const Firmware::FirmwareHeader& header, MelonDsDs
 }
 
 static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, MelonDsDs::ConsoleType type) noexcept {
-    ZoneScopedN("MelonDsDs::config::SelectDefaultFirmware");
+    ZoneScopedN(TracyFunction);
     using namespace MelonDsDs;
 
     const optional<string>& sysdir = retro::get_system_directory();

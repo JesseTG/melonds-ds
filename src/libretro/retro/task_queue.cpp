@@ -86,7 +86,7 @@ void retro::task::check() noexcept {
 }
 
 void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
-    ZoneScopedN("retro::task::TaskSpec::TaskHandlerWrapper");
+    ZoneScopedN(TracyFunction);
     retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
 
@@ -107,7 +107,7 @@ void retro::task::TaskSpec::TaskCallbackWrapper(
     void *user_data,
     const char *error
 ) noexcept {
-    ZoneScopedN("retro::task::TaskSpec::TaskCallbackWrapper");
+    ZoneScopedN(TracyFunction);
     TaskFunctions* functions = static_cast<TaskFunctions*>(user_data);
 
     retro_assert(task != nullptr);
@@ -123,7 +123,7 @@ void retro::task::TaskSpec::TaskCallbackWrapper(
 }
 
 void retro::task::TaskSpec::TaskCleanupWrapper(retro_task_t* task) noexcept {
-    ZoneScopedN("retro::task::TaskSpec::TaskCleanupWrapper");
+    ZoneScopedN(TracyFunction);
     retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
     retro_assert(functions != nullptr);

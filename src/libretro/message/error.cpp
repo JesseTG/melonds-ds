@@ -43,7 +43,7 @@ using MelonDsDs::NDS_SCREEN_AREA;
 
 // I intentionally fix the error message to the DS screen size to simplify the layout.
 MelonDsDs::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
-    ZoneScopedN("MelonDsDs::error::ErrorScreen::ErrorScreen");
+    ZoneScopedN(TracyFunction);
 
     pntr_font* titleFont = pntr_load_font_ttf_from_memory(
         embedded_melondsds_error_title_font,

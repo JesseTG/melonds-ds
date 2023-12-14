@@ -200,7 +200,7 @@ int MelonDsDs::CoreState::LanSendPacket(std::span<std::byte> data) noexcept {
 }
 
 int MelonDsDs::CoreState::LanRecvPacket(u8 *data) noexcept {
-    ZoneScopedN("Platform::LAN_RecvPacket");
+    ZoneScopedN(TracyFunction);
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case MelonDsDs::NetworkMode::Direct:

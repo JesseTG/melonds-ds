@@ -109,7 +109,7 @@ constexpr mat3 HybridSoutheastMatrix(unsigned resolutionScale, unsigned hybridRa
 }
 
 mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::GetTopScreenMatrix");
+    ZoneScopedN(TracyFunction);
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TopOnly:
@@ -131,7 +131,7 @@ mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexc
 }
 
 mat3 MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noexcept {
-    ZoneScopedN("MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix");
+    ZoneScopedN(TracyFunction);
     switch (Layout()) {
         case ScreenLayout::TopBottom:
         case ScreenLayout::TurnLeft:

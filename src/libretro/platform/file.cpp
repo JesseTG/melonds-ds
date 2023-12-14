@@ -88,7 +88,7 @@ struct melonDS::Platform::FileHandle {
 };
 
 Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode) {
-    ZoneScopedN("Platform::OpenFile");
+    ZoneScopedN(TracyFunction);
     if ((mode & FileMode::ReadWrite) == FileMode::None)
     { // If we aren't reading or writing, then we can't open the file
         retro::error("Attempted to open \"{}\" in neither read nor write mode (FileMode {:#x})\n", path, (unsigned)mode);
@@ -119,7 +119,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
 }
 
 Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode mode) {
-    ZoneScopedN("Platform::OpenLocalFile");
+    ZoneScopedN(TracyFunction);
     if (path_is_absolute(path.c_str())) {
         return OpenFile(path, mode);
     }
@@ -143,7 +143,7 @@ bool Platform::FileExists(const std::string& name)
 
 bool Platform::LocalFileExists(const std::string& name)
 {
-    ZoneScopedN("Platform::LocalFileExists");
+    ZoneScopedN(TracyFunction);
     if (name.empty()) {
         return false;
     }
@@ -168,7 +168,7 @@ bool Platform::LocalFileExists(const std::string& name)
 /// @returns \c true if the file was closed successfully, false otherwise.
 bool Platform::CloseFile(FileHandle* file)
 {
-    ZoneScopedN("Platform::CloseFile");
+    ZoneScopedN(TracyFunction);
     if (!file) {
         return false;
     }
@@ -189,7 +189,7 @@ bool Platform::CloseFile(FileHandle* file)
 /// Returns true if there is no more data left to read in this file.
 bool Platform::IsEndOfFile(FileHandle* file)
 {
-    ZoneScopedN("Platform::IsEndOfFile");
+    ZoneScopedN(TracyFunction);
     if (!file)
         return false;
 
@@ -198,7 +198,7 @@ bool Platform::IsEndOfFile(FileHandle* file)
 
 bool Platform::FileReadLine(char* str, int count, FileHandle* file)
 {
-    ZoneScopedN("Platform::FileReadLine");
+    ZoneScopedN(TracyFunction);
     if (!file || !str)
         return false;
 
@@ -207,7 +207,7 @@ bool Platform::FileReadLine(char* str, int count, FileHandle* file)
 
 bool Platform::FileSeek(FileHandle* file, s64 offset, FileSeekOrigin origin)
 {
-    ZoneScopedN("Platform::FileSeek");
+    ZoneScopedN(TracyFunction);
     if (!file)
         return false;
 
@@ -216,14 +216,14 @@ bool Platform::FileSeek(FileHandle* file, s64 offset, FileSeekOrigin origin)
 
 void Platform::FileRewind(FileHandle* file)
 {
-    ZoneScopedN("Platform::Rewind");
+    ZoneScopedN(TracyFunction);
     if (file)
         filestream_rewind(file->file);
 }
 
 u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
 {
-    ZoneScopedN("Platform::FileRead");
+    ZoneScopedN(TracyFunction);
     if (!file || !data)
         return 0;
 
@@ -239,7 +239,7 @@ u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
 
 bool Platform::FileFlush(FileHandle* file)
 {
-    ZoneScopedN("Platform::FileFlush");
+    ZoneScopedN(TracyFunction);
     if (!file)
         return false;
 
@@ -248,7 +248,7 @@ bool Platform::FileFlush(FileHandle* file)
 
 u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
 {
-    ZoneScopedN("Platform::FileWrite");
+    ZoneScopedN(TracyFunction);
     if (!file || !data)
         return 0;
 
@@ -259,7 +259,7 @@ u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
 
 u64 Platform::FileWriteFormatted(FileHandle* file, const char* fmt, ...)
 {
-    ZoneScopedN("Platform::FileWriteFormatted");
+    ZoneScopedN(TracyFunction);
     if (!file || !fmt)
         return 0;
 
@@ -272,7 +272,7 @@ u64 Platform::FileWriteFormatted(FileHandle* file, const char* fmt, ...)
 
 u64 Platform::FileLength(FileHandle* file)
 {
-    ZoneScopedN("Platform::FileLength");
+    ZoneScopedN(TracyFunction);
     if (!file)
         return 0;
 
