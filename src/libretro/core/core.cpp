@@ -748,10 +748,8 @@ std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
             retro_assert(Console != nullptr);
             return reinterpret_cast<std::byte*>(Console->MainRAM);
         case RETRO_MEMORY_SAVE_RAM:
-            if (_ndsSaveManager) {
-                return (std::byte*)_ndsSaveManager->Sram();
-            }
-            [[fallthrough]];
+            retro_assert(Console != nullptr);
+            return reinterpret_cast<std::byte*>(Console->GetNDSSave());
         default:
             return nullptr;
     }
@@ -777,10 +775,8 @@ size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) noexcept {
             }
         }
         case RETRO_MEMORY_SAVE_RAM:
-            if (_ndsSaveManager) {
-                return _ndsSaveManager->SramLength();
-            }
-            [[fallthrough]];
+            retro_assert(Console != nullptr);
+            return Console->GetNDSSaveLength();
         default:
             return 0;
     }

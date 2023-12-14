@@ -207,25 +207,25 @@ void MelonDsDs::CoreState::InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& 
 void MelonDsDs::CoreState::WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
     // TODO: Implement a Fast SRAM mode where the frontend is given direct access to the SRAM buffer
     ZoneScopedN(TracyFunction);
-    if (_ndsSaveManager) {
-        _ndsSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
 
-        // No need to maintain a flush timer for NDS SRAM,
-        // because retro_get_memory lets us delegate autosave to the frontend.
-    }
+    retro_assert(_ndsSaveManager.has_value());
+    _ndsSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
+
+    // No need to maintain a flush timer for NDS SRAM,
+    // because retro_get_memory lets us delegate autosave to the frontend.
 }
 
 void MelonDsDs::CoreState::WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
     ZoneScopedN(TracyFunction);
-    if (_gbaSaveManager) {
-        _gbaSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
 
-        // Start the countdown until we flush the SRAM back to disk.
-        // The timer resets every time we write to SRAM,
-        // so that a sequence of SRAM writes doesn't result in
-        // a sequence of disk writes.
-        _timeToGbaFlush = Config.FlushDelay();
-    }
+    retro_assert(_gbaSaveManager.has_value());
+    _gbaSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
+
+    // Start the countdown until we flush the SRAM back to disk.
+    // The timer resets every time we write to SRAM,
+    // so that a sequence of SRAM writes doesn't result in
+    // a sequence of disk writes.
+    _timeToGbaFlush = Config.FlushDelay();
 }
 
 void MelonDsDs::CoreState::WriteFirmware(const Firmware& firmware, uint32_t writeoffset, uint32_t writelen) noexcept {
