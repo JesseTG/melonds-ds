@@ -22,10 +22,8 @@
 namespace retro {
     class Scaler {
     public:
-        Scaler() noexcept;
         Scaler(scaler_pix_fmt in_fmt, scaler_pix_fmt out_fmt, scaler_type type, unsigned in_width, unsigned in_height, unsigned out_width, unsigned out_height);
         Scaler(scaler_pix_fmt in_fmt, scaler_pix_fmt out_fmt, unsigned width, unsigned height);
-        Scaler(scaler_ctx&& ctx) noexcept;
         ~Scaler() noexcept;
         Scaler(const Scaler&) = delete;
         Scaler(Scaler&&) noexcept;
