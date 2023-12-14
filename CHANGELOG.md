@@ -15,6 +15,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 ### Fixed
 
 - GBA ROM and save data support is now supported with the built-in BIOS.
+- Fixed a crash that occurred upon starting the core.
 
 ## [0.7.25] - 2023-11-06
 
