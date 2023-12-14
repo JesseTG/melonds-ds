@@ -143,7 +143,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             // If the active screen layout has changed (either by settings or by hotkey)...
 
             // Apply the new screen layout
-            _screenLayout.Update(Config.ScreenFilter());
+            _screenLayout.Update();
 
             // And update the geometry
             if (!retro::set_geometry(_screenLayout.Geometry(Console->GPU.GetRenderer3D()))) {
