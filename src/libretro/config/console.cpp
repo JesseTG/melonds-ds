@@ -386,7 +386,8 @@ static unique_ptr<melonDS::NDSCart::CartCommon> MelonDsDs::LoadNdsCart(const Cor
 
     melonDS::NDSCart::NDSCartArgs sdargs = {
         .SDCard = config.DldiSdCardArgs(),
-        .SRAM = nullopt, // SRAM is loaded separately by retro_get_memory
+        .SRAM = nullptr, // SRAM is loaded separately by retro_get_memory
+        .SRAMLength = 0,
     };
 
     std::unique_ptr<melonDS::NDSCart::CartCommon> cart;
