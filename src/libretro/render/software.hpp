@@ -33,9 +33,11 @@ namespace MelonDsDs {
         class ErrorScreen;
     }
 
+    class CoreConfig;
+
     class SoftwareRenderState final : public RenderState {
     public:
-        SoftwareRenderState() noexcept;
+        SoftwareRenderState(const CoreConfig& config) noexcept;
         bool Ready() const noexcept override { return true; }
         void Render(
             melonDS::NDS& nds,
@@ -61,7 +63,6 @@ namespace MelonDsDs {
             std::span<const uint32_t, NDS_SCREEN_AREA<size_t>> bottomBuffer,
             const ScreenLayoutData& screenLayout
         ) noexcept;
-        void UpdateHybridState(const ScreenLayoutData& screenLayout) noexcept;
 
         PixelBuffer buffer;
         // Used as a staging area for the hybrid screen to be scaled

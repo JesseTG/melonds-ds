@@ -21,6 +21,7 @@
 #include <NDS.h>
 
 #include "config/config.hpp"
+#include "config/types.hpp"
 #include "input.hpp"
 #include "message/error.hpp"
 #include "screenlayout.hpp"
@@ -32,10 +33,18 @@ using glm::vec3;
 using glm::uvec2;
 using std::span;
 
-MelonDsDs::SoftwareRenderState::SoftwareRenderState() noexcept :
+MelonDsDs::SoftwareRenderState::SoftwareRenderState(const CoreConfig& config) noexcept :
     buffer(1, 1),
     hybridBuffer(1, 1),
-    hybridScaler() {
+    hybridScaler(
+        SCALER_FMT_ARGB8888,
+        SCALER_FMT_ARGB8888,
+        config.ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
+        NDS_SCREEN_WIDTH,
+        NDS_SCREEN_HEIGHT,
+        NDS_SCREEN_WIDTH * config.HybridRatio(),
+        NDS_SCREEN_HEIGHT * config.HybridRatio()
+    ) {
 }
 
 // TODO: Consider using RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER
@@ -47,26 +56,15 @@ void MelonDsDs::SoftwareRenderState::Render(
 ) noexcept {
     ZoneScopedN(TracyFunction);
 
-    if (buffer.Size() != screenLayout.BufferSize() || !buffer) {
-        buffer = PixelBuffer(screenLayout.BufferSize());
-    }
+    buffer.SetSize(screenLayout.BufferSize());
 
     if (IsHybridLayout(screenLayout.Layout())) {
         uvec2 requiredHybridBufferSize = NDS_SCREEN_SIZE<unsigned> * screenLayout.HybridRatio();
-        if (hybridBuffer.Size() != requiredHybridBufferSize) {
-            hybridBuffer = PixelBuffer(requiredHybridBufferSize);
-        }
+        hybridBuffer.SetSize(requiredHybridBufferSize);
 
-        hybridBuffer = PixelBuffer(requiredHybridBufferSize);
-        hybridScaler = retro::Scaler(
-            SCALER_FMT_ARGB8888,
-            SCALER_FMT_ARGB8888,
-            config.ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
-            NDS_SCREEN_WIDTH,
-            NDS_SCREEN_HEIGHT,
-            requiredHybridBufferSize.x,
-            requiredHybridBufferSize.y
-        );
+        auto filter = config.ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
+        hybridScaler.SetScalerType(filter);
+        hybridScaler.SetOutSize(requiredHybridBufferSize.x, requiredHybridBufferSize.y);
     }
 
     const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();
@@ -137,7 +135,6 @@ void MelonDsDs::SoftwareRenderState::DrawCursor(const InputState& input, const C
 ) noexcept {
     ZoneScopedN(TracyFunction);
     // Only used for software rendering
-    assert(buffer);
 
     if (screenLayout.Layout() == ScreenLayout::TopOnly)
         return;
@@ -169,7 +166,6 @@ void MelonDsDs::SoftwareRenderState::CombineScreens(
     ScreenLayout layout = screenLayout.Layout();
 
     if (IsHybridLayout(layout)) {
-        retro_assert(hybridBuffer);
         auto primaryBuffer = layout == ScreenLayout::HybridTop ? topBuffer : bottomBuffer;
 
         hybridScaler.Scale(hybridBuffer[0], primaryBuffer.data());

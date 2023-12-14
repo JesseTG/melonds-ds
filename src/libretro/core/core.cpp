@@ -293,7 +293,7 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     assert(_messageScreen != nullptr);
 
     _screenLayout.Update();
-    _renderState.Render(*_messageScreen, _screenLayout);
+    _renderState.Render(*_messageScreen, Config, _screenLayout);
 }
 
 void MelonDsDs::CoreState::RunFirstFrame() noexcept {

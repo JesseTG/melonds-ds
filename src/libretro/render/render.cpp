@@ -33,26 +33,35 @@
 #endif
 
 
-void MelonDsDs::RenderStateWrapper::Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
+void MelonDsDs::RenderStateWrapper::Render(
+    melonDS::NDS& nds,
+    const InputState& input,
+    const CoreConfig& config,
+    const ScreenLayoutData& screenLayout
+) noexcept {
     if (_renderState) {
         _renderState->Render(nds, input, config, screenLayout);
     }
 }
 
-void MelonDsDs::RenderStateWrapper::Render(const error::ErrorScreen& error, const ScreenLayoutData& screenLayout) noexcept {
-    SetRenderer(Renderer::Software);
+void MelonDsDs::RenderStateWrapper::Render(
+    const error::ErrorScreen& error,
+    const CoreConfig& config,
+    const ScreenLayoutData& screenLayout
+) noexcept {
+    SetRenderer(config);
     static_cast<SoftwareRenderState*>(_renderState.get())->Render(error, screenLayout);
 }
 
 void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config) noexcept {
-    SetRenderer(config.ConfiguredRenderer());
+    SetRenderer(config);
 
     _renderState->Apply(config);
 }
 
 
-void MelonDsDs::RenderStateWrapper::SetRenderer(Renderer renderer) {
-    switch (renderer) {
+void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config) {
+    switch (config.ConfiguredRenderer()) {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         case Renderer::OpenGl: {
             if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) != nullptr) {
@@ -76,7 +85,7 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(Renderer renderer) {
                 break;
             }
 
-            _renderState = std::make_unique<SoftwareRenderState>();
+            _renderState = std::make_unique<SoftwareRenderState>(config);
             retro::debug("Initialized software render state");
             break;
         }
@@ -100,10 +109,9 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
 
         if (auto renderer = melonDS::GLRenderer::New(nds.GPU)) {
             nds.GPU.SetRenderer3D(std::move(renderer));
-        }
-        else {
+        } else {
             retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
-            _renderState = std::make_unique<SoftwareRenderState>();
+            _renderState = std::make_unique<SoftwareRenderState>(config);
             nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, config.ThreadedSoftRenderer()));
         }
     }

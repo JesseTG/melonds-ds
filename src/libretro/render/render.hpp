@@ -51,7 +51,7 @@ namespace MelonDsDs {
     public:
         bool Ready() const noexcept { return _renderState && _renderState->Ready(); }
         void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
-        void Render(const error::ErrorScreen& error, const ScreenLayoutData& screenLayout) noexcept;
+        void Render(const error::ErrorScreen& error, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void RequestRefresh() noexcept {
             if (_renderState) {
                 _renderState->RequestRefresh();
@@ -64,7 +64,7 @@ namespace MelonDsDs {
         void ContextDestroyed();
         std::optional<Renderer> GetRenderer() const noexcept;
     private:
-        void SetRenderer(Renderer renderer);
+        void SetRenderer(const CoreConfig& config);
         std::unique_ptr<RenderState> _renderState;
     };
 }
