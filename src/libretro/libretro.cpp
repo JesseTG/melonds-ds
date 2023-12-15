@@ -25,6 +25,7 @@
 #include <cstring>
 #include <ctime>
 #include <memory>
+#include <span>
 
 #include <compat/strl.h>
 #include <file/file_path.h>
@@ -72,7 +73,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     ZoneScopedN(TracyFunction);
     retro::env::init();
     retro::debug("retro_init");
-    retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
+    retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION_STRING);
     retro_assert(!MelonDsDs::Core.IsInitialized());
 
     retro::task::init(false, nullptr);
@@ -92,7 +93,9 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
         retro::debug("retro_load_game(<no content>)");
     }
 
-    return MelonDsDs::Core.LoadGame(MelonDsDs::MELONDSDS_GAME_TYPE_NDS, std::span(info, 1));
+    std::span<const retro_game_info> content = info ? std::span(info, 1) : std::span<const retro_game_info>();
+
+    return MelonDsDs::Core.LoadGame(MelonDsDs::MELONDSDS_GAME_TYPE_NDS, content);
 }
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
@@ -163,7 +166,7 @@ PUBLIC_SYMBOL unsigned retro_api_version(void) {
 PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->library_name = MELONDSDS_NAME;
     info->block_extract = false;
-    info->library_version = MELONDSDS_VERSION;
+    info->library_version = MELONDSDS_VERSION_STRING;
     info->need_fullpath = false;
     info->valid_extensions = "nds|ids|dsi";
 }
