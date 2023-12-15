@@ -384,7 +384,7 @@ add_retroarch_test(
     CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
     ARM7_BIOS
     ARM9_BIOS
-    PASS_REGULAR_EXPRESSION "Installed firmware \\(Identifier: MELN\\)"
+    PASS_REGULAR_EXPRESSION "Falling back to built-in firmware"
 )
 
 
