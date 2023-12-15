@@ -346,6 +346,8 @@ void MelonDsDs::CoreState::StartConsole() {
 
     retro_assert(Console != nullptr); // This function should only be called if the console is initialized
 
+    _renderState.UpdateRenderer(Config, *Console);
+
     {
         ZoneScopedN("NDS::Reset");
         Console->Reset();
@@ -432,7 +434,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
 
-    _renderState.UpdateRenderer(Config, *Console);
 
     if (Console->GetNDSCart()) {
         assert(!Console->GetNDSCart()->GetHeader().IsDSiWare());
