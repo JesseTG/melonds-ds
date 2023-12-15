@@ -203,7 +203,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
         glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     }
 
-    auto renderer = melonDS::GLRenderer::New(nds.GPU);
+    auto renderer = melonDS::GLRenderer::New();
     if (!renderer) {
         throw opengl_not_initialized_exception();
     }

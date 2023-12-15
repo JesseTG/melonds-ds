@@ -99,7 +99,7 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
 
     if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) && nds.GPU.GetRenderer3D().Accelerated) {
         // If we're configured to use the software renderer, and we aren't already...
-        nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, config.ThreadedSoftRenderer()));
+        nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(config.ThreadedSoftRenderer()));
         return;
     }
 
@@ -107,12 +107,12 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
     if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) && !nds.GPU.GetRenderer3D().Accelerated) {
         // If we're configured to use the OpenGL renderer, and we aren't already...
 
-        if (auto renderer = melonDS::GLRenderer::New(nds.GPU)) {
+        if (auto renderer = melonDS::GLRenderer::New()) {
             nds.GPU.SetRenderer3D(std::move(renderer));
         } else {
             retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
             _renderState = std::make_unique<SoftwareRenderState>(config);
-            nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(nds.GPU, config.ThreadedSoftRenderer()));
+            nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(config.ThreadedSoftRenderer()));
         }
     }
 #endif

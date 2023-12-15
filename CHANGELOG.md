@@ -9,7 +9,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ### Changed
 
-- Updated melonDS to commit 72bd7c4.
+- Updated melonDS to commit e1821d0.
 - Updated libretro-common to commit fce57fd.
 
 ### Fixed
