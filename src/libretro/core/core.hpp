@@ -71,6 +71,7 @@ namespace MelonDsDs {
         [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
         [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
+        [[nodiscard]] retro_system_av_info GetSystemAvInfo(Renderer renderer) const noexcept;
         [[gnu::hot]] void Run() noexcept;
         void Reset();
         size_t SerializeSize() const noexcept;

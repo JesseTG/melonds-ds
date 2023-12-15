@@ -61,15 +61,7 @@ MelonDsDs::CoreState::~CoreState() noexcept {
     melonDS::NDS::Current = nullptr;
 }
 
-retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
-#ifndef NDEBUG
-    if (!_messageScreen) {
-        retro_assert(Console != nullptr);
-    }
-#endif
-
-    Renderer renderer = Console->GPU.GetRenderer3D().Accelerated ? Renderer::OpenGl : Renderer::Software;
-
+retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo(Renderer renderer) const noexcept {
     return {
         .geometry = _screenLayout.Geometry(renderer),
         .timing {
@@ -79,6 +71,18 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
     };
 }
 
+retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
+#ifndef NDEBUG
+    if (!_messageScreen) {
+        retro_assert(Console != nullptr);
+    }
+#endif
+
+    std::optional<Renderer> renderer = _renderState.GetRenderer();
+    retro_assert(renderer.has_value());
+
+    return GetSystemAvInfo(*renderer);
+}
 
 void MelonDsDs::CoreState::UnloadGame() noexcept {
     if (Console && Console->IsRunning()) {
@@ -467,7 +471,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     InitFlushFirmwareTask();
 
-    if (Console->GPU.GetRenderer3D().Accelerated) {
+    if (_renderState.GetRenderer() == Renderer::OpenGl) {
         retro::info("Deferring initialization until the OpenGL context is ready");
         _deferredInitializationPending = true;
     }
@@ -560,6 +564,8 @@ void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::G
 void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     MicInputMode oldMicInputMode = config.MicInputMode();
+
+    std::optional<Renderer> oldRenderer = _renderState.GetRenderer();
     _renderState.Apply(config);
     _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
@@ -577,7 +583,18 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         }
     }
 
-    // TODO: Reinitialize the video driver if enabling OpenGL
+    std::optional<Renderer> newRenderer = _renderState.GetRenderer();
+
+    if (oldRenderer && newRenderer && oldRenderer != newRenderer) {
+        // If we're switching from OpenGL to software mode, or vice versa...
+        retro_system_av_info av = GetSystemAvInfo(*newRenderer);
+        retro::set_system_av_info(av);
+
+        if (newRenderer == Renderer::Software) {
+
+            _renderState.UpdateRenderer(Config, *Console);
+        }
+    }
 }
 
 void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game_info> game) {

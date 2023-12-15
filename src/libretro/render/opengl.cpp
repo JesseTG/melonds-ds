@@ -171,9 +171,19 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
 }
 
 MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
+    retro::debug(TracyFunction);
     if (_contextInitialized) {
+        TracyGpuZone(TracyFunction);
+        glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
+        glDeleteTextures(1, &screen_framebuffer_texture);
+
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vbo);
+
+        melonDS::OpenGL::DeleteShaderProgram(shader);
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
     }
+    glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
 }
 
 void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreConfig& config) {
@@ -364,16 +374,9 @@ void MelonDsDs::OpenGLRenderState::Render(
 
 void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     ZoneScopedN(TracyFunction);
-    TracyGpuZone(TracyFunction);
+//    TracyGpuZone(TracyFunction);
     retro::debug(TracyFunction);
-    glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
-    glDeleteTextures(1, &screen_framebuffer_texture);
-
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-
-    melonDS::OpenGL::DeleteShaderProgram(shader);
-    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+    glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
     _contextInitialized = false;
 }
 
