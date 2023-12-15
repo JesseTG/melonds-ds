@@ -239,7 +239,7 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
     _dirty = false;
 }
 
-retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(const melonDS::Renderer3D& renderer) const noexcept {
+retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(Renderer renderer) const noexcept {
     retro_game_geometry geometry {
         .base_width = BufferWidth(),
         .base_height = BufferHeight(),
@@ -249,7 +249,7 @@ retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(const melonDS::Rendere
     };
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (renderer.Accelerated) {
+    if (renderer == Renderer::OpenGl) {
         geometry.max_width = MaxOpenGlRenderedWidth();
         geometry.max_height = MaxOpenGlRenderedHeight();
     }

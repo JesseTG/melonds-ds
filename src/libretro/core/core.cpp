@@ -68,8 +68,10 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
     }
 #endif
 
+    Renderer renderer = Console->GPU.GetRenderer3D().Accelerated ? Renderer::OpenGl : Renderer::Software;
+
     return {
-        .geometry = _screenLayout.Geometry(Console->GPU.GetRenderer3D()),
+        .geometry = _screenLayout.Geometry(renderer),
         .timing {
             .fps = 32.0f * 1024.0f * 1024.0f / 560190.0f,
             .sample_rate = 32.0f * 1024.0f,
@@ -145,8 +147,9 @@ void MelonDsDs::CoreState::Run() noexcept {
             // Apply the new screen layout
             _screenLayout.Update();
 
+            Renderer renderer = Console->GPU.GetRenderer3D().Accelerated ? Renderer::OpenGl : Renderer::Software;
             // And update the geometry
-            if (!retro::set_geometry(_screenLayout.Geometry(Console->GPU.GetRenderer3D()))) {
+            if (!retro::set_geometry(_screenLayout.Geometry(renderer))) {
                 retro::warn("Failed to update geometry after screen layout change");
             }
 
