@@ -30,9 +30,14 @@ namespace MelonDsDs::config::definitions {
             config::video::RENDER_MODE,
             "Render Mode",
             nullptr,
-            "OpenGL mode uses OpenGL for rendering graphics. "
-            "If that doesn't work, software rendering is used as a fallback. "
-            "Changes take effect next time the core restarts. ",
+            "Software mode is faster and more accurate, "
+            "while OpenGL mode supports scaling up "
+            "the resolution of 3D graphics in most cases.\n"
+            "\n"
+            "OpenGL mode may be buggy on some graphics hardware. "
+            "If it doesn't work, software rendering is used as a fallback. "
+            "Changes take effect immediately "
+            "but may require the frontend's video driver to be restarted.",
             nullptr,
             config::video::CATEGORY,
             {
@@ -104,10 +109,8 @@ namespace MelonDsDs::config::definitions {
             config::video::THREADED_RENDERER,
             "Threaded Software Renderer",
             nullptr,
-            "If enabled, the software renderer will run on a separate thread if possible. "
-            "Otherwise, it will run on the main thread. "
-            "Ignored if using the OpenGL renderer. "
-            "Takes effect next time the core restarts. ",
+            "If enabled, the software renderer will run on a separate thread. "
+            "Changes take effect immediately.",
             nullptr,
             config::video::CATEGORY,
             {
