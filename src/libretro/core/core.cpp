@@ -448,7 +448,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         InitNdsSave(*Console->GetNDSCart());
     }
 
-    if (Console->GetGBASave() && Console->GetGBASaveLength()) {
+    if (_gbaInfo && _gbaSaveInfo && Console->GetGBASave() && Console->GetGBASaveLength()) {
         // If we inserted a GBA ROM with SRAM...
         _gbaSaveManager = std::make_optional<sram::SaveManager>(Console->GetGBASaveLength());
         retro::task::push(FlushGbaSramTask());
