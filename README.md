@@ -49,36 +49,32 @@ Usage instructions may vary depending on your chosen libretro frontend.
 ### Installing Nintendo DS BIOS
 
 melonDS includes built-in BIOS and firmware replacements that work with most games.
-However, some features require original Nintendo DS or DSi BIOS system files:
-
-- Game Boy Advance connectivity requires native Nintendo DS BIOS and firmware.
-- DSi mode requires native Nintendo DS _and_ DSi BIOS images, DSi firmware, and a DSi NAND image.
+However, additional system files may be required
+for certain features or games to work properly.
 
 You can place your system files in RetroArch's `system` directory
 or in a subdirectory named `melonDS DS`.
 Name the system files as follows:
 
-- DS ARM7 BIOS: `bios7.bin`
-- DS ARM9 BIOS: `bios9.bin`
+- DS ARM7 BIOS: `bios7.bin`\*
+- DS ARM9 BIOS: `bios9.bin`\*
 - DS Firmware: Anything, pick an image in the core options
-- DSi ARM7 BIOS: `dsi_bios7.bin`
-- DSi ARM9 BIOS: `dsi_bios9.bin`
-- DSi Firmware: Anything, pick an image in the core options
-- DSi System NAND: Anything, pick an image in the core options
+- DSi ARM7 BIOS: `dsi_bios7.bin`\*
+- DSi ARM9 BIOS: `dsi_bios9.bin`\*
+- DSi Firmware: Anything, pick an image in the core options\*
+- DSi System NAND: Anything, pick an image in the core options\*
+
+<small>*Required for DSi mode.</small>
 
 ### Game Boy Advance Connectivity
 
-> [!IMPORTANT]
-> melonDS (and therefore melonDS DS) only supports GBA connectivity
-> with native NDS BIOS and firmware files.
-
 The steps for loading a Game Boy Advance ROM are a little more involved.
+Native BIOS files are not required.
 
-1. Install the Nintendo DS BIOS and firmware [as described above](#installing-nintendo-ds-bios).
-2. Load the melonDS DS core using the <kbd>Load Core</kbd> menu.
-3. Enter the <kbd>Subsystems</kbd> menu and select <kbd>Load Slot 1 & 2 Boot</kbd>.
-4. Select a Nintendo DS ROM, a Game Boy Advance ROM, and optionally a Game Boy Advance save file (in that order).
-5. Start the game.
+1. Load the melonDS DS core using the <kbd>Load Core</kbd> menu.
+2. Enter the <kbd>Subsystems</kbd> menu and select <kbd>Load Slot 1 & 2 Boot</kbd>.
+3. Select a Nintendo DS ROM, a Game Boy Advance ROM, and optionally a Game Boy Advance save file (in that order).
+4. Start the game.
 
 This combination of ROMs will appear in your History playlist,
 so you won't have to repeat this process every time you want to play.
