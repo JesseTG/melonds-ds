@@ -18,7 +18,7 @@
 #define MELONDSDS_CONFIG_CONSOLE_HPP
 
 #include <memory>
-#include <span>
+#include "span.hpp"
 
 namespace melonDS {
     class NDS;

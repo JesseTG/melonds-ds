@@ -20,10 +20,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <span>
 #include <vector>
 
 #include <glm/vec2.hpp>
+
+#include "span.hpp"
 
 namespace MelonDsDs {
     class PixelBuffer {

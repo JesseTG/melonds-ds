@@ -18,9 +18,10 @@
 #define RETRO_MICROPHONE_HPP
 
 #include <optional>
-#include <span>
 
 #include <libretro.h>
+
+#include "span.hpp"
 
 namespace retro {
     class Microphone {

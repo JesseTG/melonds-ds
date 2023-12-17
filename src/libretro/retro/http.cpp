@@ -25,7 +25,8 @@ retro::HttpConnection::HttpConnection(std::string_view url, std::string_view met
     _connection(net_http_connection_new(url.data(), method.data(), data.data())) {
 
     if (!_connection) {
-        if (!(url.starts_with("http://") || url.starts_with("https://"))) {
+
+        if (url.find("http://") == std::string_view::npos || url.find("https://") == std::string_view::npos) {
             throw std::invalid_argument("URL must start with http:// or https://");
         }
 

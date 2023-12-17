@@ -25,7 +25,6 @@
 #include <FATStorage.h>
 #include <optional>
 #include <memory>
-#include <span>
 #include <SPI_Firmware.h>
 #include <string>
 #include <string_view>
@@ -33,7 +32,9 @@
 
 #include "parse.hpp"
 #include "definitions.hpp"
+#include "span.hpp"
 #include "types.hpp"
+#include "chrono.hpp"
 
 namespace melonDS {
     struct NDSArgs;

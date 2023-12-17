@@ -19,9 +19,10 @@
 
 #include <cstddef>
 #include <memory>
-#include <span>
 #include <string>
 #include <string_view>
+
+#include "span.hpp"
 
 struct retro_game_info;
 

@@ -6,6 +6,7 @@ include(embed-binaries)
 add_library(melondsds_libretro MODULE
     buffer.cpp
     buffer.hpp
+    chrono.hpp
     config/config.hpp
     config/config.cpp
     config/console.hpp
@@ -95,6 +96,7 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${fmt_SOURCE_DIR}/include"
     "${semaphore_SOURCE_DIR}"
     "${span_SOURCE_DIR}/include"
+    "${date_SOURCE_DIR}/include"
     )
 
 target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
@@ -225,7 +227,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
     STB_IMAGE_STATIC # To avoid using any dynamically-linked STB implementations
 )
 
-target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr fmt::fmt)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm_static pntr fmt::fmt date)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)

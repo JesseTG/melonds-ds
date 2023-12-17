@@ -17,8 +17,8 @@
 #ifndef MELONDSDS_RETRO_HTTP_HPP
 #define MELONDSDS_RETRO_HTTP_HPP
 
-#include <span>
 #include <string_view>
+#include "span.hpp"
 
 struct http_connection_t;
 struct http_t;

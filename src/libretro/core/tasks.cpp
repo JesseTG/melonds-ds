@@ -164,7 +164,7 @@ void MelonDsDs::CoreState::FlushFirmware(string_view firmwarePath, string_view w
             );
         }
 
-        retro_assert(!firmwarePath.ends_with("//notfound"));
+        retro_assert(firmwarePath.rfind("//notfound") == std::string_view::npos);
         Firmware firmwareCopy(firmware);
         // TODO: Apply the original values of the settings that were overridden
         if (filestream_write_file(firmwarePath.data(), firmware.Buffer(), firmware.Length())) {
@@ -189,7 +189,7 @@ void MelonDsDs::CoreState::FlushFirmware(string_view firmwarePath, string_view w
                 existingWfcSettingsSize
             );
         }
-        retro_assert(wfcSettingsPath.ends_with("/wfcsettings.bin"));
+        retro_assert(wfcSettingsPath.rfind("/wfcsettings.bin") == std::string_view::npos);
         u32 eapstart = firmware.GetExtendedAccessPointOffset();
         u32 eapend = eapstart + sizeof(firmware.GetExtendedAccessPoints());
         u32 apstart = firmware.GetWifiAccessPointOffset();
