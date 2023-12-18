@@ -69,10 +69,10 @@ namespace MelonDsDs {
 
     class CoreConfig {
     public:
-        [[nodiscard]] MicButtonMode MicButtonMode() const noexcept { return _micButtonMode; }
+        [[nodiscard]] MelonDsDs::MicButtonMode MicButtonMode() const noexcept { return _micButtonMode; }
         void SetMicButtonMode(MelonDsDs::MicButtonMode mode) noexcept { _micButtonMode = mode; }
 
-        [[nodiscard]] MicInputMode MicInputMode() const noexcept { return _micInputMode; }
+        [[nodiscard]] MelonDsDs::MicInputMode MicInputMode() const noexcept { return _micInputMode; }
         void SetMicInputMode(MelonDsDs::MicInputMode mode) noexcept { _micInputMode = mode; }
 
         [[nodiscard]] melonDS::AudioBitDepth BitDepth() const noexcept { return _bitDepth; }
@@ -81,7 +81,7 @@ namespace MelonDsDs {
         [[nodiscard]] melonDS::AudioInterpolation Interpolation() const noexcept { return _interpolation; }
         void SetInterpolation(melonDS::AudioInterpolation interpolation) noexcept { _interpolation = interpolation; }
 
-        [[nodiscard]] AlarmMode AlarmMode() const noexcept { return _alarmMode; }
+        [[nodiscard]] MelonDsDs::AlarmMode AlarmMode() const noexcept { return _alarmMode; }
         void SetAlarmMode(MelonDsDs::AlarmMode alarmMode) noexcept { _alarmMode = alarmMode; }
 
         [[nodiscard]] optional<unsigned> AlarmHour() const noexcept { return _alarmHour; }
@@ -268,22 +268,22 @@ namespace MelonDsDs {
         [[nodiscard]] float CursorSize() const noexcept { return _cursorSize; }
         void SetCursorSize(float cursorSize) noexcept { _cursorSize = cursorSize; }
 
-        [[nodiscard]] CursorMode CursorMode() const noexcept { return _cursorMode; }
+        [[nodiscard]] MelonDsDs::CursorMode CursorMode() const noexcept { return _cursorMode; }
         void SetCursorMode(MelonDsDs::CursorMode cursorMode) noexcept { _cursorMode = cursorMode; }
 
         [[nodiscard]] unsigned CursorTimeout() const noexcept { return _cursorTimeout; }
         void SetCursorTimeout(unsigned cursorTimeout) noexcept { _cursorTimeout = cursorTimeout; }
 
-        [[nodiscard]] TouchMode TouchMode() const noexcept { return _touchMode; }
+        [[nodiscard]] MelonDsDs::TouchMode TouchMode() const noexcept { return _touchMode; }
         void SetTouchMode(MelonDsDs::TouchMode touchMode) noexcept { _touchMode = touchMode; }
 
-        [[nodiscard]] ConsoleType ConsoleType() const noexcept { return _consoleType; }
+        [[nodiscard]] MelonDsDs::ConsoleType ConsoleType() const noexcept { return _consoleType; }
         void SetConsoleType(MelonDsDs::ConsoleType consoleType) noexcept { _consoleType = consoleType; }
 
-        [[nodiscard]] BootMode BootMode() const noexcept { return _bootMode; }
+        [[nodiscard]] MelonDsDs::BootMode BootMode() const noexcept { return _bootMode; }
         void SetBootMode(MelonDsDs::BootMode bootMode) noexcept { _bootMode = bootMode; }
 
-        [[nodiscard]] SysfileMode SysfileMode() const noexcept { return _sysfileMode; }
+        [[nodiscard]] MelonDsDs::SysfileMode SysfileMode() const noexcept { return _sysfileMode; }
         void SetSysfileMode(MelonDsDs::SysfileMode sysfileMode) noexcept { _sysfileMode = sysfileMode; }
 
         [[nodiscard]] unsigned DsPowerOkayThreshold() const noexcept { return _dsPowerOkayThreshold; }

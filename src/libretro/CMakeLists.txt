@@ -212,7 +212,7 @@ if (WIN32 AND MINGW)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "(.+)?Clang")
-    target_compile_options(melondsds_libretro PUBLIC -Werror=return-type -fms-extensions)
+    target_compile_options(melondsds_libretro PUBLIC -Werror=return-type)
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/version.hpp")
