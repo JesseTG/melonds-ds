@@ -88,7 +88,7 @@ namespace retro {
     bool set_warn_message(const char* message);
     bool set_warn_message(const char* message, unsigned duration);
     bool get_variable(struct retro_variable *variable);
-    const char* get_variable(const char *key);
+    std::string_view get_variable(std::string_view key) noexcept;
     bool set_variable(const char* key, const char* value);
     std::optional<retro_language> get_language() noexcept;
     bool set_geometry(const retro_game_geometry& geometry) noexcept;

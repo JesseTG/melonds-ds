@@ -453,22 +453,21 @@ bool retro::get_variable(struct retro_variable* var) {
     return environment(RETRO_ENVIRONMENT_GET_VARIABLE, var);
 }
 
-const char* retro::get_variable(const char* key) {
+string_view retro::get_variable(std::string_view key) noexcept {
     ZoneScopedN("retro::get_variable");
-    struct retro_variable var = {key, nullptr};
+    struct retro_variable var = {key.data(), nullptr};
     if (!environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var)) {
         // Get the requested variable. If that failed...
-        return nullptr;
+        return {};
     }
 
-    if (key) {
+    if (!key.empty()) {
         // If we wanted a specific variable...
         return var.value;
     }
 
     // Return the environment string instead
     return var.key;
-
 }
 
 bool retro::set_variable(const char* key, const char* value) {

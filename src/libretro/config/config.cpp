@@ -384,22 +384,22 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     }
 
     // If these firmware/BIOS files don't exist, an exception will be thrown later
-    if (const char* value = get_variable(storage::DSI_NAND_PATH); !string_is_empty(value)) {
-        config.SetDsiNandPath(string_view(value));
+    if (string_view value = get_variable(storage::DSI_NAND_PATH); !value.empty()) {
+        config.SetDsiNandPath(value);
     } else {
         retro::warn("Failed to get value for {}", storage::DSI_NAND_PATH);
         config.SetDsiNandPath(string_view(values::NOT_FOUND));
     }
 
-    if (const char* value = get_variable(system::FIRMWARE_PATH); !string_is_empty(value)) {
-        config.SetFirmwarePath(string_view(value));
+    if (string_view value = get_variable(system::FIRMWARE_PATH); !value.empty()) {
+        config.SetFirmwarePath(value);
     } else {
         retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_PATH);
         config.SetFirmwarePath(string_view(values::NOT_FOUND));
     }
 
-    if (const char* value = get_variable(system::FIRMWARE_DSI_PATH); !string_is_empty(value)) {
-        config.SetDsiFirmwarePath(string_view(value));
+    if (string_view value = get_variable(system::FIRMWARE_DSI_PATH); !value.empty()) {
+        config.SetDsiFirmwarePath(value);
     } else {
         retro::warn("Failed to get value for {}; defaulting to built-in firmware", system::FIRMWARE_DSI_PATH);
         config.SetDsiFirmwarePath(string_view(values::NOT_FOUND));
@@ -417,10 +417,10 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         config.SetLanguage(FirmwareLanguage::Default);
     }
 
-    if (const char* value = get_variable(firmware::FAVORITE_COLOR); string_is_equal(value, values::DEFAULT)) {
+    if (string_view value = get_variable(firmware::FAVORITE_COLOR); value == values::DEFAULT) {
         config.SetFavoriteColor(Color::Default);
-    } else if (!string_is_empty(value)) {
-        config.SetFavoriteColor(static_cast<Color>(std::clamp(std::stoi(value), 0, 15)));
+    } else if (!value.empty()) {
+        config.SetFavoriteColor(static_cast<Color>(std::clamp(std::stoi(value.data()), 0, 15)));
         // TODO: Warn if invalid
     } else {
         retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::FAVORITE_COLOR);
@@ -441,7 +441,7 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         config.SetAlarmMode(AlarmMode::Default);
     }
 
-    if (const char* alarmHourText = get_variable(firmware::ALARM_HOUR); string_is_equal(alarmHourText, values::DEFAULT)) {
+    if (string_view alarmHourText = get_variable(firmware::ALARM_HOUR); alarmHourText == values::DEFAULT) {
         config.SetAlarmHour(nullopt);
     } else if (optional<unsigned> alarmHour = ParseIntegerInRange(alarmHourText, 0u, 23u)) {
         config.SetAlarmHour(alarmHour);
@@ -450,7 +450,7 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         config.SetAlarmHour(nullopt);
     }
 
-    if (const char* alarmMinuteText = get_variable(firmware::ALARM_MINUTE); string_is_equal(alarmMinuteText, values::DEFAULT)) {
+    if (string_view alarmMinuteText = get_variable(firmware::ALARM_MINUTE); alarmMinuteText == values::DEFAULT) {
         config.SetAlarmMinute(nullopt);
     } else if (optional<unsigned> alarmMinute = ParseIntegerInRange(alarmMinuteText, 0u, 59u)) {
         config.SetAlarmMinute(alarmMinute);
@@ -459,7 +459,7 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         config.SetAlarmMinute(nullopt);
     }
 
-    if (const char* birthMonthText = get_variable(firmware::BIRTH_MONTH); string_is_equal(birthMonthText, values::DEFAULT)) {
+    if (string_view birthMonthText = get_variable(firmware::BIRTH_MONTH); birthMonthText == values::DEFAULT) {
         config.SetBirthdayMonth(0);
     } else if (optional<unsigned> birthMonth = ParseIntegerInRange(birthMonthText, 1u, 12u)) {
         config.SetBirthdayMonth(*birthMonth);
@@ -468,7 +468,7 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         config.SetBirthdayMonth(0);
     }
 
-    if (const char* birthDayText = get_variable(firmware::BIRTH_DAY); string_is_equal(birthDayText, values::DEFAULT)) {
+    if (string_view birthDayText = get_variable(firmware::BIRTH_DAY); birthDayText == values::DEFAULT) {
         config.SetBirthdayDay(0);
     } else if (optional<unsigned> birthDay = ParseIntegerInRange(birthDayText, 1u, 31u)) {
         config.SetBirthdayDay(*birthDay);
@@ -477,7 +477,7 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         config.SetBirthdayDay(0);
     }
 
-    if (const char* wfcDnsText = get_variable(firmware::WFC_DNS); string_is_equal(wfcDnsText, values::DEFAULT)) {
+    if (string_view wfcDnsText = get_variable(firmware::WFC_DNS); wfcDnsText == values::DEFAULT) {
         config.SetDnsServer(nullopt);
     } else if (optional<IpAddress> wfcDns = ParseIpAddress(wfcDnsText)) {
         config.SetDnsServer(*wfcDns);
@@ -536,8 +536,8 @@ static void MelonDsDs::config::ParseNetworkOptions(CoreConfig& config) noexcept 
     }
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-    if (const char* value = get_variable(network::DIRECT_NETWORK_INTERFACE); !string_is_empty(value)) {
-        config.SetNetworkInterface(string_view(value));
+    if (string_view value = get_variable(network::DIRECT_NETWORK_INTERFACE); !value.empty()) {
+        config.SetNetworkInterface(value);
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", network::DIRECT_NETWORK_INTERFACE, values::AUTO);
         config.SetNetworkInterface(string_view(values::AUTO));
