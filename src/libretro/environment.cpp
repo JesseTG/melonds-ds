@@ -463,11 +463,11 @@ string_view retro::get_variable(std::string_view key) noexcept {
 
     if (!key.empty()) {
         // If we wanted a specific variable...
-        return var.value;
+        return var.value ? var.value : string_view();
     }
 
     // Return the environment string instead
-    return var.key;
+    return var.key ? var.key : string_view();
 }
 
 bool retro::set_variable(const char* key, const char* value) {
