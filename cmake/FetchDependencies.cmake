@@ -60,6 +60,7 @@ set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTE
 set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
+set(ENABLE_GDBSTUB OFF)
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt semaphore span date)
 
 if (TRACY_ENABLE)
