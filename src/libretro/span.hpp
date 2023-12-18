@@ -20,10 +20,10 @@
 #ifdef __cpp_lib_span
 #include <span>
 #else
-#include <tcb/span.hpp>
+#include <nonstd/span.hpp>
 
 namespace std {
-    using tcb::span;
+    using nonstd::span;
 }
 #endif
 

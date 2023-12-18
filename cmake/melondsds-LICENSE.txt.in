@@ -190,9 +190,9 @@ ${SEMAPHORE_LICENSE}
 
 ${SLIRP_LICENSE}
 
-# span (std::span implementation for C++11 and later) ##################################################################
+# span lite: A single-file header-only version of a C++20-like span for C++98, C++11 and later #########################
 
-${SPAN_LICENSE}
+${SPAN_LITE_LICENSE}
 
 # teakra ###############################################################################################################
 

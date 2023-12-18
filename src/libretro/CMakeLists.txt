@@ -95,7 +95,7 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${pntr_SOURCE_DIR}"
     "${fmt_SOURCE_DIR}/include"
     "${semaphore_SOURCE_DIR}"
-    "${span_SOURCE_DIR}/include"
+    "${span-lite_SOURCE_DIR}/include"
     "${date_SOURCE_DIR}/include"
     )
 

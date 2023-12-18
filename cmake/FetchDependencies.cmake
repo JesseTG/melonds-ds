@@ -45,7 +45,7 @@ fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7
 fetch_dependency(pntr "https://github.com/robloach/pntr.git" "1d7ba67")
 fetch_dependency(fmt "https://github.com/fmtlib/fmt.git" "10.1.1")
 fetch_dependency(semaphore "https://github.com/cyanhill/semaphore" "58ab483")
-fetch_dependency(span "https://github.com/tcbrindle/span" "836dc6a")
+fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "bc08bf8")
 fetch_dependency(date "https://github.com/HowardHinnant/date" "ab37c36")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
@@ -61,7 +61,7 @@ set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
 set(ENABLE_GDBSTUB OFF)
-FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt semaphore span date)
+FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt semaphore span-lite date)
 
 if (TRACY_ENABLE)
     set(BUILD_SHARED_LIBS OFF)
