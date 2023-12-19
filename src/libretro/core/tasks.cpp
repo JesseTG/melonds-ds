@@ -189,7 +189,7 @@ void MelonDsDs::CoreState::FlushFirmware(string_view firmwarePath, string_view w
                 existingWfcSettingsSize
             );
         }
-        retro_assert(wfcSettingsPath.rfind("/wfcsettings.bin") == std::string_view::npos);
+        retro_assert(wfcSettingsPath.rfind("/wfcsettings.bin") != std::string_view::npos);
         u32 eapstart = firmware.GetExtendedAccessPointOffset();
         u32 eapend = eapstart + sizeof(firmware.GetExtendedAccessPoints());
         u32 apstart = firmware.GetWifiAccessPointOffset();
