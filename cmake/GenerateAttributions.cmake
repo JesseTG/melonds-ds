@@ -7,7 +7,7 @@ file(READ "${melonDS_SOURCE_DIR}/freebios/drastic_bios_readme.txt" FREEBIOS_LICE
 file(READ "${fmt_SOURCE_DIR}/LICENSE.rst" FMT_LICENSE)
 file(READ "${glm_SOURCE_DIR}/copying.txt" GLM_LICENSE)
 file(READ "${pntr_SOURCE_DIR}/LICENSE" PNTR_LICENSE)
-file(READ "${semaphore_SOURCE_DIR}/LICENSE" SEMAPHORE_LICENSE)
+file(READ "${yamc_SOURCE_DIR}/LICENSE" YAMC_LICENSE)
 file(READ "${libslirp_SOURCE_DIR}/COPYRIGHT" SLIRP_LICENSE)
 file(READ "${span-lite_SOURCE_DIR}/LICENSE.txt" SPAN_LITE_LICENSE)
 file(READ "${zlib_SOURCE_DIR}/LICENSE" ZLIB_LICENSE)

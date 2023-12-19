@@ -79,6 +79,7 @@ add_library(melondsds_libretro MODULE
     screenlayout.cpp
     screenlayout.hpp
     std/chrono.hpp
+    std/semaphore.hpp
     std/span.hpp
     sram.cpp
     sram.hpp
@@ -94,7 +95,7 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${glm_SOURCE_DIR}"
     "${pntr_SOURCE_DIR}"
     "${fmt_SOURCE_DIR}/include"
-    "${semaphore_SOURCE_DIR}"
+    "${yamc_SOURCE_DIR}/include"
     "${span-lite_SOURCE_DIR}/include"
     "${date_SOURCE_DIR}/include"
     )

@@ -182,10 +182,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ${PNTR_LICENSE}
 
-# semaphore (C++17 reimplementation of C++20's std::counting_semaphore) ################################################
-
-${SEMAPHORE_LICENSE}
-
 # Slirp ################################################################################################################
 
 ${SLIRP_LICENSE}
@@ -231,6 +227,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 You can contact the author at:
   - xxHash homepage: https://www.xxhash.com
   - xxHash source repository: https://github.com/Cyan4973/xxHash
+
+# yamc ################################################
+
+${YAMC_LICENSE}
 
 # zlib #################################################################################################################
 

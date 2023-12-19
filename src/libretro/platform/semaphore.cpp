@@ -15,25 +15,16 @@
 */
 
 #include <Platform.h>
-#ifdef __cpp_lib_semaphore
-#include <semaphore>
-#else
-#include <semaphore.h>
-#endif
 
 #include "tracy.hpp"
 
-#ifdef __cpp_lib_semaphore
-using std::counting_semaphore;
-#else
-using cyan::counting_semaphore;
-#endif
+#include "std/semaphore.hpp"
 
 using namespace melonDS;
 using Platform::Semaphore;
 
 struct Platform::Semaphore {
-    counting_semaphore<> semaphore;
+    std::counting_semaphore<> semaphore;
 
     Semaphore() : semaphore(0) {}
 };
