@@ -53,8 +53,6 @@ namespace MelonDsDs {
         }
         void Apply(const CoreConfig& config) noexcept override;
 
-        bool ContextInitialized();
-
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
     private:
