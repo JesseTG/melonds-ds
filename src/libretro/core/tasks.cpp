@@ -176,7 +176,7 @@ void MelonDsDs::CoreState::FlushFirmware(string_view firmwarePath, string_view w
         }
     }
     else {
-        u32 expectedWfcSettingsSize = sizeof(firmware.GetExtendedAccessPoints()) + sizeof(firmware.GetAccessPoints());
+        constexpr int32_t expectedWfcSettingsSize = sizeof(firmware.GetExtendedAccessPoints()) + sizeof(firmware.GetAccessPoints());
         int32_t existingWfcSettingsSize = path_get_size(wfcSettingsPath.data());
         if (existingWfcSettingsSize == -1) {
             retro::debug("Wi-Fi settings file at \"{}\" doesn't exist, creating it", wfcSettingsPath);
