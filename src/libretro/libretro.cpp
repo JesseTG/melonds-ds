@@ -244,7 +244,7 @@ PUBLIC_SYMBOL bool retro_unserialize(const void *data, size_t size) {
     ZoneScopedN(TracyFunction);
     retro::debug("retro_unserialize({}, {})", data, size);
 
-    return MelonDsDs::Core.Unserialize(std::span(const_cast<std::byte*>(static_cast<const std::byte*>(data)), size));
+    return MelonDsDs::Core.Unserialize(std::span(static_cast<const std::byte*>(data), size));
 }
 
 PUBLIC_SYMBOL void *retro_get_memory_data(unsigned type) {
