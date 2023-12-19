@@ -700,12 +700,31 @@ bool MelonDsDs::CoreState::Serialize(std::span<std::byte> data) const noexcept {
         retro_assert(Console->GetNDSCart() != nullptr);
     }
 #endif
-    retro_assert(_savestateSize.has_value());
-    retro_assert(data.size() == _savestateSize);
+    if (static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DSi) {
+        // DSi mode doesn't support savestates right now
+        retro::error("DSi mode does not support saving states");
+        return false;
+    }
 
-    melonDS::Savestate state(data.data(), data.size(), true);
+    if (_savestateSize) {
+        // If we know how big the savestate for this game should be...
+        melonDS::Savestate state(data.data(), data.size(), true);
 
-    return Console->DoSavestate(&state) && !state.Error;
+        return Console->DoSavestate(&state) && !state.Error;
+    }
+
+    melonDS::Savestate state;
+    Console->DoSavestate(&state);
+    size_t length = state.Length();
+    _savestateSize = length;
+
+    if (_savestateSize != data.size()) {
+        retro::error("Expected to save a {}-byte savestate, got a {}-byte buffer", *_savestateSize, data.size());
+        return false;
+    }
+
+    memcpy(data.data(), state.Buffer(), state.Length());
+    return true;
 }
 
 bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept {
@@ -714,7 +733,6 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
         return false;
 
     retro_assert(Console != nullptr);
-    retro_assert(_savestateSize.has_value());
 
 #ifndef NDEBUG
     if (_ndsInfo.has_value()) {
@@ -722,6 +740,22 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
         retro_assert(Console->GetNDSCart() != nullptr);
     }
 #endif
+
+    if (static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DSi) {
+        // DSi mode doesn't support savestates right now
+        retro::error("DSi mode does not support loading states");
+        return false;
+    }
+
+    if (!_savestateSize) {
+        // If the frontend hasn't asked us about the savestate size yet...
+        _savestateSize = SerializeSize();
+    }
+
+    if (data.size() != _savestateSize) {
+        retro::error("Expected to load a {}-byte savestate, got {} bytes", *_savestateSize, data.size());
+        return false;
+    }
 
     melonDS::Savestate savestate(const_cast<void*>(static_cast<const void*>(data.data())), data.size(), false);
 
