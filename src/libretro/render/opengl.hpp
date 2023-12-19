@@ -40,7 +40,7 @@ namespace MelonDsDs {
         OpenGLRenderState(OpenGLRenderState&&) = delete;
         OpenGLRenderState& operator=(const OpenGLRenderState&) = delete;
         OpenGLRenderState& operator=(OpenGLRenderState&&) = delete;
-        bool Ready() const noexcept override { return _contextInitialized; }
+        [[nodiscard]] bool Ready() const noexcept override { return _contextInitialized; }
         void Render(
             melonDS::NDS& nds,
             const InputState& input,
