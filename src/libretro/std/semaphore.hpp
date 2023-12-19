@@ -21,6 +21,18 @@
 #include <semaphore>
 #elif defined(WIN32)
 #include <win_semaphore.hpp>
+
+namespace std {
+    template <std::ptrdiff_t least_max_value = 0x7FFFFFFF>
+    using counting_semaphore = yamc::win::counting_semaphore<least_max_value>;
+}
+#elif defined(__APPLE__)
+#include <gcd_semaphore.hpp>
+
+namespace std {
+    template <std::ptrdiff_t least_max_value = std::numeric_limits<long>::max()>
+    using counting_semaphore = yamc::gcd::counting_semaphore<least_max_value>;
+}
 #elif defined(__unix__)
 #include <posix_semaphore.hpp>
 
