@@ -81,7 +81,7 @@ constexpr mat3 EastMatrix(unsigned resolutionScale) noexcept {
     );
 }
 
-/// For the northeast hybrid screen
+/// For the west hybrid screen
 constexpr mat3 HybridWestMatrix(unsigned resolutionScale, unsigned hybridRatio) noexcept {
     using namespace MelonDsDs;
     return math::ts<float>(
