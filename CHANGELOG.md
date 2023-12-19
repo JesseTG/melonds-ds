@@ -21,6 +21,8 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Fixed a potential crash when attempting to load an invalid NDS ROM.
 - Fixed an issue where the software renderer would not clear the entire framebuffer
   when using a hybrid screen layout
+- Fix an issue where the OpenGL state wouldn't be updated
+  when the screen layout was changed.
 - Fixed an issue where the JIT wouldn't be used even if it was enabled.
 
 ## [0.7.25] - 2023-11-06
