@@ -22,7 +22,7 @@
 #include <string>
 #include <string_view>
 
-#include "span.hpp"
+#include "std/span.hpp"
 
 struct retro_game_info;
 

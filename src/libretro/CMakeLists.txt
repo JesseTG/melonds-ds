@@ -6,7 +6,6 @@ include(embed-binaries)
 add_library(melondsds_libretro MODULE
     buffer.cpp
     buffer.hpp
-    chrono.hpp
     config/config.hpp
     config/config.cpp
     config/console.hpp
@@ -79,7 +78,8 @@ add_library(melondsds_libretro MODULE
     retro/threads.hpp
     screenlayout.cpp
     screenlayout.hpp
-    span.hpp
+    std/chrono.hpp
+    std/span.hpp
     sram.cpp
     sram.hpp
     tracy.hpp

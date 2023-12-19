@@ -24,7 +24,7 @@
 
 #include <glm/vec2.hpp>
 
-#include "span.hpp"
+#include "std/span.hpp"
 
 namespace MelonDsDs {
     class PixelBuffer {

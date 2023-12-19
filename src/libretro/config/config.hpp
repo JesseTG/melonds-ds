@@ -32,9 +32,9 @@
 
 #include "parse.hpp"
 #include "definitions.hpp"
-#include "span.hpp"
+#include "std/span.hpp"
 #include "types.hpp"
-#include "chrono.hpp"
+#include "std/chrono.hpp"
 
 namespace melonDS {
     struct NDSArgs;

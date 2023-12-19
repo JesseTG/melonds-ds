@@ -21,7 +21,7 @@
 
 #include <libretro.h>
 
-#include "span.hpp"
+#include "std/span.hpp"
 
 namespace retro {
     class Microphone {
