@@ -43,7 +43,7 @@ void MelonDsDs::PixelBuffer::SetSize(uvec2 newSize) noexcept {
 }
 
 void MelonDsDs::PixelBuffer::Clear() noexcept {
-    memset(buffer.data(), 0, buffer.size());
+    memset(buffer.data(), 0, buffer.size() * sizeof(buffer[0]));
 }
 
 void MelonDsDs::PixelBuffer::CopyDirect(const uint32_t* source, uvec2 destination) noexcept {

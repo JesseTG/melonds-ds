@@ -19,6 +19,8 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - GBA ROM and save data support is now supported with the built-in BIOS.
 - Fixed a crash that occurred upon starting the core.
 - Fixed a potential crash when attempting to load an invalid NDS ROM.
+- Fixed an issue where the software renderer would not clear the entire framebuffer
+  when using a hybrid screen layout
 
 ## [0.7.25] - 2023-11-06
 
