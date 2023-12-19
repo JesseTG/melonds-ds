@@ -61,7 +61,7 @@ set(BUILD_STATIC ON)
 set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
 set(ENABLE_GDBSTUB OFF)
-set(ENABLE_TESTING OFF)
+option(ENABLE_TESTING "Enable unit testing." OFF)
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date)
 
 if (TRACY_ENABLE)
