@@ -54,11 +54,6 @@ namespace MelonDsDs {
         void Apply(const CoreConfig& config) noexcept override;
 
         bool ContextInitialized();
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-        bool UsingOpenGl();
-#else
-        inline bool UsingOpenGl() { return false; }
-#endif
 
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
