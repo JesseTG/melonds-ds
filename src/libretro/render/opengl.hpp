@@ -48,7 +48,7 @@ namespace MelonDsDs {
             const ScreenLayoutData& screenLayout
         ) noexcept override;
         // Requests that the OpenGL context be refreshed.
-        void RequestOpenGlRefresh() {
+        void RequestRefresh() noexcept override {
             _needsRefresh = true;
         }
         void Apply(const CoreConfig& config) noexcept override;
