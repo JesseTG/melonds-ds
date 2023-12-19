@@ -9,7 +9,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ### Changed
 
-- Updated melonDS to commit 1bec2a9.
+- Updated melonDS to commit 6f42052.
 - Updated libretro-common to commit fce57fd.
 - Allow switching between the software and OpenGL renderers
   (where available) without restarting the core.
@@ -21,6 +21,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Fixed a potential crash when attempting to load an invalid NDS ROM.
 - Fixed an issue where the software renderer would not clear the entire framebuffer
   when using a hybrid screen layout
+- Fixed an issue where the JIT wouldn't be used even if it was enabled.
 
 ## [0.7.25] - 2023-11-06
 
