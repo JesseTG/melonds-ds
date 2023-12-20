@@ -310,10 +310,10 @@ static void MelonDsDs::config::ParseHomebrewSaveOptions(CoreConfig& config) noex
         config.SetDldiFolderSync(true);
     }
 
-    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_READ_ONLY))) {
+    if (optional<bool> value = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE))) {
         config.SetDldiEnable(*value);
     } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_READ_ONLY, values::DISABLED);
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::HOMEBREW_SAVE_MODE, values::DISABLED);
         config.SetDldiEnable(false);
     }
 
