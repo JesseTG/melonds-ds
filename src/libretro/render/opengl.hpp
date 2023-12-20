@@ -18,6 +18,7 @@
 #ifndef MELONDSDS_RENDER_OPENGL_HPP
 #define MELONDSDS_RENDER_OPENGL_HPP
 
+#include <array>
 #include <memory>
 #include <optional>
 
@@ -69,9 +70,9 @@ namespace MelonDsDs {
         bool _openGlDebugAvailable = false;
         bool _needsRefresh = true;
         bool _contextInitialized = false;
-        GLuint shader[3] {};
+        std::array<GLuint, 3> shader {};
         GLuint screen_framebuffer_texture = 0;
-        Vertex screen_vertices[18] {};
+        std::array<Vertex, 18> screen_vertices {};
         unsigned vertexCount = 0;
         GLuint vao = 0;
         GLuint vbo = 0;

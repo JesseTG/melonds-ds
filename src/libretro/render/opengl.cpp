@@ -180,7 +180,7 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
 
-        melonDS::OpenGL::DeleteShaderProgram(shader);
+        melonDS::OpenGL::DeleteShaderProgram(shader.data());
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
     }
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
@@ -233,7 +233,7 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
         retro::debug("OpenGL debugging extensions are available");
     }
 
-    if (!melonDS::OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader, SHADER_PROGRAM_NAME))
+    if (!melonDS::OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader.data(), SHADER_PROGRAM_NAME))
         throw shader_compilation_failed_exception("Failed to compile melonDS DS shaders.");
 
     if (_openGlDebugAvailable) {
@@ -246,7 +246,7 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
     glBindAttribLocation(shader[2], 1, "vTexcoord");
     glBindFragDataLocation(shader[2], 0, "oColor");
 
-    if (!melonDS::OpenGL::LinkShaderProgram(shader))
+    if (!melonDS::OpenGL::LinkShaderProgram(shader.data()))
         throw shader_compilation_failed_exception("Failed to link compiled shaders.");
 
     GLuint uConfigBlockIndex = glGetUniformBlockIndex(shader[2], "uConfig");
@@ -334,7 +334,7 @@ void MelonDsDs::OpenGLRenderState::Render(
     if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    melonDS::OpenGL::UseShaderProgram(shader);
+    melonDS::OpenGL::UseShaderProgram(shader.data());
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
@@ -422,7 +422,7 @@ void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreC
     InitVertices(screenLayout);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(screen_vertices), screen_vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(screen_vertices), screen_vertices.data());
 }
 
 void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLayout) noexcept {
