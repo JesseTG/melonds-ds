@@ -4,6 +4,7 @@ local system_dir = emutest_dir .. "/system"
 local save_dir = emutest_dir .. "/savefiles"
 local savestate_directory = emutest_dir .. "/states"
 local core_system_dir = system_dir .. "/melonDS DS"
+local core_save_dir = save_dir .. "/melonDS DS"
 
 print("Test dir:", emutest_dir)
 print("System dir:", system_dir)
@@ -32,5 +33,9 @@ end
 local preamble = {}
 
 preamble.options_string = os.getenv("RETRO_CORE_OPTIONS")
+preamble.system_dir = system_dir
+preamble.save_dir = save_dir
+preamble.core_system_dir = core_system_dir
+preamble.core_save_dir = core_save_dir
 
 return preamble
