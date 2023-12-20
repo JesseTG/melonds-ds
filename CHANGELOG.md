@@ -11,6 +11,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Fixed homebrew ROMs being rejected due to an invalid logo checksum.
   (Only retail ROMs need embedded logo data.)
+- Fixed an issue where the "Screen Filtering" option wouldn't always be honored.
 
 ## [0.7.26] - 2023-12-19
 

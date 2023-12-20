@@ -63,7 +63,7 @@ namespace MelonDsDs {
 
         static_assert(sizeof(Vertex) == sizeof(vec2::value_type) * 4);
 
-        void SetUpCoreOpenGlState();
+        void SetUpCoreOpenGlState(const CoreConfig& config);
         void InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void InitVertices(const ScreenLayoutData& screenLayout) noexcept;
         bool _openGlDebugAvailable = false;

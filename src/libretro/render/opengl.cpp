@@ -210,7 +210,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     renderer->SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
     nds.GPU.SetRenderer3D(std::move(renderer));
 
-    SetUpCoreOpenGlState();
+    SetUpCoreOpenGlState(config);
     _contextInitialized = true;
 
     // Stop using OpenGL structures
@@ -220,7 +220,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 }
 
 // Sets up OpenGL resources specific to melonDS
-void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState() {
+void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config) {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);
     retro::debug(TracyFunction);
@@ -289,10 +289,11 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState() {
     if (_openGlDebugAvailable) {
         glObjectLabel(GL_TEXTURE, screen_framebuffer_texture, -1, "melonDS DS Screen Texture");
     }
+    GLint filter = config.ScreenFilter() == ScreenFilter::Linear ? GL_LINEAR : GL_NEAREST;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, NDS_SCREEN_WIDTH * 3 + 1, NDS_SCREEN_HEIGHT * 2, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr);
 
     _needsRefresh = true;
