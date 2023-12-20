@@ -397,7 +397,7 @@ static unique_ptr<melonDS::NDSCart::CartCommon> MelonDsDs::LoadNdsCart(const Cor
         throw invalid_rom_exception("ROM isn't valid, did you select the right file?");
     }
 
-    if (header.NintendoLogoCRC16 != 0xCF56) {
+    if (header.NintendoLogoCRC16 != 0xCF56 && !header.IsHomebrew()) {
         retro::error("Expected logo CRC16 of 0xCF56, got 0x{:04x}", header.NintendoLogoCRC16);
         throw invalid_rom_exception("ROM isn't valid, did you select the right file?");
     }
