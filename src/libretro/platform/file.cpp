@@ -34,6 +34,7 @@
 
 #include "../config/config.hpp"
 #include "environment.hpp"
+#include "format.hpp"
 #include "tracy.hpp"
 #include "utils.hpp"
 
@@ -91,7 +92,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
     ZoneScopedN(TracyFunction);
     if ((mode & FileMode::ReadWrite) == FileMode::None)
     { // If we aren't reading or writing, then we can't open the file
-        retro::error("Attempted to open \"{}\" in neither read nor write mode (FileMode {:#x})\n", path, (unsigned)mode);
+        retro::error("Attempted to open \"{}\" in neither read nor write mode (FileMode {})\n", path, mode);
         return nullptr;
     }
 
@@ -99,7 +100,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
 
     if (!file_exists && (mode & FileMode::NoCreate)) {
         // If the file doesn't exist, and we're not allowed to create it...
-        retro::warn("Attempted to open \"{}\" in FileMode {:#x}, but the file doesn't exist and FileMode::NoCreate is set\n", path, (unsigned)mode);
+        retro::warn("Attempted to open \"{}\" in FileMode {}, but the file doesn't exist and FileMode::NoCreate is set\n", path, mode);
         return nullptr;
     }
 
@@ -108,12 +109,12 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
     handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode), handle->hints);
 
     if (!handle->file) {
-        retro::error("Attempted to open \"{}\" in FileMode {:#x}, but failed", path, (unsigned)mode);
+        retro::error("Attempted to open \"{}\" in FileMode {}, but failed", path, mode);
         delete handle;
         return nullptr;
     }
 
-    retro::debug("Opened \"{}\" in FileMode {:#x}", path, (unsigned)mode);
+    retro::debug("Opened \"{}\" in FileMode {}", path, mode);
 
     return handle;
 }

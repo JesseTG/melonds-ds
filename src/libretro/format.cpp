@@ -324,3 +324,24 @@ auto fmt::formatter<scaler_pix_fmt>::format(scaler_pix_fmt c, format_context& ct
     }
     return formatter<string_view>::format(name, ctx);
 }
+
+auto fmt::formatter<Platform::FileMode>::format(Platform::FileMode mode, format_context& ctx) const -> decltype(ctx.out()) {
+    std::vector<std::string_view> bits;
+
+    if (mode & Platform::FileMode::Read)
+        bits.emplace_back("Read");
+
+    if (mode & Platform::FileMode::Write)
+        bits.emplace_back("Write");
+
+    if (mode & Platform::FileMode::Preserve)
+        bits.emplace_back("Preserve");
+
+    if (mode & Platform::FileMode::NoCreate)
+        bits.emplace_back("NoCreate");
+
+    if (mode & Platform::FileMode::Text)
+        bits.emplace_back("Text");
+
+    return formatter<std::vector<std::string_view>>::format(bits, ctx);
+}

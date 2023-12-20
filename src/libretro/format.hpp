@@ -76,6 +76,11 @@ namespace fmt {
     struct formatter<scaler_pix_fmt> : formatter<std::string_view> {
         auto format(scaler_pix_fmt c, format_context& ctx) const -> decltype(ctx.out());
     };
+
+    template<>
+    struct formatter<melonDS::Platform::FileMode> : formatter<std::vector<std::string_view>> {
+        auto format(melonDS::Platform::FileMode mode, format_context& ctx) const -> decltype(ctx.out());
+    };
 }
 
 #endif //MELONDS_DS_FORMAT_HPP
