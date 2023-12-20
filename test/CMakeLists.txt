@@ -228,6 +228,15 @@ function(add_emutest_test)
     endif()
 endfunction()
 
+FetchContent_Declare(
+    godmode9i
+    URL "https://github.com/DS-Homebrew/GodMode9i/releases/download/v3.4.1/GodMode9i.7z"
+)
+
+FetchContent_GetProperties(godmode9i)
+FetchContent_MakeAvailable(godmode9i)
+set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
+
 add_retroarch_test(
     NAME "RetroArch loads melonDS DS"
     CONTENT "${NDS_ROM}"
@@ -732,3 +741,5 @@ add_emutest_test(
 # - Core loads NDS game with GBA game in slot-2 and save data
 # - Core loads NDS game with GBA game in slot-2 and save data, and can save GBA data
 # (will need to find a test case besides Pokemon)
+
+include(cmake/TestHomebrewSDCards.cmake)
