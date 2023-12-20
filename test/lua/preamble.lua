@@ -14,9 +14,7 @@ print("Core system dir:", core_system_dir)
 
 -- We can assume the presence of CMake,
 -- otherwise how would we be running the test suite?
-os.remove(system_dir)
-os.remove(save_dir)
-os.remove(savestate_directory)
+os.execute(string.format('cmake -E rm -rf "%s" "%s" "%s"', system_dir, save_dir, savestate_directory))
 os.execute(string.format('cmake -E make_directory "%s" "%s" "%s"', core_system_dir, save_dir, savestate_directory))
 
 for _, f in ipairs(SYSTEM_FILES) do
