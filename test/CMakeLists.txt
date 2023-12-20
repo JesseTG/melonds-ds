@@ -190,6 +190,8 @@ function(add_emutest_test)
         endif()
     endmacro()
 
+    list(APPEND ENVIRONMENT "CMAKE=${CMAKE_COMMAND}")
+
     expose_system_file(ARM7_BIOS)
     expose_system_file(ARM9_BIOS)
     expose_system_file(ARM7_DSI_BIOS)
