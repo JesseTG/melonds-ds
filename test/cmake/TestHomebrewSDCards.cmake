@@ -3,7 +3,6 @@ add_emutest_test(
     CONTENT "${NDS_ROM}"
     TEST_SCRIPT "homebrew-sdcard-exists.lua"
     CORE_OPTION melonds_console_mode="ds"
-    CORE_OPTION melonds_boot_directly="true"
     CORE_OPTION melonds_homebrew_sdcard="enabled"
     CORE_OPTION melonds_homebrew_sync_sdcard_to_host="disabled"
     WILL_FAIL
@@ -14,7 +13,6 @@ add_emutest_test(
     CONTENT "${GODMODE9I_ROM}"
     TEST_SCRIPT "homebrew-sdcard-exists.lua"
     CORE_OPTION melonds_console_mode="ds"
-    CORE_OPTION melonds_boot_directly="true"
     CORE_OPTION melonds_homebrew_sdcard="enabled"
     CORE_OPTION melonds_homebrew_sync_sdcard_to_host="disabled"
 )
@@ -24,7 +22,6 @@ add_emutest_test(
     CONTENT "${GODMODE9I_ROM}"
     TEST_SCRIPT "homebrew-sdcard-exists.lua"
     CORE_OPTION melonds_console_mode="ds"
-    CORE_OPTION melonds_boot_directly="true"
     CORE_OPTION melonds_homebrew_sdcard="disabled"
     CORE_OPTION melonds_homebrew_sync_sdcard_to_host="disabled"
     WILL_FAIL
