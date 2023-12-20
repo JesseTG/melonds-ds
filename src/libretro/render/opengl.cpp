@@ -203,6 +203,10 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
         glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
     }
 
+    // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
+    // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
+    // that recreates all resources)
+    nds.GPU.GPU3D.SetCurrentRenderer(nullptr);
     auto renderer = melonDS::GLRenderer::New();
     if (!renderer) {
         throw opengl_not_initialized_exception();
@@ -378,7 +382,20 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
 //    TracyGpuZone(TracyFunction);
     retro::debug(TracyFunction);
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
+    _openGlDebugAvailable = false;
+    _needsRefresh = false;
     _contextInitialized = false;
+    shader = {};
+    screen_framebuffer_texture = 0;
+    screen_vertices = {};
+    vertexCount = 0;
+    vao = 0;
+    vbo = 0;
+    GL_ShaderConfig = {};
+    ubo = 0;
+    _lastResolutionScale = std::nullopt;
+    _lastScreenFilter = std::nullopt;
+    _lastBetterPolygonSplitting = std::nullopt;
 }
 
 void MelonDsDs::OpenGLRenderState::Apply(const CoreConfig& config) noexcept {
