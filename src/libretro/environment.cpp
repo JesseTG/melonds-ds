@@ -77,12 +77,12 @@ bool retro::environment(unsigned cmd, void* data) noexcept {
 }
 
 bool retro::set_pixel_format(retro_pixel_format format) noexcept {
-    ZoneScopedN("retro::set_pixel_format");
+    ZoneScopedN(TracyFunction);
     return environment(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &format);
 }
 
 int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
-    ZoneScopedN("retro::input_state");
+    ZoneScopedN(TracyFunction);
     if (_input_state) {
         return _input_state(port, device, index, id);
     } else {
@@ -91,14 +91,14 @@ int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsig
 }
 
 void retro::input_poll() {
-    ZoneScopedN("retro::input_poll");
+    ZoneScopedN(TracyFunction);
     if (_input_poll) {
         _input_poll();
     }
 }
 
 size_t retro::audio_sample_batch(const int16_t* data, size_t frames) {
-    ZoneScopedN("retro::audio_sample_batch");
+    ZoneScopedN(TracyFunction);
     if (_audio_sample_batch) {
         return _audio_sample_batch(data, frames);
     } else {
@@ -107,14 +107,14 @@ size_t retro::audio_sample_batch(const int16_t* data, size_t frames) {
 }
 
 void retro::video_refresh(const void* data, unsigned width, unsigned height, size_t pitch) {
-    ZoneScopedN("retro::video_refresh");
+    ZoneScopedN(TracyFunction);
     if (_video_refresh) {
         _video_refresh(data, width, height, pitch);
     }
 }
 
 bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
-    ZoneScopedN("retro::set_screen_rotation");
+    ZoneScopedN(TracyFunction);
     bool rotated = false;
     rotated = environment(RETRO_ENVIRONMENT_SET_ROTATION, &orientation);
     return rotated;
@@ -123,7 +123,7 @@ bool retro::set_screen_rotation(ScreenOrientation orientation) noexcept {
 // reminder: std::string_views are NOT null-terminated!
 // Even if they're created from null-terminated strings, the null byte is outside the view
 bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
-    ZoneScopedN("retro::set_core_options");
+    ZoneScopedN(TracyFunction);
     unsigned version = 0;
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
         version = 0;
@@ -246,7 +246,7 @@ std::optional<retro_microphone_interface> retro::get_microphone_interface() noex
 }
 
 bool retro::is_variable_updated() noexcept {
-    ZoneScopedN("retro::is_variable_updated");
+    ZoneScopedN(TracyFunction);
 
     bool updated = false;
     environment(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated);
@@ -397,7 +397,7 @@ optional<unsigned> retro::message_interface_version() noexcept {
 }
 
 bool retro::set_message(const struct retro_message_ext& message) {
-    ZoneScopedN("retro::set_message");
+    ZoneScopedN(TracyFunction);
     using std::numeric_limits;
 
     switch (_message_interface_version) {
@@ -454,7 +454,7 @@ bool retro::get_variable(struct retro_variable* var) {
 }
 
 string_view retro::get_variable(std::string_view key) noexcept {
-    ZoneScopedN("retro::get_variable");
+    ZoneScopedN(TracyFunction);
     struct retro_variable var = {key.data(), nullptr};
     if (!environment(RETRO_ENVIRONMENT_GET_VARIABLE, &var)) {
         // Get the requested variable. If that failed...
@@ -493,17 +493,17 @@ optional<retro_language> retro::get_language() noexcept {
 }
 
 bool retro::set_geometry(const retro_game_geometry& geometry) noexcept {
-    ZoneScopedN("RETRO_ENVIRONMENT_SET_GEOMETRY");
+    ZoneScopedN(TracyFunction);
     return retro::environment(RETRO_ENVIRONMENT_SET_GEOMETRY, (void*) &geometry);
 }
 
 bool retro::set_system_av_info(const retro_system_av_info& av_info) noexcept {
-    ZoneScopedN("RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO");
+    ZoneScopedN(TracyFunction);
     return retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, (void*)&av_info);
 }
 
 optional<string> retro::username() noexcept {
-    ZoneScopedN("retro::username");
+    ZoneScopedN(TracyFunction);
     const char* username = nullptr;
     if (!environment(RETRO_ENVIRONMENT_GET_USERNAME, &username)) {
         return nullopt;
@@ -518,7 +518,7 @@ optional<string> retro::username() noexcept {
 
 void retro::set_option_visible(const char* key, bool visible) noexcept
 {
-    ZoneScopedN("retro::set_option_visible");
+    ZoneScopedN(TracyFunction);
     struct retro_core_option_display optionDisplay { key, visible };
     if (key) {
         environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &optionDisplay);
@@ -531,7 +531,7 @@ bool retro::supports_power_status() noexcept {
 
 optional<retro_device_power> retro::get_device_power() noexcept
 {
-    ZoneScopedN("retro::get_device_power");
+    ZoneScopedN(TracyFunction);
     struct retro_device_power power;
     if (!environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, &power)) {
         return nullopt;
@@ -549,7 +549,7 @@ const optional<string>& retro::get_system_directory() {
 }
 
 optional<string> retro::get_system_subdir_path(const std::string_view& name) noexcept {
-    ZoneScopedN("retro::get_system_subdir_path");
+    ZoneScopedN(TracyFunction);
     char path[PATH_MAX];
     size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
     pathname_make_slashes_portable(path);
@@ -558,7 +558,7 @@ optional<string> retro::get_system_subdir_path(const std::string_view& name) noe
 }
 
 optional<string> retro::get_system_path(const string_view& name) noexcept {
-    ZoneScopedN("retro::get_system_path");
+    ZoneScopedN(TracyFunction);
     optional<string> sysdir = retro::get_system_directory();
     if (!sysdir) {
         // If no system directory is available, or the name is empty or not null-terminated...
@@ -582,7 +582,7 @@ const optional<string>& retro::get_system_subdirectory() {
 }
 
 void retro::env::init() noexcept {
-    ZoneScopedN("retro::env::init");
+    ZoneScopedN(TracyFunction);
     retro_assert(_environment != nullptr);
 
     isShuttingDown = false;
@@ -595,7 +595,7 @@ void retro::env::init() noexcept {
 }
 
 void retro::env::deinit() noexcept {
-    ZoneScopedN("retro::env::deinit");
+    ZoneScopedN(TracyFunction);
     _save_directory = nullopt;
     _system_directory = nullopt;
     _system_subdir = nullopt;
@@ -694,26 +694,26 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {
-    ZoneScopedN("retro_set_video_refresh");
+    ZoneScopedN(TracyFunction);
     retro::_video_refresh = video_refresh;
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample(retro_audio_sample_t) {
-    ZoneScopedN("retro_set_audio_sample");
+    ZoneScopedN(TracyFunction);
     // Noop, we don't use this callback
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample_batch(retro_audio_sample_batch_t audio_sample_batch) {
-    ZoneScopedN("retro_set_audio_sample_batch");
+    ZoneScopedN(TracyFunction);
     retro::_audio_sample_batch = audio_sample_batch;
 }
 
 PUBLIC_SYMBOL void retro_set_input_poll(retro_input_poll_t input_poll) {
-    ZoneScopedN("retro_set_input_poll");
+    ZoneScopedN(TracyFunction);
     retro::_input_poll = input_poll;
 }
 
 PUBLIC_SYMBOL void retro_set_input_state(retro_input_state_t input_state) {
-    ZoneScopedN("retro_set_input_state");
+    ZoneScopedN(TracyFunction);
     retro::_input_state = input_state;
 }
