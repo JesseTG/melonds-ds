@@ -204,6 +204,7 @@ namespace MelonDsDs {
         [[nodiscard]] string_view DldiImagePath() const noexcept { return _dldiImagePath; }
         void SetDldiImagePath(string_view path) noexcept { _dldiImagePath = path; }
         void SetDldiImagePath(string&& path) noexcept { _dldiImagePath = std::move(path); }
+        void SetDldiImagePath(const char* path) noexcept { _dldiImagePath = path ? path : "";}
 
         [[nodiscard]] unsigned DldiImageSize() const noexcept { return _dldiImageSize; }
         void SetDldiImageSize(unsigned size) noexcept { _dldiImageSize = size; }

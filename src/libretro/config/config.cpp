@@ -318,14 +318,11 @@ static void MelonDsDs::config::ParseHomebrewSaveOptions(CoreConfig& config) noex
     }
 
     {
-        const optional<string> save_directory = retro::get_save_directory();
-        char path[PATH_MAX];
+        optional<string> imagePath = retro::get_save_subdir_path(DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME);
+        config.SetDldiImagePath(std::move(*imagePath));
 
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_DIR_NAME, sizeof(path));
-        config.SetDldiFolderPath(string_view(path));
-
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME, sizeof(path));
-        config.SetDldiImagePath(string_view(path));
+        optional<string> syncDir = retro::get_save_subdir_path(DEFAULT_HOMEBREW_SDCARD_DIR_NAME);
+        config.SetDldiFolderPath(std::move(*syncDir));
 
         if (path_is_valid(config.DldiImagePath().data())) {
             // If the SD card image exists...
@@ -364,14 +361,12 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     }
 
     {
-        optional<string_view> save_directory = retro::get_save_directory();
-        char path[PATH_MAX];
+        optional<string> imagePath = retro::get_save_subdir_path(DEFAULT_DSI_SDCARD_IMAGE_NAME);
+        config.SetDldiImagePath(std::move(*imagePath));
 
-        fill_pathname_join_special(path, save_directory->data(), DEFAULT_DSI_SDCARD_DIR_NAME, sizeof(path));
-        config.SetDsiSdFolderPath(string_view(path));
+        optional<string> syncDir = retro::get_save_subdir_path(DEFAULT_DSI_SDCARD_DIR_NAME);
+        config.SetDldiFolderPath(std::move(*syncDir));
 
-        fill_pathname_join_special(path, save_directory->data(), DEFAULT_DSI_SDCARD_IMAGE_NAME, sizeof(path));
-        config.SetDsiSdImagePath(string_view(path));
 
         if (path_is_valid(config.DsiSdImagePath().data())) {
             // If the SD card image exists...
