@@ -43,7 +43,7 @@ using namespace melonDS::Platform;
 using std::unique_ptr;
 using std::unordered_map;
 
-constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
+constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode, bool file_exists) noexcept {
     unsigned retro_mode = 0;
     if (mode & FileMode::Read)
         retro_mode |= RETRO_VFS_FILE_ACCESS_READ;
@@ -51,7 +51,7 @@ constexpr unsigned GetRetroVfsFileAccessFlags(FileMode mode) noexcept {
     if (mode & FileMode::Write)
         retro_mode |= RETRO_VFS_FILE_ACCESS_WRITE;
 
-    if (mode & FileMode::Preserve)
+    if ((mode & FileMode::Preserve) && file_exists)
         retro_mode |= RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING;
 
     return retro_mode;
@@ -106,7 +106,7 @@ Platform::FileHandle *Platform::OpenFile(const std::string& path, FileMode mode)
 
     Platform::FileHandle *handle = new Platform::FileHandle;
     handle->hints = GetRetroVfsFileAccessHints(path);
-    handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode), handle->hints);
+    handle->file = filestream_open(path.c_str(), GetRetroVfsFileAccessFlags(mode, file_exists), handle->hints);
 
     if (!handle->file) {
         retro::error("Attempted to open \"{}\" in FileMode {}, but failed", path, mode);
