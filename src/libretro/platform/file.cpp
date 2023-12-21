@@ -125,13 +125,18 @@ Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode 
         return OpenFile(path, mode);
     }
 
-    std::string sysdir = retro::get_system_directory().value_or("");
+    std::optional<std::string_view> sysdir = retro::get_system_directory();
+    if (!sysdir) {
+        retro::error("System directory not available, cannot open file \"{}\"", path);
+        return nullptr;
+    }
+
     char fullpath[PATH_MAX];
-    size_t pathLength = fill_pathname_join_special(fullpath, sysdir.c_str(), path.c_str(), sizeof(fullpath));
+    size_t pathLength = fill_pathname_join_special(fullpath, sysdir->data(), path.c_str(), sizeof(fullpath));
     pathname_make_slashes_portable(fullpath);
 
     if (pathLength >= sizeof(fullpath)) {
-        retro::warn("Path \"{}\" is too long to be joined with system directory \"{}\"", path, sysdir);
+        retro::warn("Path \"{}\" is too long to be joined with system directory \"{}\"", path, *sysdir);
     }
 
     return OpenFile(fullpath, mode);
@@ -153,13 +158,18 @@ bool Platform::LocalFileExists(const std::string& name)
         return path_is_valid(name.c_str());
     }
 
-    std::string sysdir = retro::get_system_directory().value_or("");
+    std::optional<std::string_view> sysdir = retro::get_system_directory();
+    if (!sysdir) {
+        retro::error("System directory not available, cannot open file \"{}\"", name);
+        return false;
+    }
+
     char fullpath[PATH_MAX];
-    size_t pathLength = fill_pathname_join_special(fullpath, sysdir.c_str(), name.c_str(), sizeof(fullpath));
+    size_t pathLength = fill_pathname_join_special(fullpath, sysdir->data(), name.c_str(), sizeof(fullpath));
     pathname_make_slashes_portable(fullpath);
 
     if (pathLength >= sizeof(fullpath)) {
-        Log(LogLevel::Warn, "Path \"%s\" is too long to be joined with system directory \"%s\"", name.c_str(), sysdir.c_str());
+        Log(LogLevel::Warn, "Path \"%s\" is too long to be joined with system directory \"%s\"", name.c_str(), sysdir->data());
     }
 
     return path_is_valid(fullpath);

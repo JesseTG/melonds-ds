@@ -574,13 +574,13 @@ static void MelonDsDs::GetTmdPath(const retro::GameInfo &nds_info, std::span<cha
     path_remove_extension(tmd_name); // "game"
     strlcat(tmd_name, ".tmd", sizeof(tmd_name)); // "game.tmd"
 
-    const optional<string> &system_subdir = retro::get_system_subdirectory();
+    optional<string_view> system_subdir = retro::get_system_subdirectory();
     if (!system_subdir) {
         throw emulator_exception("System directory not set");
     }
 
     char tmd_dir[PATH_MAX] {};
-    fill_pathname_join_special(tmd_dir, system_subdir->c_str(), TMD_DIR_NAME, sizeof(tmd_dir));
+    fill_pathname_join_special(tmd_dir, system_subdir->data(), TMD_DIR_NAME, sizeof(tmd_dir));
     // "/libretro/system/melonDS DS/tmd"
 
     memset(buffer.data(), 0, buffer.size());
@@ -765,7 +765,7 @@ bool MelonDsDs::GetDsiwareSaveDataHostPath(std::span<char> buffer, const retro::
         return false;
     }
 
-    const optional<string> &save_directory = retro::get_save_directory();
+    optional<string_view> save_directory = retro::get_save_directory();
     if (!save_directory) {
         retro::error("Save directory not available, cannot import DSiWare save data");
         return false;
@@ -790,7 +790,7 @@ bool MelonDsDs::GetDsiwareSaveDataHostPath(std::span<char> buffer, const retro::
             return false;
     }
 
-    fill_pathname_join_special(buffer.data(), save_directory->c_str(), sav_name, buffer.size());
+    fill_pathname_join_special(buffer.data(), save_directory->data(), sav_name, buffer.size());
     // "/path/to/saves/game.public.sav"
     return true;
 }
@@ -1049,8 +1049,8 @@ static std::string MelonDsDs::GetUsername(UsernameMode mode) noexcept {
         case UsernameMode::Firmware:
             return values::firmware::FIRMWARE_USERNAME;
         case UsernameMode::Guess: {
-            if (optional<string> frontendGuess = retro::username(); frontendGuess && !frontendGuess->empty()) {
-                return *frontendGuess;
+            if (optional<string_view> frontendGuess = retro::username(); frontendGuess && !frontendGuess->empty()) {
+                return string(*frontendGuess);
             }
             else if (const char* user = getenv("USER"); !string_is_empty(user)) {
                 strncpy(result, user, DS_NAME_LIMIT);

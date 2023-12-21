@@ -19,6 +19,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <libretro.h>
 #undef isnan
 #include <fmt/format.h>
@@ -93,7 +94,7 @@ namespace retro {
     std::optional<retro_language> get_language() noexcept;
     bool set_geometry(const retro_game_geometry& geometry) noexcept;
     bool set_system_av_info(const retro_system_av_info& av_info) noexcept;
-    std::optional<std::string> username() noexcept;
+    std::optional<std::string_view> username() noexcept;
     void set_option_visible(const char* key, bool visible) noexcept;
     bool supports_power_status() noexcept;
     std::optional<retro_device_power> get_device_power() noexcept;
@@ -108,11 +109,15 @@ namespace retro {
 
     std::optional<retro_microphone_interface> get_microphone_interface() noexcept;
 
-    const std::optional<std::string>& get_save_directory();
-    const std::optional<std::string>& get_system_directory();
-    std::optional<std::string> get_system_path(const std::string_view& name) noexcept;
-    const std::optional<std::string>& get_system_subdirectory();
-    std::optional<std::string> get_system_subdir_path(const std::string_view& name) noexcept;
+    std::optional<std::string_view> get_save_directory() noexcept;
+    std::optional<std::string_view> get_save_subdirectory() noexcept;
+    std::optional<std::string> get_save_path(std::string_view name) noexcept;
+    std::optional<std::string> get_save_subdir_path(std::string_view name) noexcept;
+
+    std::optional<std::string_view> get_system_directory() noexcept;
+    std::optional<std::string_view> get_system_subdirectory() noexcept;
+    std::optional<std::string> get_system_path(std::string_view name) noexcept;
+    std::optional<std::string> get_system_subdir_path(std::string_view name) noexcept;
 
     namespace env {
         void init() noexcept;

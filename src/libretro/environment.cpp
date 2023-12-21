@@ -31,6 +31,7 @@
 #include <compat/strl.h>
 #include <retro_dirent.h>
 #include <retro_assert.h>
+#include <string/stdstring.h>
 
 #include "microphone.hpp"
 #include "info.hpp"
@@ -59,13 +60,24 @@ namespace retro {
     static bool isShuttingDown = false;
 
     static unsigned _message_interface_version = UINT_MAX;
+    constexpr size_t PATH_LENGTH = PATH_MAX + 1;
+    constexpr string_view SUBDIR_SUFFIX = "/" MELONDSDS_NAME;
+    // These paths are cached so that the save directory won't change during a session.
+    // They're stored here as char arrays so that we don't have global heap memory.
+    static char _saveDir[PATH_LENGTH] {};
+    static size_t _saveDirLength = 0;
 
-    // Cached so that the save directory won't change during a session
-    static optional<string> _save_directory;
-    static optional<string> _system_directory;
-    static optional<string> _system_subdir;
+    static char _saveSubdir[PATH_LENGTH] {};
+    static size_t _saveSubdirLength = 0;
+
+    static char _sysDir[PATH_LENGTH] {};
+    static size_t _sysDirLength = 0;
+
+    static char _sysSubdir[PATH_LENGTH] {};
+    static size_t _sysSubdirLength = 0;
 
     static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
+    static void NormalizePath(std::span<char> buffer, size_t& pathLength) noexcept;
 }
 
 bool retro::environment(unsigned cmd, void* data) noexcept {
@@ -502,7 +514,7 @@ bool retro::set_system_av_info(const retro_system_av_info& av_info) noexcept {
     return retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, (void*)&av_info);
 }
 
-optional<string> retro::username() noexcept {
+optional<string_view> retro::username() noexcept {
     ZoneScopedN(TracyFunction);
     const char* username = nullptr;
     if (!environment(RETRO_ENVIRONMENT_GET_USERNAME, &username)) {
@@ -540,15 +552,32 @@ optional<retro_device_power> retro::get_device_power() noexcept
     return power;
 }
 
-const optional<string>& retro::get_save_directory() {
-    return _save_directory;
+optional<string_view> retro::get_save_directory() noexcept {
+    return _saveDirLength ? std::make_optional<string_view>(_saveDir, _saveDirLength) : nullopt;
 }
 
-const optional<string>& retro::get_system_directory() {
-    return _system_directory;
+optional<string_view> retro::get_save_subdirectory() noexcept {
+    return _saveSubdirLength ? std::make_optional<string_view>(_saveSubdir, _saveSubdirLength) : nullopt;
 }
 
-optional<string> retro::get_system_subdir_path(const std::string_view& name) noexcept {
+optional<string> retro::get_save_subdir_path(std::string_view name) noexcept {
+    ZoneScopedN(TracyFunction);
+    char path[PATH_MAX];
+    size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
+    pathname_make_slashes_portable(path);
+
+    return get_save_path(path);
+}
+
+optional<string_view> retro::get_system_directory() noexcept {
+    return _sysDirLength ? std::make_optional<string_view>(_sysDir, _sysDirLength) : nullopt;
+}
+
+optional<string_view> retro::get_system_subdirectory() noexcept {
+    return _sysSubdirLength ? std::make_optional<string_view>(_sysSubdir, _sysSubdirLength) : nullopt;
+}
+
+optional<string> retro::get_system_subdir_path(std::string_view name) noexcept {
     ZoneScopedN(TracyFunction);
     char path[PATH_MAX];
     size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
@@ -557,16 +586,16 @@ optional<string> retro::get_system_subdir_path(const std::string_view& name) noe
     return get_system_path(path);
 }
 
-optional<string> retro::get_system_path(const string_view& name) noexcept {
+optional<string> retro::get_save_path(string_view name) noexcept {
     ZoneScopedN(TracyFunction);
-    optional<string> sysdir = retro::get_system_directory();
-    if (!sysdir) {
-        // If no system directory is available, or the name is empty or not null-terminated...
+    optional<string_view> savedir = retro::get_save_directory();
+    if (!savedir) {
+        // If no save directory is available...
         return nullopt;
     }
 
     char fullpath[PATH_MAX];
-    size_t pathLength = fill_pathname_join_special(fullpath, sysdir->c_str(), name.data(), sizeof(fullpath));
+    size_t pathLength = fill_pathname_join_special(fullpath, savedir->data(), name.data(), sizeof(fullpath));
 
     if (pathLength >= sizeof(fullpath)) {
         // If the path is too long...
@@ -577,8 +606,24 @@ optional<string> retro::get_system_path(const string_view& name) noexcept {
     return string(fullpath);
 }
 
-const optional<string>& retro::get_system_subdirectory() {
-    return _system_subdir;
+optional<string> retro::get_system_path(string_view name) noexcept {
+    ZoneScopedN(TracyFunction);
+    optional<string_view> sysdir = retro::get_system_directory();
+    if (!sysdir) {
+        // If no system directory is available, or the name is empty or not null-terminated...
+        return nullopt;
+    }
+
+    char fullpath[PATH_MAX];
+    size_t pathLength = fill_pathname_join_special(fullpath, sysdir->data(), name.data(), sizeof(fullpath));
+
+    if (pathLength >= sizeof(fullpath)) {
+        // If the path is too long...
+        return nullopt;
+    }
+
+    pathname_make_slashes_portable(fullpath);
+    return string(fullpath);
 }
 
 void retro::env::init() noexcept {
@@ -596,9 +641,10 @@ void retro::env::init() noexcept {
 
 void retro::env::deinit() noexcept {
     ZoneScopedN(TracyFunction);
-    _save_directory = nullopt;
-    _system_directory = nullopt;
-    _system_subdir = nullopt;
+    _saveDirLength = 0;
+    _saveSubdirLength = 0;
+    _sysDirLength = 0;
+    _sysSubdirLength = 0;
     _environment = nullptr;
     _log = nullptr;
     _supports_bitmasks = false;
@@ -613,7 +659,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     // Do NOT call Tracy code here, it hasn't been initialized yet.
     //ZoneScopedN("retro_set_environment");
     retro_assert(cb != nullptr);
-    using retro::environment;
+    using namespace retro;
     retro::_environment = cb;
 
     // TODO: Handle potential errors with each environment call below
@@ -639,36 +685,53 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::_message_interface_version = UINT_MAX;
     }
 
-    const char* save_dir = nullptr;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
-        retro::info("Save directory: \"{}\"", save_dir);
-        retro::_save_directory = save_dir;
-    }
+    if (const char* save_dir = nullptr; environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
+        // First copy the returned path into the buffer we'll use...
+        strlcpy(_saveDir, save_dir, sizeof(_saveDir));
+        NormalizePath(_saveDir, _saveDirLength);
 
-    const char* system_dir = nullptr;
-    if (retro::environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
-        char melon_dir[PATH_MAX];
-        strlcpy(melon_dir, system_dir, sizeof(melon_dir));
-        pathname_make_slashes_portable(melon_dir);
-        size_t basePathLength = strnlen(melon_dir, sizeof(melon_dir));
-        if (basePathLength > 0 && melon_dir[basePathLength - 1] == '/')
-            melon_dir[basePathLength - 1] = '\0';
-        // TODO: Normalize the save directory path the same way we're doing so here
-        retro::info("System directory: \"{}\"", melon_dir);
-        retro::_system_directory = melon_dir;
+        if (string_ends_with_size(_saveDir, SUBDIR_SUFFIX.data(), _saveDirLength, SUBDIR_SUFFIX.size())) {
+            // If the frontend-provided save directory already ends with "/melonDS DS"...
 
-        memset(melon_dir, 0, sizeof(melon_dir));
-        strlcpy(melon_dir, system_dir, sizeof(melon_dir));
-
-        fill_pathname_join_special(melon_dir, system_dir, MELONDSDS_NAME, sizeof(melon_dir));
-        pathname_make_slashes_portable(melon_dir);
-        retro::_system_subdir = melon_dir;
-
-        if (path_mkdir(melon_dir)) {
-            retro::info("melonDS DS system directory: \"{}\"", melon_dir);
+            memcpy(_saveSubdir, _saveDir, _saveDirLength);
+            _saveSubdirLength = _saveDirLength;
         }
         else {
-            retro::error("Failed to create melonDS DS system subdirectory at \"{}\"", melon_dir);
+            _saveSubdirLength = fill_pathname_join_special(_saveSubdir, save_dir, MELONDSDS_NAME, sizeof(_saveDir));
+            pathname_make_slashes_portable(_saveSubdir);
+        }
+
+        retro::info("Save directory: \"{}\"", _saveDir);
+        if (path_mkdir(_saveSubdir)) {
+            retro::info("melonDS DS save subdirectory: \"{}\"", _saveSubdir);
+        }
+        else {
+            retro::error("Failed to create melonDS DS save subdirectory at \"{}\"", _saveSubdir);
+        }
+    }
+
+    if (const char* system_dir = nullptr; environment(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir) {
+        // First copy the returned path into the buffer we'll use...
+        strlcpy(_sysDir, system_dir, sizeof(_sysDir));
+        NormalizePath(_sysDir, _sysDirLength);
+
+        if (string_ends_with_size(_sysDir, SUBDIR_SUFFIX.data(), _sysDirLength, SUBDIR_SUFFIX.size())) {
+            // If the frontend-provided system directory already ends with "/melonDS DS"...
+
+            memcpy(_sysSubdir, _sysDir, _sysDirLength);
+            _sysSubdirLength = _sysDirLength;
+        }
+        else {
+            _sysSubdirLength = fill_pathname_join_special(_sysSubdir, system_dir, MELONDSDS_NAME, sizeof(_sysDir));
+            pathname_make_slashes_portable(_sysSubdir);
+        }
+
+        retro::info("System directory: \"{}\"", _sysDir);
+        if (path_mkdir(_sysSubdir)) {
+            retro::info("melonDS DS system subdirectory: \"{}\"", _sysSubdir);
+        }
+        else {
+            retro::error("Failed to create melonDS DS system subdirectory at \"{}\"", _sysSubdir);
         }
     }
 
@@ -691,6 +754,19 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     yes = true;
     retro::_supportsNoGameMode |= environment(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &yes);
+}
+
+void retro::NormalizePath(std::span<char> buffer, size_t& pathLength) noexcept {
+    // Ensure all slashes are forward...
+    pathname_make_slashes_portable(buffer.data());
+
+    // Then if the path ends in a slash, strip it.
+    pathLength = strnlen(buffer.data(), buffer.size());
+    if (pathLength > 0 && buffer[pathLength - 1] == '/') {
+        // If this path is non-empty and ends with a slash...
+        buffer[pathLength - 1] = '\0';
+        pathLength--;
+    }
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {

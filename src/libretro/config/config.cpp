@@ -290,7 +290,7 @@ static void MelonDsDs::config::ParseHomebrewSaveOptions(CoreConfig& config) noex
     ZoneScopedN(TracyFunction);
     using retro::get_variable;
 
-    optional<string> save_directory = retro::get_save_directory();
+    optional<string_view> save_directory = retro::get_save_subdirectory();
     if (!save_directory) {
         config.SetDldiEnable(false);
         retro::error("Failed to get save directory; disabling homebrew SD card");
@@ -364,13 +364,13 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     }
 
     {
-        const optional<string> save_directory = retro::get_save_directory();
+        optional<string_view> save_directory = retro::get_save_directory();
         char path[PATH_MAX];
 
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_DIR_NAME, sizeof(path));
+        fill_pathname_join_special(path, save_directory->data(), DEFAULT_DSI_SDCARD_DIR_NAME, sizeof(path));
         config.SetDsiSdFolderPath(string_view(path));
 
-        fill_pathname_join_special(path, save_directory->c_str(), DEFAULT_DSI_SDCARD_IMAGE_NAME, sizeof(path));
+        fill_pathname_join_special(path, save_directory->data(), DEFAULT_DSI_SDCARD_IMAGE_NAME, sizeof(path));
         config.SetDsiSdImagePath(string_view(path));
 
         if (path_is_valid(config.DsiSdImagePath().data())) {
@@ -681,7 +681,7 @@ static const char* SelectDefaultFirmware(const vector<FirmwareEntry>& images, Me
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs;
 
-    const optional<string>& sysdir = retro::get_system_directory();
+    optional<string_view> sysdir = retro::get_system_directory();
 
     const auto& best = std::max_element(images.begin(), images.end(), [type](const FirmwareEntry& a, const FirmwareEntry& b) {
         bool aMatches = ConsoleTypeMatches(a.header, type);
@@ -764,11 +764,11 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
     array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
     array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
 
-    optional<string> subdir = retro::get_system_subdirectory();
+    optional<string_view> subdir = retro::get_system_subdirectory();
 
     vector<string> dsiNandPaths;
     vector<FirmwareEntry> firmware;
-    const optional<string>& sysdir = retro::get_system_directory();
+    optional<string_view> sysdir = retro::get_system_directory();
 
     if (subdir) {
         ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files");
@@ -777,9 +777,9 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
         Firmware::FirmwareHeader& header = *reinterpret_cast<Firmware::FirmwareHeader*>(headerBytes);
         memset(headerBytes, 0, sizeof(headerBytes));
         array paths = {*sysdir, *subdir};
-        for (const string& path: paths) {
+        for (const string_view& path: paths) {
             ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths");
-            for (const retro::dirent& d : retro::readdir(path, true)) {
+            for (const retro::dirent& d : retro::readdir(string(path), true)) {
                 ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths::dirent");
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
