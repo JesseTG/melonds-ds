@@ -131,7 +131,7 @@ Platform::FileHandle *Platform::OpenLocalFile(const std::string& path, FileMode 
     pathname_make_slashes_portable(fullpath);
 
     if (pathLength >= sizeof(fullpath)) {
-        Log(LogLevel::Warn, "Path \"%s\" is too long to be joined with system directory \"%s\"", path.c_str(), sysdir.c_str());
+        retro::warn("Path \"{}\" is too long to be joined with system directory \"{}\"", path, sysdir);
     }
 
     return OpenFile(fullpath, mode);
