@@ -362,10 +362,10 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
 
     {
         optional<string> imagePath = retro::get_save_subdir_path(DEFAULT_DSI_SDCARD_IMAGE_NAME);
-        config.SetDldiImagePath(std::move(*imagePath));
+        config.SetDsiSdImagePath(std::move(*imagePath));
 
         optional<string> syncDir = retro::get_save_subdir_path(DEFAULT_DSI_SDCARD_DIR_NAME);
-        config.SetDldiFolderPath(std::move(*syncDir));
+        config.SetDsiSdFolderPath(std::move(*syncDir));
 
 
         if (path_is_valid(config.DsiSdImagePath().data())) {
