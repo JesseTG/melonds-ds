@@ -562,11 +562,21 @@ optional<string_view> retro::get_save_subdirectory() noexcept {
 
 optional<string> retro::get_save_subdir_path(std::string_view name) noexcept {
     ZoneScopedN(TracyFunction);
-    char path[PATH_MAX];
-    size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
+
+    optional<string_view> subdir = get_save_subdirectory();
+    if (!subdir)
+        return nullopt;
+
+    if (string_ends_with_size(subdir->data(), SUBDIR_SUFFIX.data(), subdir->size(), SUBDIR_SUFFIX.size())) {
+        // If the main save directory already ends in "melonDS DS"...
+        return get_save_path(name); // No need to append it
+    }
+
+    char path[PATH_MAX] {};
+    size_t pathLength = fill_pathname_join_special(path, MELONDSDS_NAME, name.data(), sizeof(path));
     pathname_make_slashes_portable(path);
 
-    return get_save_path(path);
+    return get_save_path(string_view(path, pathLength));
 }
 
 optional<string_view> retro::get_system_directory() noexcept {
@@ -579,11 +589,20 @@ optional<string_view> retro::get_system_subdirectory() noexcept {
 
 optional<string> retro::get_system_subdir_path(std::string_view name) noexcept {
     ZoneScopedN(TracyFunction);
-    char path[PATH_MAX];
-    size_t pathLength = fill_pathname_join_special(path, "melonDS DS", name.data(), sizeof(path));
+    optional<string_view> subdir = get_system_subdirectory();
+    if (!subdir)
+        return nullopt;
+
+    if (string_ends_with_size(subdir->data(), SUBDIR_SUFFIX.data(), subdir->size(), SUBDIR_SUFFIX.size())) {
+        // If the main system directory already ends in "melonDS DS"...
+        return get_system_path(name); // No need to append it
+    }
+
+    char path[PATH_MAX] {};
+    size_t pathLength = fill_pathname_join_special(path, MELONDSDS_NAME, name.data(), sizeof(path));
     pathname_make_slashes_portable(path);
 
-    return get_system_path(path);
+    return get_system_path(string_view(path, pathLength));
 }
 
 optional<string> retro::get_save_path(string_view name) noexcept {
