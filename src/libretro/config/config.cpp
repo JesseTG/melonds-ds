@@ -90,7 +90,7 @@ using std::vector;
 using LAN_PCap::AdapterData;
 
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
-constexpr uint64_t DEFAULT_SDCARD_SIZE = 4096 * 1024 * 1024; // 4GB
+constexpr uint64_t DEFAULT_SDCARD_SIZE = 4096ull * 1024ull * 1024ull; // 4GB
 const char* const DEFAULT_HOMEBREW_SDCARD_IMAGE_NAME = "dldi_sd_card.bin";
 const char* const DEFAULT_HOMEBREW_SDCARD_DIR_NAME = "dldi_sd_card";
 const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
