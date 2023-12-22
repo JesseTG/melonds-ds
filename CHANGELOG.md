@@ -7,6 +7,10 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
+### Changed
+
+- Updated melonDS to commit bda3d55.
+
 ### Fixed
 
 - Fixed homebrew ROMs being rejected due to an invalid logo checksum.
