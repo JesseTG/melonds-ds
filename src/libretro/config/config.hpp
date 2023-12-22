@@ -235,8 +235,8 @@ namespace MelonDsDs {
         void SetDsiSdImagePath(string_view path) noexcept { _dsiSdImagePath = path; }
         void SetDsiSdImagePath(string&& path) noexcept { _dsiSdImagePath = std::move(path); }
 
-        [[nodiscard]] unsigned DsiSdImageSize() const noexcept { return _dsiSdImageSize; }
-        void SetDsiSdImageSize(unsigned size) noexcept { _dsiSdImageSize = size; }
+        [[nodiscard]] uint64_t DsiSdImageSize() const noexcept { return _dsiSdImageSize; }
+        void SetDsiSdImageSize(uint64_t size) noexcept { _dsiSdImageSize = size; }
         [[nodiscard]] optional<melonDS::FATStorageArgs> DsiSdCardArgs() const noexcept {
             return _dsiSdEnable ? std::make_optional(melonDS::FATStorageArgs {
                 .Filename = _dsiSdImagePath,
@@ -393,7 +393,7 @@ namespace MelonDsDs {
         string _dsiSdFolderPath;
         bool _dsiSdReadOnly;
         string _dsiSdImagePath;
-        unsigned _dsiSdImageSize;
+        uint64_t _dsiSdImageSize;
         unsigned _flushDelay = 120; // TODO: Make configurable
         unsigned _numberOfScreenLayouts = 1;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _screenLayouts;
