@@ -206,8 +206,8 @@ namespace MelonDsDs {
         void SetDldiImagePath(string&& path) noexcept { _dldiImagePath = std::move(path); }
         void SetDldiImagePath(const char* path) noexcept { _dldiImagePath = path ? path : "";}
 
-        [[nodiscard]] unsigned DldiImageSize() const noexcept { return _dldiImageSize; }
-        void SetDldiImageSize(unsigned size) noexcept { _dldiImageSize = size; }
+        [[nodiscard]] uint64_t DldiImageSize() const noexcept { return _dldiImageSize; }
+        void SetDldiImageSize(uint64_t size) noexcept { _dldiImageSize = size; }
 
         [[nodiscard]] optional<melonDS::FATStorageArgs> DldiSdCardArgs() const noexcept {
             return _dldiEnable ? std::make_optional(melonDS::FATStorageArgs {
@@ -387,7 +387,7 @@ namespace MelonDsDs {
         string _dldiFolderPath;
         bool _dldiReadOnly;
         string _dldiImagePath;
-        unsigned _dldiImageSize;
+        uint64_t _dldiImageSize;
         bool _dsiSdEnable;
         bool _dsiSdFolderSync;
         string _dsiSdFolderPath;
