@@ -19,6 +19,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Fixed the core crashing when the OpenGL context is lost
   while the OpenGL renderer is active.
 - Fixed an issue where SD card images would be created with the wrong size.
+- Fixed a crash that occurred in the in-core error screen.
 
 ## [0.7.26] - 2023-12-19
 

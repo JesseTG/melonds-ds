@@ -104,7 +104,8 @@ void MelonDsDs::SoftwareRenderState::Render(
     const ScreenLayoutData& screenLayout
 ) noexcept {
     ZoneScopedN(TracyFunction);
-    buffer.Clear();
+
+    buffer.SetSize(screenLayout.BufferSize());
     CombineScreens(error.TopScreen(), error.BottomScreen(), screenLayout);
 
     retro::video_refresh(buffer[0], buffer.Width(), buffer.Height(), buffer.Stride());
