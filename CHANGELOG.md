@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project roughly adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Updated melonDS to commit cbd65a1.
+
+### Fixed
+
+- Fixed a memory leak involving the software renderer.
+
 ## [0.7.27] - 2023-12-26
 
 ### Changed
