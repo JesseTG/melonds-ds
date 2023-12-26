@@ -529,7 +529,7 @@ void MelonDsDs::CoreState::UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) 
 }
 
 void MelonDsDs::CoreState::ExportDsiwareSaveData(NANDMount& nand, const retro::GameInfo& nds_info, const melonDS::NDSHeader& header, int type) noexcept {
-    ZoneScopedN(ZoneScopedN());
+    ZoneScopedN(TracyFunction);
 
     if (type == TitleData_PublicSav && header.DSiPublicSavSize == 0) {
         // If there's no public save data...

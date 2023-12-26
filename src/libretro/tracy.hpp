@@ -122,7 +122,12 @@
 
 #define TracyFiberEnter(x)
 #define TracyFiberLeave
+#endif
 
+#if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES))
+#include "PlatformOGLPrivate.h"
+#include <tracy/TracyOpenGL.hpp>
+#else
 #define TracyGpuContext
 #define TracyGpuContextName(x,y)
 #define TracyGpuNamedZone(x,y,z)

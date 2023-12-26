@@ -19,6 +19,7 @@
 #include <retro_assert.h>
 
 #include <NDS.h>
+#include <gfx/scaler/pixconv.h>
 
 #include "config/config.hpp"
 #include "config/types.hpp"
@@ -85,7 +86,7 @@ void MelonDsDs::SoftwareRenderState::Render(
     if (tracy::ProfilerAvailable()) {
         // If Tracy is connected...
         ZoneScopedN("MelonDsDs::render::RenderSoftware::SendFrameToTracy");
-        std::unique_ptr<u8 []> frame = std::make_unique<u8[]>(buffer.Width() * buffer.Height() * 4);
+        std::unique_ptr<uint8_t[]> frame = std::make_unique<uint8_t[]>(buffer.Width() * buffer.Height() * 4);
         {
             ZoneScopedN("conv_argb8888_abgr8888");
             conv_argb8888_abgr8888(frame.get(), buffer[0], buffer.Width(), buffer.Height(), buffer.Stride(), buffer.Stride());

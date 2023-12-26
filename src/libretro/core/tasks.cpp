@@ -212,8 +212,6 @@ retro::task::TaskSpec MelonDsDs::CoreState::FlushGbaSramTask() noexcept {
     ZoneScopedN(TracyFunction);
     return {
         [this](retro::task::TaskHandle &task) noexcept {
-            ZoneScopedN(TracyFunction "::Handler");
-
             if (!_gbaSaveInfo) {
                 task.Finish();
                 return;
@@ -228,8 +226,6 @@ retro::task::TaskSpec MelonDsDs::CoreState::FlushGbaSramTask() noexcept {
         },
         nullptr,
         [this](retro::task::TaskHandle& task) noexcept {
-            ZoneScopedN(TracyFunction "::Cleanup");
-
             if (_gbaSaveInfo) {
                 FlushGbaSram(*_gbaSaveInfo);
                 _timeToGbaFlush = nullopt;
@@ -283,8 +279,6 @@ retro::task::TaskSpec MelonDsDs::CoreState::FlushFirmwareTask(string_view firmwa
 
     return retro::task::TaskSpec(
         [this, firmwarePath=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle&) noexcept {
-            ZoneScopedN(TracyFunction "::Handler");
-
             if (_timeToFirmwareFlush != nullopt && (*_timeToFirmwareFlush)-- <= 0) {
                 // If it's time to flush the firmware...
                 retro::debug("Firmware flush timer expired, flushing data now");
@@ -294,7 +288,6 @@ retro::task::TaskSpec MelonDsDs::CoreState::FlushFirmwareTask(string_view firmwa
         },
         nullptr,
         [this, path=*firmwarePath, wfcSettingsPath=*wfcSettingsPath](retro::task::TaskHandle&) noexcept {
-            ZoneScopedN(TracyFunction "::Cleanup");
             FlushFirmware(path, wfcSettingsPath);
             _timeToFirmwareFlush = nullopt;
         },

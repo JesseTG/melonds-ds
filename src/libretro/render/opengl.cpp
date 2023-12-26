@@ -31,6 +31,7 @@
 #include "../core/core.hpp"
 #include "exceptions.hpp"
 #include "screenlayout.hpp"
+#include "tracy.hpp"
 
 using glm::ivec2;
 using glm::vec2;
