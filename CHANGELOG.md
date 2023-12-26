@@ -9,7 +9,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ### Changed
 
-- Updated melonDS to commit 6c746f2.
+- Updated melonDS to commit d55a384.
 
 ### Fixed
 
