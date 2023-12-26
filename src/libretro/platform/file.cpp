@@ -245,7 +245,7 @@ u64 Platform::FileRead(void* data, u64 size, u64 count, FileHandle* file)
         retro::warn("Read {} bytes from file \"{}\", expected {}", bytesRead, filestream_get_path(file->file), size * count);
     }
 
-    return bytesRead;
+    return bytesRead / size;
 }
 
 bool Platform::FileFlush(FileHandle* file)
@@ -263,9 +263,9 @@ u64 Platform::FileWrite(const void* data, u64 size, u64 count, FileHandle* file)
     if (!file || !data)
         return 0;
 
-    u64 result = filestream_write(file->file, data, size * count);
+    u64 bytesWritten = filestream_write(file->file, data, size * count);
 
-    return result;
+    return bytesWritten / size;
 }
 
 u64 Platform::FileWriteFormatted(FileHandle* file, const char* fmt, ...)

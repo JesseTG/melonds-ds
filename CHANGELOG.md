@@ -9,11 +9,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ### Changed
 
-- Updated melonDS to commit cbd65a1.
+- Updated melonDS to commit c926f79.
 
 ### Fixed
 
 - Fixed a memory leak involving the software renderer.
+- Fixed homebrew ROMs not saving data to the SD card.
 
 ## [0.7.27] - 2023-12-26
 
