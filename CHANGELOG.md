@@ -20,6 +20,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
   while the OpenGL renderer is active.
 - Fixed an issue where SD card images would be created with the wrong size.
 - Fixed a crash that occurred in the in-core error screen.
+- Fixed system files not being found inside a subdirectory named "melonDS DS".
 
 ## [0.7.26] - 2023-12-19
 

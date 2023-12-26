@@ -563,11 +563,11 @@ optional<string_view> retro::get_save_subdirectory() noexcept {
 optional<string> retro::get_save_subdir_path(std::string_view name) noexcept {
     ZoneScopedN(TracyFunction);
 
-    optional<string_view> subdir = get_save_subdirectory();
-    if (!subdir)
+    optional<string_view> savedir = get_save_directory();
+    if (!savedir)
         return nullopt;
 
-    if (string_ends_with_size(subdir->data(), SUBDIR_SUFFIX.data(), subdir->size(), SUBDIR_SUFFIX.size())) {
+    if (string_ends_with_size(savedir->data(), SUBDIR_SUFFIX.data(), savedir->size(), SUBDIR_SUFFIX.size())) {
         // If the main save directory already ends in "melonDS DS"...
         return get_save_path(name); // No need to append it
     }
@@ -589,11 +589,11 @@ optional<string_view> retro::get_system_subdirectory() noexcept {
 
 optional<string> retro::get_system_subdir_path(std::string_view name) noexcept {
     ZoneScopedN(TracyFunction);
-    optional<string_view> subdir = get_system_subdirectory();
-    if (!subdir)
+    optional<string_view> sysdir = get_system_directory();
+    if (!sysdir)
         return nullopt;
 
-    if (string_ends_with_size(subdir->data(), SUBDIR_SUFFIX.data(), subdir->size(), SUBDIR_SUFFIX.size())) {
+    if (string_ends_with_size(sysdir->data(), SUBDIR_SUFFIX.data(), sysdir->size(), SUBDIR_SUFFIX.size())) {
         // If the main system directory already ends in "melonDS DS"...
         return get_system_path(name); // No need to append it
     }
