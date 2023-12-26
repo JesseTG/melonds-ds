@@ -369,7 +369,7 @@ static void MelonDsDs::ApplyCommonArgs(const CoreConfig& config, melonDS::NDSArg
             .FastMemory = config.FastMemory(),
 #   else
             .FastMemory = false,
-#endif
+#   endif
         };
     }
     else {
