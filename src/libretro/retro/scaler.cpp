@@ -86,11 +86,8 @@ retro::Scaler::Scaler(scaler_pix_fmt in_fmt, scaler_pix_fmt out_fmt, unsigned wi
 }
 
 retro::Scaler::~Scaler() noexcept {
-    if (scaler.output.frame != nullptr) {
-        // If the scaler object hasn't already been cleaned up...
-        ZoneScopedN("scaler_ctx_gen_reset");
-        scaler_ctx_gen_reset(&scaler);
-    }
+    ZoneScopedN("scaler_ctx_gen_reset");
+    scaler_ctx_gen_reset(&scaler);
 }
 
 retro::Scaler::Scaler(Scaler&& other) noexcept {
