@@ -115,7 +115,7 @@ namespace MelonDsDs::config::definitions {
             },
             MelonDsDs::config::values::ENABLED
         },
-#ifdef HAVE_JIT_FASTMEM
+#   ifdef HAVE_JIT_FASTMEM
         // Fastmem uses SIGSEGV for reasons I don't exactly understand,
         // but I do know that it makes using debuggers a pain
         // due to the constant breaks at each SIGSEGV.
@@ -124,10 +124,10 @@ namespace MelonDsDs::config::definitions {
             config::cpu::JIT_FAST_MEMORY,
             "Fast Memory",
             nullptr,
-#ifndef NDEBUG
+#       ifndef NDEBUG
             "Disable this if running melonDS DS through a debugger, "
             "otherwise the constant (but expected) SIGSEGVs will get annoying. "
-            #endif
+#       endif
             "Takes effect at next restart. "
             "If unsure, leave enabled.",
             nullptr,
@@ -137,13 +137,13 @@ namespace MelonDsDs::config::definitions {
                 {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-#ifdef NDEBUG
+#       ifdef NDEBUG
             MelonDsDs::config::values::ENABLED
-#else
+#       else
             MelonDsDs::config::values::DISABLED
-#endif
+#       endif
         },
-#endif
+#   endif
 #endif
     };
 }
