@@ -24,7 +24,7 @@ runs:
       # Skip this step on act due to https://github.com/nektos/act/issues/1849
     - name: Install Dependencies (Linux x86_64/Android)
       if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
-      uses: awalsh128/cache-apt-pkgs-action@latest
+      uses: awalsh128/cache-apt-pkgs-action@6460a33c29e99ddc3c9f61ebd04653105b260906
       with:
         packages: cmake ninja-build libepoxy-dev ccache
         version: 1.1
@@ -42,7 +42,7 @@ runs:
 
     - name: Install Dependencies (Linux aarch64)
       if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
-      uses: awalsh128/cache-apt-pkgs-action@dev
+      uses: awalsh128/cache-apt-pkgs-action@6460a33c29e99ddc3c9f61ebd04653105b260906
       with:
         packages: cmake ninja-build libepoxy-dev:arm64 ccache
         version: 1.1
