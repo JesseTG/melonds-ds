@@ -46,10 +46,10 @@ jobs:
       test-suite: true
 
   linux-aarch64:
-    name: Linux (aarch64)
+    name: Linux (arm64)
     uses: ./.github/workflows/build.yaml
     with:
-      archive-name: melondsds_libretro-linux-aarch64
+      archive-name: melondsds_libretro-linux-arm64
       target: linux-aarch64
       runs-on: ubuntu-latest
       lib-ext: so
