@@ -336,6 +336,23 @@ cmake --build build # Build the project
 
 However, some platforms or features need you to add some extra flags to the first `cmake` command:
 
+### macOS
+
+If building for the macOS architecture that your device uses,
+no extra flags are required.
+To produce a build for a specific arhitecture,
+pass `-DCMAKE_OSX_ARCHITECTURES:STRING=$ARCH` to the initial `cmake` command,
+where `$ARCH` is one of the following:
+
+- `x86_64` for x86_64 builds.
+- `arm64` for Apple Silicon builds.
+- `x86_64;arm64` for universal builds.
+
+> [!WARNING]
+> Universal builds of melonDS DS are not supported,
+> as [there is a history](https://github.com/JesseTG/melonds-ds/issues/131)
+> of them not working reliably.
+
 ### Android
 
 You'll need to add the following flags to build for Android.
