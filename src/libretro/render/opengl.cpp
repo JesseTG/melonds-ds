@@ -207,7 +207,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
     // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
     // that recreates all resources)
-    nds.GPU.GPU3D.SetCurrentRenderer(nullptr);
+    nds.GPU.GPU3D.SetCurrentRenderer(std::make_unique<melonDS::SoftRenderer>());
     auto renderer = melonDS::GLRenderer::New();
     if (!renderer) {
         throw opengl_not_initialized_exception();
