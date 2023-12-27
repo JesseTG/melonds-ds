@@ -15,6 +15,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Fixed a memory leak involving the software renderer.
 - Fixed homebrew ROMs not saving data to the SD card.
+- Fixed incorrect information in some core option descriptions.
 
 ## [0.7.27] - 2023-12-26
 

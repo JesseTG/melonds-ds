@@ -38,7 +38,7 @@ namespace MelonDsDs::config::definitions {
         retro_core_option_v2_category {
             MelonDsDs::config::audio::CATEGORY,
             "Audio",
-            "Change audio settings."
+            "Settings for audio output and microphone input."
         },
         retro_core_option_v2_category {
             MelonDsDs::config::screen::CATEGORY,

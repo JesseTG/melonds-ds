@@ -34,6 +34,7 @@ namespace MelonDsDs::config::definitions {
             "\n"
             "- Native BIOS/firmware/NAND files must be provided, including for the regular DS.\n"
             "- Some features (such as savestates) are not available in DSi mode.\n"
+            "- Direct boot mode cannot be used for DSiWare.\n"
             "\n"
             "See the DSi-specific options in this category for more information. "
             "If unsure, set to DS mode unless playing a DSi game. "
@@ -53,7 +54,7 @@ namespace MelonDsDs::config::definitions {
             nullptr,
             "Determines whether melonDS uses native BIOS/firmware dumps "
             "or its own built-in replacements. "
-            "Only applies to DS mode.\n"
+            "Only applies to DS mode, as DSi mode requires native BIOS and firmware dumps.\n"
             "\n"
             "Native mode uses BIOS and firmware files from a real DS. "
             "Place your dumps of these in the system directory or its \"melonDS DS\" subdirectory "
@@ -66,9 +67,8 @@ namespace MelonDsDs::config::definitions {
             "\n"
             "Falls back to Built-In if any BIOS/firmware file isn't found.\n"
             "\n"
-            "Built-In mode uses melonDS's built-in BIOS and firmware. "
-            "Suitable for most games, "
-            "but some features (notably GBA connectivity and the DS menu) are not available. "
+            "Built-In mode uses melonDS's built-in BIOS and firmware, "
+            "and it suitable for most games. "
             "Also used as a fallback from Native mode if any required file isn't found.\n"
             "\n"
             "Changes take effect at next restart.",

@@ -51,7 +51,7 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         "Set the behavior of the Microphone button, "
         "even if Microphone Input Mode is set to Blow or Noise. "
-        "The microphone receives silence when disabled by the button.\n"
+        "The emulated microphone receives silence when disabled by the button.\n"
         "\n"
         "Hold: Button enables mic input while held.\n"
         "Toggle: Button enables mic input when pressed, disables it when pressed again.\n"
@@ -73,11 +73,10 @@ namespace MelonDsDs::config::definitions {
         config::audio::AUDIO_BITDEPTH,
         "Audio Bit Depth",
         "Bit Depth",
-        "The audio playback bit depth. "
-        "Automatic uses 10-bit audio for DS mode "
-        "and 16-bit audio for DSi mode.\n"
-        "\n"
-        "Takes effect at next restart. "
+        "The number of bits used for each audio sample. "
+        "Automatic matches the original hardware's behavior "
+        "by using 10-bit audio for DS mode "
+        "and 16-bit audio for DSi mode. "
         "If unsure, set to Automatic.",
         nullptr,
         config::audio::CATEGORY,

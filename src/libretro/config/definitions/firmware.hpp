@@ -38,7 +38,7 @@ namespace MelonDsDs::config::definitions {
             "The DNS server to use for the emulated access point (\"melonAP\"). "
             "Use this to play online with custom servers "
             "that reimplement the discontinued Nintendo Wi-Fi Connection services. "
-            "Supported games depends on the server. "
+            "Game support depends on the server. "
             "\n"
             "Some internet service providers may block requests to these servers. "
             "If this is the case for you, see https://tinyurl.com/393cb755 for a workaround.\n"
@@ -105,7 +105,6 @@ namespace MelonDsDs::config::definitions {
             nullptr,
             config::firmware::CATEGORY,
             {
-                // Backslashes aren't allowed in DS usernames, so we use them for special values
                 {config::values::firmware::GUESS_USERNAME, "Guess"},
                 {config::values::firmware::DEFAULT_USERNAME, nullptr},
                 {config::values::firmware::FIRMWARE_USERNAME, "Don't Override"},
