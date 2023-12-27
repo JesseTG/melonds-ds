@@ -24,15 +24,26 @@ jobs:
       shell: msys2 {0}
       cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
 
-  macos:
-    name: macOS (Universal)
+  macos-x86_64:
+    name: macOS (x86_64)
     uses: ./.github/workflows/build.yaml
     with:
-      archive-name: melondsds_libretro-macos-universal
+      archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-latest
-      target: macos-universal
+      target: macos-x86_64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64;x86_64" -DENABLE_OGLRENDERER=OFF
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF
+      # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
+
+  macos-arm64:
+    name: macOS (arm64)
+    uses: ./.github/workflows/build.yaml
+    with:
+      archive-name: melondsds_libretro-macos-arm64
+      runs-on: macos-latest
+      target: macos-arm64
+      lib-ext: dylib
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   linux-x86_64:

@@ -10,6 +10,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 ### Changed
 
 - Updated melonDS to commit c926f79.
+- Stop providing universal macOS builds in favor of split x64/ARM64 builds.
 
 ### Fixed
 
