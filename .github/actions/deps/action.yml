@@ -36,7 +36,7 @@ runs:
 
     - name: Install Cross-Compile Support (Linux aarch64)
       if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
-      uses: JesseTG/gha-ubuntu-cross@d4db19532db7c115bee0d051944c226c5057cd4a # Fork needed due to https://github.com/cyberjunk/gha-ubuntu-cross/pull/4
+      uses: cyberjunk/gha-ubuntu-cross@v4
       with:
         arch: arm64
 
