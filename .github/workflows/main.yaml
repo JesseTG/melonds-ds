@@ -124,7 +124,7 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [ windows, macos, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
+    needs: [ windows, macos, linux-x86_64, linux-arm64, android, ios, tvos, test-linux-x86_64 ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -172,7 +172,7 @@ jobs:
             artifact/melondsds_libretro-win32-x86_64-Release.zip
             artifact/melondsds_libretro-macos-universal-Release.zip
             artifact/melondsds_libretro-linux-x86_64-Release.zip
-            artifact/melondsds_libretro-linux-aarch64-Release.zip
+            artifact/melondsds_libretro-linux-arm64-Release.zip
             artifact/melondsds_libretro-android-Release.zip
             artifact/melondsds_libretro-ios-Release.zip
             artifact/melondsds_libretro-tvos-Release.zip
