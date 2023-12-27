@@ -124,7 +124,7 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [ windows, macos-x86_64, macos-arm64, linux-x86_64, linux-arm64, android, ios, tvos, test-linux-x86_64 ]
+    needs: [ windows, macos-x86_64, macos-arm64, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
