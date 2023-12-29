@@ -104,11 +104,12 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
     }
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) && !nds.GPU.GetRenderer3D().Accelerated) {
+    if (auto* glRender = dynamic_cast<OpenGLRenderState*>(_renderState.get()); glRender && !nds.GPU.GetRenderer3D().Accelerated) {
         // If we're configured to use the OpenGL renderer, and we aren't already...
 
         if (auto renderer = melonDS::GLRenderer::New()) {
             nds.GPU.SetRenderer3D(std::move(renderer));
+            glRender->RequestRefresh();
         } else {
             retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
             _renderState = std::make_unique<SoftwareRenderState>(config);
