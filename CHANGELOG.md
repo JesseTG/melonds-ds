@@ -11,9 +11,12 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Fixed the screen remaining black if restarting the game with the OpenGL renderer.
 - Fixed an incorrect aspect ratio if changing the screen layout from the core options menu mid-game.
+- Fixed a loaded DSiWare ROM from being inserted into the virtual cartridge slot.
+
+### Changed
+
 - Reordered some options in the Screen category to prevent the cursor from jumping around
   when adjusting options that affect other options' visibility.
-- Fixed a loaded DSiWare ROM from being inserted into the virtual cartridge slot.
 
 ## [0.7.28] - 2023-12-28
 
