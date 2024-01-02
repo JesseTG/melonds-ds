@@ -10,6 +10,9 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 ### Fixed
 
 - Fixed the screen remaining black if restarting the game with the OpenGL renderer.
+- Fixed an incorrect aspect ratio if changing the screen layout from the core options menu mid-game.
+- Reordered some options in the Screen category to prevent the cursor from jumping around
+  when adjusting options that affect other options' visibility.
 
 ## [0.7.28] - 2023-12-28
 
@@ -18,8 +21,6 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Updated melonDS to commit c926f79.
 - Stop providing universal macOS builds in favor of split x64/ARM64 builds.
 - Updated glm to commit 7882684.
-- Reordered some options in the Screen category to prevent the cursor from jumping around
-  when adjusting options that affect other options' visibility.
 
 ### Fixed
 

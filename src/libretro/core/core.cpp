@@ -570,6 +570,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
     _micState.Apply(config);
+    _screenLayout.SetDirty();
 
     if (oldMicInputMode != MicInputMode::HostMic && config.MicInputMode() == MicInputMode::HostMic) {
         // If we want to use the host's microphone, and we're coming from another setting...
@@ -593,6 +594,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         if (newRenderer == Renderer::Software) {
 
             _renderState.UpdateRenderer(Config, *Console);
+            _screenLayout.SetDirty();
         }
     }
 }

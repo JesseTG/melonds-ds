@@ -91,6 +91,7 @@ namespace MelonDsDs {
         void Apply(const CoreConfig& config, const RenderStateWrapper& renderState) noexcept;
         void Update() noexcept;
 
+        void SetDirty() noexcept { _dirty = true; }
         bool Dirty() const noexcept { return _dirty; }
 
         /// The width of the image necessary to hold this layout, in pixels
