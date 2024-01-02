@@ -259,8 +259,6 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
     using namespace MelonDsDs::config::system;
     using namespace MelonDsDs::config::firmware;
 
-    retro_assert(config.ConsoleType() == ConsoleType::DSi);
-
     string_view nandName = config.DsiNandPath();
     if (nandName == config::values::NOT_FOUND) {
         throw dsi_no_nand_found_exception();
@@ -330,9 +328,10 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
         const NDSHeader* header = ndsInfo ? reinterpret_cast<const NDSHeader*>(ndsInfo->GetData().data()) : nullptr;
         CustomizeNAND(config, mount, header, nandName);
 
-        if (ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
+        if (ndsInfo && ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
             // If we're trying to play a DSiWare game...
             InstallDsiware(mount, *ndsInfo); // Temporarily install the game on the NAND
+            ndsRom = nullptr; // Don't want to insert the DSiWare into the cart slot
         }
     }
 

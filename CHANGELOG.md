@@ -13,6 +13,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Fixed an incorrect aspect ratio if changing the screen layout from the core options menu mid-game.
 - Reordered some options in the Screen category to prevent the cursor from jumping around
   when adjusting options that affect other options' visibility.
+- Fixed a loaded DSiWare ROM from being inserted into the virtual cartridge slot.
 
 ## [0.7.28] - 2023-12-28
 
