@@ -122,7 +122,6 @@ namespace MelonDsDs {
         retro::task::TaskSpec FlushFirmwareTask(string_view firmwareName) noexcept;
         void InitFlushFirmwareTask() noexcept;
         void FlushFirmware(string_view firmwarePath, string_view wfcSettingsPath) noexcept;
-        void InitGbaSram(GbaCart& gbaCart, const retro::GameInfo& gbaSaveInfo);
         [[gnu::cold]] void InitNdsSave(const NdsCart &nds_cart);
 
         std::unique_ptr<melonDS::NDS> Console = nullptr;
