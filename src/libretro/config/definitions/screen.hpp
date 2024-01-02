@@ -369,9 +369,6 @@ namespace MelonDsDs::config::definitions {
         ShowCursor,
         CursorTimeout,
         TouchMode,
-        HybridRatio,
-        HybridSmallScreen,
-        ScreenGap,
         NumberOfScreenLayouts,
         ScreenLayout1,
         ScreenLayout2,
@@ -381,6 +378,9 @@ namespace MelonDsDs::config::definitions {
         ScreenLayout6,
         ScreenLayout7,
         ScreenLayout8,
+        HybridRatio,
+        HybridSmallScreen,
+        ScreenGap,
     };
 }
 
