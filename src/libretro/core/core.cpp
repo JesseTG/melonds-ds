@@ -324,7 +324,6 @@ void MelonDsDs::CoreState::RunFirstFrame() noexcept {
     if (_gbaInfo && _gbaSaveManager && _gbaSaveManager->SramLength() > 0) {
         // If we're loading a GBA game that has existing SRAM...
         ZoneScopedN("GBACart::LoadSave");
-        // TODO: Decide what to do about SRAM files that append extra metadata like the RTC
         Console->SetGBASave(_gbaSaveManager->Sram(), _gbaSaveManager->SramLength());
     }
 
