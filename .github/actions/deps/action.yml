@@ -48,7 +48,7 @@ runs:
         version: 1.1
 
     - name: Set Up CCache
-      uses: hendrikmuhs/ccache-action@v1.2.10
+      uses: hendrikmuhs/ccache-action@v1.2.11
       with:
         key: ${{ inputs.target }}-${{ matrix.build-type }}
         variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
