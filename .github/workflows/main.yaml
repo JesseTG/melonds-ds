@@ -1,6 +1,7 @@
 name: Build Artifacts
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,9 +13,22 @@ on:
       - ".gitignore"
       - "*.gitlab-ci.yml"
 jobs:
+  set-extra-args:
+    name: Set Extra CMake Arguments
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Canary CMake Args
+        run:
+          # Set CMake arguments that are only relevant in certain builds;
+          # in this case, scheduled builds will always use the lastest upstream master
+          if [[ $GITHUB_EVENT_NAME = 'workflow_dispatch' || $GITHUB_EVENT_NAME = 'schedule' ]]; then
+            echo "EXTRA_CMAKE_ARGS='-DMELONDS_REPOSITORY_URL=https://github.com/melonDS-emu/melonDS.git -DMELONDS_REPOSITORY_TAG=master'" >> "$GITHUB_ENV"
+          fi
+
   windows:
     name: Windows (x86_64)
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
@@ -22,83 +36,91 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
-      cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
+      cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe" ${{ env.EXTRA_CMAKE_ARGS }}
 
   macos-x86_64:
     name: macOS (x86_64)
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-latest
       target: macos-x86_64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF ${{ env.EXTRA_CMAKE_ARGS }}
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   macos-arm64:
     name: macOS (arm64)
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       archive-name: melondsds_libretro-macos-arm64
       runs-on: macos-latest
       target: macos-arm64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF ${{ env.EXTRA_CMAKE_ARGS }}
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   linux-x86_64:
     name: Linux (x86_64)
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       archive-name: melondsds_libretro-linux-x86_64
       target: linux-x86_64
       runs-on: ubuntu-latest
       lib-ext: so
       test-suite: true
+      cmake-args: ${{ env.EXTRA_CMAKE_ARGS }}
 
   linux-aarch64:
     name: Linux (arm64)
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       archive-name: melondsds_libretro-linux-arm64
       target: linux-aarch64
       runs-on: ubuntu-latest
       lib-ext: so
-      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config
+      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config ${{ env.EXTRA_CMAKE_ARGS }}
 
   android:
     name: Android
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       lib-ext: so
       target: android
       archive-name: melondsds_libretro-android
-      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake"
+      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" ${{ env.EXTRA_CMAKE_ARGS }}
       runs-on: ubuntu-latest
       # Disabled OpenGL on Android due to https://github.com/JesseTG/melonds-ds/issues/23
 
   ios:
     name: iOS
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       runs-on: macos-latest
       target: ios
       archive-name: melondsds_libretro-ios
       info-dir: info
       lib-ext: dylib
-      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14 ${{ env.EXTRA_CMAKE_ARGS }}
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   tvos:
     name: tvOS
     uses: ./.github/workflows/build.yaml
+    needs: [ set-extra-args ]
     with:
       runs-on: macos-latest
       target: tvos
       archive-name: melondsds_libretro-tvos
       info-dir: info
       lib-ext: dylib
-      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14 ${{ env.EXTRA_CMAKE_ARGS }}
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   test-linux-x86_64:
