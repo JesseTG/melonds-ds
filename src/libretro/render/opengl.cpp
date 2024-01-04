@@ -322,7 +322,7 @@ void MelonDsDs::OpenGLRenderState::Render(
         _needsRefresh = false;
     }
 
-    if (!const_cast<melonDS::NDS&>(nds).IsLidClosed() && input.CursorVisible()) {
+    if (!nds.IsLidClosed() && input.CursorVisible()) {
         float cursorSize = config.CursorSize();
         ivec2 touch = input.TouchPosition();
         GL_ShaderConfig.cursorPos[0] = ((float) touch.x - cursorSize) / NDS_SCREEN_WIDTH;
