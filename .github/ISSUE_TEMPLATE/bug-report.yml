@@ -34,10 +34,9 @@ body:
         and it will be considered resolved when a fix upstream is integrated.
       options:
         - I don't know.
-        - Yes, in the latest stable release.
+        - Yes, in the latest stable release (0.9.5).
         - Yes, in the latest commit on master.
         - No, it's a bug specific to melonDS DS.
-        - Not applicable, the bug involves features not present in standalone melonDS.
       default: 0
     validations:
       required: true
@@ -51,6 +50,8 @@ body:
         and provide as much information as you can to help reproduce it.
         Please attach logs, screenshots, videos, savestates, or save data
         (otherwise you may be asked to go back and take some).
+        Keep this bug report focused on a single issue;
+        open another ticket if you need to.
         **Include steps to reproduce the problem if possible;**
         bugs that are easy to reproduce are much easier to fix!
       placeholder: |
