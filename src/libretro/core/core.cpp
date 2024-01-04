@@ -345,8 +345,8 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     // tm.tm_mon is 0-indexed, but RTC::SetDateTime expects 1-indexed
 }
 
-// melonDS tightly couples the renderer with the rest of the emulation code,
-// so we can't initialize the emulator until the OpenGL context is ready.
+// When requesting an OpenGL context, we may not get it immediately.
+// So we need to wait until we do.
 void MelonDsDs::CoreState::StartConsole() {
     ZoneScopedN(TracyFunction);
 
