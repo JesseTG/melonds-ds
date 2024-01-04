@@ -36,7 +36,7 @@ jobs:
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
-      cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe" ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe" $EXTRA_CMAKE_ARGS
 
   macos-x86_64:
     name: macOS (x86_64)
@@ -47,7 +47,7 @@ jobs:
       runs-on: macos-latest
       target: macos-x86_64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   macos-arm64:
@@ -59,7 +59,7 @@ jobs:
       runs-on: macos-latest
       target: macos-arm64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   linux-x86_64:
@@ -72,7 +72,7 @@ jobs:
       runs-on: ubuntu-latest
       lib-ext: so
       test-suite: true
-      cmake-args: ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: $EXTRA_CMAKE_ARGS
 
   linux-aarch64:
     name: Linux (arm64)
@@ -83,7 +83,7 @@ jobs:
       target: linux-aarch64
       runs-on: ubuntu-latest
       lib-ext: so
-      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config $EXTRA_CMAKE_ARGS
 
   android:
     name: Android
@@ -93,7 +93,7 @@ jobs:
       lib-ext: so
       target: android
       archive-name: melondsds_libretro-android
-      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" $EXTRA_CMAKE_ARGS
       runs-on: ubuntu-latest
       # Disabled OpenGL on Android due to https://github.com/JesseTG/melonds-ds/issues/23
 
@@ -107,7 +107,7 @@ jobs:
       archive-name: melondsds_libretro-ios
       info-dir: info
       lib-ext: dylib
-      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14 ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14 $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   tvos:
@@ -120,7 +120,7 @@ jobs:
       archive-name: melondsds_libretro-tvos
       info-dir: info
       lib-ext: dylib
-      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14 ${{ env.EXTRA_CMAKE_ARGS }}
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14 $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   test-linux-x86_64:
