@@ -185,6 +185,7 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
     }
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
+    gl_query_core_context_unset();
 }
 
 void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreConfig& config) {
