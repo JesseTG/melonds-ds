@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set Canary CMake Args
-        run:
+        run: |
           # Set CMake arguments that are only relevant in certain builds;
           # in this case, scheduled builds will always use the lastest upstream master
           if [[ $GITHUB_EVENT_NAME = 'workflow_dispatch' || $GITHUB_EVENT_NAME = 'schedule' ]]; then
