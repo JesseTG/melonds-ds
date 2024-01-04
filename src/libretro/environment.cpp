@@ -552,6 +552,12 @@ optional<retro_device_power> retro::get_device_power() noexcept
     return power;
 }
 
+bool retro::set_hw_render(retro_hw_render_callback& callback) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    return environment(RETRO_ENVIRONMENT_SET_HW_RENDER, &callback);
+}
+
 optional<string_view> retro::get_save_directory() noexcept {
     return _saveDirLength ? std::make_optional<string_view>(_saveDir, _saveDirLength) : nullopt;
 }

@@ -98,6 +98,7 @@ namespace retro {
     void set_option_visible(const char* key, bool visible) noexcept;
     bool supports_power_status() noexcept;
     std::optional<retro_device_power> get_device_power() noexcept;
+    bool set_hw_render(retro_hw_render_callback& callback) noexcept;
 
     bool supports_bitmasks();
     void input_poll();
