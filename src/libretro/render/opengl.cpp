@@ -186,6 +186,14 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
     }
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
     gl_query_core_context_unset();
+
+    // Disable OpenGL hardware rendering;
+    // this may not actually tear down the OpenGL context
+    // (i.e. the frame may still be presented with OpenGL),
+    // but it does signal to the frontend that we're back to software rendering.
+    retro_hw_render_callback none {};
+    none.context_type = RETRO_HW_CONTEXT_NONE;
+    retro::set_hw_render(none);
 }
 
 void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreConfig& config) {

@@ -7,6 +7,11 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the graphics not displaying when switching
+  from the OpenGL renderer to the software renderer at runtime.
+
 ### Changed
 
 - Updated melonDS to commit f68f55d.
