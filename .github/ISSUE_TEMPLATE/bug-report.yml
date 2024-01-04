@@ -52,8 +52,8 @@ body:
         (otherwise you may be asked to go back and take some).
         Keep this bug report focused on a single issue;
         open another ticket if you need to.
-        **Include steps to reproduce the problem if possible;**
-        bugs that are easy to reproduce are much easier to fix!
+        **Include steps to reproduce the problem if possible,**
+        as bugs that are easy to reproduce are much easier to fix!
       placeholder: |
         Waluigi is in my computer! Here's a log:
 
