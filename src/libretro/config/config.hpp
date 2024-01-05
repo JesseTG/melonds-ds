@@ -324,8 +324,8 @@ namespace MelonDsDs {
         [[nodiscard]] bool BetterPolygonSplitting() const noexcept { return _betterPolygonSplitting; }
         void SetBetterPolygonSplitting(bool betterPolygonSplitting) noexcept { _betterPolygonSplitting = betterPolygonSplitting; }
 
-        [[nodiscard]] Renderer ConfiguredRenderer() const noexcept { return _configuredRenderer; }
-        void SetConfiguredRenderer(Renderer configuredRenderer) noexcept { _configuredRenderer = configuredRenderer; }
+        [[nodiscard]] RenderMode ConfiguredRenderer() const noexcept { return _configuredRenderer; }
+        void SetConfiguredRenderer(RenderMode configuredRenderer) noexcept { _configuredRenderer = configuredRenderer; }
 
 #ifdef HAVE_THREADED_RENDERER
         [[nodiscard]] bool ThreadedSoftRenderer() const noexcept { return _threadedSoftRenderer; }
@@ -414,7 +414,7 @@ namespace MelonDsDs {
         string _dsiNandPath;
         int _scaleFactor = 1;
         bool _betterPolygonSplitting = false;
-        Renderer _configuredRenderer;
+        RenderMode _configuredRenderer;
         bool _threadedSoftRenderer = false;
         MelonDsDs::ScreenFilter _screenFilter;
     };

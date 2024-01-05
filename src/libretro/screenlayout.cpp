@@ -165,7 +165,7 @@ glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) con
 
 void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config, const RenderStateWrapper& renderState) noexcept {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    SetScale(renderState.GetRenderer() == Renderer::Software ? 1 : config.ScaleFactor());
+    SetScale(renderState.GetRenderer() == RenderMode::Software ? 1 : config.ScaleFactor());
 #else
     SetScale(1);
 #endif
@@ -239,7 +239,7 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
     _dirty = false;
 }
 
-retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(Renderer renderer) const noexcept {
+retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(RenderMode renderer) const noexcept {
     retro_game_geometry geometry {
         .base_width = BufferWidth(),
         .base_height = BufferHeight(),
@@ -249,7 +249,7 @@ retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(Renderer renderer) con
     };
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (renderer == Renderer::OpenGl) {
+    if (renderer == RenderMode::OpenGl) {
         geometry.max_width = MaxOpenGlRenderedWidth();
         geometry.max_height = MaxOpenGlRenderedHeight();
     }

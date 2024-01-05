@@ -206,7 +206,7 @@ namespace MelonDsDs {
             return transformedScreenPoints;
         }
 
-        [[nodiscard]] retro_game_geometry Geometry(Renderer renderer) const noexcept;
+        [[nodiscard]] retro_game_geometry Geometry(RenderMode renderer) const noexcept;
 
         [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
         [[nodiscard]] const glm::mat3& GetBottomScreenMatrix() const noexcept { return bottomScreenMatrix; }

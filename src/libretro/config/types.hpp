@@ -47,7 +47,7 @@ namespace MelonDsDs {
         Joystick,
     };
 
-    enum class Renderer {
+    enum class RenderMode {
         Software = 0,
         OpenGl = 1,
     };

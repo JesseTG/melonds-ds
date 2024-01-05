@@ -48,8 +48,8 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     // Show/hide OpenGL core options
     bool oldShowOpenGlOptions = ShowOpenGlOptions;
     bool oldShowSoftwareRenderOptions = ShowSoftwareRenderOptions;
-    optional<Renderer> renderer = ParseRenderer(get_variable(video::RENDER_MODE));
-    ShowOpenGlOptions = !renderer || *renderer == Renderer::OpenGl;
+    optional<RenderMode> renderer = ParseRenderMode(get_variable(video::RENDER_MODE));
+    ShowOpenGlOptions = !renderer || *renderer == RenderMode::OpenGl;
     ShowSoftwareRenderOptions = !ShowOpenGlOptions;
     if (ShowOpenGlOptions != oldShowOpenGlOptions) {
         set_option_visible(video::OPENGL_RESOLUTION, ShowOpenGlOptions);

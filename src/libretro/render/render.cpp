@@ -63,7 +63,7 @@ void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config) noexcept {
 void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config) {
     switch (config.ConfiguredRenderer()) {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-        case Renderer::OpenGl: {
+        case RenderMode::OpenGl: {
             if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) != nullptr) {
                 // If we already have the OpenGL renderer configured...
                 break;
@@ -79,7 +79,7 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config) {
             [[fallthrough]];
         }
 #endif
-        case Renderer::Software: {
+        case RenderMode::Software: {
             if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) != nullptr) {
                 // If we already have the software renderer configured...
                 break;
@@ -135,13 +135,13 @@ void MelonDsDs::RenderStateWrapper::ContextDestroyed() {
 #endif
 }
 
-std::optional<MelonDsDs::Renderer> MelonDsDs::RenderStateWrapper::GetRenderer() const noexcept {
+std::optional<MelonDsDs::RenderMode> MelonDsDs::RenderStateWrapper::GetRenderer() const noexcept {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (dynamic_cast<SoftwareRenderState*>(_renderState.get()))
-        return Renderer::Software;
+        return RenderMode::Software;
 
     if (dynamic_cast<OpenGLRenderState*>(_renderState.get()))
-        return Renderer::OpenGl;
+        return RenderMode::OpenGl;
 
     return std::nullopt;
 #else

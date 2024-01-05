@@ -630,11 +630,11 @@ static void MelonDsDs::config::ParseVideoOptions(CoreConfig& config) noexcept {
 #endif
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (optional<Renderer> renderer = ParseRenderer(get_variable(RENDER_MODE))) {
+    if (optional<RenderMode> renderer = ParseRenderMode(get_variable(RENDER_MODE))) {
         config.SetConfiguredRenderer(*renderer);
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", RENDER_MODE, values::SOFTWARE);
-        config.SetConfiguredRenderer(Renderer::Software);
+        config.SetConfiguredRenderer(RenderMode::Software);
     }
 
     if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(OPENGL_RESOLUTION), 1, MAX_OPENGL_SCALE)) {

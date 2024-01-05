@@ -61,7 +61,7 @@ MelonDsDs::CoreState::~CoreState() noexcept {
     melonDS::NDS::Current = nullptr;
 }
 
-retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo(Renderer renderer) const noexcept {
+retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo(RenderMode renderer) const noexcept {
     return {
         .geometry = _screenLayout.Geometry(renderer),
         .timing {
@@ -78,7 +78,7 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
     }
 #endif
 
-    std::optional<Renderer> renderer = _renderState.GetRenderer();
+    std::optional<RenderMode> renderer = _renderState.GetRenderer();
     retro_assert(renderer.has_value());
 
     return GetSystemAvInfo(*renderer);
@@ -151,7 +151,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             // Apply the new screen layout
             _screenLayout.Update();
 
-            Renderer renderer = Console->GPU.GetRenderer3D().Accelerated ? Renderer::OpenGl : Renderer::Software;
+            RenderMode renderer = Console->GPU.GetRenderer3D().Accelerated ? RenderMode::OpenGl : RenderMode::Software;
             // And update the geometry
             if (!retro::set_geometry(_screenLayout.Geometry(renderer))) {
                 retro::warn("Failed to update geometry after screen layout change");
@@ -298,7 +298,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
 
     retro::task::reset();
     _messageScreen = std::make_unique<error::ErrorScreen>(e);
-    Config.SetConfiguredRenderer(Renderer::Software);
+    Config.SetConfiguredRenderer(RenderMode::Software);
     _screenLayout.Update();
     retro::error("Error screen initialized");
     return true;
@@ -470,7 +470,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     InitFlushFirmwareTask();
 
-    if (_renderState.GetRenderer() == Renderer::OpenGl) {
+    if (_renderState.GetRenderer() == RenderMode::OpenGl) {
         retro::info("Deferring initialization until the OpenGL context is ready");
         _deferredInitializationPending = true;
     }
@@ -564,7 +564,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     MicInputMode oldMicInputMode = config.MicInputMode();
 
-    std::optional<Renderer> oldRenderer = _renderState.GetRenderer();
+    std::optional<RenderMode> oldRenderer = _renderState.GetRenderer();
     _renderState.Apply(config);
     _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
@@ -583,14 +583,14 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         }
     }
 
-    std::optional<Renderer> newRenderer = _renderState.GetRenderer();
+    std::optional<RenderMode> newRenderer = _renderState.GetRenderer();
 
     if (oldRenderer && newRenderer && oldRenderer != newRenderer) {
         // If we're switching from OpenGL to software mode, or vice versa...
         retro_system_av_info av = GetSystemAvInfo(*newRenderer);
         retro::set_system_av_info(av);
 
-        if (newRenderer == Renderer::Software) {
+        if (newRenderer == RenderMode::Software) {
 
             _renderState.UpdateRenderer(Config, *Console);
             _screenLayout.SetDirty();
