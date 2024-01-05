@@ -61,7 +61,7 @@ namespace MelonDsDs {
         void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
-        std::optional<RenderMode> GetRenderer() const noexcept;
+        std::optional<RenderMode> GetRenderMode() const noexcept;
     private:
         void SetRenderer(const CoreConfig& config);
         std::unique_ptr<RenderState> _renderState;

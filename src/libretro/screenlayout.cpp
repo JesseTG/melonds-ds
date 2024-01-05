@@ -165,7 +165,7 @@ glm::mat3 MelonDsDs::ScreenLayoutData::GetHybridScreenMatrix(unsigned scale) con
 
 void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config, const RenderStateWrapper& renderState) noexcept {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    SetScale(renderState.GetRenderer() == RenderMode::Software ? 1 : config.ScaleFactor());
+    SetScale(renderState.GetRenderMode() == RenderMode::Software ? 1 : config.ScaleFactor());
 #else
     SetScale(1);
 #endif

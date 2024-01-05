@@ -133,7 +133,7 @@ void MelonDsDs::RenderStateWrapper::ContextDestroyed() {
 #endif
 }
 
-std::optional<MelonDsDs::RenderMode> MelonDsDs::RenderStateWrapper::GetRenderer() const noexcept {
+std::optional<MelonDsDs::RenderMode> MelonDsDs::RenderStateWrapper::GetRenderMode() const noexcept {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (dynamic_cast<SoftwareRenderState*>(_renderState.get()))
         return RenderMode::Software;

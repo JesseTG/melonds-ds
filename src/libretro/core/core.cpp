@@ -78,7 +78,7 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
     }
 #endif
 
-    std::optional<RenderMode> renderer = _renderState.GetRenderer();
+    std::optional<RenderMode> renderer = _renderState.GetRenderMode();
     retro_assert(renderer.has_value());
 
     return GetSystemAvInfo(*renderer);
@@ -470,7 +470,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     InitFlushFirmwareTask();
 
-    if (_renderState.GetRenderer() == RenderMode::OpenGl) {
+    if (_renderState.GetRenderMode() == RenderMode::OpenGl) {
         retro::info("Deferring initialization until the OpenGL context is ready");
         _deferredInitializationPending = true;
     }
@@ -564,7 +564,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     MicInputMode oldMicInputMode = config.MicInputMode();
 
-    std::optional<RenderMode> oldRenderer = _renderState.GetRenderer();
+    std::optional<RenderMode> oldRenderer = _renderState.GetRenderMode();
     _renderState.Apply(config);
     _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
@@ -583,7 +583,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         }
     }
 
-    std::optional<RenderMode> newRenderer = _renderState.GetRenderer();
+    std::optional<RenderMode> newRenderer = _renderState.GetRenderMode();
 
     if (oldRenderer && newRenderer && oldRenderer != newRenderer) {
         // If we're switching from OpenGL to software mode, or vice versa...
