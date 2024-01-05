@@ -55,8 +55,6 @@ void MelonDsDs::RenderStateWrapper::Render(
 
 void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config) noexcept {
     SetRenderer(config);
-
-    _renderState->Apply(config);
 }
 
 

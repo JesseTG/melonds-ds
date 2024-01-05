@@ -44,7 +44,6 @@ namespace MelonDsDs {
         virtual bool Ready() const noexcept = 0;
         virtual void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept = 0;
         virtual void RequestRefresh() noexcept {}
-        virtual void Apply(const CoreConfig& config) noexcept {}
     };
 
     class RenderStateWrapper {

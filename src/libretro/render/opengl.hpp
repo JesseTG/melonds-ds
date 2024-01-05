@@ -52,7 +52,6 @@ namespace MelonDsDs {
         void RequestRefresh() noexcept override {
             _needsRefresh = true;
         }
-        void Apply(const CoreConfig& config) noexcept override;
 
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
@@ -86,9 +85,6 @@ namespace MelonDsDs {
         } GL_ShaderConfig {};
 
         GLuint ubo = 0;
-        std::optional<bool> _lastBetterPolygonSplitting {};
-        std::optional<ScreenFilter> _lastScreenFilter {};
-        std::optional<unsigned> _lastResolutionScale {};
     };
 }
 

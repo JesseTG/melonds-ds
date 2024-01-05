@@ -321,10 +321,18 @@ void MelonDsDs::OpenGLRenderState::Render(
 ) noexcept {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);
+    retro_assert(nds.GetRenderer3D().Accelerated);
+
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
     // Tell OpenGL that we want to draw to (and read from) the screen framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, glsm_get_current_framebuffer());
+
+    melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GetRenderer3D());
+
+    if (renderer.GetBetterPolygons() != config.BetterPolygonSplitting() || renderer.GetScaleFactor() != config.ScaleFactor())
+        // If any of the OpenGL renderer's settings have changed...
+        _needsRefresh = true;
 
     if (_needsRefresh) {
         InitFrameState(nds, config, screenLayout);
@@ -358,11 +366,7 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glActiveTexture(GL_TEXTURE0);
 
-    if (nds.GPU.GetRenderer3D().Accelerated)
-    {
-        // hardware-accelerated render
-        static_cast<melonDS::GLRenderer&>(nds.GPU.GetRenderer3D()).GetCompositor().BindOutputTexture(nds.GPU.FrontBuffer);
-    }
+    renderer.GetCompositor().BindOutputTexture(nds.GPU.FrontBuffer);
 
     // Set the filtering mode for the active texture
     // For simplicity, we'll just use the same filter for both minification and magnification
@@ -403,28 +407,6 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     vbo = 0;
     GL_ShaderConfig = {};
     ubo = 0;
-    _lastResolutionScale = std::nullopt;
-    _lastScreenFilter = std::nullopt;
-    _lastBetterPolygonSplitting = std::nullopt;
-}
-
-void MelonDsDs::OpenGLRenderState::Apply(const CoreConfig& config) noexcept {
-    ZoneScopedN(TracyFunction);
-    retro::debug(TracyFunction);
-    if (_lastBetterPolygonSplitting != config.BetterPolygonSplitting()) {
-        _lastBetterPolygonSplitting = config.BetterPolygonSplitting();
-        _needsRefresh = true;
-    }
-
-    if (_lastScreenFilter != config.ScreenFilter()) {
-        _lastScreenFilter = config.ScreenFilter();
-        _needsRefresh = true;
-    }
-
-    if (_lastResolutionScale != config.ScaleFactor()) {
-        _lastResolutionScale = config.ScaleFactor();
-        _needsRefresh = true;
-    }
 }
 
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
