@@ -97,7 +97,6 @@ namespace MelonDsDs {
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
-        [[gnu::cold]] void RunFirstFrame() noexcept;
         [[gnu::cold]] void StartConsole();
         [[gnu::cold]] static void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
@@ -146,7 +145,6 @@ namespace MelonDsDs {
         // so having this flag lets us detect if the core has been initialized
         // regardless of the state of the underlying resources
         const bool _initialized = true;
-        bool _firstFrameRun = false;
         bool _deferredInitializationPending = false;
         uint32_t _flushTaskId = 0;
         NetworkMode _activeNetworkMode = NetworkMode::None;

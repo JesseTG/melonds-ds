@@ -126,10 +126,6 @@ void MelonDsDs::CoreState::Run() noexcept {
     retro_assert(Console != nullptr);
     melonDS::NDS& nds = *Console;
 
-    if (!_firstFrameRun) [[unlikely]] {
-        RunFirstFrame();
-    }
-
     if (retro::is_variable_updated()) [[unlikely]] {
         // If any settings have changed...
         ParseConfig(Config);
@@ -235,8 +231,6 @@ void MelonDsDs::CoreState::Reset() {
     InitFlushFirmwareTask();
 
     StartConsole();
-
-    _firstFrameRun = false;
 }
 
 
@@ -309,30 +303,6 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
 
     _screenLayout.Update();
     _renderState.Render(*_messageScreen, Config, _screenLayout);
-}
-
-void MelonDsDs::CoreState::RunFirstFrame() noexcept {
-    ZoneScopedN(TracyFunction);
-
-    if (_firstFrameRun) return;
-
-    // Nintendo DS SRAM is loaded by the frontend
-    // and copied into the cartridge via the pointer returned by retro_get_memory.
-
-    // GBA SRAM is selected by the user explicitly (due to libretro limits) and loaded by the frontend,
-    // but is not processed by retro_get_memory (again due to libretro limits).
-    if (_gbaInfo && _gbaSaveManager && _gbaSaveManager->SramLength() > 0) {
-        // If we're loading a GBA game that has existing SRAM...
-        ZoneScopedN("GBACart::LoadSave");
-        Console->SetGBASave(_gbaSaveManager->Sram(), _gbaSaveManager->SramLength());
-    }
-
-    // We could've installed the GBA's SRAM in retro_load_game (since it's not processed by retro_get_memory),
-    // but doing so here helps keep things tidier since the NDS SRAM is installed here too.
-
-    // This has to be deferred even if we're not using OpenGL,
-    // because libretro doesn't set the SRAM until after retro_load_game
-    _firstFrameRun = true;
 }
 
 void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
