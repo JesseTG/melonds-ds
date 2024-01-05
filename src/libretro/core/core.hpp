@@ -142,6 +142,9 @@ namespace MelonDsDs {
         // TODO: Switch to compile time regular expressions (see https://compile-time.re)
         std::regex _cheatSyntax { "^\\s*[0-9A-Fa-f]{8}([+\\s]*[0-9A-Fa-f]{8})*$", REGEX_OPTIONS };
         std::regex _tokenSyntax { "[0-9A-Fa-f]{8}", REGEX_OPTIONS };
+        // This object is meant to be stored in a placement-new'd byte array,
+        // so having this flag lets us detect if the core has been initialized
+        // regardless of the state of the underlying resources
         const bool _initialized = true;
         bool _firstFrameRun = false;
         bool _deferredInitializationPending = false;
