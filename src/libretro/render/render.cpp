@@ -143,6 +143,6 @@ std::optional<MelonDsDs::RenderMode> MelonDsDs::RenderStateWrapper::GetRenderMod
 
     return std::nullopt;
 #else
-    return _renderState ? std::make_optional(Renderer::Software) : std::nullopt;
+    return _renderState ? std::make_optional(RenderMode::Software) : std::nullopt;
 #endif
 }
