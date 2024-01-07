@@ -16,7 +16,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Updated melonDS to commit 9397008.
 
-## [0.7.29] - 2023-01-02
+## [0.7.29] - 2024-01-02
 
 ### Fixed
 
