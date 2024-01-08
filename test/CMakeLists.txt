@@ -262,7 +262,6 @@ add_retroarch_test(
     NAME "Core unloads with threaded software rendering"
     CONTENT "${NDS_ROM}"
     MAX_FRAMES 6
-    DISABLED
     CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_sysfile_mode=builtin"
     CORE_OPTION "melonds_console_mode=ds"

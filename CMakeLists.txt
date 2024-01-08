@@ -74,9 +74,9 @@ set(MELONDSDS_NAME "${CMAKE_PROJECT_NAME}")
 set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION}")
 message(STATUS "${CMAKE_PROJECT_NAME} Version: ${MELONDSDS_VERSION_STRING}")
 
-# Disabled by default due to https://github.com/JesseTG/melonds-ds/issues/81
-# Enable it if you're going to work on it.
-option(ENABLE_THREADED_RENDERER "Enable the threaded software renderer." OFF)
+# Formerly off by default due to a bug that has since been fixed.
+# This option may be removed in the future.
+option(ENABLE_THREADED_RENDERER "Enable the threaded software renderer." ON)
 option(BUILD_TESTING "Build test suite." OFF)
 include(CTest)
 

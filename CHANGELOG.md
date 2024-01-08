@@ -7,14 +7,20 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
+### Added
+
+- Enabled the threaded software renderer after fixing a related bug.
+
 ### Fixed
 
 - Fixed the graphics not displaying when switching
   from the OpenGL renderer to the software renderer at runtime.
+- Fixed a crash that occurred when rewinding in RetroArch
+  while using the threaded software renderer.
 
 ### Changed
 
-- Updated melonDS to commit 9397008.
+- Updated melonDS to commit 8143f54.
 
 ## [0.7.29] - 2024-01-02
 
