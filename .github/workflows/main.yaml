@@ -132,7 +132,7 @@ jobs:
       archive-name: melondsds_libretro-win32-x86_64
       target: win32
       runs-on: windows-latest
-      shell: powershell
+      shell: msys2 {0}
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
