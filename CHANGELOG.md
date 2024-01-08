@@ -18,6 +18,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Fixed a crash that occurred when rewinding in RetroArch
   while using the threaded software renderer.
 - Fixed a typo in the description for a core option.
+- Fixed changes to the software renderer's threading mode not being honored.
 
 ### Changed
 

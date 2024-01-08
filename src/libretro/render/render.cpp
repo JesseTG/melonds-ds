@@ -95,9 +95,15 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config) {
 void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept {
     assert(_renderState != nullptr);
 
-    if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) && nds.GPU.GetRenderer3D().Accelerated) {
-        // If we're configured to use the software renderer, and we aren't already...
-        nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(config.ThreadedSoftRenderer()));
+    if (dynamic_cast<SoftwareRenderState*>(_renderState.get())) {
+        // If we're configured to use the software renderer...
+        if (auto* softRender = dynamic_cast<melonDS::SoftRenderer*>(&nds.GetRenderer3D())) {
+            // ...and we already are...
+            softRender->SetThreaded(config.ThreadedSoftRenderer(), nds.GPU);
+        }
+        else {
+            nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(config.ThreadedSoftRenderer()));
+        }
         return;
     }
 

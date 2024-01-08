@@ -555,16 +555,16 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
 
     std::optional<RenderMode> newRenderer = _renderState.GetRenderMode();
 
-    if (oldRenderer && newRenderer && oldRenderer != newRenderer) {
-        // If we're switching from OpenGL to software mode, or vice versa...
-        retro_system_av_info av = GetSystemAvInfo(*newRenderer);
-        retro::set_system_av_info(av);
-
-        if (newRenderer == RenderMode::Software) {
-
-            _renderState.UpdateRenderer(Config, *Console);
-            _screenLayout.SetDirty();
+    if (oldRenderer && newRenderer) {
+        // If this isn't the first time we're setting the renderer...
+        if (oldRenderer != newRenderer) {
+            // If we're switching renderer modes...
+            retro_system_av_info av = GetSystemAvInfo(*newRenderer);
+            retro::set_system_av_info(av);
         }
+
+        _renderState.UpdateRenderer(Config, *Console);
+        _screenLayout.SetDirty();
     }
 }
 
