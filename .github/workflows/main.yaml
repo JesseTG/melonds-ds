@@ -132,6 +132,7 @@ jobs:
       archive-name: melondsds_libretro-win32-x86_64
       target: win32
       runs-on: windows-latest
+      shell: powershell
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
@@ -153,7 +154,6 @@ jobs:
       archive-name: melondsds_libretro-linux-x86_64
       target: linux-x86_64
       runs-on: ubuntu-latest
-      shell: powershell
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
