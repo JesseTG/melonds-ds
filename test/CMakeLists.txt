@@ -1,7 +1,12 @@
 find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 
 if (NOT RETROARCH)
-    find_program(RETROARCH retroarch REQUIRED)
+    find_program(
+        RETROARCH
+        retroarch
+        HINTS "C:/Program Files/RetroArch" "C:/Program Files/RetroArch-Win64"
+        REQUIRED
+    )
 endif()
 message(STATUS "RETROARCH: ${RETROARCH}")
 
