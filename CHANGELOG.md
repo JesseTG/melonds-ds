@@ -21,6 +21,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 ### Changed
 
 - Updated melonDS to commit 8143f54.
+- Enabled the threaded software renderer by default.
 
 ## [0.7.29] - 2024-01-02
 

@@ -110,7 +110,8 @@ namespace MelonDsDs::config::definitions {
             "Threaded Software Renderer",
             nullptr,
             "If enabled, the software renderer will run on a separate thread. "
-            "Changes take effect immediately.",
+            "Changes take effect immediately. "
+            "If unsure, leave this enabled.",
             nullptr,
             config::video::CATEGORY,
             {
@@ -118,7 +119,7 @@ namespace MelonDsDs::config::definitions {
                 {MelonDsDs::config::values::ENABLED, nullptr},
                 {nullptr, nullptr},
             },
-            MelonDsDs::config::values::DISABLED
+            MelonDsDs::config::values::ENABLED
         },
 #endif
     };
