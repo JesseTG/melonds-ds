@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import platform
 import os.path
 import subprocess
 import shutil
@@ -71,7 +72,7 @@ config = {
     "savefile_directory": save_dir,
     "savestate_directory": savestate_directory,
     "suspend_screensaver_enable": "false",
-    "video_driver": "glcore",
+    "video_driver": "glcore" if platform.system() == "Linux" else "sdl2",
 }
 
 
