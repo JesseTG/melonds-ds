@@ -54,11 +54,13 @@ runs:
         Invoke-WebRequest -Uri https://buildbot.libretro.com/stable/1.16.0/windows/x86_64/RetroArch.7z -OutFile RetroArch.7z
         7z x -o"$Env:ProgramFiles" RetroArch.7z
         ls "$Env:ProgramFiles\RetroArch-Win64"
+        echo "$Env:ProgramFiles\RetroArch-Win64" >> "$GITHUB_PATH"
 
-    - name: Add RetroArch to PATH (Windows)
+    - name: Print the PATH (Windows)
       if: ${{ runner.os == 'Windows' }}
-      shell: bash
-      run: echo "$PROGRAMFILES\RetroArch-Win64" >> "$GITHUB_PATH"
+      shell: powershell
+      run: |
+        echo $Env:Path
 
     - name: Download Test Files
       uses: actions/checkout@v3
