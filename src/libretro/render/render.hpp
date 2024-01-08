@@ -58,7 +58,7 @@ namespace MelonDsDs {
         }
 
         void Apply(const CoreConfig& config) noexcept;
-        void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
+        [[gnu::cold]] void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
         std::optional<RenderMode> GetRenderMode() const noexcept;
