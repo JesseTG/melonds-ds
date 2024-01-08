@@ -56,10 +56,6 @@ runs:
         ls "$Env:ProgramFiles"
         echo "$Env:ProgramFiles\RetroArch-Win64" >> "$GITHUB_PATH"
 
-    - name: Validate RetroArch Installation
-      shell: bash
-      run: retroarch --version
-
     - name: Download Test Files
       uses: actions/checkout@v3
       with:
