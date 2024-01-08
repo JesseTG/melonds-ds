@@ -11,7 +11,12 @@ endif()
 message(STATUS "RETROARCH: ${RETROARCH}")
 
 if (NOT EMUTEST)
-    find_program(EMUTEST emutest REQUIRED)
+    find_program(
+        EMUTEST
+        emutest
+        HINTS "$ENV{GOPATH}/bin" "$ENV{USERPROFILE}/go/bin"
+        REQUIRED
+    )
 endif()
 message(STATUS "EMUTEST: ${EMUTEST}")
 
