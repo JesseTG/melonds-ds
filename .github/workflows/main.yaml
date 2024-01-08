@@ -20,7 +20,7 @@ jobs:
       - name: Set Canary CMake Args
         run: |
           # Set CMake arguments that are only relevant in certain builds;
-          # in this case, scheduled builds will always use the lastest upstream master
+          # in this case, scheduled builds will always use the latest upstream master
           if [[ $GITHUB_EVENT_NAME = 'workflow_dispatch' || $GITHUB_EVENT_NAME = 'schedule' ]]; then
             echo "EXTRA_CMAKE_ARGS='-DMELONDS_REPOSITORY_URL=https://github.com/melonDS-emu/melonDS.git -DMELONDS_REPOSITORY_TAG=master'" >> "$GITHUB_ENV"
           fi
