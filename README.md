@@ -207,11 +207,6 @@ If you want to see them, ask how you can get involved!
   but it cannot actually emulate the GBA.
   GBA emulation is not within the scope of melonDS;
   use a GBA emulator instead.
-- **Threaded Software Renderer:**
-  melonDS supports offloading its software renderer to a separate thread,
-  but rewinding while using it [can crash RetroArch](https://github.com/JesseTG/melonds-ds/issues/81).
-  This was holding up the initial release,
-  so the threaded renderer is disabled until this bug is fixed.
 - **Slot-2 Accessories:**
   The only Slot-2 accessories that melonDS currently supports
   are the [solar sensor][solar-sensor] and [Memory Expansion Pak][memory-pak].
@@ -417,7 +412,6 @@ To see the rest, run `cmake -LH` in the build directory.
 | Variable                          | Description                                                                                                            |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------|
 | `ENABLE_OPENGL`                   | Whether to build the OpenGL renderer. Defaults to `ON` on Windows and Linux, `OFF` on other platforms.                 |
-| `ENABLE_THREADED_RENDERER`        | Enables the multithreaded software renderer. Crashes when rewinding in RetroArch, so it's not generally available yet. |
 | `TRACY_ENABLE`                    | Enables the Tracy frame profiler.                                                                                      |
 | `MELONDS_REPOSITORY_URL`          | The Git repo from which melonDS will be cloned. Set this to use a fork.                                                |
 | `MELONDS_REPOSITORY_TAG`          | The melonDS commit to use in the build.                                                                                |
