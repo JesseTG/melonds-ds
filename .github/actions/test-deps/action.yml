@@ -39,6 +39,24 @@ runs:
       shell: bash
       run: sudo apt-get update -qy && sudo apt-get install -qy cmake p7zip-full xvfb xdg-utils x11-xserver-utils retroarch
 
+    - name: Install MSYS2 Dependencies (Windows)
+      uses: msys2/setup-msys2@v2
+      if: ${{ runner.os == 'Windows' }}
+      with:
+        msystem: MINGW64
+        update: true
+        install: git pkgconf mingw-w64-x86_64-cmake mingw-w64-x86_64-7zip
+
+    - name: Install RetroArch (Windows)
+      if: ${{ runner.os == 'Windows' }}
+      shell: powershell
+      run: |
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+        Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+        scoop bucket add extras
+        scoop install extras/retroarch
+        retroarch --version
+
     - name: Download Test Files
       uses: actions/checkout@v3
       with:

@@ -96,6 +96,12 @@ jobs:
             -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
             ${{ inputs.cmake-args }}
 
-      - name: Run Test Suite
+      - name: Run Test Suite (Linux)
+        if: ${{ runner.os == 'Linux' }}
         working-directory: "${{ env.BUILD_DIR }}"
         run: xvfb-run ctest --extra-verbose --exclude-regex example --output-on-failure
+
+      - name: Run Test Suite (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: ctest --extra-verbose --exclude-regex example --output-on-failure
