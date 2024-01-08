@@ -104,5 +104,5 @@ jobs:
       - name: Run Test Suite (Windows)
         if: ${{ runner.os == 'Windows' }}
         working-directory: "${{ env.BUILD_DIR }}"
-        shell: msys {0}
+        shell: msys2 {0}
         run: ctest --extra-verbose --exclude-regex example --output-on-failure
