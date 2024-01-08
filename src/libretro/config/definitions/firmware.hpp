@@ -68,7 +68,7 @@ namespace MelonDsDs::config::definitions {
             "\n"
             "Use Host: Uses the frontend's language if supported by the console.\n"
             "Don't Override: Use whatever language is already set on the firmware. "
-            "Fallback behavior if frontend the emulated DS (or DSi NAND) "
+            "This is the fallback behavior if the emulated DS (or DSi NAND) "
             "doesn't support the frontend's language.\n"
             "\n"
             "Not every game honors this setting. "
