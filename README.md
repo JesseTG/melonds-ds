@@ -217,6 +217,10 @@ If you want to see them, ask how you can get involved!
   This is a low priority for melonDS DS,
   since libretro frontends are typically used for playing games.
   However, I may integrate it if there's enough demand.
+- **DSi Camera Support:**
+  Standalone melonDS supports emulating the DSi's cameras.
+  Support in melonDS DS is planned,
+  but has not yet been integrated.
 
 # Compatibility
 
