@@ -249,12 +249,9 @@ jobs:
 
       - name: Open Pull Request
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        working-directory: libretro-super
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          git remote -v
-          git remote add --fetch --tags upstream https://github.com/libretro/libretro-super
-          git pull
-          git checkout "release-v${{ steps.changelog.outputs.version }}"
-          gh pr create --fill --repo "libretro/libretro-super"
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          path: libretro-super
+          base: 'master'
+          draft: false
