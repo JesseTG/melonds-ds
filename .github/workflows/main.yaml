@@ -229,23 +229,13 @@ jobs:
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: actions/checkout@v3
         with:
-          repository: "${{ github.triggering_actor }}/libretro-super"
+          repository: "libretro/libretro-super"
           path: libretro-super
 
-      - name: Commit .info File
+      - name: Add Updated .info File
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          source_file: "${{ github.workspace }}/artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info"
-          destination_branch_create: "release-v${{ steps.changelog.outputs.version }}"
-          destination_branch: "master"
-          destination_repo: '${{ github.triggering_actor }}/libretro-super'
-          destination_folder: 'dist/info'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          user_name: 'github-actions[bot]'
-          commit_message: 'Submit melondsds_libretro.info for melonDS DS release v${{ steps.changelog.outputs.version }} on behalf of @${{ github.triggering_actor }}'
+        run: |
+          cp -f "${{ github.workspace }}/artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info" libretro-super/dist/info/melondsds_libretro.info
 
       - name: Open Pull Request
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
@@ -253,5 +243,7 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           path: libretro-super
-          base: 'master'
-          draft: false
+          commit-message: 'Submit melondsds_libretro.info for melonDS DS release v${{ steps.changelog.outputs.version }} on behalf of @${{ github.triggering_actor }}'
+          title: "Update melonDS DS to ${{ steps.changelog.outputs.version }}"
+          branch: "melondsds-v${{ steps.changelog.outputs.version }}"
+          push-to-fork: "${{ github.triggering_actor }}/libretro-super"
