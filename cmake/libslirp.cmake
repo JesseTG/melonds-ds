@@ -1,5 +1,5 @@
 add_library(slirp STATIC
-        ../src/glib-stub/glib.c
+        src/glib-stub/glib.c
 )
 
 # Copy libslirp's files to another directory so that we can include it as <slirp/libslirp.h>
