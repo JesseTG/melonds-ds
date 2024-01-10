@@ -75,7 +75,7 @@ libretro-build-linux-x64:
     - sudo add-apt-repository -y ppa:savoury1/build-tools
     - sudo add-apt-repository -y ppa:savoury1/gcc-defaults-12
     - sudo apt-get update -qy
-    - sudo apt-get install -qy cmake gcc-12
+    - sudo apt-get install -qy cmake gcc-12 g++-12
   # This container's existing installations of gcc and CMake are way too old
   variables:
     CC: /usr/bin/gcc-12
