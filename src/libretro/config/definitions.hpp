@@ -18,7 +18,6 @@
 #define MELONDS_DS_DEFINITIONS_HPP
 
 #include <array>
-#include <initializer_list>
 
 #include <libretro.h>
 
@@ -34,7 +33,7 @@
 // All descriptive text uses semantic line breaks. https://sembr.org
 
 namespace MelonDsDs::config::definitions {
-    constexpr std::initializer_list<retro_core_option_v2_definition> OptionDefList {
+    constexpr std::array CoreOptionDefinitions {
         MicInput,
         MicInputButton,
         BitDepth,
@@ -117,19 +116,12 @@ namespace MelonDsDs::config::definitions {
 #ifndef NDEBUG
         ShowPointerCoordinates,
 #endif
-        {},
+        retro_core_option_v2_definition {},
     };
 
-    constexpr std::array<retro_core_option_v2_definition, OptionDefList.size()> CoreOptionDefinitions = [] {
-        std::array<retro_core_option_v2_definition, OptionDefList.size()> result {};
-
-        for (int i = 0; i < OptionDefList.size(); ++i) {
-            result[i] = OptionDefList.begin()[i];
-        }
-
-        return result;
-    }();
-
-    static_assert(CoreOptionDefinitions[CoreOptionDefinitions.size() - 1].key == nullptr);
+    static_assert(
+        CoreOptionDefinitions[CoreOptionDefinitions.size() - 1].key == nullptr,
+        "CoreOptionDefinitions must end with a null key"
+    );
 }
 #endif //MELONDS_DS_DEFINITIONS_HPP
