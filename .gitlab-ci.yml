@@ -70,7 +70,8 @@ libretro-build-linux-x64:
     - .core-defs
   image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-amd64-ubuntu:latest
   before_script:
-    - echo 'deb https://ppa.launchpadcontent.net/savoury1/build-tools/ubuntu bionic main' | sudo tee -a /etc/apt/sources.list.d/savoury1.list >/dev/null
+    - sudo apt-get install -qy software-properties-common
+    - sudo add-apt-repository -y ppa:savoury1/build-tools
     - sudo apt-get update -qy
     - sudo apt-get dist-upgrade -qy
   # This container has CMake 3.10, which is way too old
