@@ -80,6 +80,7 @@ libretro-build-linux-x64:
   variables:
     CC: /usr/bin/gcc-12
     CXX: /usr/bin/g++-12
+    CXXFLAGS: -Wno-deprecated-declarations # Deprecation warnings aren't helpful on the libretro Gitlab
 
 # MacOS 64-bit
 libretro-build-osx-x64:
