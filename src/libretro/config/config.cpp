@@ -756,8 +756,8 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config;
 
-    array categories = definitions::OptionCategories<RETRO_LANGUAGE_ENGLISH>;
-    array definitions = definitions::CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>;
+    array categories = definitions::OptionCategories;
+    array definitions = definitions::CoreOptionDefinitions;
 
     optional<string_view> subdir = retro::get_system_subdirectory();
 

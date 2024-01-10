@@ -23,7 +23,6 @@
 #include "../constants.hpp"
 
 namespace MelonDsDs::config::definitions {
-    template<retro_language L>
     constexpr std::array OptionCategories {
         retro_core_option_v2_category {
             MelonDsDs::config::system::CATEGORY,

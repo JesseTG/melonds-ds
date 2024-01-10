@@ -364,7 +364,6 @@ namespace MelonDsDs::config::definitions {
         MelonDsDs::config::values::RIGHT_LEFT
     };
 
-    template<retro_language L>
     constexpr std::initializer_list<retro_core_option_v2_definition> ScreenOptionDefinitions {
         ShowCursor,
         CursorTimeout,

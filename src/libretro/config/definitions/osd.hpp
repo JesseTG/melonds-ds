@@ -23,113 +23,128 @@
 #include "../constants.hpp"
 
 namespace MelonDsDs::config::definitions {
-    template<retro_language L>
-    constexpr std::initializer_list<retro_core_option_v2_definition> OsdOptionDefinitions {
-        retro_core_option_v2_definition {
-            config::osd::UNSUPPORTED_FEATURES,
-            "Warn About Unsupported Features",
-            nullptr,
-            "Enable to display an on-screen message "
-            "if melonDS tries to use certain unsupported features. "
-            "These warnings will be logged regardless of this setting.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::ENABLED
+    constexpr retro_core_option_v2_definition ShowUnsupportedFeatures {
+        config::osd::UNSUPPORTED_FEATURES,
+        "Warn About Unsupported Features",
+        nullptr,
+        "Enable to display an on-screen message "
+        "if melonDS tries to use certain unsupported features. "
+        "These warnings will be logged regardless of this setting.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
-        retro_core_option_v2_definition {
-            config::osd::BIOS_WARNINGS,
-            "Warn About Certain BIOS Problems",
-            nullptr,
-            "Enable to display warnings if your BIOS files have certain known problems. "
-            "A warning will always be shown if your BIOS files are missing or invalid, "
-            "regardless of this setting.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::ENABLED
+        MelonDsDs::config::values::ENABLED
+    };
+
+    constexpr retro_core_option_v2_definition ShowBiosWarnings {
+        config::osd::BIOS_WARNINGS,
+        "Warn About Certain BIOS Problems",
+        nullptr,
+        "Enable to display warnings if your BIOS files have certain known problems. "
+        "A warning will always be shown if your BIOS files are missing or invalid, "
+        "regardless of this setting.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
-        retro_core_option_v2_definition {
-            config::osd::CURRENT_LAYOUT,
-            "Show Screen Layout",
-            nullptr,
-            "Enable to show which screen layout within the configured sequence is active.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::ENABLED
+        MelonDsDs::config::values::ENABLED
+    };
+
+    constexpr retro_core_option_v2_definition ShowCurrentLayout {
+        config::osd::CURRENT_LAYOUT,
+        "Show Screen Layout",
+        nullptr,
+        "Enable to show which screen layout within the configured sequence is active.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
-        retro_core_option_v2_definition {
-            config::osd::MIC_STATE,
-            "Show Host Microphone State",
-            nullptr,
-            "Enable to show whether your device's microphone is active.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::ENABLED
+        MelonDsDs::config::values::ENABLED
+    };
+
+    constexpr retro_core_option_v2_definition ShowMicState {
+        config::osd::MIC_STATE,
+        "Show Host Microphone State",
+        nullptr,
+        "Enable to show whether your device's microphone is active.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
-        retro_core_option_v2_definition {
-            config::osd::CAMERA_STATE,
-            "Show Host Camera State",
-            nullptr,
-            "Enable to show whether your device's camera is active.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::ENABLED
+        MelonDsDs::config::values::ENABLED
+    };
+
+    constexpr retro_core_option_v2_definition ShowCameraState {
+        config::osd::CAMERA_STATE,
+        "Show Host Camera State",
+        nullptr,
+        "Enable to show whether your device's camera is active.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
-        retro_core_option_v2_definition {
-            config::osd::LID_STATE,
-            "Show Lid State",
-            nullptr,
-            "Enable to show whether the emulated screens are closed.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::ENABLED
+        MelonDsDs::config::values::ENABLED
+    };
+
+    constexpr retro_core_option_v2_definition ShowLidState {
+        config::osd::LID_STATE,
+        "Show Lid State",
+        nullptr,
+        "Enable to show whether the emulated screens are closed.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
+        MelonDsDs::config::values::ENABLED
+    };
+
 #ifndef NDEBUG
-        retro_core_option_v2_definition {
-            config::osd::POINTER_COORDINATES,
-            "Show Pointer Coordinates",
-            nullptr,
-            "Enable to display the coordinates of the pointer within the touch screen. "
-            "Used for debugging. "
-            "Leave disabled if unsure.",
-            nullptr,
-            config::osd::CATEGORY,
-            {
-                {MelonDsDs::config::values::ENABLED, nullptr},
-                {MelonDsDs::config::values::DISABLED, nullptr},
-                {nullptr, nullptr},
-            },
-            MelonDsDs::config::values::DISABLED
+    constexpr retro_core_option_v2_definition ShowPointerCoordinates {
+        config::osd::POINTER_COORDINATES,
+        "Show Pointer Coordinates",
+        nullptr,
+        "Enable to display the coordinates of the pointer within the touch screen. "
+        "Used for debugging. "
+        "Leave disabled if unsure.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
         },
+        MelonDsDs::config::values::DISABLED
+    };
+#endif
+
+    constexpr std::initializer_list<retro_core_option_v2_definition> OsdOptionDefinitions {
+        ShowUnsupportedFeatures,
+        ShowBiosWarnings,
+        ShowCurrentLayout,
+        ShowMicState,
+        ShowCameraState,
+        ShowLidState,
+#ifndef NDEBUG
+        ShowPointerCoordinates,
 #endif
     };
 }

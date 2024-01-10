@@ -36,44 +36,101 @@
 
 // I know this is a monstrosity. The idea is to make it easier to add new options.
 namespace MelonDsDs::config::definitions {
-    template<retro_language L = RETRO_LANGUAGE_ENGLISH>
-    constexpr std::tuple CoreOptionDefinitionGroups {
-        AudioOptionDefinitions<L>,
-        CpuOptionDefinitions<L>,
-        NetworkOptionDefinitions<L>,
-        ScreenOptionDefinitions<L>,
-        FirmwareOptionDefinitions<L>,
-        SystemOptionDefinitions<L>,
-        VideoOptionDefinitions<L>,
-        OsdOptionDefinitions<L>,
+    constexpr std::initializer_list<retro_core_option_v2_definition> OptionDefList {
+        MicInput,
+        MicInputButton,
+        BitDepth,
+        AudioInterpolation,
+
+#ifdef JIT_ENABLED
+        JitEnabled,
+        JitBlockSize,
+        JitBranchOptimizations,
+        JitLiteralOptimizations,
+#   ifdef HAVE_JIT_FASTMEM
+        JitFastMemory,
+#   endif
+#endif
+
+#ifdef HAVE_NETWORKING
+        NetworkMode,
+#   ifdef HAVE_NETWORKING_DIRECT_MODE
+        NetworkInterface,
+#   endif
+#endif
+
+        ShowCursor,
+        CursorTimeout,
+        TouchMode,
+        NumberOfScreenLayouts,
+        ScreenLayout1,
+        ScreenLayout2,
+        ScreenLayout3,
+        ScreenLayout4,
+        ScreenLayout5,
+        ScreenLayout6,
+        ScreenLayout7,
+        ScreenLayout8,
+        HybridRatio,
+        HybridSmallScreen,
+        ScreenGap,
+
+        DnsOverride,
+        Language,
+        Username,
+        FavoriteColor,
+        BirthMonth,
+        BirthDay,
+        EnableAlarm,
+        AlarmHour,
+        AlarmMinute,
+
+        ConsoleMode,
+        SysfileMode,
+        FirmwarePath,
+        DsiFirmwarePath,
+        NandPath,
+        BootMode,
+        DsiSdCardSaveMode,
+        DsiSdCardReadOnly,
+        DsiSdCardSyncToHost,
+        HomebrewSdCard,
+        HomebrewSdCardReadOnly,
+        HomebrewSdCardSyncToHost,
+        BatteryUpdateInterval,
+        NdsPowerOkThreshold,
+
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+        RenderMode,
+        OpenGlScaleFactor,
+        OpenGlBetterPolygons,
+        OpenGlFiltering,
+#endif
+#if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
+        ThreadedSoftwareRenderer,
+#endif
+
+        ShowUnsupportedFeatures,
+        ShowBiosWarnings,
+        ShowCurrentLayout,
+        ShowMicState,
+        ShowCameraState,
+        ShowLidState,
+#ifndef NDEBUG
+        ShowPointerCoordinates,
+#endif
     };
 
-    template<retro_language L = RETRO_LANGUAGE_ENGLISH>
-    constexpr size_t CoreOptionCount = std::apply([](auto &&... args) { return (args.size() + ...); }, CoreOptionDefinitionGroups<L>);
+    constexpr std::array<retro_core_option_v2_definition, OptionDefList.size() + 1> CoreOptionDefinitions = [] {
+        std::array<retro_core_option_v2_definition, OptionDefList.size() + 1> result {};
 
-    // I gotta be honest, I don't know how this works.
-    // GitHub Copilot generated it and I'm too scared to change it.
-    template<retro_language L = RETRO_LANGUAGE_ENGLISH>
-    constexpr std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1>
-    GetCoreOptionDefinitions(decltype(CoreOptionDefinitionGroups<L>) categories) {
-        std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1> result {};
-        std::size_t index = 0;
-
-        std::apply([&](auto &&... args) {
-            (([&](auto &&category) {
-                for (const retro_core_option_v2_definition &o: category) {
-                    result[index] = std::move(o);
-                    ++index;
-                }
-            }(args)), ...);
-        }, categories);
+        for (int i = 0; i < OptionDefList.size(); ++i) {
+            result[i] = OptionDefList.begin()[i];
+        }
 
         return result;
-    }
+    }();
 
-    template<retro_language L>
-    constexpr std::array<retro_core_option_v2_definition, CoreOptionCount<L> + 1> CoreOptionDefinitions = GetCoreOptionDefinitions<L>(CoreOptionDefinitionGroups<L>);
-
-    static_assert(CoreOptionDefinitions<RETRO_LANGUAGE_ENGLISH>[CoreOptionCount<RETRO_LANGUAGE_ENGLISH>].key == nullptr);
+    static_assert(CoreOptionDefinitions[CoreOptionDefinitions.size() - 1].key == nullptr);
 }
 #endif //MELONDS_DS_DEFINITIONS_HPP
