@@ -119,10 +119,11 @@ namespace MelonDsDs::config::definitions {
 #ifndef NDEBUG
         ShowPointerCoordinates,
 #endif
+        {},
     };
 
-    constexpr std::array<retro_core_option_v2_definition, OptionDefList.size() + 1> CoreOptionDefinitions = [] {
-        std::array<retro_core_option_v2_definition, OptionDefList.size() + 1> result {};
+    constexpr std::array<retro_core_option_v2_definition, OptionDefList.size()> CoreOptionDefinitions = [] {
+        std::array<retro_core_option_v2_definition, OptionDefList.size()> result {};
 
         for (int i = 0; i < OptionDefList.size(); ++i) {
             result[i] = OptionDefList.begin()[i];
