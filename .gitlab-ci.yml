@@ -73,9 +73,10 @@ libretro-build-linux-x64:
     - sudo apt-get update -qy
     - sudo apt-get install -qy software-properties-common
     - sudo add-apt-repository -y ppa:savoury1/build-tools
+    - sudo add-apt-repository -y ppa:savoury1/gcc-defaults-12
     - sudo apt-get update -qy
-    - sudo apt-get install -qy cmake
-  # This container has CMake 3.10, which is way too old
+    - sudo apt-get install -qy cmake gcc-12
+  # This container's existing installations of gcc and CMake are way too old
 
 # MacOS 64-bit
 libretro-build-osx-x64:
