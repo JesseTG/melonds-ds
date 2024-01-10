@@ -77,6 +77,9 @@ libretro-build-linux-x64:
     - sudo apt-get update -qy
     - sudo apt-get install -qy cmake gcc-12
   # This container's existing installations of gcc and CMake are way too old
+  variables:
+    CC: /usr/bin/gcc-12
+    CXX: /usr/bin/g++-12
 
 # MacOS 64-bit
 libretro-build-osx-x64:
