@@ -131,13 +131,13 @@ if (IOS)
     set(HAVE_COCOATOUCH ON)
 endif ()
 
-if (NINTENDO_SWITCH OR (${CMAKE_SYSTEM_NAME} STREQUAL "NintendoSwitch"))
+if (NINTENDO_SWITCH OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "NintendoSwitch"))
     set(HAVE_LIBNX ON)
     set(SWITCH ON)
     message(STATUS "Building for Nintendo Switch")
 endif()
 
-if (${CMAKE_ANDROID_ARM_NEON} OR ${HAVE_LIBNX} OR ("arm64" IN_LIST ${CMAKE_OSX_ARCHITECTURES}) OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64"))
+if ("${CMAKE_ANDROID_ARM_NEON}" OR "${HAVE_LIBNX}" OR ("arm64" IN_LIST "${CMAKE_OSX_ARCHITECTURES}") OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64") OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64"))
     # The Switch's CPU supports NEON, as does iOS
     set(HAVE_NEON ON)
     message(STATUS "Building with ARM NEON optimizations")
