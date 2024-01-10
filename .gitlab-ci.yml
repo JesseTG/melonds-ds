@@ -69,6 +69,11 @@ libretro-build-linux-x64:
     - .libretro-linux-cmake-x86_64
     - .core-defs
   image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-amd64-ubuntu:latest
+  before_script:
+    - sudo add-apt-repository ppa:ecal/cmake-3.25 -y
+    - sudo apt-get update -qy
+    - sudo apt-get dist-upgrade -qy
+  # This container has CMake 3.10, which is way too old
 
 # MacOS 64-bit
 libretro-build-osx-x64:
