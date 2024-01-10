@@ -103,12 +103,24 @@ android-arm64-v8a:
   extends:
     - .libretro-android-cmake-arm64-v8a
     - .core-defs
+  before_script:
+    - sudo apt-get update -qy
+    - sudo apt-get install -qy software-properties-common
+    - sudo add-apt-repository -y ppa:savoury1/build-tools
+    - sudo apt-get update -qy
+    - sudo apt-get install -qy cmake
 
 # Android 64-bit x86
 android-x86_64:
   extends:
     - .libretro-android-cmake-x86_64
     - .core-defs
+  before_script:
+    - sudo apt-get update -qy
+    - sudo apt-get install -qy software-properties-common
+    - sudo add-apt-repository -y ppa:savoury1/build-tools
+    - sudo apt-get update -qy
+    - sudo apt-get install -qy cmake
 # Not supported; if this doesn't work the first time around, I'm cutting it
 
 # iOS
