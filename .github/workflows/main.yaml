@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "*.gitlab-ci.yml"
+      - "*.gitignore"
   pull_request:
     branches:
       - main
