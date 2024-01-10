@@ -70,6 +70,7 @@ libretro-build-linux-x64:
     - .core-defs
   image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-amd64-ubuntu:latest
   before_script:
+    - sudo apt-get update -qy
     - sudo apt-get install -qy software-properties-common
     - sudo add-apt-repository -y ppa:savoury1/build-tools
     - sudo apt-get update -qy
