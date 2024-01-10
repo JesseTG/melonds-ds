@@ -104,7 +104,7 @@ android-arm64-v8a:
     - .libretro-android-cmake-arm64-v8a
     - .core-defs
   before_script:
-    - echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.d/libretro.list
+    - echo "deb http://deb.debian.org/debian bullseye-backports main" > /etc/apt/sources.d/libretro.list
     - apt-get update -qy
     - apt-get install -qy cmake/bullseye-backports
   # The Android runners are based on Debian, not Ubuntu
@@ -115,7 +115,7 @@ android-x86_64:
     - .libretro-android-cmake-x86_64
     - .core-defs
   before_script:
-    - echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/sources.d/libretro.list
+    - echo "deb http://deb.debian.org/debian bullseye-backports main" > /etc/apt/sources.d/libretro.list
     - apt-get update -qy
     - apt-get install -qy cmake/bullseye-backports
 # Not supported; if this doesn't work the first time around, I'm cutting it
