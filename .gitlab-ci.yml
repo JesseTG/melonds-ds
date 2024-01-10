@@ -74,7 +74,7 @@ libretro-build-linux-x64:
     - sudo apt-get install -qy software-properties-common
     - sudo add-apt-repository -y ppa:savoury1/build-tools
     - sudo apt-get update -qy
-    - sudo apt-get dist-upgrade -qy
+    - sudo apt-get install -qy cmake
   # This container has CMake 3.10, which is way too old
 
 # MacOS 64-bit
