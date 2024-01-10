@@ -75,6 +75,8 @@ libretro-build-osx-x64:
   extends:
     - .libretro-osx-cmake-x86_64
     - .core-defs
+  variables:
+    MACOSX_DEPLOYMENT_TARGET: "10.15"
 
 # MacOS ARM 64-bit
 libretro-build-osx-arm64:
