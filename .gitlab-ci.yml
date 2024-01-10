@@ -108,7 +108,7 @@ android-arm64-v8a:
     - apt-get update -qy
     - apt-get install -qy cmake/bullseye-backports
   variables:
-    CXXFLAGS: -Wno-deprecated-declarations # Deprecation warnings aren't helpful on the libretro Gitlab
+    CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
   # The Android runners are based on Debian, not Ubuntu
 
 # Android 64-bit x86
@@ -121,7 +121,7 @@ android-x86_64:
     - apt-get update -qy
     - apt-get install -qy cmake/bullseye-backports
   variables:
-    CXXFLAGS: -Wno-deprecated-declarations # Deprecation warnings aren't helpful on the libretro Gitlab
+    CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
 # Not supported; if this doesn't work the first time around, I'm cutting it
 
 # iOS
