@@ -18,8 +18,7 @@
 #define MELONDS_DS_DEFINITIONS_HPP
 
 #include <array>
-#include <cstdint>
-#include <tuple>
+#include <initializer_list>
 
 #include <libretro.h>
 
@@ -34,7 +33,6 @@
 
 // All descriptive text uses semantic line breaks. https://sembr.org
 
-// I know this is a monstrosity. The idea is to make it easier to add new options.
 namespace MelonDsDs::config::definitions {
     constexpr std::initializer_list<retro_core_option_v2_definition> OptionDefList {
         MicInput,

@@ -17,7 +17,6 @@
 #ifndef MELONDS_DS_SYSTEM_HPP
 #define MELONDS_DS_SYSTEM_HPP
 
-#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"

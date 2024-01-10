@@ -17,18 +17,11 @@
 #ifndef MELONDS_DS_CONFIG_DEFINITIONS_FIRMWARE_HPP
 #define MELONDS_DS_CONFIG_DEFINITIONS_FIRMWARE_HPP
 
-#include <initializer_list>
 #include <libretro.h>
 
 #include "../constants.hpp"
 
 namespace MelonDsDs::config::definitions {
-    // If you ever get these translated, turn the variable into a template and
-    // make the translated strings variable templates too.
-    // Here's an example:
-    template<retro_language L>
-    constexpr const char* EnglishLabel = "English";
-
     constexpr retro_core_option_v2_definition DnsOverride {
         config::firmware::WFC_DNS,
         "DNS Override",
