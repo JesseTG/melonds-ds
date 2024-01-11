@@ -130,7 +130,7 @@ libretro-build-ios-arm64:
     - .libretro-ios-cmake-arm64
     - .core-defs
   variables:
-    MACOSX_DEPLOYMENT_TARGET: "13"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
 
 # tvOS
 libretro-build-tvos-arm64:
@@ -138,4 +138,4 @@ libretro-build-tvos-arm64:
     - .libretro-tvos-cmake-arm64
     - .core-defs
   variables:
-    MACOSX_DEPLOYMENT_TARGET: "13"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
