@@ -130,6 +130,7 @@ libretro-build-ios-arm64:
     - .libretro-ios-cmake-arm64
     - .core-defs
   variables:
+    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=13
     IOS_MINVER: "13.0"
 
 # tvOS
@@ -138,4 +139,5 @@ libretro-build-tvos-arm64:
     - .libretro-tvos-cmake-arm64
     - .core-defs
   variables:
+    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=13
     IOS_MINVER: "13.0"
