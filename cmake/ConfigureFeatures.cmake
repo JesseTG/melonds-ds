@@ -125,6 +125,7 @@ check_include_file("sys/mman.h" HAVE_MMAN)
 
 if (ENABLE_DYNAMIC)
     get_cmake_property(HAVE_DYNAMIC TARGET_SUPPORTS_SHARED_LIBS)
+    message(STATUS "Target supports shared libraries")
 endif ()
 
 if (IOS)
@@ -145,6 +146,7 @@ endif ()
 
 if (ENABLE_NETWORKING AND (WIN32 OR UNIX) AND HAVE_DYNAMIC)
     set(HAVE_NETWORKING_DIRECT_MODE ON)
+    message(STATUS "Building with support for direct-mode networking")
 endif()
 
 
