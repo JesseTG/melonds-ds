@@ -3,8 +3,9 @@
 An enhanced remake of the [melonDS][melonds] [core][melonds-libretro] for [libretro][libretro]
 that prioritizes standalone parity, reliability, and usability.
 
-![melonDS DS Latest Release](https://img.shields.io/github/v/release/JesseTG/melonds-ds?label=melonDS%20DS&link=https%3A%2F%2Fgithub.com%2FJesseTG%2Fmelonds-ds%2Freleases%2Flatest)
-![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/JesseTG/melonds-ds/main.yaml?label=Build%20Status)
+![melonDS DS Latest Release](https://img.shields.io/github/v/release/JesseTG/melonds-ds?style=for-the-badge&&logo=github&label=melonDS%20DS&link=https%3A%2F%2Fgithub.com%2FJesseTG%2Fmelonds-ds%2Freleases%2Flatest)
+![melonDS DS GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/JesseTG/melonds-ds/main.yaml?style=for-the-badge&logo=githubactions&logoColor=white&label=Personal%20Build)
+![melonDS DS Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/jessetg%2Fmelonds-ds?gitlab_url=https%3A%2F%2Fgit.libretro.com&style=for-the-badge&logo=gitlab&label=Libretro%20Build)
 
 # Getting melonDS DS
 
