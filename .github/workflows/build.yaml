@@ -6,6 +6,11 @@ on:
         description: Additional arguments to pass to CMake.
         type: string
         required: false
+      core-name:
+        description: The name of the core.
+        type: string
+        required: true
+        default: melondsds_libretro
       cores-dir:
         description: The directory in which to place the built cores.
         type: string
@@ -101,8 +106,8 @@ jobs:
           INFO_PATH: "${{ env.DIST_DIR }}/${{ inputs.info-dir }}"
         run: |
           mkdir -vp "$CORES_PATH" "$INFO_PATH"
-          cp -f "${{ env.BUILD_DIR }}/src/libretro/melondsds_libretro.${{ inputs.lib-ext }}" "$CORES_PATH"
-          cp -f "${{ env.BUILD_DIR }}/melondsds_libretro.info" "$INFO_PATH/melondsds_libretro.info"
+          cp -f "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.core-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
+          cp -f "${{ env.BUILD_DIR }}/${{ inputs.core-name }}.info" "$INFO_PATH/${{ inputs.core-name }}.info"
           cp -f "${{ env.BUILD_DIR }}/melondsds-LICENSE.txt" "$CORES_PATH"
 
       - name: Upload Artifact
