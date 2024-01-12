@@ -218,6 +218,8 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "(.+)?Clang")
     target_compile_options(melondsds_libretro PUBLIC -Werror=return-type)
+    # For some reason, C++ allows functions to not return values in all code paths.
+    # This has tripped me up before, so I'm forcing it to be an error.
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/version.hpp")
