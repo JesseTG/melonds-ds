@@ -198,14 +198,12 @@ endif ()
 
 # libretro cores do not start with "lib"
 set_target_properties(melondsds_libretro PROPERTIES PREFIX "")
-if(ANDROID)
-    set_target_properties(melondsds_libretro PROPERTIES SUFFIX "_android.so")
-endif()
-
 
 # Some platforms or compilers don't use the expected suffixes for shared libraries
 if (APPLE)
     set_target_properties(melondsds_libretro PROPERTIES SUFFIX ".dylib")
+elseif(ANDROID)
+    set_target_properties(melondsds_libretro PROPERTIES SUFFIX "_android.so")
 elseif (UNIX)
     set_target_properties(melondsds_libretro PROPERTIES SUFFIX ".so")
 elseif (WIN32)
