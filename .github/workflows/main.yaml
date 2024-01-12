@@ -97,7 +97,7 @@ jobs:
       lib-ext: so
       target: android
       archive-name: melondsds_libretro-android
-      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" $EXTRA_CMAKE_ARGS
+      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" $EXTRA_CMAKE_ARGS
       runs-on: ubuntu-latest
       # Disabled OpenGL on Android due to https://github.com/JesseTG/melonds-ds/issues/23
 

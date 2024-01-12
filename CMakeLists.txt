@@ -59,6 +59,14 @@ set(ENABLE_OGLRENDERER ${ENABLE_OPENGL})
 set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL', 'OpenGLES2', 'OpenGLES3', 'OpenGLES31', and 'OpenGLES32'.")
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
+if (ANDROID)
+    if (NOT ANDROID_PLATFORM)
+        set(ANDROID_PLATFORM "android-24")
+    endif()
+
+    message(STATUS "Targeting Android platform ${ANDROID_PLATFORM}")
+endif ()
+
 include(cmake/utils.cmake)
 include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
