@@ -9,7 +9,7 @@ on:
       core-name:
         description: The name of the core.
         type: string
-        required: true
+        required: false
         default: melondsds_libretro
       cores-dir:
         description: The directory in which to place the built cores.
