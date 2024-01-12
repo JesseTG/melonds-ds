@@ -32,6 +32,10 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_MODULE_PATH}")
 find_package(Git REQUIRED)
 include(GitInfo)
 
+message(STATUS "GIT_REVISION: ${GIT_REVISION}")
+message(STATUS "GIT_STATE: ${GIT_STATE}")
+message(STATUS "GIT_BRANCH: ${GIT_BRANCH}")
+
 option(TRACY_ENABLE "Build with Tracy support." OFF)
 
 if (IOS)
@@ -80,7 +84,7 @@ endif()
 
 set(MELONDSDS_NAME "${CMAKE_PROJECT_NAME}")
 set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION}")
-message(STATUS "${CMAKE_PROJECT_NAME} Version: ${MELONDSDS_VERSION_STRING}")
+message(STATUS "${CMAKE_PROJECT_NAME} version string: '${MELONDSDS_VERSION_STRING}'")
 
 # Formerly off by default due to a bug that has since been fixed.
 # This option may be removed in the future.
