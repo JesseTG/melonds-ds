@@ -7,11 +7,13 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
-### Changed
+### Fixed
 
 - Rename the Android build artifact to `melondsds_libretro_android.so`
   to adhere to libretro's naming conventions.
-  If you installed it manually, be sure that the older release is removed.
+  If you installed it manually, be sure to remove the older release.
+- Fixed an issue where the version number would be displayed incorrectly
+  in the core information menu.
 
 ## [0.8.7] - 2024-01-09
 

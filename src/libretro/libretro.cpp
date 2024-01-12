@@ -69,11 +69,11 @@ PUBLIC_SYMBOL void retro_init(void) {
 #ifdef HAVE_TRACY
     tracy::StartupProfiler();
 #endif
-    TracySetProgramName(MELONDSDS_VERSION_STRING);
+    TracySetProgramName(MELONDSDS_VERSION);
     ZoneScopedN(TracyFunction);
     retro::env::init();
     retro::debug("retro_init");
-    retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION_STRING);
+    retro::info("{} {}", MELONDSDS_NAME, MELONDSDS_VERSION);
     retro_assert(!MelonDsDs::Core.IsInitialized());
 
     retro::task::init(false, nullptr);
@@ -166,7 +166,7 @@ PUBLIC_SYMBOL unsigned retro_api_version(void) {
 PUBLIC_SYMBOL void retro_get_system_info(struct retro_system_info *info) {
     info->library_name = MELONDSDS_NAME;
     info->block_extract = false;
-    info->library_version = MELONDSDS_VERSION_STRING;
+    info->library_version = MELONDSDS_VERSION;
     info->need_fullpath = false;
     info->valid_extensions = "nds|ids|dsi";
 }

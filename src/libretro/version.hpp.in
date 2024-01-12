@@ -1,8 +1,8 @@
 // This file exists to improve the cache hit rate for CCache;
 // the version number changes frequently,
-// which causes lots of cache misses for all files.
+// which causes lots of cache misses for all files
+// if its contents are defined with compiler flags.
 #pragma once
 
 #cmakedefine MELONDSDS_NAME "${MELONDSDS_NAME}"
 #cmakedefine MELONDSDS_VERSION "${MELONDSDS_VERSION}"
-#cmakedefine MELONDSDS_VERSION_STRING "${MELONDSDS_VERSION_STRING}"

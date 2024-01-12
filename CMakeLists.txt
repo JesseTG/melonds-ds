@@ -19,7 +19,7 @@ project("melonDS DS"
     HOMEPAGE_URL "https://melonds.kuribo64.net"
     LANGUAGES C CXX)
 
-configure_file("${CMAKE_SOURCE_DIR}/melondsds_libretro.info.in" "${CMAKE_CURRENT_BINARY_DIR}/melondsds_libretro.info")
+message(STATUS "Configuring a ${CMAKE_BUILD_TYPE} build.")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 include(CheckSymbolExists)
@@ -76,15 +76,19 @@ include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
 
-if (GIT_STATE)
-    set(MELONDSDS_VERSION_STRING "${GIT_STATE} (upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
-else ()
-    set(MELONDSDS_VERSION_STRING "${CMAKE_PROJECT_VERSION} (no-git, upstream ${MELONDS_REPOSITORY_TAG}, ${CMAKE_BUILD_TYPE})")
+set(MELONDSDS_NAME "${CMAKE_PROJECT_NAME}")
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION}")
+else()
+    if (GIT_STATE)
+        set(MELONDSDS_VERSION "${GIT_STATE}-${CMAKE_BUILD_TYPE}-upstream-${MELONDS_REPOSITORY_TAG}")
+    else ()
+        set(MELONDSDS_VERSION "v${CMAKE_PROJECT_VERSION}-nogit-${CMAKE_BUILD_TYPE}-upstream-${MELONDS_REPOSITORY_TAG}")
+    endif()
 endif()
 
-set(MELONDSDS_NAME "${CMAKE_PROJECT_NAME}")
-set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION}")
-message(STATUS "${CMAKE_PROJECT_NAME} version string: '${MELONDSDS_VERSION_STRING}'")
+message(STATUS "${MELONDSDS_NAME} version string: '${MELONDSDS_VERSION}'")
+configure_file("${CMAKE_SOURCE_DIR}/melondsds_libretro.info.in" "${CMAKE_CURRENT_BINARY_DIR}/melondsds_libretro.info")
 
 # Formerly off by default due to a bug that has since been fixed.
 # This option may be removed in the future.
