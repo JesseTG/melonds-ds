@@ -29,10 +29,10 @@
 constexpr int TITLE_FONT_HEIGHT = 20; // in pixels
 constexpr int BODY_FONT_HEIGHT = 18; // in pixels
 constexpr int MARGIN = 8; // in pixels
-constexpr pntr_color BACKGROUND_COLOR_TOP = {.b = 0xBC, .g = 0xB7, .r = 0xFA, .a = 0xFF}; // light pink
-constexpr pntr_color TEXT_COLOR_TOP = {.b = 0x19, .g = 0x0F, .r = 0xD7, .a = 0xFF}; // dark red
-constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}; // dark green
-constexpr pntr_color TEXT_COLOR_BOTTOM = {.b = 0x98, .g = 0xE5, .r = 0xE7, .a = 0xFF}; // light green
+constexpr pntr_color BACKGROUND_COLOR_TOP = {.rgba = {.b = 0xBC, .g = 0xB7, .r = 0xFA, .a = 0xFF}}; // light pink
+constexpr pntr_color TEXT_COLOR_TOP = {.rgba = {.b = 0x19, .g = 0x0F, .r = 0xD7, .a = 0xFF}}; // dark red
+constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.rgba = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}}; // dark green
+constexpr pntr_color TEXT_COLOR_BOTTOM = {.rgba = {.b = 0x98, .g = 0xE5, .r = 0xE7, .a = 0xFF}}; // light green
 
 static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
