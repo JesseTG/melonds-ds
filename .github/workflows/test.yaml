@@ -62,7 +62,7 @@ jobs:
         shell: ${{ inputs.shell }}
     steps:
       - name: Check Out Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Dependencies
         uses: ./.github/actions/test-deps

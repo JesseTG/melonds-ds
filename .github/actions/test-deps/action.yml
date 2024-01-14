@@ -55,7 +55,7 @@ runs:
         7z x -o"$Env:ProgramFiles" RetroArch.7z
 
     - name: Download Test Files
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: "${{ inputs.testfile-repo }}"
         token: "${{ inputs.testfile-repo-token }}"

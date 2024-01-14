@@ -180,7 +180,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # To ensure we have all tags
       - name: Get Latest Changelog Version
@@ -231,7 +231,7 @@ jobs:
 
       - name: Checkout libretro-super
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: "libretro/libretro-super"
           path: libretro-super
