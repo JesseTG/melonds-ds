@@ -21,6 +21,7 @@ fileList*.txt
 
 # Build System
 artifact
+build
 melondsds-LICENSE.txt
 melondsds_libretro.info
 out.txt
