@@ -7,7 +7,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
-### Added
+### Changed
 
 - Add support for screen gaps between 0 and 126 pixels, inclusive.
   128-pixel gaps are no longer available due to
