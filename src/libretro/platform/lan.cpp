@@ -134,7 +134,7 @@ bool MelonDsDs::CoreState::LanInit() noexcept {
 
     // LAN::PCap may already be initialized if we're using direct mode,
     // as it was necessary to query the available interfaces for the core options
-    switch (NetworkMode()) {
+    switch (Config.NetworkMode()) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case MelonDsDs::NetworkMode::Direct: {
             const LAN_PCap::AdapterData* adapter = SelectNetworkInterface(LAN_PCap::Adapters, LAN_PCap::NumAdapters);

@@ -13,6 +13,10 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
   128-pixel gaps are no longer available due to
   libretro limits on how many core option values can be defined.
 
+### Fixed
+
+- Fixed an issue where the emulated console could not connect to the network.
+
 ## [1.0.1] - 2024-01-12
 
 ### Fixed
