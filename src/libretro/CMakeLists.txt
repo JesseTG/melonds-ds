@@ -81,6 +81,7 @@ add_library(melondsds_libretro MODULE
     std/chrono.hpp
     std/semaphore.hpp
     std/span.hpp
+    strings/en_us.hpp
     sram.cpp
     sram.hpp
     tracy.hpp
