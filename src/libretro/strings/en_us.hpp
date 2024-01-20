@@ -17,7 +17,18 @@
 #ifndef MELONDSDS_STRINGS_EN_US_HPP
 #define MELONDSDS_STRINGS_EN_US_HPP
 
+// These strings are intended to be shown directly to the player;
+// log messages don't need to be declared here.
 namespace MelonDsDs::strings::en_us {
+    constexpr const char* const InternalError =
+        "An internal error occurred with melonDS DS. "
+        "Please contact the developer with the log file.";
+
+    constexpr const char* const UnknownError =
+        "An unknown error has occurred with melonDS DS. "
+        "Please contact the developer with the log file.";
+
+    constexpr const char* const InvalidCheat = "Cheat #{} ({:.8}...) isn't valid, ignoring it.";
 }
 
 #endif // MELONDSDS_STRINGS_EN_US_HPP
