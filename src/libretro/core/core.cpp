@@ -28,6 +28,7 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 
+#include "../strings/strings.hpp"
 #include "../config/console.hpp"
 #include "../exceptions.hpp"
 #include "../format.hpp"
@@ -44,16 +45,10 @@
 
 using std::span;
 using namespace melonDS::DSi_NAND;
+using namespace MelonDsDs::strings::en_us;
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
-static const char* const INTERNAL_ERROR_MESSAGE =
-    "An internal error occurred with melonDS DS. "
-    "Please contact the developer with the log file.";
-
-static const char* const UNKNOWN_ERROR_MESSAGE =
-    "An unknown error has occurred with melonDS DS. "
-    "Please contact the developer with the log file.";
 
 MelonDsDs::CoreState::~CoreState() noexcept {
     ZoneScopedN(TracyFunction);
@@ -274,7 +269,7 @@ bool MelonDsDs::CoreState::RunDeferredInitialization() noexcept {
     }
     catch (...) {
         retro::error("Deferred initialization failed; exiting core");
-        retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
+        retro::set_error_message(UnknownError);
         return false;
     }
 
@@ -464,11 +459,11 @@ catch (const emulator_exception& e) {
 }
 catch (const std::exception& e) {
     retro::error("{}", e.what());
-    retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+    retro::set_error_message(InternalError);
     return false;
 }
 catch (...) {
-    retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
+    retro::set_error_message(UnknownError);
     return false;
 }
 
@@ -591,14 +586,14 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
                     break;
                 default:
                     retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", game.size());
-                    retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+                    retro::set_error_message(InternalError);
                     throw std::runtime_error("Invalid number of ROMs for slot-1/2 boot");
                 // TODO: Throw an exception
             }
             break;
         default:
             retro::error("Unknown game type {}", type);
-            retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+            retro::set_error_message(InternalError);
             throw std::runtime_error("Unknown game type");
     }
 }
@@ -819,7 +814,7 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
 
     if (!regex_match(code.data(), _cheatSyntax)) {
         // If we're trying to activate this cheat code, but it's not valid...
-        retro::set_warn_message("Cheat #{} ({:.8}...) isn't valid, ignoring it.", index, code);
+        retro::set_warn_message(InvalidCheat, index, code);
         return;
     }
 
