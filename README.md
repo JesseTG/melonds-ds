@@ -9,11 +9,11 @@ that prioritizes standalone parity, reliability, and usability.
 
 # Getting melonDS DS
 
-You can get the latest stable release of melonDS DS
-from [this repo's Releases](https://github.com/JesseTG/melonds-ds/releases/latest),
+You can download and install melonDS DS through the built-in core downloader where supported.
+If you'd like to use a development build or can't use the core downloader,
+you can get the latest release of melonDS DS
+from [this repo's Releases][melondsds-latest-release],
 or the raw build artifacts from [here][workflows].
-In the near future you'll be able to get it from the official RetroArch build server,
-or even from within RetroArch itself.
 
 # Installation
 
@@ -21,7 +21,10 @@ Installation instructions may vary depending on your chosen libretro frontend.
 
 ## RetroArch
 
-Here's how you can install melonDS DS in [RetroArch][retroarch]:
+You can install melonDS DS through the built-in core downloader where supported.
+If your build of RetroArch doesn't include it (e.g. Steam)
+or if you want to use a development build,
+you can install it [RetroArch][retroarch] manually like so:
 
 1. Place `melondsds_libretro.dll` (or `.so` or `.dylib`, depending on the platform) in RetroArch's `cores` directory.
 2. Place `melondsds_libretro.info` in the same directory as the other `.info` files,
