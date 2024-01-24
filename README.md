@@ -3,9 +3,9 @@
 An enhanced remake of the [melonDS][melonds] [core][melonds-libretro] for [libretro][libretro]
 that prioritizes standalone parity, reliability, and usability.
 
-![melonDS DS Latest Release](https://img.shields.io/github/v/release/JesseTG/melonds-ds?style=for-the-badge&&logo=github&label=melonDS%20DS&link=https%3A%2F%2Fgithub.com%2FJesseTG%2Fmelonds-ds%2Freleases%2Flatest)
-![melonDS DS GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/JesseTG/melonds-ds/main.yaml?style=for-the-badge&logo=githubactions&logoColor=white&label=Personal%20Build)
-![melonDS DS Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/jessetg%2Fmelonds-ds?gitlab_url=https%3A%2F%2Fgit.libretro.com&style=for-the-badge&logo=gitlab&label=Libretro%20Build)
+[![melonDS DS Latest Release][melondsds-release-badge]][melondsds-latest-release]
+[![melonDS DS GitHub Actions Workflow Status][melondsds-github-pipeline-badge]][melondsds-github-pipeline]
+[![melonDS DS Gitlab Pipeline Status][melondsds-gitlab-pipeline-badge]][melondsds-gitlab-pipeline]
 
 # Getting melonDS DS
 
@@ -469,6 +469,12 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [melonds]: https://melonds.kuribo64.net
 [melonds-github]: https://github.com/melonDS-emu
 [melonds-libretro]: https://github.com/libretro/melonDS
+[melondsds-github-pipeline]: https://github.com/JesseTG/melonds-ds/actions
+[melondsds-github-pipeline-badge]: https://img.shields.io/github/actions/workflow/status/JesseTG/melonds-ds/main.yaml?style=for-the-badge&logo=githubactions&logoColor=white&label=Personal%20Build
+[melondsds-gitlab-pipeline]: https://git.libretro.com/libretro/melonds-ds/-/pipelines
+[melondsds-gitlab-pipeline-badge]: https://img.shields.io/gitlab/pipeline-status/jessetg%2Fmelonds-ds?gitlab_url=https%3A%2F%2Fgit.libretro.com&style=for-the-badge&logo=gitlab&label=Libretro%20Build
+[melondsds-release-badge]: https://img.shields.io/github/v/release/JesseTG/melonds-ds?style=for-the-badge&&logo=github&label=melonDS%20DS&link=https%3A%2F%2Fgithub.com%2FJesseTG%2Fmelonds-ds%2Freleases%2Flatest
+[melondsds-latest-release]: https://github.com/JesseTG/melonds-ds/releases/latest
 [issue-tracker]: https://github.com/JesseTG/melonds-ds/issues
 [memory-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Memory_Expansion_Pak
 [solar-sensor]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Solar_Sensors
