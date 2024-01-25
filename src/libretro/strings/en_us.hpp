@@ -90,6 +90,9 @@ namespace MelonDsDs::strings::en_us {
 
     constexpr const char* const SysDirFailed =
         "Failed to get the system directory, functionality will be limited.";
+
+    constexpr const char* const CurrentLayout = "{}Layout {}/{}";
+    constexpr const char* const ScreenState = "{}Closed";
 }
 
 #endif // MELONDSDS_STRINGS_EN_US_HPP
