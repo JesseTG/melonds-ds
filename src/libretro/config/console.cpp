@@ -136,7 +136,7 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
     if (type == ConsoleType::DSi) {
         // If we're in DSi mode...
         if (gbaInfo || gbaSaveInfo) {
-            retro::set_warn_message(DsiDoesntSupportGbaMode);
+            retro::set_warn_message(DsiDoesntHaveGbaSlot);
         }
         return std::make_unique<melonDS::DSi>(GetDSiArgs(config, ndsInfo));
     }
