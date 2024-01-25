@@ -31,12 +31,13 @@ namespace MelonDsDs::config::definitions {
         "Indirect: Use libslirp to emulate the DS's network stack. Simple and needs no setup.\n"
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         "Direct: Routes emulated Wi-Fi packets to the host's network interface. "
-        "Faster and more reliable, but requires an ethernet connection and "
-#ifdef _WIN32
-        "that WinPcap or Npcap is installed. "
-#else
-        "that libpcap is installed. "
-#endif
+#   ifdef _WIN32
+        "Faster and more reliable, but requires an ethernet connection "
+        "and that WinPcap or Npcap is installed. "
+#   else
+        "Faster and more reliable, but requires an ethernet connection "
+        "and that libpcap is installed. "
+#   endif
         "If unavailable, falls back to Indirect mode.\n"
 #endif
         "\n"
