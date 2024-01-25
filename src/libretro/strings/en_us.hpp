@@ -93,6 +93,22 @@ namespace MelonDsDs::strings::en_us {
 
     constexpr const char* const CurrentLayout = "{}Layout {}/{}";
     constexpr const char* const ScreenState = "{}Closed";
+
+    constexpr const char* const ErrorScreenTitle = "Oh no! melonDS DS couldn't start...";
+    constexpr const char* const ErrorScreenSolution = "Here's what you can do:";
+    constexpr const char* const ErrorScreenThanks = "Thank you for using melonDS DS!";
+
+    constexpr const char* const NativeFirmwareNotBootableProblem =
+        "The firmware file at \"{}\" can't be used to boot to the DS menu.";
+
+    constexpr const char* const BuiltInFirmwareNotBootableProblem =
+        "The firmware file at \"{}\" can't be used to boot to the DS menu.";
+
+    constexpr const char* const FirmwareNotBootableSolution =
+        "Ensure you have native DS (not DSi) firmware in your frontend's system folder. "
+        "Pick it in the core options, then restart the core. "
+        "If you just want to play a DS game, try setting Boot Mode to \"Direct\" "
+        "or BIOS/Firmware Mode to \"Built-In\" in the core options.";
 }
 
 #endif // MELONDSDS_STRINGS_EN_US_HPP

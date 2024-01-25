@@ -22,32 +22,24 @@
 #include <sstream>
 #include <fmt/core.h>
 
+#include "strings/en_us.hpp"
+
 using std::optional;
 using std::string;
 using std::string_view;
+using namespace MelonDsDs::strings::en_us;
 
 MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception(string_view firmwareName) noexcept
     : bios_exception(
-    fmt::format(
-        FMT_STRING(
-            "The firmware file at \"{}\" can't be used to boot to the DS menu."
-        ),
-        firmwareName
-    ),
-    "Ensure you have native DS (not DSi) firmware in your frontend's system folder. "
-    "Pick it in the core options, then restart the core. "
-    "If you just want to play a DS game, try setting Boot Mode to \"Direct\" "
-    "or BIOS/Firmware Mode to \"Built-In\" in the core options."
+    fmt::format(FMT_STRING(NativeFirmwareNotBootableProblem), firmwareName),
+    FirmwareNotBootableSolution
 ) {
 }
 
 MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception() noexcept
     : bios_exception(
-    "The built-in firmware can't be used to boot to the DS menu.",
-    "Ensure you have native DS (not DSi) firmware in your frontend's system folder. "
-    "Pick it in the core options, then restart the core. "
-    "If you just want to play a DS game, try setting Boot Mode to \"Direct\" "
-    "or BIOS/Firmware Mode to \"Built-In\" in the core options."
+    BuiltInFirmwareNotBootableProblem,
+    FirmwareNotBootableSolution
 ) {
 }
 
