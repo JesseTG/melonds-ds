@@ -29,6 +29,67 @@ namespace MelonDsDs::strings::en_us {
         "Please contact the developer with the log file.";
 
     constexpr const char* const InvalidCheat = "Cheat #{} ({:.8}...) isn't valid, ignoring it.";
+
+    constexpr const char* const ArchivedGbaSaveNotSupported =
+        "melonDS DS does not support archived GBA save data right now. "
+        "Please extract it and try again. "
+        "Continuing without using the save data.";
+
+    constexpr const char* const CantDisableCheat =
+        "Action Replay codes can't be undone, restart the game to disable them.";
+
+    constexpr const char* const CompressedGbaSaveNotSupported =
+        "melonDS DS does not support compressed GBA save data right now. "
+        "Please disable save data compression in the frontend and try again. "
+        "Continuing without using the save data.";
+
+    constexpr const char* const DsiDoesntHaveGbaSlot =
+        "The DSi doesn't have a GBA slot, "
+        "please use DS mode instead. "
+        "Ignoring the loaded GBA ROM.";
+
+    constexpr const char* const GbaModeNotSupported =
+        "GBA mode is not supported. Use a GBA core instead.";
+
+    constexpr const char* const IndirectWifiInitFailed =
+        "Failed to initialize indirect-mode Wi-fi support. Wi-fi will be disabled.";
+
+    constexpr const char* const InternalConsoleError =
+        "An internal error occurred in the emulated console.";
+
+    constexpr const char* const HackedFirmwareWarning =
+        "Corrupted firmware detected! "
+        "Any game that alters Wi-fi settings will break this firmware, even on real hardware.";
+
+    constexpr const char* const MicNotSupported =
+        "This frontend doesn't support microphones.";
+
+    constexpr const char* const OpenGlInitFailed =
+        "Failed to initialize OpenGL, falling back to software mode.";
+
+    constexpr const char* const OptionInitFailed =
+        "Failed to set core option definitions, functionality will be limited.";
+
+    constexpr const char* const PleaseResetCore =
+        "Please follow the advice on this screen, then unload/reload the core.";
+
+    constexpr const char* const ScreenRotateFailed =
+        "Failed to rotate screen.";
+
+    constexpr const char* const StateTooOld =
+        "This savestate is too old, can't load it.\n"
+        "Save your game normally in the older version and import the save data.";
+
+    constexpr const char* const StateTooNew =
+        "This savestate is too new, can't load it.\n"
+        "Save your game normally in the newer version, "
+        "then update this core or import the save data.";
+
+    constexpr const char* const StateLoadFailed =
+        "Can't load this savestate; did it come from the right core and game?";
+
+    constexpr const char* const SysDirFailed =
+        "Failed to get the system directory, functionality will be limited.";
 }
 
 #endif // MELONDSDS_STRINGS_EN_US_HPP

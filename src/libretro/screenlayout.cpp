@@ -30,7 +30,9 @@
 #include "math.hpp"
 #include "tracy.hpp"
 #include "render/render.hpp"
+#include "strings/strings.hpp"
 
+using namespace MelonDsDs::strings::en_us;
 using std::array;
 using std::max;
 using glm::inverse;
@@ -233,7 +235,7 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
     } else if (newOrientation != retro::ScreenOrientation::Normal) {
         // A rotation to normal orientation may "fail", even though it's the default.
         // So only log an error if we're trying to rotate to something besides 0 degrees.
-        retro::set_error_message("Failed to rotate screen.");
+        retro::set_error_message(ScreenRotateFailed);
     }
 
     _dirty = false;

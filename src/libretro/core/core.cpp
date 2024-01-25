@@ -169,7 +169,7 @@ void MelonDsDs::CoreState::Reset() {
     ZoneScopedN(TracyFunction);
 
     if (_messageScreen) {
-        retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
+        retro::set_error_message(PleaseResetCore);
         return;
         // TODO: Allow the game to be reset from the error screen
         // (gotta reinitialize the DS here)
@@ -362,9 +362,6 @@ void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept
         _flushTaskId = flushTask.Identifier();
         retro::task::push(std::move(flushTask));
     }
-    else {
-        retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
-    }
 }
 
 void MelonDsDs::CoreState::ResetRenderState() {
@@ -541,7 +538,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         // (so that excessive warnings aren't shown)
         if (!_micState.IsMicInterfaceAvailable() && config.ShowUnsupportedFeatureWarnings()) {
             // ...but this frontend doesn't support it...
-            retro::set_warn_message("This frontend doesn't support microphones.");
+            retro::set_warn_message(MicNotSupported);
         }
         else if (!_micState.IsHostMicOpen()) {
             retro::warn("Failed to open host microphone");
@@ -732,16 +729,11 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
 
         if (major < SAVESTATE_MAJOR) {
             // If this savestate is too old...
-            retro::set_error_message(
-                "This savestate is too old, can't load it.\n"
-                "Save your game normally in the older version and import the save data.");
+            retro::set_error_message(StateTooOld);
         }
         else if (major > SAVESTATE_MAJOR) {
             // If this savestate is too new...
-            retro::set_error_message(
-                "This savestate is too new, can't load it.\n"
-                "Save your game normally in the newer version, "
-                "then update this core or import the save data.");
+            retro::set_error_message(StateTooNew);
         }
 
         return false;
@@ -749,7 +741,7 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
 
     if (data.size() != *_savestateSize) {
         retro::error("Expected a {}-byte savestate, got one of {} bytes", *_savestateSize, data.size());
-        retro::set_error_message("Can't load this savestate, most likely the ROM or the core is wrong.");
+        retro::set_error_message(StateLoadFailed);
         return false;
     }
 
@@ -808,7 +800,7 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
         return;
 
     if (!enabled) {
-        retro::set_warn_message("Action Replay codes can't be undone, restart the game to remove their effects.");
+        retro::set_warn_message(CantDisableCheat);
         return;
     }
 
