@@ -113,12 +113,6 @@ namespace MelonDsDs::config {
     static void ParseScreenOptions(CoreConfig& config) noexcept;
     static void ParseVideoOptions(CoreConfig& config) noexcept;
 
-    static void apply_system_options(MelonDsDs::CoreState& core, const NDSHeader* header);
-
-    static void apply_audio_options(NDS& nds) noexcept;
-    static void apply_save_options(const NDSHeader* header);
-    static void apply_screen_options(ScreenLayoutData& screenLayout, InputState& inputState) noexcept;
-
 }
 
 void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
