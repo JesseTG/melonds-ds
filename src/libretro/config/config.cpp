@@ -96,7 +96,6 @@ const char* const DEFAULT_HOMEBREW_SDCARD_DIR_NAME = "dldi_sd_card";
 const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
-const initializer_list<unsigned> SCREEN_GAP_LENGTHS = {0, 1, 2, 8, 16, 24, 32, 48, 64, 72, 88, 90, 128};
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
@@ -540,7 +539,7 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
     using namespace MelonDsDs::config::screen;
     using retro::get_variable;
 
-    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(SCREEN_GAP), SCREEN_GAP_LENGTHS)) {
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(SCREEN_GAP),0, 126)) {
         config.SetScreenGap(*value);
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", SCREEN_GAP, 0);
