@@ -28,6 +28,10 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
+#if !defined(HAVE_OPENGL) && !defined(HAVE_OPENGLES32)
+#   define glObjectLabel
+#endif
+
 namespace MelonDsDs {
     using glm::vec2;
     using glm::vec4;
