@@ -14,14 +14,13 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDSDS_STRINGS_EN_US_HPP
-#define MELONDSDS_STRINGS_EN_US_HPP
+#ifndef MELONDSDS_STRINGS_EN_US_OSD_HPP
+#define MELONDSDS_STRINGS_EN_US_OSD_HPP
 
-#include "en_us/error.hpp"
-#include "en_us/notice.hpp"
-#include "en_us/osd.hpp"
+// For strings that are meant to be displayed on the on-screen status display
+namespace MelonDsDs::strings::en_us {
+    constexpr const char* const CurrentLayout = "{}Layout {}/{}";
+    constexpr const char* const ScreenState = "{}Closed";
+}
 
-// These strings are intended to be shown directly to the player;
-// log messages don't need to be declared here.
-
-#endif // MELONDSDS_STRINGS_EN_US_HPP
+#endif //MELONDSDS_STRINGS_EN_US_OSD_HPP

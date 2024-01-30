@@ -82,6 +82,9 @@ add_library(melondsds_libretro MODULE
     std/semaphore.hpp
     std/span.hpp
     strings/en_us.hpp
+    strings/en_us/error.hpp
+    strings/en_us/notice.hpp
+    strings/en_us/osd.hpp
     sram.cpp
     sram.hpp
     tracy.hpp
