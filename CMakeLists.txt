@@ -63,8 +63,8 @@ set(ENABLE_OGLRENDERER ${ENABLE_OPENGL})
 set(OPENGL_PROFILE ${DEFAULT_OPENGL_PROFILE} CACHE STRING "OpenGL profile to use if OpenGL is enabled. Valid values are 'OpenGL', 'OpenGLES2', 'OpenGLES3', 'OpenGLES31', and 'OpenGLES32'.")
 set_property(CACHE OPENGL_PROFILE PROPERTY STRINGS OpenGL OpenGLES2 OpenGLES3)
 
-if (NOT OPENGL_PROFILE STREQUAL "OpenGL")
-    message(WARNING "melonDS does not support OpenGL ES yet")
+if (ENABLE_OPENGL AND (NOT OPENGL_PROFILE STREQUAL "OpenGL"))
+    message(FATAL_ERROR "melonDS does not support OpenGL ES yet")
 endif()
 
 if (ANDROID)
