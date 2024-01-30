@@ -222,6 +222,47 @@ namespace MelonDsDs::config {
     std::string GetUsername(MelonDsDs::UsernameMode mode) noexcept;
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
     bool IsFirmwareImage(const retro::dirent &file, melonDS::Firmware::FirmwareHeader& header) noexcept;
+
+    // Source: https://github.com/DS-Homebrew/TWiLightMenu/blob/a836b7d30b3582d57af848dde2277ded9dfe3a50/romsel_r4theme/arm9/source/graphics/uvcoord_small_font.h#L451-L461
+    static constexpr std::array<char16_t, 426> NdsCharacterSet = {
+        u' ', u'!', u'"', u'#', u'$', u'%', u'&', u'\'', u'(', u')', u'*', u'+', u',', u'-', u'.', u'/', u'0', u'1',
+        u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u':', u';', u'<', u'=', u'>', u'?', u'@', u'A', u'B', u'C',
+        u'D', u'E', u'F', u'G', u'H', u'I', u'J', u'K', u'L', u'M', u'N', u'O', u'P', u'Q', u'R',
+        u'S', u'T', u'U', u'V', u'W', u'X', u'Y', u'Z', u'[', u'\\', u']', u'^', u'_', u'`', u'a', u'b', u'c', u'd',
+        u'e', u'f', u'g', u'h', u'i', u'j', u'k', u'l', u'm', u'n', u'o', u'p', u'q', u'r', u's', u't', u'u', u'v',
+        u'w', u'x', u'y', u'z', u'[', u'|', u']', u'~', u'¡', u'¢', u'£', u'¤', u'¥', u'¦', u'§',
+        u'¨', u'©', u'ª', u'«', u'¬', u'®', u'°', u'±', u'²', u'³', u'´', u'µ', u'¶', u'·', u'»', u'¿', u'À', u'Á',
+        u'Â', u'Ã', u'Ä', u'Å', u'Æ', u'Ç', u'È', u'É', u'Ê', u'Ë', u'Ì', u'Í', u'Î', u'Ï', u'Ð', u'Ñ', u'Ò', u'Ó',
+        u'Ô', u'Õ', u'Ö', u'×', u'Ø', u'Ù', u'Ú', u'Û', u'Ü', u'Ý', u'Þ', u'ß', u'à', u'á', u'â',
+        u'ã', u'ä', u'å', u'æ', u'ç', u'è', u'é', u'ê', u'ë', u'ì', u'í', u'î', u'ï', u'ð', u'ñ', u'ò', u'ó', u'ô',
+        u'õ', u'ö', u'÷', u'ø', u'ù', u'ú', u'û', u'ü', u'ý', u'þ', u'ÿ', u'Ÿ', u'ẞ', u'‘', u'’', u'‚', u'“', u'“',
+        u'„', u'•', u'…', u'‹', u'›', u'€', u'™', u'←', u'↑', u'→', u'↓', u'\u2427', u'\u2428', u'\u2429', u'\u242A',
+        u'\u242B', u'\u242C', u'\u242D', u'\u242E', u'\u242F', u'\u2430', u'■', u'□', u'▲', u'△', u'▼', u'▽', u'◆',
+        u'◇', u'○', u'◎', u'●', u'\u2600', u'\u2601', u'\u2602', u'\u2603', u'\u2605', u'\u2606', u'\u260E', u'\u2613',
+        u'\u2639', u'☹', u'☻', u'♠', u'♣', u'♥', u'♦', u'\u3041', u'\u3042', u'\u3043', u'\u3044', u'\u3045', u'\u3046',
+        u'\u3047', u'\u3048', u'\u3049', u'\u304A', u'\u304B', u'\u304C', u'\u304D', u'\u304E', u'\u304F', u'\u3050',
+        u'\u3051', u'\u3052', u'\u3053',
+        u'\u3054', u'\u3055', u'\u3056', u'\u3057', u'\u3058', u'\u3059', u'\u305A', u'\u305B', u'\u305C', u'\u305D',
+        u'\u305E', u'\u305F', u'\u3060', u'\u3061', u'\u3062', u'\u3063', u'\u3064', u'\u3065', u'\u3066', u'\u3067',
+        u'\u3068', u'\u3069', u'\u306A', u'\u306B', u'\u306C', u'\u306D', u'\u306E', u'\u306F', u'\u3070', u'\u3071',
+        u'\u3072', u'\u3073', u'\u3074', u'\u3075', u'\u3076', u'\u3077', u'\u3078', u'\u3079', u'\u307A', u'\u307B',
+        u'\u307C', u'\u307D', u'\u307E', u'\u307F', u'\u3080', u'\u3081', u'\u3082', u'\u3083', u'\u3084', u'\u3085',
+        u'\u3086',
+        u'\u3087', u'\u3088', u'\u3089', u'\u308A', u'\u308B', u'\u308C', u'\u308D', u'\u308E', u'\u308F', u'\u3090',
+        u'\u3091', u'\u3092', u'\u3093', u'\u3094', u'\u3095', u'\u3096', u'\u3099', u'\u309A', u'\u309B', u'\u309C',
+        u'\u309D', u'\u309E', u'\u309F', u'\u30A0', u'\u30A1', u'\u30A2', u'\u30A3', u'\u30A4', u'\u30A5', u'\u30A6',
+        u'\u30A7', u'\u30A8', u'\u30A9', u'\u30AA', u'\u30AB', u'\u30AC', u'\u30AD', u'\u30AE', u'\u30AF', u'\u30B0',
+        u'\u30B1', u'\u30B2', u'\u30B3', u'\u30B4', u'\u30B5', u'\u30B6', u'\u30B7', u'\u30B8', u'\u30B9', u'\u30BA',
+        u'\u30BB',
+        u'\u30BC', u'\u30BD', u'\u30BE', u'\u30BF', u'\u30C0', u'\u30C1', u'\u30C2', u'\u30C3', u'\u30C4', u'\u30C5',
+        u'\u30C6', u'\u30C7', u'\u30C8', u'\u30C9', u'\u30CA', u'\u30CB', u'\u30CC', u'\u30CD', u'\u30CE', u'\u30CF',
+        u'\u30D0', u'\u30D1', u'\u30D2', u'\u30D3', u'\u30D4', u'\u30D5', u'\u30D6', u'\u30D7', u'\u30D8', u'\u30D9',
+        u'\u30DA', u'\u30DB', u'\u30DC', u'\u30DD', u'\u30DE', u'\u30DF', u'\u30E0', u'\u30E1', u'\u30E2', u'\u30E3',
+        u'\u30E4', u'\u30E5', u'\u30E6', u'\u30E7', u'\u30E8', u'\u30E9', u'\u30EA', u'\u30EB', u'\u30EC', u'\u30ED',
+        u'\u30EE',
+        u'\u30EF', u'\u30F0', u'\u30F1', u'\u30F2', u'\u30F3', u'\u30F4', u'\u30F5', u'\u30F6', u'\u30F7', u'\u30F8',
+        u'\u30F9', u'\u30FA', u'\u30FB', u'\u30FC', u'\u30FD', u'\u30FE', u'\u30FF', u'\uFFFF',
+    };
 }
 
 #endif //MELONDS_DS_CONSTANTS_HPP
