@@ -26,6 +26,7 @@
 #include <NDS.h>
 #include <DSi.h>
 
+#include <encodings/utf.h>
 #include <file/file_path.h>
 #include <retro_assert.h>
 #include <retro_timers.h>
@@ -46,6 +47,7 @@ using std::make_unique;
 using std::nullopt;
 using std::optional;
 using std::span;
+using std::u16string;
 using std::string_view;
 using std::unique_ptr;
 using melonDS::Firmware;
@@ -79,11 +81,11 @@ namespace MelonDsDs {
     static optional<Firmware> LoadFirmware(const string& firmwarePath) noexcept;
     static bool LoadBios(const string_view& name, BiosType type, std::span<uint8_t> buffer) noexcept;
     static void CustomizeFirmware(const CoreConfig& config, Firmware& firmware);
-    static std::string GetUsername(UsernameMode mode) noexcept;
+    static std::optional<std::string> GetUsername(UsernameMode mode) noexcept;
     static NANDImage LoadNANDImage(const string& nandPath, const uint8_t* es_keyY);
     static void CustomizeNAND(const CoreConfig& config, NANDMount& mount, const NDSHeader* header, string_view nandName);
     static optional<melonDS::FATStorage> LoadDSiSDCardImage(const CoreConfig& config) noexcept;
-    static std::u16string ConvertToUTF16(string_view str);
+    static std::optional<std::u16string> ConvertUsername(string_view str) noexcept;
 
     static constexpr Firmware::Language GetFirmwareLanguage(retro_language language) noexcept {
         switch (language) {
@@ -971,11 +973,23 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
     // setting up username
     if (config.UsernameMode() != UsernameMode::Firmware) {
         // If we want to override the existing username...
-        std::u16string username = ConvertToUTF16(GetUsername(config.UsernameMode()));
-        size_t usernameLength = std::min(username.length(), (size_t)config::DS_NAME_LIMIT);
+        optional<string> username = GetUsername(config.UsernameMode());
+        if (!username || username->empty()) {
+            retro::set_warn_message("Failed to get username, or none was provided; using default");
+            username = config::values::firmware::DEFAULT_USERNAME;
+        }
+
+        optional<u16string> convertedUsername = ConvertUsername(*username);
+        if (!convertedUsername) {
+            retro::set_warn_message("Can't use the name \"{}\" on the DS, using default name instead.", *username);
+            convertedUsername = ConvertUsername(config::values::firmware::DEFAULT_USERNAME);
+        }
+
+        size_t usernameLength = std::min(convertedUsername->length(), (size_t)config::DS_NAME_LIMIT);
         currentData.NameLength = usernameLength;
 
-        memcpy(currentData.Nickname, username.data(), usernameLength * sizeof(char16_t));
+        memset(currentData.Nickname, 0, sizeof(currentData.Nickname));
+        memcpy(currentData.Nickname, convertedUsername->data(), usernameLength * sizeof(char16_t));
     }
 
     switch (config.Language()) {
@@ -1038,43 +1052,59 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
     firmware.UpdateChecksums();
 }
 
-static std::string MelonDsDs::GetUsername(UsernameMode mode) noexcept {
+static std::optional<std::string> MelonDsDs::GetUsername(UsernameMode mode) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace config;
-    char result[DS_NAME_LIMIT + 1];
-    result[DS_NAME_LIMIT] = '\0';
 
     switch (mode) {
-        case UsernameMode::Firmware:
-            return values::firmware::FIRMWARE_USERNAME;
-        case UsernameMode::Guess: {
+        case UsernameMode::Guess:
             if (optional<string_view> frontendGuess = retro::username(); frontendGuess && !frontendGuess->empty()) {
                 return string(*frontendGuess);
             }
-            else if (const char* user = getenv("USER"); !string_is_empty(user)) {
-                strncpy(result, user, DS_NAME_LIMIT);
-            }
-            else if (const char* username = getenv("USERNAME"); !string_is_empty(username)) {
-                strncpy(result, username, DS_NAME_LIMIT);
-            }
-            else if (const char* logname = getenv("LOGNAME"); !string_is_empty(logname)) {
-                strncpy(result, logname, DS_NAME_LIMIT);
-            }
-            else {
-                strncpy(result, values::firmware::DEFAULT_USERNAME, DS_NAME_LIMIT);
+
+            if (const char* user = getenv("USER"); !string_is_empty(user)) {
+                return user;
             }
 
-            return result;
-        }
+            if (const char* username = getenv("USERNAME"); !string_is_empty(username)) {
+                return username;
+            }
+
+            if (const char* logname = getenv("LOGNAME"); !string_is_empty(logname)) {
+                return logname;
+            }
+
+            return nullopt;
         case UsernameMode::MelonDSDS:
         default:
             return values::firmware::DEFAULT_USERNAME;
     }
+
+    return nullopt;
 }
 
-static std::u16string MelonDsDs::ConvertToUTF16(string_view str) {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter {};
-    return converter.from_bytes(str.data());
+static std::optional<std::u16string> MelonDsDs::ConvertUsername(string_view str) noexcept {
+    ZoneScopedN(TracyFunction);
+    std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter {};
+    try {
+        u16string converted = converter.from_bytes(str.data());
+
+        if (converted.length() > config::DS_NAME_LIMIT) {
+            // If the converted name is too long...
+            converted.resize(config::DS_NAME_LIMIT);
+        }
+
+        if (converted.find_first_not_of(config::NdsCharacterSet) != u16string::npos) {
+            // If the converted name has a character we can't use...
+            retro::error("Converted {} to UCS-2, but it contains characters that can't be used on the DS", str);
+            return nullopt;
+        }
+
+        return converted;
+    } catch (const std::range_error& e) {
+        retro::error("Failed to convert {} to UCS-2: {}", str, e.what());
+        return nullopt;
+    }
 }
 
 /// Loads the DSi NAND, does not patch it
@@ -1129,11 +1159,20 @@ static void MelonDsDs::CustomizeNAND(const CoreConfig& config, NANDMount& mount,
     // setting up username
     if (config.UsernameMode() != UsernameMode::Firmware) {
         // If we want to override the existing username...
-        std::u16string username = ConvertToUTF16(GetUsername(config.UsernameMode()));
-        size_t usernameLength = std::min(username.length(), (size_t)config::DS_NAME_LIMIT);
+        optional<string> username = GetUsername(config.UsernameMode());
+        if (!username || username->empty()) {
+            username = config::values::firmware::DEFAULT_USERNAME;
+        }
+
+        optional<u16string> convertedUsername = ConvertUsername(*username);
+        if (!convertedUsername) {
+            convertedUsername = ConvertUsername(config::values::firmware::DEFAULT_USERNAME);
+        }
+
+        size_t usernameLength = std::min(convertedUsername->length(), (size_t)config::DS_NAME_LIMIT);
 
         memset(settings.Nickname, 0, sizeof(settings.Nickname));
-        memcpy(settings.Nickname, username.data(), usernameLength * sizeof(char16_t));
+        memcpy(settings.Nickname, convertedUsername->data(), usernameLength * sizeof(char16_t));
     }
 
     switch (config.Language()) {

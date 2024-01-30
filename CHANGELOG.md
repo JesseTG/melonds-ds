@@ -10,6 +10,10 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 ### Fixed
 
 - Fixed an issue where most screen gap sizes would not be honored.
+- Fixed an issue where usernames with non-ASCII characters would crash the core
+  or be improperly truncated.
+  Such names are now properly converted to UCS-2 if possible,
+  or else the default username is used instead.
 
 ## [1.0.2] - 2024-01-19
 

@@ -219,12 +219,11 @@ namespace MelonDsDs::config {
     constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
-    std::string GetUsername(MelonDsDs::UsernameMode mode) noexcept;
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
     bool IsFirmwareImage(const retro::dirent &file, melonDS::Firmware::FirmwareHeader& header) noexcept;
 
     // Source: https://github.com/DS-Homebrew/TWiLightMenu/blob/a836b7d30b3582d57af848dde2277ded9dfe3a50/romsel_r4theme/arm9/source/graphics/uvcoord_small_font.h#L451-L461
-    static constexpr std::array<char16_t, 426> NdsCharacterSet = {
+    static constexpr char16_t NdsCharacterSet[] = {
         u' ', u'!', u'"', u'#', u'$', u'%', u'&', u'\'', u'(', u')', u'*', u'+', u',', u'-', u'.', u'/', u'0', u'1',
         u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u':', u';', u'<', u'=', u'>', u'?', u'@', u'A', u'B', u'C',
         u'D', u'E', u'F', u'G', u'H', u'I', u'J', u'K', u'L', u'M', u'N', u'O', u'P', u'Q', u'R',
@@ -261,7 +260,7 @@ namespace MelonDsDs::config {
         u'\u30E4', u'\u30E5', u'\u30E6', u'\u30E7', u'\u30E8', u'\u30E9', u'\u30EA', u'\u30EB', u'\u30EC', u'\u30ED',
         u'\u30EE',
         u'\u30EF', u'\u30F0', u'\u30F1', u'\u30F2', u'\u30F3', u'\u30F4', u'\u30F5', u'\u30F6', u'\u30F7', u'\u30F8',
-        u'\u30F9', u'\u30FA', u'\u30FB', u'\u30FC', u'\u30FD', u'\u30FE', u'\u30FF', u'\uFFFF',
+        u'\u30F9', u'\u30FA', u'\u30FB', u'\u30FC', u'\u30FD', u'\u30FE', u'\u30FF', u'\uFFFF', u'\0'
     };
 }
 
