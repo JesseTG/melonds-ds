@@ -69,6 +69,9 @@ namespace MelonDsDs::strings::en_us {
     constexpr const char* const OptionInitFailed =
         "Failed to set core option definitions, functionality will be limited.";
 
+    constexpr const char* const PixelFormatUnsupported =
+        "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.";
+
     constexpr const char* const PleaseResetCore =
         "Please follow the advice on this screen, then unload/reload the core.";
 

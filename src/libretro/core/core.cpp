@@ -379,8 +379,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     // ...then load the game.
     if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
-        throw environment_exception(
-            "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
+        throw environment_exception(PixelFormatUnsupported);
     }
 
     if (RegisterCoreOptions()) {
@@ -583,14 +582,11 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
                     break;
                 default:
                     retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", game.size());
-                    retro::set_error_message(InternalError);
                     throw std::runtime_error("Invalid number of ROMs for slot-1/2 boot");
-                // TODO: Throw an exception
             }
             break;
         default:
             retro::error("Unknown game type {}", type);
-            retro::set_error_message(InternalError);
             throw std::runtime_error("Unknown game type");
     }
 }
