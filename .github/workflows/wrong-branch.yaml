@@ -1,0 +1,28 @@
+name: Nudge PRs Towards `dev`
+
+on:
+  pull_request_target:
+    types: [opened]
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Target Branch
+        uses: Vankka/pr-target-branch-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          target: main
+          exclude: dev # Allow going from dev -> main
+          change-to: dev
+          comment: |
+            Thank you for your contribution to melonDS DS!
+
+            Please note that pull requests should target the `dev` branch;
+            `main` is used for releases and should not be modified directly.
+
+            Your pull request's target has been set to `dev` automatically;
+            if there are any merge conflicts, please resolve them.
