@@ -24,6 +24,10 @@
 #include <system_error>
 #include <SPI_Firmware.h>
 
+#ifdef RELATIVE
+#undef RELATIVE
+#endif
+
 namespace MelonDsDs {
     enum class UsernameMode;
 }
@@ -138,6 +142,21 @@ namespace MelonDsDs::config {
         static constexpr const char *const HOMEBREW_SYNC_TO_HOST = "melonds_homebrew_sync_sdcard_to_host";
     }
 
+    namespace time {
+        static constexpr const char *const CATEGORY = "time";
+        static constexpr const char *const SYNC_TIME_MODE = "melonds_sync_time_mode";
+        static constexpr const char *const START_TIME_MODE = "melonds_start_time_mode";
+        static constexpr const char *const RELATIVE_YEAR_OFFSET = "melonds_start_time_relative_year_offset";
+        static constexpr const char *const RELATIVE_DAY_OFFSET = "melonds_start_time_relative_day_offset";
+        static constexpr const char *const RELATIVE_HOUR_OFFSET = "melonds_start_time_relative_hour_offset";
+        static constexpr const char *const RELATIVE_MINUTE_OFFSET = "melonds_start_time_relative_minute_offset";
+        static constexpr const char *const ABSOLUTE_YEAR = "melonds_start_time_absolute_year";
+        static constexpr const char *const ABSOLUTE_MONTH = "melonds_start_time_absolute_month";
+        static constexpr const char *const ABSOLUTE_DAY = "melonds_start_time_absolute_day";
+        static constexpr const char *const ABSOLUTE_HOUR = "melonds_start_time_absolute_hour";
+        static constexpr const char *const ABSOLUTE_MINUTE = "melonds_start_time_absolute_minute";
+    }
+
     namespace video {
         constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
         constexpr unsigned MAX_OPENGL_SCALE = 8;
@@ -163,6 +182,7 @@ namespace MelonDsDs::config {
         }
         static constexpr const char *const _10BIT = "10bit";
         static constexpr const char *const _16BIT = "16bit";
+        static constexpr const char *const ABSOLUTE_TIME = "absolute";
         static constexpr const char *const ALWAYS = "always";
         static constexpr const char *const AUTO = "auto";
         static constexpr const char *const BLOW = "blow";
@@ -181,9 +201,11 @@ namespace MelonDsDs::config {
         static constexpr const char *const ENABLED = "enabled";
         static constexpr const char *const ENGLISH = "en";
         static constexpr const char *const EXISTING = "existing";
+        static constexpr const char *const FIRMWARE = "firmware";
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GERMAN = "de";
         static constexpr const char *const HOLD = "hold";
+        static constexpr const char *const HOST = "host";
         static constexpr const char *const HYBRID_BOTTOM = "hybrid-bottom";
         static constexpr const char *const HYBRID_TOP = "hybrid-top";
         static constexpr const char *const INDIRECT = "indirect";
@@ -200,6 +222,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const NOT_FOUND = "/notfound";
         static constexpr const char *const ONE = "one";
         static constexpr const char *const OPENGL = "opengl";
+        static constexpr const char *const RELATIVE = "relative";
         static constexpr const char *const RIGHT_LEFT = "right-left";
         static constexpr const char *const ROTATE_LEFT = "rotate-left";
         static constexpr const char *const ROTATE_RIGHT = "rotate-right";
@@ -207,6 +230,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const SILENCE = "silence";
         static constexpr const char *const SOFTWARE = "software";
         static constexpr const char *const SPANISH = "es";
+        static constexpr const char *const START = "start";
         static constexpr const char *const TIMEOUT = "timeout";
         static constexpr const char *const TOGGLE = "toggle";
         static constexpr const char *const TOP_BOTTOM = "top-bottom";

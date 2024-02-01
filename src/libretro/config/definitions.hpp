@@ -28,6 +28,7 @@
 #include "config/definitions/osd.hpp"
 #include "config/definitions/screen.hpp"
 #include "config/definitions/system.hpp"
+#include "config/definitions/time.hpp"
 #include "config/definitions/video.hpp"
 
 // All descriptive text uses semantic line breaks. https://sembr.org
@@ -96,6 +97,17 @@ namespace MelonDsDs::config::definitions {
         HomebrewSdCardSyncToHost,
         BatteryUpdateInterval,
         NdsPowerOkThreshold,
+
+        StartTimeMode,
+        RelativeYearOffset,
+        RelativeDayOffset,
+        RelativeHourOffset,
+        RelativeMinuteOffset,
+        AbsoluteYear,
+        AbsoluteMonth,
+        AbsoluteDay,
+        AbsoluteHour,
+        AbsoluteMinute,
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         RenderMode,
