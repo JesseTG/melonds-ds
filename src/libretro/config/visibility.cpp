@@ -183,6 +183,28 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     }
 #endif
 
+    optional<StartTimeMode> timeMode = ParseStartTimeMode(get_variable(time::START_TIME_MODE));
+    bool oldShowRelativeTime = ShowRelativeStartTime;
+    ShowRelativeStartTime = !timeMode || *timeMode == StartTimeMode::Relative;
+    if (!VisibilityInitialized || ShowRelativeStartTime != oldShowRelativeTime) {
+        set_option_visible(time::RELATIVE_YEAR_OFFSET, ShowRelativeStartTime);
+        set_option_visible(time::RELATIVE_DAY_OFFSET, ShowRelativeStartTime);
+        set_option_visible(time::RELATIVE_HOUR_OFFSET, ShowRelativeStartTime);
+        set_option_visible(time::RELATIVE_MINUTE_OFFSET, ShowRelativeStartTime);
+        updated = true;
+    }
+
+    bool oldShowAbsoluteTime = ShowAbsoluteStartTime;
+    ShowAbsoluteStartTime = !timeMode || *timeMode == StartTimeMode::Absolute;
+    if (!VisibilityInitialized || ShowAbsoluteStartTime != oldShowAbsoluteTime) {
+        set_option_visible(time::ABSOLUTE_YEAR, ShowAbsoluteStartTime);
+        set_option_visible(time::ABSOLUTE_MONTH, ShowAbsoluteStartTime);
+        set_option_visible(time::ABSOLUTE_DAY, ShowAbsoluteStartTime);
+        set_option_visible(time::ABSOLUTE_HOUR, ShowAbsoluteStartTime);
+        set_option_visible(time::ABSOLUTE_MINUTE, ShowAbsoluteStartTime);
+        updated = true;
+    }
+
     VisibilityInitialized = true;
     return updated;
 }

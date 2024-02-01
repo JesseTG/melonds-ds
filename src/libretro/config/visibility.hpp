@@ -33,6 +33,8 @@ namespace MelonDsDs {
         bool ShowCursorTimeout = true;
         bool ShowAlarm = true;
         unsigned NumberOfShownScreenLayouts = config::screen::MAX_SCREEN_LAYOUTS;
+        bool ShowRelativeStartTime = false;
+        bool ShowAbsoluteStartTime = false;
 #ifdef JIT_ENABLED
         bool ShowJitOptions = true;
 #endif
