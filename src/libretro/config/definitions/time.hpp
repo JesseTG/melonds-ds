@@ -492,7 +492,7 @@ namespace MelonDsDs::config::definitions {
     };
 
     constexpr retro_core_option_v2_definition AbsoluteDay {
-        config::time::ABSOLUTE_MONTH,
+        config::time::ABSOLUTE_DAY,
         "Starting Month",
         nullptr,
         "The day to use when starting. "
@@ -537,7 +537,7 @@ namespace MelonDsDs::config::definitions {
     };
 
     constexpr retro_core_option_v2_definition AbsoluteHour {
-        config::time::ABSOLUTE_MONTH,
+        config::time::ABSOLUTE_HOUR,
         "Starting Hour",
         nullptr,
         "The hour to use when starting",
