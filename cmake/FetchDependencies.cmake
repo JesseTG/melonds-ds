@@ -37,16 +37,16 @@ function(fetch_dependency name default_url default_tag)
     FetchContent_GetProperties(${name})
 endfunction()
 
-fetch_dependency(melonDS "https://github.com/JesseTG/melonDS" "6ec0994")
+fetch_dependency(melonDS "https://github.com/melonDS-emu/melonDS" "d48e5f2")
 fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "fce57fd")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
-fetch_dependency(glm "https://github.com/g-truc/glm" "7882684")
+fetch_dependency(glm "https://github.com/g-truc/glm" "33b0eb9")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7877")
 fetch_dependency(pntr "https://github.com/robloach/pntr" "a3dc08c")
-fetch_dependency(fmt "https://github.com/fmtlib/fmt.git" "10.1.1")
+fetch_dependency(fmt "https://github.com/fmtlib/fmt" "10.2.1")
 fetch_dependency(yamc "https://github.com/yohhoy/yamc" "4e015a7")
 fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "bc08bf8")
-fetch_dependency(date "https://github.com/HowardHinnant/date" "ab37c36")
+fetch_dependency(date "https://github.com/HowardHinnant/date" "88a3b15")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
