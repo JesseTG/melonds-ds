@@ -42,6 +42,8 @@ namespace MelonDsDs {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         bool ShowWifiInterface = true;
 #endif
+    private:
+        bool VisibilityInitialized = false;
     };
 }
 #endif // MELONDSDS_CONFIG_VISIBILITY_HPP

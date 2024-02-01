@@ -39,7 +39,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowMicButtonMode = ShowMicButtonMode;
     optional<MicInputMode> micInputMode = ParseMicInputMode(get_variable(audio::MIC_INPUT));
     ShowMicButtonMode = !micInputMode || *micInputMode != MicInputMode::None;
-    if (ShowMicButtonMode != oldShowMicButtonMode) {
+    if (!VisibilityInitialized || ShowMicButtonMode != oldShowMicButtonMode) {
         set_option_visible(audio::MIC_INPUT_BUTTON, ShowMicButtonMode);
         updated = true;
     }
@@ -51,14 +51,14 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     optional<RenderMode> renderer = ParseRenderMode(get_variable(video::RENDER_MODE));
     ShowOpenGlOptions = !renderer || *renderer == RenderMode::OpenGl;
     ShowSoftwareRenderOptions = !ShowOpenGlOptions;
-    if (ShowOpenGlOptions != oldShowOpenGlOptions) {
+    if (!VisibilityInitialized || ShowOpenGlOptions != oldShowOpenGlOptions) {
         set_option_visible(video::OPENGL_RESOLUTION, ShowOpenGlOptions);
         set_option_visible(video::OPENGL_FILTERING, ShowOpenGlOptions);
         set_option_visible(video::OPENGL_BETTER_POLYGONS, ShowOpenGlOptions);
         updated = true;
     }
 #ifdef HAVE_THREADED_RENDERER
-    if (ShowSoftwareRenderOptions != oldShowSoftwareRenderOptions) {
+    if (!VisibilityInitialized || ShowSoftwareRenderOptions != oldShowSoftwareRenderOptions) {
         set_option_visible(video::THREADED_RENDERER, ShowSoftwareRenderOptions);
         updated = true;
     }
@@ -71,7 +71,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowDsiOptions = ShowDsiOptions;
     optional<ConsoleType> consoleType = ParseConsoleType(get_variable(system::CONSOLE_MODE));
     ShowDsiOptions = !consoleType || *consoleType == ConsoleType::DSi;
-    if (ShowDsiOptions != oldShowDsiOptions) {
+    if (!VisibilityInitialized || ShowDsiOptions != oldShowDsiOptions) {
         set_option_visible(config::system::FIRMWARE_DSI_PATH, ShowDsiOptions);
         set_option_visible(config::storage::DSI_NAND_PATH, ShowDsiOptions);
         set_option_visible(storage::DSI_SD_SAVE_MODE, ShowDsiOptions);
@@ -81,7 +81,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowDsiSdCardOptions = ShowDsiSdCardOptions && ShowDsiOptions;
     optional<bool> dsiSdEnable = ParseBoolean(get_variable(storage::DSI_SD_SAVE_MODE));
     ShowDsiSdCardOptions = !dsiSdEnable || *dsiSdEnable;
-    if (ShowDsiSdCardOptions != oldShowDsiSdCardOptions) {
+    if (!VisibilityInitialized || ShowDsiSdCardOptions != oldShowDsiSdCardOptions) {
         set_option_visible(storage::DSI_SD_READ_ONLY, ShowDsiSdCardOptions);
         set_option_visible(storage::DSI_SD_SYNC_TO_HOST, ShowDsiSdCardOptions);
         updated = true;
@@ -89,7 +89,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
 
     bool oldShowDsOptions = ShowDsOptions;
     ShowDsOptions = !consoleType || *consoleType == ConsoleType::DS;
-    if (ShowDsOptions != oldShowDsOptions) {
+    if (!VisibilityInitialized || ShowDsOptions != oldShowDsOptions) {
         set_option_visible(config::system::SYSFILE_MODE, ShowDsOptions);
         set_option_visible(config::system::FIRMWARE_PATH, ShowDsOptions);
         set_option_visible(config::system::DS_POWER_OK, ShowDsOptions);
@@ -99,7 +99,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowHomebrewSdOptions = ShowHomebrewSdOptions;
     optional<bool> homebrewSdCardEnabled = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE));
     ShowHomebrewSdOptions = !homebrewSdCardEnabled || *homebrewSdCardEnabled;
-    if (ShowHomebrewSdOptions != oldShowHomebrewSdOptions) {
+    if (!VisibilityInitialized || ShowHomebrewSdOptions != oldShowHomebrewSdOptions) {
         set_option_visible(storage::HOMEBREW_READ_ONLY, ShowHomebrewSdOptions);
         set_option_visible(storage::HOMEBREW_SYNC_TO_HOST, ShowHomebrewSdOptions);
         updated = true;
@@ -108,7 +108,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowCursorTimeout = ShowCursorTimeout;
     optional<CursorMode> cursorMode = ParseCursorMode(get_variable(screen::SHOW_CURSOR));
     ShowCursorTimeout = !cursorMode || *cursorMode == CursorMode::Timeout;
-    if (ShowCursorTimeout != oldShowCursorTimeout) {
+    if (!VisibilityInitialized || ShowCursorTimeout != oldShowCursorTimeout) {
         set_option_visible(screen::CURSOR_TIMEOUT, ShowCursorTimeout);
         updated = true;
     }
@@ -116,7 +116,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     unsigned oldNumberOfShownScreenLayouts = NumberOfShownScreenLayouts;
     optional<unsigned> numberOfScreenLayouts = ParseIntegerInRange(get_variable(screen::NUMBER_OF_SCREEN_LAYOUTS), 1u, screen::MAX_SCREEN_LAYOUTS);
     NumberOfShownScreenLayouts = numberOfScreenLayouts ? *numberOfScreenLayouts : screen::MAX_SCREEN_LAYOUTS;
-    if (NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
+    if (!VisibilityInitialized || NumberOfShownScreenLayouts != oldNumberOfShownScreenLayouts) {
         for (unsigned i = 0; i < screen::MAX_SCREEN_LAYOUTS; ++i) {
             set_option_visible(screen::SCREEN_LAYOUTS[i], i < NumberOfShownScreenLayouts);
         }
@@ -136,13 +136,13 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     ShowHybridOptions = anyHybridLayouts;
     ShowVerticalLayoutOptions = anyVerticalLayouts;
 
-    if (ShowHybridOptions != oldShowHybridOptions) {
+    if (!VisibilityInitialized || ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(screen::HYBRID_SMALL_SCREEN, ShowHybridOptions);
         set_option_visible(screen::HYBRID_RATIO, ShowHybridOptions);
         updated = true;
     }
 
-    if (ShowVerticalLayoutOptions != oldShowVerticalLayoutOptions) {
+    if (!VisibilityInitialized || ShowVerticalLayoutOptions != oldShowVerticalLayoutOptions) {
         set_option_visible(screen::SCREEN_GAP, ShowVerticalLayoutOptions);
         updated = true;
     }
@@ -150,7 +150,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowAlarm = ShowAlarm;
     optional<AlarmMode> alarmMode = ParseAlarmMode(get_variable(firmware::ENABLE_ALARM));
     ShowAlarm = !alarmMode || *alarmMode == AlarmMode::Enabled;
-    if (ShowAlarm != oldShowAlarm) {
+    if (!VisibilityInitialized || ShowAlarm != oldShowAlarm) {
         set_option_visible(firmware::ALARM_HOUR, ShowAlarm);
         set_option_visible(firmware::ALARM_MINUTE, ShowAlarm);
         updated = true;
@@ -161,7 +161,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool oldShowJitOptions = ShowJitOptions;
     optional<bool> jitEnabled = MelonDsDs::ParseBoolean(get_variable(cpu::JIT_ENABLE));
     ShowJitOptions = !jitEnabled || *jitEnabled;
-    if (ShowJitOptions != oldShowJitOptions) {
+    if (!VisibilityInitialized || ShowJitOptions != oldShowJitOptions) {
         set_option_visible(cpu::JIT_BLOCK_SIZE, ShowJitOptions);
         set_option_visible(cpu::JIT_BRANCH_OPTIMISATIONS, ShowJitOptions);
         set_option_visible(cpu::JIT_LITERAL_OPTIMISATIONS, ShowJitOptions);
@@ -177,11 +177,12 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     optional<NetworkMode> networkMode = ParseNetworkMode(get_variable(network::NETWORK_MODE));
 
     ShowWifiInterface = !networkMode || *networkMode == NetworkMode::Direct;
-    if (ShowWifiInterface != oldShowWifiInterface) {
+    if (!VisibilityInitialized || ShowWifiInterface != oldShowWifiInterface) {
         set_option_visible(network::DIRECT_NETWORK_INTERFACE, ShowWifiInterface);
         updated = true;
     }
 #endif
 
+    VisibilityInitialized = true;
     return updated;
 }
