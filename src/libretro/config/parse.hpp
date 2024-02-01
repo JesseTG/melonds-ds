@@ -205,6 +205,14 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
+    constexpr std::optional<MelonDsDs::StartTimeMode> ParseStartTimeMode(std::string_view value) noexcept {
+        if (value == config::values::HOST) return StartTimeMode::Host;
+        if (value == config::values::RELATIVE_TIME) return StartTimeMode::Relative;
+        if (value == config::values::ABSOLUTE_TIME) return StartTimeMode::Absolute;
+
+        return std::nullopt;
+    }
+
     std::optional<melonDS::IpAddress> ParseIpAddress(std::string_view value) noexcept;
 }
 #endif // MELONDSDS_PARSE_HPP

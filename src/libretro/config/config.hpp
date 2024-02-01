@@ -336,6 +336,49 @@ namespace MelonDsDs {
 
         [[nodiscard]] MelonDsDs::ScreenFilter ScreenFilter() const noexcept { return _screenFilter; }
         void SetScreenFilter(MelonDsDs::ScreenFilter screenFilter) noexcept { _screenFilter = screenFilter; }
+
+        [[nodiscard]] MelonDsDs::StartTimeMode StartTimeMode() const noexcept { return _startTimeMode; }
+        void SetStartTimeMode(MelonDsDs::StartTimeMode startTimeMode) noexcept { _startTimeMode = startTimeMode; }
+
+        [[nodiscard]] years RelativeYearOffset() const noexcept { return _relativeYearOffset; }
+        void SetRelativeYearOffset(years relativeYearOffset) noexcept { _relativeYearOffset = relativeYearOffset; }
+
+        [[nodiscard]] days RelativeDayOffset() const noexcept { return _relativeDayOffset; }
+        void SetRelativeDayOffset(days relativeDayOffset) noexcept { _relativeDayOffset = relativeDayOffset; }
+
+        [[nodiscard]] hours RelativeHourOffset() const noexcept { return _relativeHourOffset; }
+        void SetRelativeHourOffset(hours relativeHourOffset) noexcept { _relativeHourOffset = relativeHourOffset; }
+
+        [[nodiscard]] minutes RelativeMinuteOffset() const noexcept { return _relativeMinuteOffset; }
+        void SetRelativeMinuteOffset(minutes relativeMinuteOffset) noexcept { _relativeMinuteOffset = relativeMinuteOffset; }
+
+        [[nodiscard]] minutes RelativeDateTimeOffset() const noexcept {
+            return
+                duration_cast<minutes>(RelativeYearOffset()) +
+                duration_cast<minutes>(RelativeDayOffset()) +
+                duration_cast<minutes>(RelativeHourOffset()) +
+                RelativeMinuteOffset()
+            ;
+        }
+
+        [[nodiscard]] year AbsoluteStartYear() const noexcept { return _absoluteStartYear; }
+        void SetAbsoluteStartYear(year year) noexcept { _absoluteStartYear = year; }
+
+        [[nodiscard]] month AbsoluteStartMonth() const noexcept { return _absoluteStartMonth; }
+        void SetAbsoluteStartMonth(month month) noexcept { _absoluteStartMonth = month; }
+
+        [[nodiscard]] day AbsoluteStartDay() const noexcept { return _absoluteStartDay; }
+        void SetAbsoluteStartDay(day day) noexcept { _absoluteStartDay = day; }
+
+        [[nodiscard]] hh_mm_ss<hours> AbsoluteStartHour() const noexcept { return _absoluteStartHour; }
+        void SetAbsoluteStartHour(hh_mm_ss<hours> hour) noexcept { _absoluteStartHour = hour; }
+
+        [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartMinute() const noexcept { return _absoluteStartMinute; }
+        void SetAbsoluteStartMinute(hh_mm_ss<minutes> minute) noexcept { _absoluteStartMinute = minute; }
+
+        [[nodiscard]] year_month_day AbsoluteStartDate() const noexcept { return _absoluteStartYear / _absoluteStartMonth / _absoluteStartDay; }
+        [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartTime() const noexcept { return hh_mm_ss(_absoluteStartHour.hours() + _absoluteStartMinute.minutes()); }
+
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
@@ -417,6 +460,16 @@ namespace MelonDsDs {
         RenderMode _configuredRenderer;
         bool _threadedSoftRenderer = false;
         MelonDsDs::ScreenFilter _screenFilter;
+        MelonDsDs::StartTimeMode _startTimeMode = *ParseStartTimeMode(config::definitions::StartTimeMode.default_value);
+        years _relativeYearOffset {};
+        days _relativeDayOffset {};
+        hours _relativeHourOffset {};
+        minutes _relativeMinuteOffset {};
+        year _absoluteStartYear;
+        month _absoluteStartMonth;
+        day _absoluteStartDay;
+        hh_mm_ss<hours> _absoluteStartHour;
+        hh_mm_ss<minutes> _absoluteStartMinute;
     };
 }
 

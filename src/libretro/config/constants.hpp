@@ -222,7 +222,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const NOT_FOUND = "/notfound";
         static constexpr const char *const ONE = "one";
         static constexpr const char *const OPENGL = "opengl";
-        static constexpr const char *const RELATIVE = "relative";
+        static constexpr const char *const RELATIVE_TIME = "relative";
         static constexpr const char *const RIGHT_LEFT = "right-left";
         static constexpr const char *const ROTATE_LEFT = "rotate-left";
         static constexpr const char *const ROTATE_RIGHT = "rotate-right";

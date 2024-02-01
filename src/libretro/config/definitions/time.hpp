@@ -42,7 +42,7 @@ namespace MelonDsDs::config::definitions {
         config::time::CATEGORY,
         {
             {values::HOST, "Host Time"},
-            {values::RELATIVE, "Relative"},
+            {values::RELATIVE_TIME, "Relative"},
             {values::ABSOLUTE_TIME, "Absolute"},
             {nullptr, nullptr},
         },
