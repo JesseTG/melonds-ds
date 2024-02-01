@@ -7,10 +7,16 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
+### Added
+
+- Added a subsystem for loading a GBA ROM without save data.
+
 ### Fixed
 
 - Fixed an issue where some homebrew would be incorrectly detected as DSiWare,
   resulting in a crash.
+- Fixed an issue where trying to load an NDS ROM and a GBA ROM
+  without GBA save data would fail.
 
 ## [1.0.3] - 2024-01-30
 

@@ -573,27 +573,25 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
 
     // First initialize the content info...
     switch (type) {
-        case MELONDSDS_GAME_TYPE_NDS:
-            // ...which refers to a Nintendo DS game...
-            if (!game.empty()) {
-                _ndsInfo = game[0];
-            }
-            break;
         case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
-            // ...which refers to both a Nintendo DS and Game Boy Advance game...
-            switch (game.size()) {
-                case 3: // NDS ROM, GBA ROM, and GBA SRAM
-                    _gbaSaveInfo = game[2];
-                    [[fallthrough]];
-                case 2: // NDS ROM and GBA ROM
-                    _ndsInfo = game[0];
-                    _gbaInfo = game[1];
-                    break;
-                default:
-                    retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", game.size());
-                    retro::set_error_message(INTERNAL_ERROR_MESSAGE);
-                    throw std::runtime_error("Invalid number of ROMs for slot-1/2 boot");
-                // TODO: Throw an exception
+            if (game.size() > 2 && game[2].path != nullptr && game[2].size > 0) {
+                // If we got a GBA SRAM file...
+                _gbaSaveInfo = game[2];
+            }
+
+            [[fallthrough]];
+        case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM:
+            if (game.size() > 1) {
+                // If we got a GBA ROM...
+                retro_assert(game[1].data != nullptr);
+                _gbaInfo = game[1];
+            }
+
+            [[fallthrough]];
+        case MELONDSDS_GAME_TYPE_NDS:
+            if (!game.empty()) {
+                retro_assert(game[0].data != nullptr);
+                _ndsInfo = game[0];
             }
             break;
         default:
