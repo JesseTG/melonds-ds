@@ -355,7 +355,7 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     }
 
     auto today = year_month_day{floor<days>(targetTime)};
-    const auto tpm = floor<minutes>(targetTime);
+    const auto tpm = floor<seconds>(targetTime);
     const auto dp = floor<days>(tpm);
     auto time = make_time(tpm-dp);
     nds.RTC.SetDateTime(
