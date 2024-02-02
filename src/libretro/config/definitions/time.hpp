@@ -504,7 +504,7 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition AbsoluteDay {
         config::time::ABSOLUTE_DAY,
-        "Starting Month",
+        "Starting Day",
         nullptr,
         "The initial day of the month to use when Starting Time Mode is Absolute. "
         "Days that extend past the end of a month will roll over to the next (e.g. April 31st will become May 1st). "
