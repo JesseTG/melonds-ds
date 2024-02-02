@@ -305,14 +305,64 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     _renderState.Render(*_messageScreen, Config, _screenLayout);
 }
 
+date::local_seconds LocalTime() noexcept {
+    using namespace std::chrono;
+
+    std::tm tm = fmt::localtime(system_clock::to_time_t(system_clock::now()));
+
+    year_month_day date {year{tm.tm_year + 1900}, month{tm.tm_mon + 1u}, day{(unsigned)tm.tm_mday}};
+    seconds time = hours{tm.tm_hour} + minutes{tm.tm_min} + seconds{tm.tm_sec};
+
+    return static_cast<local_days>(date) + time;
+}
+
+constexpr std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
+    return std::chrono::system_clock::from_time_t(time.time_since_epoch().count());
+}
+
 void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     ZoneScopedN(TracyFunction);
-    time_t now = time(nullptr);
-    tm tm;
-    struct tm* tmPtr = localtime(&now);
-    memcpy(&tm, tmPtr, sizeof(tm)); // Reduce the odds of race conditions in case some other thread uses this
-    nds.RTC.SetDateTime(tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-    // tm.tm_mon is 0-indexed, but RTC::SetDateTime expects 1-indexed
+
+    local_seconds targetTime;
+
+    switch (Config.StartTimeMode()) {
+        case StartTimeMode::Host: {
+            targetTime = LocalTime();
+            retro::debug("Starting the RTC at {:%F %r} (local time)", ToSystemTime(targetTime));
+            break;
+        }
+        case StartTimeMode::Relative: {
+            minutes offset = Config.RelativeDateTimeOffset();
+            targetTime = LocalTime() + offset;
+            retro::debug("Starting the RTC at {:%F %r} ({}y, {}, {}, {} from now)",
+                ToSystemTime(targetTime),
+                Config.RelativeYearOffset().count(),
+                Config.RelativeDayOffset(),
+                Config.RelativeHourOffset(),
+                Config.RelativeMinuteOffset()
+            );
+            break;
+        }
+        case StartTimeMode::Absolute: {
+            // TODO: Add the current seconds to the absolute time
+            targetTime = Config.AbsoluteStartDateTime();
+            retro::debug("Starting the RTC at {:%F %r} (ignoring the local time)", ToSystemTime(targetTime));
+            break;
+        }
+    }
+
+    auto today = year_month_day{floor<days>(targetTime)};
+    const auto tpm = floor<minutes>(targetTime);
+    const auto dp = floor<days>(tpm);
+    auto time = make_time(tpm-dp);
+    nds.RTC.SetDateTime(
+        static_cast<int>(today.year()),
+        static_cast<unsigned>(today.month()),
+        static_cast<unsigned>(today.day()),
+        time.hours().count(),
+        time.minutes().count(),
+        time.seconds().count()
+    );
 }
 
 // When requesting an OpenGL context, we may not get it immediately.
