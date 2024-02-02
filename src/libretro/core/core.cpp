@@ -323,17 +323,18 @@ constexpr std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_
 void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     ZoneScopedN(TracyFunction);
 
+    local_seconds now = LocalTime();
     local_seconds targetTime;
 
     switch (Config.StartTimeMode()) {
         case StartTimeMode::Host: {
-            targetTime = LocalTime();
+            targetTime = now;
             retro::debug("Starting the RTC at {:%F %r} (local time)", ToSystemTime(targetTime));
             break;
         }
         case StartTimeMode::Relative: {
             minutes offset = Config.RelativeDateTimeOffset();
-            targetTime = LocalTime() + offset;
+            targetTime = now + offset;
             retro::debug("Starting the RTC at {:%F %r} ({}y, {}, {}, {} from now)",
                 ToSystemTime(targetTime),
                 Config.RelativeYearOffset().count(),
@@ -344,8 +345,10 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
             break;
         }
         case StartTimeMode::Absolute: {
-            // TODO: Add the current seconds to the absolute time
-            targetTime = Config.AbsoluteStartDateTime();
+            const auto tpm = floor<seconds>(now);
+            const auto dp = floor<days>(tpm);
+            auto time = make_time(tpm-dp);
+            targetTime = Config.AbsoluteStartDateTime() + time.seconds();
             retro::debug("Starting the RTC at {:%F %r} (ignoring the local time)", ToSystemTime(targetTime));
             break;
         }
