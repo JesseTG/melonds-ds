@@ -151,7 +151,7 @@ namespace MelonDsDs {
     };
 
     enum class StartTimeMode {
-        Host,
+        Real,
         Relative,
         Absolute,
     };

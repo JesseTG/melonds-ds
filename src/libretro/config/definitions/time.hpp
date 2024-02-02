@@ -28,32 +28,36 @@
 namespace MelonDsDs::config::definitions {
     constexpr retro_core_option_v2_definition StartTimeMode {
         config::time::START_TIME_MODE,
-        "Starting Time",
+        "Starting Time Mode",
         nullptr,
-        "The time to initialize the console's internal clock to.\n"
+        "The initial time of the emulated console's internal clock.\n"
         "\n"
         "- Real: Start in sync with your device's clock.\n"
-        "- Relative: Start in sync with your device's clock plus or minus the configured time interval. "
+        "- Relative: Start in sync with your device's clock, "
+        "plus or minus a specified offset.\n"
         "Will be constrained to dates that the DS can represent.\n"
         "- Absolute: Start at a specific date and time, regardless of your device's clock.\n"
         "\n"
+        "All dates and times are in your local timezone. "
         "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
-            {values::HOST, "Real"},
+            {values::REAL, "Real"},
             {values::RELATIVE_TIME, "Relative"},
             {values::ABSOLUTE_TIME, "Absolute"},
             {nullptr, nullptr},
         },
-        values::HOST
+        values::REAL
     };
 
     constexpr retro_core_option_v2_definition RelativeYearOffset {
         config::time::RELATIVE_YEAR_OFFSET,
-        "Starting Offset (Years)",
+        "Starting Time Offset (Years)",
         nullptr,
-        "The number of years to offset the current time by.",
+        "The number of years to offset the starting time by. "
+        "Only used when Starting Time Mode is Relative. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -107,7 +111,9 @@ namespace MelonDsDs::config::definitions {
         config::time::RELATIVE_DAY_OFFSET,
         "Starting Offset (Days)",
         nullptr,
-        "The number of days to offset the current time by.",
+        "The number of days to offset the starting time by. "
+        "Only used when Starting Time Mode is Relative. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -163,7 +169,9 @@ namespace MelonDsDs::config::definitions {
         config::time::RELATIVE_HOUR_OFFSET,
         "Starting Offset (Hours)",
         nullptr,
-        "The number of hours to offset the current time by.",
+        "The number of hours to offset the starting time by. "
+        "Only used when Starting Time Mode is Relative. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -224,6 +232,7 @@ namespace MelonDsDs::config::definitions {
         "Starting Offset (Minutes)",
         nullptr,
         "The number of minutes to offset the starting time by. "
+        "Only used when Starting Time Mode is Relative. "
         "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
@@ -356,7 +365,8 @@ namespace MelonDsDs::config::definitions {
         config::time::ABSOLUTE_YEAR,
         "Starting Year",
         nullptr,
-        "The year to use when starting",
+        "The initial year to use when Starting Time Mode is Absolute. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -470,7 +480,8 @@ namespace MelonDsDs::config::definitions {
         config::time::ABSOLUTE_MONTH,
         "Starting Month",
         nullptr,
-        "The month to use when starting",
+        "The initial month to use when Starting Time Mode is Absolute. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -495,8 +506,9 @@ namespace MelonDsDs::config::definitions {
         config::time::ABSOLUTE_DAY,
         "Starting Month",
         nullptr,
-        "The day to use when starting. "
-        "If the day is invalid for the selected month, the last day of the month will be used.",
+        "The initial day of the month to use when Starting Time Mode is Absolute. "
+        "Days that extend past the end of a month will roll over to the next (e.g. April 31st will become May 1st). "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -540,7 +552,8 @@ namespace MelonDsDs::config::definitions {
         config::time::ABSOLUTE_HOUR,
         "Starting Hour",
         nullptr,
-        "The hour to use when starting",
+        "The initial hour to use when Starting Time Mode is Absolute. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {
@@ -577,7 +590,8 @@ namespace MelonDsDs::config::definitions {
         config::time::ABSOLUTE_MINUTE,
         "Starting Minute",
         nullptr,
-        "The minute to use when starting",
+        "The initial minute to use when Starting Time Mode is Absolute. "
+        "Changes take effect at next restart.",
         nullptr,
         config::time::CATEGORY,
         {

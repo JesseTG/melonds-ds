@@ -327,7 +327,7 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     local_seconds targetTime;
 
     switch (Config.StartTimeMode()) {
-        case StartTimeMode::Host: {
+        case StartTimeMode::Real: {
             targetTime = now;
             retro::debug("Starting the RTC at {:%F %r} (local time)", ToSystemTime(targetTime));
             break;

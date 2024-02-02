@@ -205,7 +205,6 @@ namespace MelonDsDs::config {
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GERMAN = "de";
         static constexpr const char *const HOLD = "hold";
-        static constexpr const char *const HOST = "host";
         static constexpr const char *const HYBRID_BOTTOM = "hybrid-bottom";
         static constexpr const char *const HYBRID_TOP = "hybrid-top";
         static constexpr const char *const INDIRECT = "indirect";
@@ -222,6 +221,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const NOT_FOUND = "/notfound";
         static constexpr const char *const ONE = "one";
         static constexpr const char *const OPENGL = "opengl";
+        static constexpr const char *const REAL = "real";
         static constexpr const char *const RELATIVE_TIME = "relative";
         static constexpr const char *const RIGHT_LEFT = "right-left";
         static constexpr const char *const ROTATE_LEFT = "rotate-left";
