@@ -34,7 +34,7 @@ namespace MelonDsDs::config::definitions {
         "\n"
         "- Real: Start in sync with your device's clock.\n"
         "- Relative: Start in sync with your device's clock, "
-        "plus or minus a specified offset.\n"
+        "plus or minus a specified offset. "
         "Will be constrained to dates that the DS can represent.\n"
         "- Absolute: Start at a specific date and time, regardless of your device's clock.\n"
         "\n"
