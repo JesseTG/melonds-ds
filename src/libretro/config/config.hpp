@@ -378,6 +378,7 @@ namespace MelonDsDs {
 
         [[nodiscard]] year_month_day AbsoluteStartDate() const noexcept { return _absoluteStartYear / _absoluteStartMonth / _absoluteStartDay; }
         [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartTime() const noexcept { return hh_mm_ss(_absoluteStartHour.hours() + _absoluteStartMinute.minutes()); }
+        [[nodiscard]] local_seconds AbsoluteStartDateTime() const noexcept { return local_days(AbsoluteStartDate()) + AbsoluteStartTime().to_duration(); }
 
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
