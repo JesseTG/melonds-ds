@@ -481,4 +481,4 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [retroachievements]: https://retroachievements.org
 [retroarch-nightly]: https://buildbot.libretro.com/nightly
 [wiimfi]: https://wiimmfi.de
-[workflows]: https://nightly.link/JesseTG/melonds-ds/workflows/main.yaml/main
+[workflows]: https://nightly.link/JesseTG/melonds-ds/workflows/main.yaml/dev
