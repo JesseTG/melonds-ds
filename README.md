@@ -9,8 +9,8 @@ that prioritizes standalone parity, reliability, and usability.
 
 # Getting melonDS DS
 
-You can download and install melonDS DS through the built-in core downloader where supported.
-If you'd like to use a development build or can't use the core downloader,
+You can download and install melonDS DS through RetroArch's built-in core downloader where supported.
+If you'd like to try a development build or can't use the core downloader,
 you can get the latest release of melonDS DS
 from [this repo's Releases][melondsds-latest-release],
 or the raw build artifacts from [here][workflows].
