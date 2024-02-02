@@ -20,6 +20,10 @@
 
 #include <string_view>
 
+#undef isinf
+#undef isnan
+
+#include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
