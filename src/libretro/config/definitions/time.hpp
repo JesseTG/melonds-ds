@@ -109,7 +109,7 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition RelativeDayOffset {
         config::time::RELATIVE_DAY_OFFSET,
-        "Starting Offset (Days)",
+        "Starting Time Offset (Days)",
         nullptr,
         "The number of days to offset the starting time by. "
         "Only used when Starting Time Mode is Relative. "
@@ -167,7 +167,7 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition RelativeHourOffset {
         config::time::RELATIVE_HOUR_OFFSET,
-        "Starting Offset (Hours)",
+        "Starting Time Offset (Hours)",
         nullptr,
         "The number of hours to offset the starting time by. "
         "Only used when Starting Time Mode is Relative. "
@@ -229,7 +229,7 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition RelativeMinuteOffset {
         config::time::RELATIVE_MINUTE_OFFSET,
-        "Starting Offset (Minutes)",
+        "Starting Time Offset (Minutes)",
         nullptr,
         "The number of minutes to offset the starting time by. "
         "Only used when Starting Time Mode is Relative. "
