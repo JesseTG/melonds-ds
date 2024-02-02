@@ -109,6 +109,8 @@ namespace retro {
     bool shutdown() noexcept;
 
     std::optional<retro_microphone_interface> get_microphone_interface() noexcept;
+    std::optional<bool> is_fastforwarding() noexcept;
+    std::optional<retro_throttle_state> get_throttle_state() noexcept;
 
     std::optional<std::string_view> get_save_directory() noexcept;
     std::optional<std::string_view> get_save_subdirectory() noexcept;
