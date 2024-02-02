@@ -32,7 +32,7 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         "The time to initialize the console's internal clock to.\n"
         "\n"
-        "- Host Time: Start in sync with your device's clock.\n"
+        "- Real: Start in sync with your device's clock.\n"
         "- Relative: Start in sync with your device's clock plus or minus the configured time interval. "
         "Will be constrained to dates that the DS can represent.\n"
         "- Absolute: Start at a specific date and time, regardless of your device's clock.\n"
@@ -41,7 +41,7 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         config::time::CATEGORY,
         {
-            {values::HOST, "Host Time"},
+            {values::HOST, "Real"},
             {values::RELATIVE_TIME, "Relative"},
             {values::ABSOLUTE_TIME, "Absolute"},
             {nullptr, nullptr},
