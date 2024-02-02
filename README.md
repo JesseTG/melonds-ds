@@ -478,7 +478,4 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [issue-tracker]: https://github.com/JesseTG/melonds-ds/issues
 [memory-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Memory_Expansion_Pak
 [solar-sensor]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Solar_Sensors
-[retroachievements]: https://retroachievements.org
-[retroarch-nightly]: https://buildbot.libretro.com/nightly
-[wiimfi]: https://wiimmfi.de
 [workflows]: https://nightly.link/JesseTG/melonds-ds/workflows/main.yaml/dev
