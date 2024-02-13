@@ -167,7 +167,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             _renderState.RequestRefresh();
         }
 
-        if (Config.StartTimeMode() == StartTimeMode::Sync) {
+        if (_syncClock) {
             SetConsoleTime(nds, LocalTime());
         }
 
@@ -213,6 +213,7 @@ void MelonDsDs::CoreState::Reset() {
     RegisterCoreOptions();
     ParseConfig(Config);
     ApplyConfig(Config);
+    _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
 
     std::vector<uint8_t> ndsSram(Console->GetNDSSaveLength());
     if (Console->GetNDSSaveLength() && Console->GetNDSSave()) {
@@ -460,6 +461,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     ApplyConfig(Config);
     // Must initialize the render state if using OpenGL (so the function pointers can be loaded
 
+    _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
     retro_assert(Console == nullptr);
     // Instantiates the console with games and save data installed
     Console = CreateConsole(
