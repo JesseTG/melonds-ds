@@ -321,7 +321,7 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     _renderState.Render(*_messageScreen, Config, _screenLayout);
 }
 
-constexpr std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
+std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
     return std::chrono::system_clock::from_time_t(time.time_since_epoch().count());
 }
 
