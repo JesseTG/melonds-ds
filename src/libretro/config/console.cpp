@@ -971,7 +971,7 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
 
         optional<u16string> convertedUsername = ConvertUsername(*username);
         if (!convertedUsername) {
-            retro::set_warn_message("Can't use the name \"{}\" on the DS, using default name instead.", *username);
+            retro::set_warn_message(UsernameFailed, *username);
             convertedUsername = ConvertUsername(config::values::firmware::DEFAULT_USERNAME);
         }
 

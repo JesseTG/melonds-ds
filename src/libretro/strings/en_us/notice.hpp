@@ -92,6 +92,12 @@ namespace MelonDsDs::strings::en_us {
 
     constexpr const char* const SysDirFailed =
         "Failed to get the system directory, functionality will be limited.";
+
+    constexpr const char* const UsernameFailed =
+        "Can't use the name \"{}\" on the DS, using default name instead.";
+
+    constexpr const char* const UsernameUnavailable =
+        "Failed to get username, or none was provided; using default";
 }
 
 #endif //MELONDSDS_STRINGS_EN_US_NOTICE_HPP
