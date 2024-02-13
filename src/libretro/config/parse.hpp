@@ -207,6 +207,7 @@ namespace MelonDsDs {
 
     constexpr std::optional<MelonDsDs::StartTimeMode> ParseStartTimeMode(std::string_view value) noexcept {
         if (value == config::values::REAL) return StartTimeMode::Real;
+        if (value == config::values::SYNC) return StartTimeMode::Sync;
         if (value == config::values::RELATIVE_TIME) return StartTimeMode::Relative;
         if (value == config::values::ABSOLUTE_TIME) return StartTimeMode::Absolute;
 

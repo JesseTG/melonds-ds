@@ -231,6 +231,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const SOFTWARE = "software";
         static constexpr const char *const SPANISH = "es";
         static constexpr const char *const START = "start";
+        static constexpr const char *const SYNC = "sync";
         static constexpr const char *const TIMEOUT = "timeout";
         static constexpr const char *const TOGGLE = "toggle";
         static constexpr const char *const TOP_BOTTOM = "top-bottom";

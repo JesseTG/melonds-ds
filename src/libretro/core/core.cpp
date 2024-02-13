@@ -55,6 +55,17 @@ static const char* const UNKNOWN_ERROR_MESSAGE =
     "An unknown error has occurred with melonDS DS. "
     "Please contact the developer with the log file.";
 
+date::local_seconds LocalTime() noexcept {
+    using namespace std::chrono;
+
+    std::tm tm = fmt::localtime(system_clock::to_time_t(system_clock::now()));
+
+    year_month_day date {year{tm.tm_year + 1900}, month{tm.tm_mon + 1u}, day{(unsigned)tm.tm_mday}};
+    seconds time = hours{tm.tm_hour} + minutes{tm.tm_min} + seconds{tm.tm_sec};
+
+    return static_cast<local_days>(date) + time;
+}
+
 MelonDsDs::CoreState::~CoreState() noexcept {
     ZoneScopedN(TracyFunction);
     Console = nullptr;
@@ -154,6 +165,10 @@ void MelonDsDs::CoreState::Run() noexcept {
             }
 
             _renderState.RequestRefresh();
+        }
+
+        if (Config.StartTimeMode() == StartTimeMode::Sync) {
+            SetConsoleTime(nds, LocalTime());
         }
 
         // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
@@ -305,17 +320,6 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     _renderState.Render(*_messageScreen, Config, _screenLayout);
 }
 
-date::local_seconds LocalTime() noexcept {
-    using namespace std::chrono;
-
-    std::tm tm = fmt::localtime(system_clock::to_time_t(system_clock::now()));
-
-    year_month_day date {year{tm.tm_year + 1900}, month{tm.tm_mon + 1u}, day{(unsigned)tm.tm_mday}};
-    seconds time = hours{tm.tm_hour} + minutes{tm.tm_min} + seconds{tm.tm_sec};
-
-    return static_cast<local_days>(date) + time;
-}
-
 constexpr std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
     return std::chrono::system_clock::from_time_t(time.time_since_epoch().count());
 }
@@ -327,6 +331,7 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     local_seconds targetTime;
 
     switch (Config.StartTimeMode()) {
+        case StartTimeMode::Sync:
         case StartTimeMode::Real: {
             targetTime = now;
             retro::debug("Starting the RTC at {:%F %r} (local time)", ToSystemTime(targetTime));
@@ -354,17 +359,21 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
         }
     }
 
-    auto today = year_month_day{floor<days>(targetTime)};
-    const auto tpm = floor<seconds>(targetTime);
+    SetConsoleTime(nds, targetTime);
+}
+
+void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds, local_seconds time) noexcept {
+    auto today = year_month_day{floor<days>(time)};
+    const auto tpm = floor<seconds>(time);
     const auto dp = floor<days>(tpm);
-    auto time = make_time(tpm-dp);
+    auto now = make_time(tpm-dp);
     nds.RTC.SetDateTime(
         static_cast<int>(today.year()),
         static_cast<unsigned>(today.month()),
         static_cast<unsigned>(today.day()),
-        time.hours().count(),
-        time.minutes().count(),
-        time.seconds().count()
+        now.hours().count(),
+        now.minutes().count(),
+        now.seconds().count()
     );
 }
 

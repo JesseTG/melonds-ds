@@ -21,18 +21,17 @@
 
 #include "../constants.hpp"
 
-#ifdef RELATIVE
-#undef RELATIVE
-#endif
-
 namespace MelonDsDs::config::definitions {
     constexpr retro_core_option_v2_definition StartTimeMode {
         config::time::START_TIME_MODE,
-        "Starting Time Mode",
+        "Time Mode",
         nullptr,
         "The initial time of the emulated console's internal clock.\n"
         "\n"
         "- Real: Start in sync with your device's clock.\n"
+        "- Synchronized: Synchronize the emulated clock to your device's clock. "
+        "May cause unexpected behavior in some games "
+        "when rewinding or fast-forwarding.\n"
         "- Relative: Start in sync with your device's clock, "
         "plus or minus a specified offset. "
         "Will be constrained to dates that the DS can represent.\n"
@@ -44,6 +43,7 @@ namespace MelonDsDs::config::definitions {
         config::time::CATEGORY,
         {
             {values::REAL, "Real"},
+            {values::SYNC, "Synchronized"},
             {values::RELATIVE_TIME, "Relative"},
             {values::ABSOLUTE_TIME, "Absolute"},
             {nullptr, nullptr},
