@@ -28,6 +28,7 @@
 #include "config/definitions/osd.hpp"
 #include "config/definitions/screen.hpp"
 #include "config/definitions/system.hpp"
+#include "config/definitions/time.hpp"
 #include "config/definitions/video.hpp"
 
 // All descriptive text uses semantic line breaks. https://sembr.org
@@ -97,6 +98,17 @@ namespace MelonDsDs::config::definitions {
         BatteryUpdateInterval,
         NdsPowerOkThreshold,
 
+        StartTimeMode,
+        RelativeYearOffset,
+        RelativeDayOffset,
+        RelativeHourOffset,
+        RelativeMinuteOffset,
+        AbsoluteYear,
+        AbsoluteMonth,
+        AbsoluteDay,
+        AbsoluteHour,
+        AbsoluteMinute,
+
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         RenderMode,
         OpenGlScaleFactor,
@@ -119,9 +131,25 @@ namespace MelonDsDs::config::definitions {
         retro_core_option_v2_definition {},
     };
 
+    constexpr bool AreOptionKeysUnique() {
+        for (size_t i = 0; i < CoreOptionDefinitions.size(); ++i) {
+            for (size_t j = i + 1; j < CoreOptionDefinitions.size(); ++j) {
+                if (CoreOptionDefinitions[i].key == CoreOptionDefinitions[j].key) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     static_assert(
         CoreOptionDefinitions[CoreOptionDefinitions.size() - 1].key == nullptr,
         "CoreOptionDefinitions must end with a null key"
     );
+
+#ifndef __clang__
+    // Work around a clang bug (can't compare pointers for some reason)
+    static_assert(AreOptionKeysUnique());
+#endif
 }
 #endif //MELONDS_DS_DEFINITIONS_HPP

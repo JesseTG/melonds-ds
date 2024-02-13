@@ -149,6 +149,13 @@ namespace MelonDsDs {
         Direct,
         Indirect,
     };
+
+    enum class StartTimeMode {
+        Real,
+        Sync,
+        Relative,
+        Absolute,
+    };
 }
 
 #endif // MELONDSDS_CONFIG_TYPES_HPP

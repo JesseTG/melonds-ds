@@ -30,6 +30,11 @@ namespace MelonDsDs::config::definitions {
             "Change system settings."
         },
         retro_core_option_v2_category {
+            MelonDsDs::config::time::CATEGORY,
+            "Date/Time",
+            "Change date and time settings."
+        },
+        retro_core_option_v2_category {
             MelonDsDs::config::video::CATEGORY,
             "Video",
             "Change video settings."

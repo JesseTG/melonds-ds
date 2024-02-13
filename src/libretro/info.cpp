@@ -48,6 +48,7 @@ static const struct retro_subsystem_rom_info slot_1_2_roms[] = {
 
 const struct retro_subsystem_info MelonDsDs::subsystems[] = {
     {"Slot 1 & 2 Boot", "gba", slot_1_2_roms, ARRAY_SIZE(slot_1_2_roms), MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT},
+    {"Slot 1 & 2 Boot (No GBA Save Data)", "gbanosav", slot_1_2_roms, ARRAY_SIZE(slot_1_2_roms) - 1, MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM},
     {}
 };
 
@@ -67,6 +68,8 @@ const char* MelonDsDs::get_game_type_name(unsigned game_type) {
             return "MELONDSDS_GAME_TYPE_NDS";
         case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
             return "MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT";
+        case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM:
+            return "MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM";
         default:
             return "<unknown>";
     }

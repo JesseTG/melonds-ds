@@ -101,9 +101,14 @@ const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
+const initializer_list<int> RELATIVE_DAY_OFFSETS = {
+    -364, -180, -150, -120, -90, -60, -30, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 30, 60, 90, 120, 150, 180, 364
+};
 
 namespace MelonDsDs::config {
     static void ParseSystemOptions(CoreConfig& config) noexcept;
+    static void ParseTimeOptions(CoreConfig& config) noexcept;
     static void ParseOsdOptions(CoreConfig& config) noexcept;
     static void ParseJitOptions(CoreConfig& config) noexcept;
     static void ParseHomebrewSaveOptions(CoreConfig& config) noexcept;
@@ -119,6 +124,7 @@ namespace MelonDsDs::config {
 void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     config::ParseSystemOptions(config);
+    config::ParseTimeOptions(config);
     config::ParseOsdOptions(config);
     config::ParseJitOptions(config);
     config::ParseHomebrewSaveOptions(config);
@@ -174,6 +180,94 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
         config.SetPowerUpdateInterval(15);
     }
 }
+
+void MelonDsDs::config::ParseTimeOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::time;
+    using retro::get_variable;
+
+    if (optional<StartTimeMode> value = ParseStartTimeMode(get_variable(definitions::StartTimeMode.key))) {
+        config.SetStartTimeMode(*value);
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::StartTimeMode.key, definitions::StartTimeMode.default_value);
+        config.SetStartTimeMode(*ParseStartTimeMode(definitions::StartTimeMode.default_value));
+    }
+
+    if (optional<int> value = ParseIntegerInRange(get_variable(definitions::RelativeYearOffset.key), -20, 20)) {
+        config.SetRelativeYearOffset(years(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::RelativeYearOffset.key, 0);
+        config.SetRelativeYearOffset({});
+    }
+
+    if (optional<int> value = ParseIntegerInList(get_variable(definitions::RelativeDayOffset.key), RELATIVE_DAY_OFFSETS)) {
+        config.SetRelativeDayOffset(days(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::RelativeDayOffset.key, 0);
+        config.SetRelativeDayOffset({});
+    }
+
+    if (optional<int> value = ParseIntegerInRange(get_variable(definitions::RelativeHourOffset.key), -23, 23)) {
+        config.SetRelativeHourOffset(hours(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::RelativeHourOffset.key, 0);
+        config.SetRelativeHourOffset({});
+    }
+
+    if (optional<int> value = ParseIntegerInRange(get_variable(definitions::RelativeMinuteOffset.key), -59, 59)) {
+        config.SetRelativeMinuteOffset(minutes(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::RelativeMinuteOffset.key, 0);
+        config.SetRelativeMinuteOffset({});
+    }
+
+    // TODO: Get the current time and use its components as the default if getting the variables fails
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(definitions::AbsoluteYear.key), 2000, 2100)) {
+        config.SetAbsoluteStartYear(year(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteYear.key, 0);
+        config.SetRelativeMinuteOffset({});
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(definitions::AbsoluteMonth.key), 1, 12)) {
+        config.SetAbsoluteStartMonth(month(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteMonth.key, 0);
+        config.SetAbsoluteStartMonth(month(0));
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(definitions::AbsoluteDay.key), 1, 31)) {
+        config.SetAbsoluteStartDay(day(*value));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteDay.key, 0);
+        config.SetAbsoluteStartDay(day(0));
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(definitions::AbsoluteHour.key), 0, 23)) {
+        config.SetAbsoluteStartHour(hh_mm_ss(hours(*value)));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteHour.key, 0);
+        config.SetAbsoluteStartHour(hh_mm_ss(hours(0)));
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(definitions::AbsoluteMinute.key), 0, 59)) {
+        config.SetAbsoluteStartMinute(hh_mm_ss(minutes(*value)));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteMinute.key, 0);
+        config.SetAbsoluteStartMinute(hh_mm_ss(minutes(0)));
+    }
+}
+
 
 void MelonDsDs::config::ParseOsdOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);

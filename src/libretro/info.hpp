@@ -24,6 +24,7 @@ namespace MelonDsDs {
     constexpr int MELONDSDS_GAME_TYPE_NDS = 0;
     constexpr int MELONDSDS_GAME_TYPE_GBA = 1;
     constexpr int MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT = 1;
+    constexpr int MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM = 2;
     constexpr int MELONDSDS_MEMORY_GBA_SAVE_RAM = 0x101;
     extern const struct retro_system_content_info_override content_overrides[];
     extern const struct retro_subsystem_info subsystems[];

@@ -50,6 +50,17 @@ using namespace MelonDsDs::strings::en_us;
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
 
+date::local_seconds LocalTime() noexcept {
+    using namespace std::chrono;
+
+    std::tm tm = fmt::localtime(system_clock::to_time_t(system_clock::now()));
+
+    year_month_day date {year{tm.tm_year + 1900}, month{tm.tm_mon + 1u}, day{(unsigned)tm.tm_mday}};
+    seconds time = hours{tm.tm_hour} + minutes{tm.tm_min} + seconds{tm.tm_sec};
+
+    return static_cast<local_days>(date) + time;
+}
+
 MelonDsDs::CoreState::~CoreState() noexcept {
     ZoneScopedN(TracyFunction);
     Console = nullptr;
@@ -151,6 +162,10 @@ void MelonDsDs::CoreState::Run() noexcept {
             _renderState.RequestRefresh();
         }
 
+        if (_syncClock) {
+            SetConsoleTime(nds, LocalTime());
+        }
+
         // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
         // which is then drawn to the screen by _renderState.Render
         {
@@ -193,6 +208,7 @@ void MelonDsDs::CoreState::Reset() {
     RegisterCoreOptions();
     ParseConfig(Config);
     ApplyConfig(Config);
+    _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
 
     std::vector<uint8_t> ndsSram(Console->GetNDSSaveLength());
     if (Console->GetNDSSaveLength() && Console->GetNDSSave()) {
@@ -300,14 +316,61 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     _renderState.Render(*_messageScreen, Config, _screenLayout);
 }
 
+std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
+    return std::chrono::system_clock::from_time_t(time.time_since_epoch().count());
+}
+
 void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
     ZoneScopedN(TracyFunction);
-    time_t now = time(nullptr);
-    tm tm;
-    struct tm* tmPtr = localtime(&now);
-    memcpy(&tm, tmPtr, sizeof(tm)); // Reduce the odds of race conditions in case some other thread uses this
-    nds.RTC.SetDateTime(tm.tm_year, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-    // tm.tm_mon is 0-indexed, but RTC::SetDateTime expects 1-indexed
+
+    local_seconds now = LocalTime();
+    local_seconds targetTime;
+
+    switch (Config.StartTimeMode()) {
+        case StartTimeMode::Sync:
+        case StartTimeMode::Real: {
+            targetTime = now;
+            retro::debug("Starting the RTC at {:%F %r} (local time)", ToSystemTime(targetTime));
+            break;
+        }
+        case StartTimeMode::Relative: {
+            minutes offset = Config.RelativeDateTimeOffset();
+            targetTime = now + offset;
+            retro::debug("Starting the RTC at {:%F %r} ({}y, {}, {}, {} from now)",
+                ToSystemTime(targetTime),
+                Config.RelativeYearOffset().count(),
+                Config.RelativeDayOffset(),
+                Config.RelativeHourOffset(),
+                Config.RelativeMinuteOffset()
+            );
+            break;
+        }
+        case StartTimeMode::Absolute: {
+            const auto tpm = floor<seconds>(now);
+            const auto dp = floor<days>(tpm);
+            auto time = make_time(tpm-dp);
+            targetTime = Config.AbsoluteStartDateTime() + time.seconds();
+            retro::debug("Starting the RTC at {:%F %r} (ignoring the local time)", ToSystemTime(targetTime));
+            break;
+        }
+    }
+
+    SetConsoleTime(nds, targetTime);
+}
+
+void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds, local_seconds time) noexcept {
+    auto today = year_month_day{floor<days>(time)};
+    const auto tpm = floor<seconds>(time);
+    const auto dp = floor<days>(tpm);
+    auto now = make_time(tpm-dp);
+    nds.RTC.SetDateTime(
+        static_cast<int>(today.year()),
+        static_cast<unsigned>(today.month()),
+        static_cast<unsigned>(today.day()),
+        now.hours().count(),
+        now.minutes().count(),
+        now.seconds().count()
+    );
 }
 
 // When requesting an OpenGL context, we may not get it immediately.
@@ -389,6 +452,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     ApplyConfig(Config);
     // Must initialize the render state if using OpenGL (so the function pointers can be loaded
 
+    _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
     retro_assert(Console == nullptr);
     // Instantiates the console with games and save data installed
     Console = CreateConsole(
@@ -564,25 +628,25 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
 
     // First initialize the content info...
     switch (type) {
-        case MELONDSDS_GAME_TYPE_NDS:
-            // ...which refers to a Nintendo DS game...
-            if (!game.empty()) {
-                _ndsInfo = game[0];
-            }
-            break;
         case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
-            // ...which refers to both a Nintendo DS and Game Boy Advance game...
-            switch (game.size()) {
-                case 3: // NDS ROM, GBA ROM, and GBA SRAM
-                    _gbaSaveInfo = game[2];
-                    [[fallthrough]];
-                case 2: // NDS ROM and GBA ROM
-                    _ndsInfo = game[0];
-                    _gbaInfo = game[1];
-                    break;
-                default:
-                    retro::error("Invalid number of ROMs ({}) for slot-1/2 boot", game.size());
-                    throw std::runtime_error("Invalid number of ROMs for slot-1/2 boot");
+            if (game.size() > 2 && game[2].path != nullptr && game[2].size > 0) {
+                // If we got a GBA SRAM file...
+                _gbaSaveInfo = game[2];
+            }
+
+            [[fallthrough]];
+        case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM:
+            if (game.size() > 1) {
+                // If we got a GBA ROM...
+                retro_assert(game[1].data != nullptr);
+                _gbaInfo = game[1];
+            }
+
+            [[fallthrough]];
+        case MELONDSDS_GAME_TYPE_NDS:
+            if (!game.empty()) {
+                retro_assert(game[0].data != nullptr);
+                _ndsInfo = game[0];
             }
             break;
         default:

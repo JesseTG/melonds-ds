@@ -9,8 +9,8 @@ that prioritizes standalone parity, reliability, and usability.
 
 # Getting melonDS DS
 
-You can download and install melonDS DS through the built-in core downloader where supported.
-If you'd like to use a development build or can't use the core downloader,
+You can download and install melonDS DS through RetroArch's built-in core downloader where supported.
+If you'd like to try a development build or can't use the core downloader,
 you can get the latest release of melonDS DS
 from [this repo's Releases][melondsds-latest-release],
 or the raw build artifacts from [here][workflows].
@@ -478,7 +478,4 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [issue-tracker]: https://github.com/JesseTG/melonds-ds/issues
 [memory-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Memory_Expansion_Pak
 [solar-sensor]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Solar_Sensors
-[retroachievements]: https://retroachievements.org
-[retroarch-nightly]: https://buildbot.libretro.com/nightly
-[wiimfi]: https://wiimmfi.de
-[workflows]: https://nightly.link/JesseTG/melonds-ds/workflows/main.yaml/main
+[workflows]: https://nightly.link/JesseTG/melonds-ds/workflows/main.yaml/dev

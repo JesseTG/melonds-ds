@@ -23,10 +23,7 @@
 #include <date/date.h>
 
 namespace std::chrono {
-    using date::hh_mm_ss;
-    using date::month_day;
-    using date::month;
-    using date::day;
+    using namespace date;
 }
 #endif
 

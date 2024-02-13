@@ -257,6 +257,18 @@ std::optional<retro_microphone_interface> retro::get_microphone_interface() noex
     return micInterface;
 }
 
+std::optional<bool> retro::is_fastforwarding() noexcept {
+    bool fastforwarding = false;
+    bool ok = environment(RETRO_ENVIRONMENT_GET_FASTFORWARDING, &fastforwarding);
+    return ok ? std::make_optional(fastforwarding) : std::nullopt;
+}
+
+std::optional<retro_throttle_state> retro::get_throttle_state() noexcept {
+    retro_throttle_state throttleState {};
+    bool ok = environment(RETRO_ENVIRONMENT_GET_THROTTLE_STATE, &throttleState);
+    return ok ? std::make_optional(throttleState) : std::nullopt;
+}
+
 bool retro::is_variable_updated() noexcept {
     ZoneScopedN(TracyFunction);
 
