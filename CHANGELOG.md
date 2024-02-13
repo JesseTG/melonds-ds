@@ -12,6 +12,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Added a subsystem for loading a GBA ROM without save data.
 - Added options to configure the emulated console's starting time.
   The starting time can be the local time (possibly with an offset) or an absolute time.
+- Added the ability to synchronize the emulated console's time with the host system's time.
 
 ### Fixed
 
