@@ -147,6 +147,9 @@ namespace MelonDsDs::config::definitions {
         "CoreOptionDefinitions must end with a null key"
     );
 
+#ifndef __clang__
+    // Work around a clang bug (can't compare pointers for some reason)
     static_assert(AreOptionKeysUnique());
+#endif
 }
 #endif //MELONDS_DS_DEFINITIONS_HPP
