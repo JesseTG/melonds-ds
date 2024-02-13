@@ -62,6 +62,7 @@ set(BUILD_STATIC_LIBS ON)
 set(BUILD_QT_SDL OFF)
 set(ENABLE_GDBSTUB OFF)
 set(GLM_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
+set(GLM_ENABLE_CXX_17 ON CACHE BOOL "" FORCE)
 option(ENABLE_TESTING "Enable unit testing." OFF)
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date)
 
