@@ -27,7 +27,7 @@ namespace MelonDsDs::strings::en_us {
         "An unknown error has occurred with melonDS DS. "
         "Please contact the developer with the log file.";
 
-    constexpr const char* const InvalidCheat = "Cheat #{} ({:.8}...) isn't valid, ignoring it.";
+    constexpr const char* const InvalidCheat = "Cheat #{index} ({code:.8}...) isn't valid, ignoring it.";
 
     constexpr const char* const ArchivedGbaSaveNotSupported =
         "melonDS DS does not support archived GBA save data right now. "
@@ -94,7 +94,7 @@ namespace MelonDsDs::strings::en_us {
         "Failed to get the system directory, functionality will be limited.";
 
     constexpr const char* const UsernameFailed =
-        "Can't use the name \"{}\" on the DS, using default name instead.";
+        "Can't use the name \"{name}\" on the DS, using default name instead.";
 
     constexpr const char* const UsernameUnavailable =
         "Failed to get username, or none was provided; using default";

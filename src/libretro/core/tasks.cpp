@@ -341,9 +341,9 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
                 fmt::format_to(
                     inserter,
                     CurrentLayout,
-                    buf.size() == 0 ? "" : OSD_DELIMITER,
-                    _screenLayout.LayoutIndex() + 1,
-                    _screenLayout.NumberOfLayouts()
+                    fmt::arg("sep", buf.size() == 0 ? "" : OSD_DELIMITER),
+                    fmt::arg("layout_num", _screenLayout.LayoutIndex() + 1),
+                    fmt::arg("num_layouts", _screenLayout.NumberOfLayouts())
                 );
             }
 
@@ -351,7 +351,7 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
                 fmt::format_to(
                     inserter,
                     ScreenState,
-                    buf.size() == 0 ? "" : OSD_DELIMITER
+                    fmt::arg("sep", buf.size() == 0 ? "" : OSD_DELIMITER)
                 );
             }
 

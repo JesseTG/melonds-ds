@@ -19,8 +19,8 @@
 
 // For strings that are meant to be displayed on the on-screen status display
 namespace MelonDsDs::strings::en_us {
-    constexpr const char* const CurrentLayout = "{}Layout {}/{}";
-    constexpr const char* const ScreenState = "{}Closed";
+    constexpr const char* const CurrentLayout = "{sep}Layout {layout_num}/{num_layouts}";
+    constexpr const char* const ScreenState = "{sep}Closed";
 }
 
 #endif //MELONDSDS_STRINGS_EN_US_OSD_HPP

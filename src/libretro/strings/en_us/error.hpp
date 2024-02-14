@@ -24,7 +24,7 @@ namespace MelonDsDs::strings::en_us {
     constexpr const char* const ErrorScreenThanks = "Thank you for using melonDS DS!";
 
     constexpr const char* const NativeFirmwareNotBootableProblem =
-        "The firmware file at \"{}\" can't be used to boot to the DS menu.";
+        "The firmware file at \"{path}\" can't be used to boot to the DS menu.";
 
     constexpr const char* const BuiltInFirmwareNotBootableProblem =
         "The built-in firmware can't be used to boot to the DS menu.";
@@ -36,16 +36,16 @@ namespace MelonDsDs::strings::en_us {
         "or BIOS/Firmware Mode to \"Built-In\" in the core options.";
 
     constexpr const char* const WrongFirmwareProblem =
-        "The firmware file at \"{}\" is for the {}, but it can't be used in {} mode.";
+        "The firmware file at \"{path}\" is for the {firmwareConsole}, but it can't be used in {console} mode.";
 
     constexpr const char* const WrongFirmwareSolution =
-        "Ensure you have a {}-compatible firmware file in your frontend's system folder (any name works). "
+        "Ensure you have a {console}-compatible firmware file in your frontend's system folder (any name works). "
         "Pick it in the core options, then restart the core. "
         "If you just want to play a DS game, try disabling DSi mode in the core options.";
 
     constexpr const char* const WrongNandRegionProblem =
-        "The NAND file at \"{}\" has the region \"{}\", "
-        "but the loaded DSiWare game will only run in the following regions: {}";
+        "The NAND file at \"{path}\" has the region \"{region}\", "
+        "but the loaded DSiWare game will only run in the following regions: {regions}";
 
     constexpr const char* const WrongNandRegionSolution =
         "Double-check that you're using the right NAND file "
@@ -61,10 +61,10 @@ namespace MelonDsDs::strings::en_us {
         "try disabling DSi mode in the core options.";
 
     constexpr const char* const NoFirmwareProblem =
-        "The core is set to use the firmware file at \"{}\", but it wasn't there or it couldn't be loaded.";
+        "The core is set to use the firmware file at \"{path}\", but it wasn't there or it couldn't be loaded.";
 
     constexpr const char* const NoFirmwareSolution =
-        "Place your DSi firmware file in your frontend's system folder, name it \"{}\", then restart the core.";
+        "Place your DSi firmware file in your frontend's system folder, name it \"{path}\", then restart the core.";
 
     constexpr const char* const IncompleteNdsSysfilesProblem =
         "Booting to the native DS menu requires native DS firmware and BIOS files, "
@@ -76,10 +76,10 @@ namespace MelonDsDs::strings::en_us {
         "and BIOS/Firmware Mode to \"Built-In\" in the core options.";
 
     constexpr const char* const MissingDsiBiosProblem =
-        "DSi mode requires the {} BIOS file, but none was found.";
+        "DSi mode requires the {bios} BIOS file, but none was found.";
 
     constexpr const char* const MissingDsiBiosSolution =
-        "Place your {} BIOS file in your frontend's system folder, name it \"{}\", then restart the core. "
+        "Place your {bios} BIOS file in your frontend's system folder, name it \"{path}\", then restart the core. "
         "If you want to play a regular DS game, try disabling DSi mode in the core options.";
 
     constexpr const char* const NoDsiNandProblem =
@@ -91,14 +91,14 @@ namespace MelonDsDs::strings::en_us {
         "If you want to play a regular DS game, try disabling DSi mode in the core options.";
 
     constexpr const char* const MissingDsiNandProblem =
-        "The core is set to use the NAND file at \"{}\", but it wasn't there or it couldn't be loaded.";
+        "The core is set to use the NAND file at \"{path}\", but it wasn't there or it couldn't be loaded.";
 
     constexpr const char* const MissingDsiNandSolution =
-        "Place your NAND file in your frontend's system folder, name it \"{}\", then restart the core. "
+        "Place your NAND file in your frontend's system folder, name it \"{path}\", then restart the core. "
         "If you've already done that, ensure that you're using the right NAND file.";
 
     constexpr const char* const CorruptDsiNandProblem =
-        "The core managed to load the configured NAND file at \"{}\", "
+        "The core managed to load the configured NAND file at \"{path}\", "
         "but it seems to be corrupted or invalid.";
 
     constexpr const char* const CorruptDsiNandSolution =

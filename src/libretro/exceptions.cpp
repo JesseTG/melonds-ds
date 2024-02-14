@@ -28,10 +28,11 @@ using std::optional;
 using std::string;
 using std::string_view;
 using namespace MelonDsDs::strings::en_us;
+using fmt::arg;
 
-MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception(string_view firmwareName) noexcept
+MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_exception(string_view path) noexcept
     : bios_exception(
-    fmt::format(NativeFirmwareNotBootableProblem, firmwareName),
+    fmt::format(NativeFirmwareNotBootableProblem, arg("path", path)),
     FirmwareNotBootableSolution
 ) {
 }
@@ -44,35 +45,35 @@ MelonDsDs::nds_firmware_not_bootable_exception::nds_firmware_not_bootable_except
 }
 
 MelonDsDs::wrong_firmware_type_exception::wrong_firmware_type_exception(
-    std::string_view firmwareName,
-    MelonDsDs::ConsoleType consoleType,
-    melonDS::Firmware::FirmwareConsoleType firmwareConsoleType
+    std::string_view path,
+    MelonDsDs::ConsoleType console,
+    melonDS::Firmware::FirmwareConsoleType firmwareConsole
 ) noexcept : bios_exception(
     fmt::format(
         WrongFirmwareProblem,
-        firmwareName,
-        firmwareConsoleType,
-        consoleType
+        arg("path", path),
+        arg("firmwareConsole", firmwareConsole),
+        arg("console", console)
     ),
     fmt::format(
         WrongFirmwareSolution,
-        consoleType
+        arg("console", console)
     )
 ) {
 }
 
 
 MelonDsDs::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
-    string_view nandName,
-    melonDS::DSi_NAND::ConsoleRegion nandRegion,
-    melonDS::RegionMask gameRegionMask
+    string_view path,
+    melonDS::DSi_NAND::ConsoleRegion region,
+    melonDS::RegionMask regions
 ) noexcept
     : config_exception(
     fmt::format(
         WrongNandRegionProblem,
-        nandName,
-        nandRegion,
-        gameRegionMask
+        arg("path", path),
+        arg("region", region),
+        arg("regions", regions)
     ),
     WrongNandRegionSolution
 ) {
@@ -85,10 +86,10 @@ MelonDsDs::dsi_no_firmware_found_exception::dsi_no_firmware_found_exception() no
 ) {
 }
 
-MelonDsDs::firmware_missing_exception::firmware_missing_exception(std::string_view firmwareName) noexcept
+MelonDsDs::firmware_missing_exception::firmware_missing_exception(std::string_view path) noexcept
     : bios_exception(
-    fmt::format(NoFirmwareProblem, firmwareName),
-    fmt::format(NoFirmwareSolution, firmwareName)
+    fmt::format(NoFirmwareProblem, arg("path", path)),
+    fmt::format(NoFirmwareSolution, arg("path", path))
 ) {
 }
 
@@ -99,13 +100,13 @@ MelonDsDs::nds_sysfiles_incomplete_exception::nds_sysfiles_incomplete_exception(
 ) {
 }
 
-MelonDsDs::dsi_missing_bios_exception::dsi_missing_bios_exception(MelonDsDs::BiosType bios, string_view biosName) noexcept
+MelonDsDs::dsi_missing_bios_exception::dsi_missing_bios_exception(MelonDsDs::BiosType bios, string_view path) noexcept
     : bios_exception(
-    fmt::format(MissingDsiBiosProblem, bios),
+    fmt::format(MissingDsiBiosProblem, arg("bios", bios)),
     fmt::format(
         MissingDsiBiosSolution,
-        bios,
-        biosName
+        arg("bios", bios),
+        arg("path", path)
     )
 ) {
 }
@@ -117,16 +118,16 @@ MelonDsDs::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
 ) {
 }
 
-MelonDsDs::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nandName) noexcept
+MelonDsDs::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view path) noexcept
     : bios_exception(
-    fmt::format(MissingDsiNandProblem, nandName),
-    fmt::format(MissingDsiNandSolution, nandName)
+    fmt::format(MissingDsiNandProblem, arg("path", path)),
+    fmt::format(MissingDsiNandSolution, arg("path", path))
 ) {
 }
 
-MelonDsDs::dsi_nand_corrupted_exception::dsi_nand_corrupted_exception(string_view nandName) noexcept
+MelonDsDs::dsi_nand_corrupted_exception::dsi_nand_corrupted_exception(string_view path) noexcept
     : bios_exception(
-    fmt::format(CorruptDsiNandProblem, nandName),
+    fmt::format(CorruptDsiNandProblem, arg("path", path)),
     CorruptDsiNandSolution
 ) {
 }
