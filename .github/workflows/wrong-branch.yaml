@@ -9,6 +9,8 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: Verify Target Branch
         uses: Vankka/pr-target-branch-action@v2
