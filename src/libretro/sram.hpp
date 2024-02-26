@@ -32,6 +32,9 @@ struct retro_game_info;
 
 namespace MelonDsDs::sram  {
     /// An intermediate save buffer used as a staging ground between retro_get_memory and NDSCart::LoadSave.
+    /// retro_get_memory is only called on the main thread at the beginning,
+    /// so RetroArch's auto-save can't accommodate the possibility
+    /// of a different SRAM buffer being used for each session.
     class SaveManager {
     public:
         explicit SaveManager(uint32_t initialLength);
