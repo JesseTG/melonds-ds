@@ -97,6 +97,7 @@ namespace MelonDsDs {
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
+        [[gnu::cold]] void InstallNdsSram() noexcept;
         [[gnu::cold]] void StartConsole();
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds, local_seconds time) noexcept;
@@ -134,6 +135,7 @@ namespace MelonDsDs {
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;
+        std::optional<sram::SaveManager> _ndsSaveManager = std::nullopt;
         std::optional<sram::SaveManager> _gbaSaveManager = std::nullopt;
         std::optional<int> _timeToGbaFlush = std::nullopt;
         std::optional<int> _timeToFirmwareFlush = std::nullopt;
@@ -147,6 +149,7 @@ namespace MelonDsDs {
         // so having this flag lets us detect if the core has been initialized
         // regardless of the state of the underlying resources
         const bool _initialized = true;
+        bool _ndsSramInstalled = false;
         bool _deferredInitializationPending = false;
         uint32_t _flushTaskId = 0;
         NetworkMode _activeNetworkMode = NetworkMode::None;
