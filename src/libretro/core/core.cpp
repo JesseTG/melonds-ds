@@ -862,8 +862,7 @@ std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
             retro_assert(Console != nullptr);
             return reinterpret_cast<std::byte*>(Console->MainRAM);
         case RETRO_MEMORY_SAVE_RAM:
-            retro_assert(_ndsSaveManager.has_value());
-            return reinterpret_cast<std::byte*>(_ndsSaveManager->Sram());
+            return _ndsSaveManager ? reinterpret_cast<std::byte*>(_ndsSaveManager->Sram()) : nullptr;
         default:
             return nullptr;
     }
