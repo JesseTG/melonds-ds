@@ -889,8 +889,7 @@ size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) noexcept {
             }
         }
         case RETRO_MEMORY_SAVE_RAM:
-            retro_assert(_ndsSaveManager.has_value());
-            return _ndsSaveManager->SramLength();
+            return _ndsSaveManager ? _ndsSaveManager->SramLength() : 0;
         default:
             return 0;
     }
