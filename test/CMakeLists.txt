@@ -246,8 +246,8 @@ endfunction()
 
 function(add_python_test)
     set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
-    set(oneValueArgs NAME CONTENT TEST_SCRIPT)
-    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
+    set(oneValueArgs NAME CONTENT TEST_SCRIPT SKIP_RETURN_CODE TIMEOUT)
+    set(multiValueArgs CORE_OPTION DEPENDS PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION LABELS)
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     set(TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/python/${RETRO_TEST_SCRIPT}")
@@ -287,7 +287,7 @@ function(add_python_test)
     expose_system_file(DSI_FIRMWARE)
     expose_system_file(DSI_NAND)
 
-    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "libretro.py")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "libretro.py;${RETRO_LABELS}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
     if (RETRO_PASS_REGULAR_EXPRESSION)
@@ -308,6 +308,20 @@ function(add_python_test)
 
     if (RETRO_DISABLED)
         set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
+    endif()
+
+    if (RETRO_SKIP_RETURN_CODE)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_RETURN_CODE "${RETRO_SKIP_RETURN_CODE}")
+    endif()
+
+    if (RETRO_DEPENDS)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES DEPENDS "${RETRO_DEPENDS}")
+    endif()
+
+    if (RETRO_TIMEOUT)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT "${RETRO_TIMEOUT}")
+    else()
+        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 10)
     endif()
 endfunction()
 
