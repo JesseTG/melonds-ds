@@ -244,6 +244,73 @@ function(add_emutest_test)
     endif()
 endfunction()
 
+function(add_python_test)
+    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
+    set(oneValueArgs NAME CONTENT TEST_SCRIPT)
+    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
+    cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    set(TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${RETRO_TEST_SCRIPT}")
+    add_test(
+        NAME "${RETRO_NAME}"
+        COMMAND ${Python3_EXECUTABLE}
+        "${TEST_SCRIPT}"
+        "$<TARGET_FILE:melondsds_libretro>"
+        "${RETRO_CONTENT}"
+    )
+
+    list(APPEND ENVIROMENT "RETRO_CORE=${PythonModules_libretro_PATH}")
+    list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
+    list(APPEND REQUIRED_FILES "${TEST_SCRIPT}")
+    if (RETRO_CONTENT)
+        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
+    endif()
+
+    if (NOT RETRO_NO_SKIP_ERROR_SCREEN)
+        list(APPEND ENVIRONMENT MELONDSDS_SKIP_ERROR_SCREEN=1)
+    endif()
+
+    list(APPEND ENVIRONMENT ${RETRO_CORE_OPTION}) # Not an omission, this is already a list
+
+    macro(expose_system_file SYSFILE)
+        if (RETRO_${SYSFILE})
+            list(APPEND REQUIRED_FILES "${${SYSFILE}}")
+            list(APPEND ENVIRONMENT "${SYSFILE}=${${SYSFILE}}")
+        endif()
+    endmacro()
+
+    expose_system_file(ARM7_BIOS)
+    expose_system_file(ARM9_BIOS)
+    expose_system_file(ARM7_DSI_BIOS)
+    expose_system_file(ARM9_DSI_BIOS)
+    expose_system_file(NDS_FIRMWARE)
+    expose_system_file(DSI_FIRMWARE)
+    expose_system_file(DSI_NAND)
+
+    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "libretro.py")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
+    if (RETRO_PASS_REGULAR_EXPRESSION)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_FAIL_REGULAR_EXPRESSION)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_SKIP_REGULAR_EXPRESSION)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_REGULAR_EXPRESSION "${RETRO_SKIP_REGULAR_EXPRESSION}")
+    endif()
+
+    if (RETRO_WILL_FAIL)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES WILL_FAIL TRUE)
+    endif()
+
+    if (RETRO_DISABLED)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
+    endif()
+endfunction()
+
 FetchContent_Declare(
     godmode9i
     URL "https://github.com/DS-Homebrew/GodMode9i/releases/download/v3.4.1/GodMode9i.7z"
@@ -757,4 +824,5 @@ add_emutest_test(
 # - Core loads NDS game with GBA game in slot-2 and save data, and can save GBA data
 # (will need to find a test case besides Pokemon)
 
+include(cmake/Basics.cmake)
 include(cmake/TestHomebrewSDCards.cmake)
