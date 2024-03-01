@@ -1,4 +1,4 @@
 add_python_test(
-    NAME "libretro.py loads melonDS DS"
+    NAME "melonDS DS loads"
     TEST_SCRIPT "core_loads.py"
 )
