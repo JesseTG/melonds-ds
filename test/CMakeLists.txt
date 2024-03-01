@@ -250,7 +250,7 @@ function(add_python_test)
     set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
-    set(TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${RETRO_TEST_SCRIPT}")
+    set(TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/python/${RETRO_TEST_SCRIPT}")
     add_test(
         NAME "${RETRO_NAME}"
         COMMAND ${Python3_EXECUTABLE}
