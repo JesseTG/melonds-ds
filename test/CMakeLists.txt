@@ -1,4 +1,10 @@
 find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+find_package(PythonModules COMPONENTS libretro)
+
+# TODO: Make this required once libretro.py is on PyPI
+if (PythonModules_libretro_PATH)
+    message(STATUS "Found libretro.py: ${PythonModules_libretro_PATH}")
+endif()
 
 if (NOT RETROARCH)
     find_program(
