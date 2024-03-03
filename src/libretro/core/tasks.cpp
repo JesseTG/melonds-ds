@@ -34,8 +34,10 @@
 #include "microphone.hpp"
 #include "retro/task_queue.hpp"
 #include "tracy.hpp"
+#include "strings/en_us.hpp"
 
 using namespace melonDS;
+using namespace MelonDsDs::strings::en_us;
 
 using std::nullopt;
 using std::optional;
@@ -338,18 +340,18 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
             if (Config.ShowCurrentLayout()) {
                 fmt::format_to(
                     inserter,
-                    "{}Layout {}/{}",
-                    buf.size() == 0 ? "" : OSD_DELIMITER,
-                    _screenLayout.LayoutIndex() + 1,
-                    _screenLayout.NumberOfLayouts()
+                    CurrentLayout,
+                    fmt::arg("sep", buf.size() == 0 ? "" : OSD_DELIMITER),
+                    fmt::arg("layout_num", _screenLayout.LayoutIndex() + 1),
+                    fmt::arg("num_layouts", _screenLayout.NumberOfLayouts())
                 );
             }
 
             if (Config.ShowLidState() && nds.IsLidClosed()) {
                 fmt::format_to(
                     inserter,
-                    "{}Closed",
-                    buf.size() == 0 ? "" : OSD_DELIMITER
+                    ScreenState,
+                    fmt::arg("sep", buf.size() == 0 ? "" : OSD_DELIMITER)
                 );
             }
 

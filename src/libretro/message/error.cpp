@@ -24,6 +24,7 @@
 #include "embedded/melondsds_error_title_font.h"
 #include "embedded/melondsds_error_body_font.h"
 #include "screenlayout.hpp"
+#include "strings/en_us.hpp"
 #include "tracy.hpp"
 
 constexpr int TITLE_FONT_HEIGHT = 20; // in pixels
@@ -34,12 +35,9 @@ constexpr pntr_color TEXT_COLOR_TOP = {.rgba = {.b = 0x19, .g = 0x0F, .r = 0xD7,
 constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.rgba = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}}; // dark green
 constexpr pntr_color TEXT_COLOR_BOTTOM = {.rgba = {.b = 0x98, .g = 0xE5, .r = 0xE7, .a = 0xFF}}; // light green
 
-static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
-static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
-static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
-
 using std::span;
 using MelonDsDs::NDS_SCREEN_AREA;
+using namespace MelonDsDs::strings::en_us;
 
 // I intentionally fix the error message to the DS screen size to simplify the layout.
 MelonDsDs::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
@@ -101,11 +99,11 @@ void MelonDsDs::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_fon
     pntr_unload_image(errorIcon);
 
     // now draw the title
-    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, ERROR_TITLE, 0);
+    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, ErrorScreenTitle, 0);
     pntr_draw_text(
         topScreen,
         titleFont,
-        ERROR_TITLE,
+        ErrorScreenTitle,
         (NDS_SCREEN_WIDTH - titleTextSize.x) / 2,
         MARGIN,
         TEXT_COLOR_TOP
@@ -146,11 +144,11 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
     pntr_unload_image(sorryIcon);
 
     // now draw the title
-    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, SOLUTION_TITLE, 0);
+    pntr_vector titleTextSize = pntr_measure_text_ex(titleFont, ErrorScreenSolution, 0);
     pntr_draw_text(
         bottomScreen,
         titleFont,
-        SOLUTION_TITLE,
+        ErrorScreenSolution,
         (NDS_SCREEN_WIDTH - titleTextSize.x) / 2,
         MARGIN,
         TEXT_COLOR_BOTTOM
@@ -167,11 +165,11 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
         TEXT_COLOR_BOTTOM
     );
 
-    pntr_vector thankYouTextSize = pntr_measure_text_ex(bodyFont, THANK_YOU, 0);
+    pntr_vector thankYouTextSize = pntr_measure_text_ex(bodyFont, ErrorScreenThanks, 0);
     pntr_draw_text(
         bottomScreen,
         bodyFont,
-        THANK_YOU,
+        ErrorScreenThanks,
         NDS_SCREEN_WIDTH - thankYouTextSize.x - MARGIN,
         NDS_SCREEN_HEIGHT - thankYouTextSize.y - MARGIN,
         TEXT_COLOR_BOTTOM

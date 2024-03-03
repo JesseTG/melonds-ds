@@ -32,9 +32,11 @@
 #include "../format.hpp"
 #include "retro/scaler.hpp"
 #include "sram.hpp"
+#include "strings/strings.hpp"
 #include "tracy.hpp"
 
 using namespace melonDS;
+using namespace MelonDsDs::strings::en_us;
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
 
@@ -42,11 +44,11 @@ void Platform::SignalStop(Platform::StopReason reason) {
     retro::debug("Platform::SignalStop({})\n", reason);
     switch (reason) {
         case StopReason::BadExceptionRegion:
-            retro::set_error_message("An internal error occurred in the emulated console.");
+            retro::set_error_message(InternalConsoleError);
             retro::shutdown();
             break;
         case StopReason::GBAModeNotSupported:
-            retro::set_error_message("GBA mode is not supported. Use a GBA core instead.");
+            retro::set_error_message(GbaModeNotSupported);
             retro::shutdown();
             break;
         case StopReason::PowerOff:
