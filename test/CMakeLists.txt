@@ -259,7 +259,6 @@ function(add_python_test)
         "${RETRO_CONTENT}"
     )
 
-    list(APPEND ENVIRONMENT "RETRO_CORE=${PythonModules_libretro_PATH}")
     list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
     list(APPEND REQUIRED_FILES "${TEST_SCRIPT}")
     if (RETRO_CONTENT)
