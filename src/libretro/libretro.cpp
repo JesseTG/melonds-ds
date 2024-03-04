@@ -335,4 +335,14 @@ void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writ
     MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
 }
 
+extern "C" int libretropy_add_integers(int a, int b) {
+    return a + b;
+}
+
+retro_proc_address_t MelonDsDs::GetProcAddress(const char* sym) noexcept {
+    if (sym == "libretropy_add_integers")
+        return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
+
+    return nullptr;
+}
 
