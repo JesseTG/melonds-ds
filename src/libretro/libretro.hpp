@@ -39,6 +39,7 @@ namespace MelonDsDs {
     void HardwareContextReset() noexcept;
     void HardwareContextDestroyed() noexcept;
     bool UpdateOptionVisibility() noexcept;
+    retro_proc_address_t GetProcAddress(const char* sym) noexcept;
 }
 
 #endif //MELONDS_DS_LIBRETRO_HPP

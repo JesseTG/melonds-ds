@@ -715,6 +715,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::debug("retro_set_environment({})", fmt::ptr(cb));
     }
 
+    environment(RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK, (void*) MelonDsDs::GetProcAddress);
+
     retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
     retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
 
