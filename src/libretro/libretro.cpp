@@ -87,7 +87,7 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     ZoneScopedN(TracyFunction);
     if (info) {
         ZoneText(info->path, strlen(info->path));
-        retro::debug("retro_load_game(\"{}\", {})", info->path, info->size);
+        retro::debug("retro_load_game(\"{}\", {})", info->path ? info->path : "", info->size);
     }
     else {
         retro::debug("retro_load_game(<no content>)");
