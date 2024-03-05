@@ -714,6 +714,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
         retro::_log = log_callback.log;
         retro::debug("retro_set_environment({})", fmt::ptr(cb));
+    } else {
+        retro::warn("Failed to get log interface");
     }
 
     environment(RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK, (void*) MelonDsDs::GetProcAddress);
