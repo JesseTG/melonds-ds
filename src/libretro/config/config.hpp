@@ -441,12 +441,12 @@ namespace MelonDsDs {
         unsigned _flushDelay = 120; // TODO: Make configurable
         unsigned _numberOfScreenLayouts = 1;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _screenLayouts;
-        unsigned _screenGap;
-        unsigned _hybridRatio;
+        unsigned _screenGap = 0;
+        unsigned _hybridRatio = 2;
         HybridSideScreenDisplay _smallScreenLayout;
         unsigned _cursorSize = 2.0f;
         MelonDsDs::CursorMode _cursorMode = CursorMode::Always;
-        unsigned _cursorTimeout;
+        unsigned _cursorTimeout = 3;
         MelonDsDs::TouchMode _touchMode;
         MelonDsDs::ConsoleType _consoleType;
         MelonDsDs::BootMode _bootMode;
