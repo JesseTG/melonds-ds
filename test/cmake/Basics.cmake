@@ -18,23 +18,25 @@ add_python_test(
     TEST_SCRIPT "basics/core_get_proc_address.py"
 )
 
-#add_python_test(
-#    NAME "Core runs init and deinit"
-#    TEST_SCRIPT ""
-#)
+add_python_test(
+    NAME "Core runs init and deinit"
+    TEST_SCRIPT "basics/core_run_init_deinit.py"
+)
 
-#add_python_test(
-#    NAME "Core loads and unloads without content"
-#    TEST_SCRIPT ""
-#)
+add_python_test(
+    NAME "Core loads and unloads without content"
+    TEST_SCRIPT "basics/core_loads_unloads_without_content.py"
+)
 
-#add_python_test(
-#    NAME "Core loads and unloads content"
-#    TEST_SCRIPT ""
-#)
+add_python_test(
+    NAME "Core loads and unloads with content"
+    TEST_SCRIPT "basics/core_loads_unloads_with_content.py"
+    CONTENT "${NDS_ROM}"
+)
+
 #
 #add_python_test(
-#    NAME "Core loads and unloads subsystem content"
+#    NAME "Core loads and unloads with subsystem content"
 #    TEST_SCRIPT ""
 #)
 #
