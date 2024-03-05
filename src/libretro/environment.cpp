@@ -295,16 +295,17 @@ constexpr uint32_t GetLogColor(retro_log_level level) noexcept {
 #endif
 
 void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_args args) noexcept {
+    fmt::basic_memory_buffer<char, 1024> buffer;
+    fmt::vformat_to(std::back_inserter(buffer), fmt, args);
+    // We can't pass the va_list directly to the libretro callback,
+    // so we have to construct the string and print that
+
+    if (buffer[buffer.size() - 1] == '\n')
+        buffer[buffer.size() - 1] = '\0';
+
+    buffer.push_back('\0');
+
     if (_log) {
-        fmt::basic_memory_buffer<char, 1024> buffer;
-        fmt::vformat_to(std::back_inserter(buffer), fmt, args);
-        // We can't pass the va_list directly to the libretro callback,
-        // so we have to construct the string and print that
-
-        if (buffer[buffer.size() - 1] == '\n')
-            buffer[buffer.size() - 1] = '\0';
-
-        buffer.push_back('\0');
         _log(level, "%s\n", buffer.data());
 #ifdef TRACY_ENABLE
         if (tracy::ProfilerAvailable()) {
@@ -312,7 +313,7 @@ void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_arg
         }
 #endif
     } else {
-        fmt::vprint(stderr, fmt, args);
+        fprintf(stderr, "%s\n", buffer.data());
     }
 }
 
