@@ -458,7 +458,7 @@ bool retro::set_message(const struct retro_message_ext& message) {
                 return false;
             }
 
-            fmt_log(message.level, "%s", fmt::make_format_args(message.msg));
+            fmt_log(message.level, "{}", fmt::make_format_args(message.msg));
             return true;
         }
         default:
