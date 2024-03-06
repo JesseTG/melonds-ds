@@ -246,21 +246,19 @@ endfunction()
 
 function(add_python_test)
     set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
-    set(oneValueArgs NAME CONTENT TEST_SCRIPT SKIP_RETURN_CODE TIMEOUT)
+    set(oneValueArgs NAME CONTENT TEST_MODULE SKIP_RETURN_CODE TIMEOUT)
     set(multiValueArgs CORE_OPTION DEPENDS PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION LABELS)
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
-    set(TEST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/python/${RETRO_TEST_SCRIPT}")
     add_test(
         NAME "${RETRO_NAME}"
         COMMAND ${Python3_EXECUTABLE}
-        "${TEST_SCRIPT}"
+        -m "${RETRO_TEST_MODULE}"
         "$<TARGET_FILE:melondsds_libretro>"
         "${RETRO_CONTENT}"
     )
 
     list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
-    list(APPEND REQUIRED_FILES "${TEST_SCRIPT}")
     if (RETRO_CONTENT)
         list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
     endif()
@@ -289,6 +287,7 @@ function(add_python_test)
     set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "libretro.py;${RETRO_LABELS}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/python")
     if (RETRO_PASS_REGULAR_EXPRESSION)
         set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
     endif()
