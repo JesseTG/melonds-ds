@@ -2,6 +2,9 @@ import os
 import shutil
 import tempfile
 
+if not __debug__:
+    raise RuntimeError("The melonDS DS test suite should not be run with -O")
+
 SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS_FIRMWARE", "DSI_FIRMWARE", "DSI_NAND")
 testdir = tempfile.TemporaryDirectory(".libretro")
 system_dir = os.path.join(testdir.name, "system")
