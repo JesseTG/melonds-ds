@@ -10,6 +10,7 @@ SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS
 testdir = tempfile.TemporaryDirectory(".libretro")
 system_dir = os.path.join(testdir.name, "system")
 save_dir = os.path.join(testdir.name, "savefiles")
+save_directory = save_dir
 savestate_directory = os.path.join(testdir.name, "states")
 core_system_dir = os.path.join(system_dir, "melonDS DS")
 core_save_dir = os.path.join(save_dir, "melonDS DS")

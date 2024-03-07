@@ -133,7 +133,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core gets the frontend's system directory"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_system_directory
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -182,7 +183,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core gets the frontend's save directory"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_save_directory
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
