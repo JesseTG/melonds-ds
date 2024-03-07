@@ -32,39 +32,42 @@ add_python_test(
 
 add_python_test(
     NAME "Core runs init and deinit"
-    TEST_MODULE "basics.core_run_init_deinit"
+    TEST_MODULE basics.core_run_init_deinit
     CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core loads and unloads with content"
-    TEST_MODULE "basics.core_loads_unloads_with_content"
+    TEST_MODULE basics.core_loads_unloads_with_content
     CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core runs for one frame"
-    TEST_MODULE "basics.core_run_frame"
+    TEST_MODULE basics.core_run_frame
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core runs for multiple frames"
-    TEST_MODULE "basics.core_run_frames"
+    TEST_MODULE basics.core_run_frames
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core resets emulator state"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_resets
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core generates audio"
-    TEST_MODULE "basics.core_generates_audio"
+    TEST_MODULE basics.core_generates_audio
 )
 
 add_python_test(
     NAME "Core generates video"
-    TEST_MODULE "basics.core_generates_video"
+    TEST_MODULE basics.core_generates_video
 )
 
 add_python_test(
@@ -84,27 +87,30 @@ add_python_test(
 
 add_python_test(
     NAME "Core saves state"
-    TEST_MODULE "basics.core_saves_state"
+    TEST_MODULE basics.core_saves_state
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core saves and loads state"
-    TEST_MODULE "basics.core_saves_and_loads_state"
+    TEST_MODULE basics.core_saves_and_loads_state
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core exposes emulated RAM"
-    TEST_MODULE "basics.core_exposes_ram"
+    TEST_MODULE basics.core_exposes_ram
 )
 
 add_python_test(
     NAME "Core exposes emulated SRAM"
-    TEST_MODULE "basics.core_exposes_sram"
+    TEST_MODULE basics.core_exposes_sram
 )
 
 add_python_test(
     NAME "Core applies cheats"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_applies_cheats
+    CONTENT "${NDS_ROM}"
 )
 
 # Environment Calls
