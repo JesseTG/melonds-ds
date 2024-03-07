@@ -10,6 +10,7 @@ with default_session(argv[1]) as session:
     # A trivial cheat code with one instruction: 0XXXXXXX-YYYYYYYY,
     # where XXXXXXX (in this case, 02000000) is the address to write to
     # and YYYYYYYY (in this case, DEADBEEF) is the value to write.
+    # See https://mgba-emu.github.io/gbatek/#dscartcheatactionreplayds for more details
 
     assert memory[0:4].tobytes() == b'\xde\xad\xbe\xef'
 
