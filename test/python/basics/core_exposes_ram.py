@@ -12,3 +12,9 @@ with default_session(argv[1]) as session:
     assert data
     assert data is not None
     assert data.value
+
+    memory = session.core.get_memory(RETRO_MEMORY_SYSTEM_RAM)
+
+    assert memory is not None
+    assert len(memory) == size
+    assert id(memory) == data.value
