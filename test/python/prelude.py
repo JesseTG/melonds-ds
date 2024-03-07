@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import tempfile
 
 if not __debug__:
@@ -30,3 +31,5 @@ for _f in SYSTEM_FILES:
         shutil.copyfile(os.environ[_f], targetpath)
 
 options_string = os.getenv("RETRO_CORE_OPTIONS")
+core_path = sys.argv[1]
+content_path = sys.argv[2] if len(sys.argv) > 2 else None
