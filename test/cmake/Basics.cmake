@@ -138,12 +138,14 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets pixel format to XRGB8888"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_sets_pixel_format
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core sets input descriptors"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_input_descriptors
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -163,21 +165,19 @@ add_python_test(
 
 add_python_test(
     NAME "Core registers support for no-content mode"
-    TEST_MODULE "basics.core_registers_no_content_support"
+    TEST_MODULE basics.core_registers_no_content_support
     CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core loads and unloads without content"
-    TEST_MODULE "basics.core_loads_unloads_without_content"
+    TEST_MODULE basics.core_loads_unloads_without_content
 )
 
 add_python_test(
     NAME "Core logs output"
-    TEST_MODULE "basics.core_logs_output"
-    ARM7_BIOS
-    ARM9_BIOS
-    NDS_FIRMWARE
+    TEST_MODULE basics.core_logs_output
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -187,13 +187,14 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets retro_get_proc_address_interface"
-    TEST_MODULE "basics.core_get_proc_address"
-    CONTENT "${NDS_ROM}"
+    TEST_MODULE basics.core_get_proc_address
+    NDS_SYSFILES
 )
 
 add_python_test(
     NAME "Core defines subsystems"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_subsystems
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -203,7 +204,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core defines controller info"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_controller_info
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -213,7 +215,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core registers support for achievements"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_registers_achievement_support
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -253,7 +256,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets content info overrides"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_content_info_overrides
+    NDS_SYSFILES
 )
 
 add_python_test(

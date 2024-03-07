@@ -37,6 +37,7 @@
 #include "info.hpp"
 #include "libretro.hpp"
 #include "config/config.hpp"
+#include "core/test.hpp"
 #include "tracy.hpp"
 #include "version.hpp"
 

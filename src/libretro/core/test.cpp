@@ -1,5 +1,5 @@
 /*
-    Copyright 2023 Jesse Talavera-Greenberg
+    Copyright 2024 Jesse Talavera
 
     melonDS DS is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -14,31 +14,18 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_LIBRETRO_HPP
-#define MELONDS_DS_LIBRETRO_HPP
+#include "test.hpp"
 
-#include <libretro.h>
+#include <string/stdstring.h>
 
-#include <GBACart.h>
-#include <NDSCart.h>
-
-/**!
- * Contains global state that's accessible to the entire core.
- */
-
-#define PUBLIC_SYMBOL [[maybe_unused]]
-
-#ifndef GIT_VERSION
-#define GIT_VERSION ""
-#endif
-
-using NdsCart = melonDS::NDSCart::CartCommon;
-using GbaCart = melonDS::GBACart::CartCommon;
-
-namespace MelonDsDs {
-    void HardwareContextReset() noexcept;
-    void HardwareContextDestroyed() noexcept;
-    bool UpdateOptionVisibility() noexcept;
+extern "C" int libretropy_add_integers(int a, int b) {
+    return a + b;
 }
 
-#endif //MELONDS_DS_LIBRETRO_HPP
+retro_proc_address_t MelonDsDs::GetProcAddress(const char* sym) noexcept {
+    if (string_is_equal(sym, "libretropy_add_integers"))
+        return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
+
+    return nullptr;
+}
+
