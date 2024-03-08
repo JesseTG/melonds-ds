@@ -1,6 +1,9 @@
-from sys import argv
 from libretro import Core
 
-core = Core(argv[1])
+import prelude
+
+core = Core(prelude.core_path)
+
+print(f"api_version: {core.api_version()}")
 
 assert core.api_version() == 1
