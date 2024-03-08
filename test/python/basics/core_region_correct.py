@@ -1,7 +1,10 @@
-from sys import argv
 from libretro import Core
 from libretro.defs import Region
 
-core = Core(argv[1])
+import prelude
+
+core = Core(prelude.core_path)
+
+print(f"region: {core.get_region()!r}")
 
 assert core.get_region() == Region.NTSC
