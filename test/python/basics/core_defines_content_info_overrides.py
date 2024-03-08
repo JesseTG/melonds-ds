@@ -1,10 +1,13 @@
-from libretro import default_session
+from pprint import pprint
+import libretro
 
 import prelude
 
-with default_session(prelude.core_path) as session:
+session: libretro.Session
+with prelude.noload_session() as session:
     overrides = session.content_info_overrides
 
+    pprint(overrides)
     assert overrides is not None
     assert len(overrides) > 0
     assert all(o.extensions for o in overrides)
