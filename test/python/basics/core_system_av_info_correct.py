@@ -1,9 +1,10 @@
-from sys import argv
+from libretro import retro_system_av_info, Session
 
-from libretro import default_session
+import prelude
 
-with default_session(argv[1]) as session:
-    av_info = session.core.get_system_av_info()
+session: Session
+with prelude.session() as session:
+    av_info: retro_system_av_info = session.core.get_system_av_info()
 
     assert av_info is not None
     assert av_info.timing.sample_rate != 0
