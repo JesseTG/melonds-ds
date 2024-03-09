@@ -3,6 +3,8 @@ import shutil
 import sys
 import tempfile
 
+import libretro
+
 if not __debug__:
     raise RuntimeError("The melonDS DS test suite should not be run with -O")
 
@@ -34,3 +36,14 @@ for _f in SYSTEM_FILES:
 options_string = os.getenv("RETRO_CORE_OPTIONS")
 core_path = sys.argv[1]
 content_path = sys.argv[2] if len(sys.argv) > 2 else None
+
+default_dirs = {
+    "system_dir": system_dir,
+    "save_dir": save_dir,
+}
+
+def session() -> libretro.Session:
+    return libretro.default_session(core_path, content_path, **default_dirs)
+
+def noload_session() -> libretro.Session:
+    return libretro.default_session(core_path, libretro.session.DoNotLoad, **default_dirs)

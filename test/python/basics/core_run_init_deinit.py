@@ -1,5 +1,7 @@
-from sys import argv
-from libretro import default_session
+from libretro import Session
 
-with default_session(argv[1]) as session:
+import prelude
+
+session: Session
+with prelude.noload_session() as session:
     pass
