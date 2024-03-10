@@ -1,4 +1,4 @@
-find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+find_package(Python3 3.11 REQUIRED)
 find_package(PythonModules COMPONENTS libretro)
 
 # TODO: Make this required once libretro.py is on PyPI
