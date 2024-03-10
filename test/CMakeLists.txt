@@ -304,6 +304,7 @@ function(add_python_test)
         set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
     endif()
 
+    set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "Exception ignored on calling ctypes callback function")
     if (RETRO_FAIL_REGULAR_EXPRESSION)
         set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
     endif()
