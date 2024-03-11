@@ -188,7 +188,7 @@ function (basis_find_python_module CACHEVAR)
         set (IMPORT_SITE_ERROR FALSE)
         # 2a. try it with -E option -- the preferred way to run Python
         execute_process (
-            COMMAND "${ARGN_PYTHON_EXECUTABLE}" -E -c "import ${ARGN_NAME}; print ${ARGN_NAME}.__file__"
+            COMMAND "${ARGN_PYTHON_EXECUTABLE}" -E -c "import ${ARGN_NAME}; print(${ARGN_NAME}.__file__)"
             RESULT_VARIABLE STATUS
             OUTPUT_VARIABLE P
             ERROR_VARIABLE  ERROR
@@ -200,7 +200,7 @@ function (basis_find_python_module CACHEVAR)
         # 2b. try it without -E option
         if (NOT STATUS EQUAL 0)
             execute_process (
-                COMMAND "${ARGN_PYTHON_EXECUTABLE}" -c "import ${ARGN_NAME}; print ${ARGN_NAME}.__file__"
+                COMMAND "${ARGN_PYTHON_EXECUTABLE}" -c "import ${ARGN_NAME}; print(${ARGN_NAME}.__file__)"
                 RESULT_VARIABLE STATUS
                 OUTPUT_VARIABLE P
                 ERROR_VARIABLE  ERROR
@@ -213,7 +213,7 @@ function (basis_find_python_module CACHEVAR)
                 set (PYTHONHOME "$ENV{PYTHONHOME}")
                 unset (ENV{PYTHONHOME})
                 execute_process (
-                    COMMAND "${ARGN_PYTHON_EXECUTABLE}" -c "import ${ARGN_NAME}; print ${ARGN_NAME}.__file__"
+                    COMMAND "${ARGN_PYTHON_EXECUTABLE}" -c "import ${ARGN_NAME}; print(${ARGN_NAME}.__file__)"
                     RESULT_VARIABLE STATUS
                     OUTPUT_VARIABLE P
                     ERROR_VARIABLE  ERROR
