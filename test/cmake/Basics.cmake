@@ -70,6 +70,7 @@ add_python_test(
 add_python_test(
     NAME "Core generates video"
     TEST_MODULE basics.core_generates_video
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
