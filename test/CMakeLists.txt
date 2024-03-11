@@ -1,5 +1,9 @@
-find_package(Python3 3.11 REQUIRED)
 find_package(PythonModules COMPONENTS libretro)
+find_package(Python 3.11 REQUIRED)
+
+# FindPython sets "Python_EXECUTABLE", but FindPythonModules wants "PYTHON_EXECUTABLE" (note the caps)
+set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+
 
 # TODO: Make this required once libretro.py is on PyPI
 if (PythonModules_libretro_PATH)
@@ -252,7 +256,7 @@ function(add_python_test)
 
     add_test(
         NAME "${RETRO_NAME}"
-        COMMAND ${Python3_EXECUTABLE}
+        COMMAND ${Python_EXECUTABLE}
         -m "${RETRO_TEST_MODULE}"
         "$<TARGET_FILE:melondsds_libretro>"
         "${RETRO_CONTENT}"
