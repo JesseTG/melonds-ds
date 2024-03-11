@@ -1,11 +1,16 @@
-from sys import argv
-from libretro import default_session
+from typing import cast
+from libretro import Session
+from libretro.api import ArrayAudioState
 
-with default_session(argv[1]) as session:
+import prelude
+
+session: Session
+with prelude.session() as session:
+    audio = cast(ArrayAudioState, session.audio)
     for i in range(300):
         session.core.run()
 
-    assert session.audio.buffer is not None
-    assert len(session.audio.buffer) > 0
+    assert audio.buffer is not None
+    assert len(audio.buffer) > 0
 
-    assert any(b != 0 for b in session.audio.buffer)
+    assert any(b != 0 for b in audio.buffer)
