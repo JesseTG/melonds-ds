@@ -12,5 +12,5 @@ with prelude.session() as session:
 
     assert audio.buffer is not None
     assert len(audio.buffer) > 0
-
     assert any(b != 0 for b in audio.buffer)
+    # Assert that we're not just being given silence
