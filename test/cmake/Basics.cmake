@@ -23,6 +23,7 @@ add_python_test(
 add_python_test(
     NAME "Core system AV info is correct"
     TEST_MODULE basics.core_system_av_info_correct
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -63,6 +64,7 @@ add_python_test(
 add_python_test(
     NAME "Core generates audio"
     TEST_MODULE basics.core_generates_audio
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -100,11 +102,13 @@ add_python_test(
 add_python_test(
     NAME "Core exposes emulated RAM"
     TEST_MODULE basics.core_exposes_ram
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
     NAME "Core exposes emulated SRAM"
     TEST_MODULE basics.core_exposes_sram
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -123,7 +127,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core can send messages (API V0)"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_sends_messages_v0
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -233,7 +238,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core gets options API version"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_options_version
+    NDS_SYSFILES
 )
 
 add_python_test(
@@ -253,7 +259,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core sends messages (API V1)"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_sends_messages_v1
+    NDS_SYSFILES
 )
 
 add_python_test(
