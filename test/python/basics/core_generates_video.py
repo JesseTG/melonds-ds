@@ -1,11 +1,13 @@
 from array import array
-from sys import argv
 from typing import cast
 
-from libretro import default_session
-from libretro.callback.video import SoftwareVideoState
+from libretro import Session
+from libretro.api.video import SoftwareVideoState
 
-with default_session(argv[1]) as session:
+import prelude
+
+session: Session
+with prelude.session() as session:
     video = cast(SoftwareVideoState, session.video)
 
     assert isinstance(video, SoftwareVideoState)
