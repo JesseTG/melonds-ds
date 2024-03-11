@@ -1,11 +1,13 @@
-from sys import argv
-from libretro import default_session
+from libretro import Session
 
-with default_session(argv[1], argv[2]) as session:
-    for i in range(10):
+import prelude
+
+session: Session
+with prelude.session() as session:
+    for i in range(60):
         session.core.run()
 
     session.core.reset()
 
-    for i in range(10):
+    for i in range(60):
         session.core.run()
