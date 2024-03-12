@@ -162,7 +162,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets options (V0 API)"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_options_v0
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -245,7 +246,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets options (V1 API)"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_options_v1
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -272,7 +274,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets options (V2 API)"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_defines_options_v2
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
