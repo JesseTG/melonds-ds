@@ -36,9 +36,9 @@ using NdsCart = melonDS::NDSCart::CartCommon;
 using GbaCart = melonDS::GBACart::CartCommon;
 
 namespace MelonDsDs {
-    void HardwareContextReset() noexcept;
-    void HardwareContextDestroyed() noexcept;
-    bool UpdateOptionVisibility() noexcept;
+    extern "C" void HardwareContextReset() noexcept;
+    extern "C" void HardwareContextDestroyed() noexcept;
+    extern "C" bool UpdateOptionVisibility() noexcept;
 }
 
 #endif //MELONDS_DS_LIBRETRO_HPP

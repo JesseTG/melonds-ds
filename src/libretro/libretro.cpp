@@ -260,7 +260,7 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
     return MelonDsDs::Core.GetMemorySize(type);
 }
 
-void MelonDsDs::HardwareContextReset() noexcept {
+extern "C" void MelonDsDs::HardwareContextReset() noexcept {
     try {
         Core.ResetRenderState();
     }
@@ -285,11 +285,11 @@ void MelonDsDs::HardwareContextReset() noexcept {
     }
 }
 
-void MelonDsDs::HardwareContextDestroyed() noexcept {
+extern "C" void MelonDsDs::HardwareContextDestroyed() noexcept {
     Core.DestroyRenderState();
 }
 
-bool MelonDsDs::UpdateOptionVisibility() noexcept {
+extern "C" bool MelonDsDs::UpdateOptionVisibility() noexcept {
     return Core.UpdateOptionVisibility();
 }
 
