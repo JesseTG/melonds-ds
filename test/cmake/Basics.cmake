@@ -279,8 +279,9 @@ add_python_test(
 )
 
 add_python_test(
-    NAME "Core sets options visibility display update callback"
-    TEST_MODULE ""
+    NAME "Core sets options visibility update callback"
+    TEST_MODULE basics.core_sets_options_visibility_update_callback
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
