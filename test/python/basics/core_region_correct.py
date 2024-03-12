@@ -1,5 +1,5 @@
 from libretro import Core
-from libretro.defs import Region
+from libretro.api.system import Region
 
 import prelude
 
