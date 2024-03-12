@@ -35,15 +35,15 @@ for _f in SYSTEM_FILES:
 
 options_string = os.getenv("RETRO_CORE_OPTIONS")
 core_path = sys.argv[1]
-content_path = sys.argv[2] if len(sys.argv) > 2 else None
+content_path = sys.argv[2] if len(sys.argv) > 2 and len(sys.argv[2]) > 0 else None
 
-default_dirs = {
+default_args = {
     "system_dir": system_dir,
     "save_dir": save_dir,
 }
 
-def session() -> libretro.Session:
-    return libretro.default_session(core_path, content_path, **default_dirs)
+def session(**kwargs) -> libretro.Session:
+    return libretro.default_session(core_path, content_path, **(default_args | kwargs))
 
-def noload_session() -> libretro.Session:
-    return libretro.default_session(core_path, libretro.session.DoNotLoad, **default_dirs)
+def noload_session(**kwargs) -> libretro.Session:
+    return libretro.default_session(core_path, libretro.session.DoNotLoad, **(default_args | kwargs))
