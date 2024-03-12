@@ -1,9 +1,14 @@
-from libretro import default_session
+from pprint import pprint
+from libretro import Session
 
 import prelude
 
-with default_session(prelude.core_path) as session:
+session: Session
+with prelude.session() as session:
     info = session.controller_info
 
+    pprint(info)
+
     assert info is not None
-    assert info.num_types > 0
+    assert len(info) > 0
+    assert all(len(i) for i in info)
