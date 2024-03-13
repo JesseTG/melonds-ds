@@ -156,8 +156,9 @@ add_python_test(
 )
 
 add_python_test(
-    NAME "Core can fetch option values"
-    TEST_MODULE ""
+    NAME "Core can get option values"
+    TEST_MODULE basics.core_gets_option
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
