@@ -241,7 +241,7 @@ add_python_test(
 add_python_test(
     NAME "Core gets options API version"
     TEST_MODULE basics.core_gets_options_version
-    NDS_SYSFILES
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -258,7 +258,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core gets message API version"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_message_version
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
