@@ -169,7 +169,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core tests for option updates"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_option_updates
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
