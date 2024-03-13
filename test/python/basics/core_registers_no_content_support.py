@@ -1,7 +1,7 @@
-from sys import argv
-from libretro import default_session
+from libretro import Session
 
 import prelude
 
-with default_session(argv[1], argv[2]) as env:
-    assert env.support_no_game is True
+session: Session
+with prelude.session() as session:
+    assert session.support_no_game is True
