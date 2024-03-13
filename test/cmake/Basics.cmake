@@ -225,7 +225,7 @@ add_python_test(
 add_python_test(
     NAME "Core registers support for achievements"
     TEST_MODULE basics.core_registers_achievement_support
-    NDS_SYSFILES
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
