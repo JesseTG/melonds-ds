@@ -183,6 +183,12 @@ add_python_test(
 )
 
 add_python_test(
+    NAME "Core gets input device capabilities"
+    TEST_MODULE basics.core_gets_input_capabilities
+    CONTENT "${NDS_ROM}"
+)
+
+add_python_test(
     NAME "Core logs output"
     TEST_MODULE basics.core_logs_output
     NDS_SYSFILES
@@ -235,7 +241,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core gets input bitmask support"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_input_bitmask_support
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
