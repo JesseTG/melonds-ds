@@ -1,13 +1,15 @@
-from sys import argv
-from libretro import default_session
+from libretro import Session
 
 import prelude
 
-with default_session(argv[1], argv[2]) as session:
+session: Session
+with prelude.session() as session:
     for i in range(30):
         session.core.run()
 
     size = session.core.serialize_size()
+    assert size > 0
+
     buffer = bytearray(size)
     state_saved = session.core.serialize(buffer)
 
