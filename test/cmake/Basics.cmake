@@ -152,7 +152,7 @@ add_python_test(
 add_python_test(
     NAME "Core sets input descriptors"
     TEST_MODULE basics.core_defines_input_descriptors
-    NDS_SYSFILES
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
