@@ -714,7 +714,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     environment(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &yes);
 
     retro_log_callback log_callback = {nullptr};
-    if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
+    if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback) && log_callback.log) {
         retro::_log = log_callback.log;
         retro::debug("retro_set_environment({})", fmt::ptr(cb));
     } else {
