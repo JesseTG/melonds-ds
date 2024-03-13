@@ -1,7 +1,10 @@
-from sys import argv
-from libretro import default_session, RETRO_MEMORY_SAVE_RAM
+from libretro import Session
+from libretro.h import RETRO_MEMORY_SAVE_RAM
 
-with default_session(argv[1]) as session:
+import prelude
+
+session: Session
+with prelude.session() as session:
     size = session.core.get_memory_size(RETRO_MEMORY_SAVE_RAM)
 
     assert size is not None
