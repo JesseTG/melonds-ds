@@ -1,7 +1,6 @@
 from ctypes import *
 
 from libretro import Session
-from libretro.api.proc import retro_get_proc_address_t
 
 import prelude
 
