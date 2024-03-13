@@ -214,7 +214,7 @@ add_python_test(
 add_python_test(
     NAME "Core defines controller info"
     TEST_MODULE basics.core_defines_controller_info
-    NDS_SYSFILES
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
@@ -251,8 +251,9 @@ add_python_test(
 )
 
 add_python_test(
-    NAME "Core can set options visibility"
-    TEST_MODULE ""
+    NAME "Core hides options when the frontend updates them"
+    TEST_MODULE basics.core_sets_options_visibility
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
