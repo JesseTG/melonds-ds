@@ -141,6 +141,8 @@ bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
         version = 0;
 
+    retro::debug("Frontend reports core options version: {}", version);
+
     if (version >= 2) {
         if (retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2, (void *) &options)) {
             retro::debug("V2 core options set successfully");
