@@ -36,7 +36,7 @@ extern "C" const char* libretropy_get_save_directory() {
     return ok ? path : nullptr;
 }
 
-retro_proc_address_t MelonDsDs::GetProcAddress(const char* sym) noexcept {
+extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
 

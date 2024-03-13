@@ -21,5 +21,6 @@
 namespace MelonDsDs
 {
     // test functions for the test suite
-    retro_proc_address_t GetProcAddress(const char* sym) noexcept;
+    // named to not conflict with Windows' GetProcAddress
+    extern "C" retro_proc_address_t GetRetroProcAddress(const char* sym) noexcept;
 }
