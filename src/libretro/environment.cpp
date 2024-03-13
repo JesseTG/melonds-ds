@@ -721,7 +721,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::warn("Failed to get log interface");
     }
 
-    environment(RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK, (void*) MelonDsDs::GetRetroProcAddress);
+    retro_get_proc_address_interface get_proc_address {MelonDsDs::GetRetroProcAddress};
+    environment(RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK, &get_proc_address);
 
     retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
     retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
