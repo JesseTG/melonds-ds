@@ -197,7 +197,7 @@ add_python_test(
 add_python_test(
     NAME "Core sets retro_get_proc_address_interface"
     TEST_MODULE basics.core_get_proc_address
-    NDS_SYSFILES
+    CONTENT "${NDS_ROM}"
 )
 
 add_python_test(
