@@ -10,11 +10,8 @@ with prelude.session() as session:
     assert proc_address_callback is not None
     assert proc_address_callback.get_proc_address is not None
 
-    add_integers = session.get_proc_address(b"libretropy_add_integers")
-    print(add_integers)
+    add_integers = session.get_proc_address(b"libretropy_add_integers", CFUNCTYPE(c_int, c_int, c_int))
     assert add_integers is not None
 
-    add_integers_callable = cast(add_integers, CFUNCTYPE(c_int, c_int, c_int))
-
-    assert add_integers_callable is not None
-    assert add_integers_callable(1, 2) == 3
+    assert add_integers is not None
+    assert add_integers(1, 2) == 3
