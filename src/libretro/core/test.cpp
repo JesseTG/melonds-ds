@@ -51,9 +51,8 @@ extern "C" unsigned libretropy_get_message_version() {
 
 extern "C" bool libretropy_get_input_bitmasks() {
     bool ok = false;
-    retro::environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, &ok);
 
-    return ok;
+    return retro::environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, &ok);
 }
 
 extern "C" uint64_t libretropy_get_input_device_capabilities() {
