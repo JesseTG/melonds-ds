@@ -75,7 +75,9 @@ add_python_test(
 
 add_python_test(
     NAME "Core accepts button input"
-    TEST_MODULE "basics.core_accepts_button_input"
+    TEST_MODULE basics.core_accepts_button_input
+    NDS_SYSFILES  # This test needs the NDS system menu
+    TIMEOUT 30
 )
 
 add_python_test(
@@ -85,7 +87,9 @@ add_python_test(
 
 add_python_test(
     NAME "Core accepts pointer input"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_accepts_pointer_input
+    NDS_SYSFILES # This test needs the NDS system menu
+    CORE_OPTION melonds_show_cursor=always
 )
 
 add_python_test(
