@@ -137,8 +137,13 @@ add_python_test(
 )
 
 add_python_test(
-    NAME "Core can shut down internally"
-    TEST_MODULE ""
+    NAME "Core can shut down"
+    TEST_MODULE basics.core_can_shut_down
+    NDS_SYSFILES
+    TIMEOUT 30
+    DISABLED
+    # Failure is expected, as the frontend will shut down
+    # (But segfaults or timeouts are still actual failures)
 )
 
 add_python_test(
