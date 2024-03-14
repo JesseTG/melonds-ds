@@ -37,13 +37,21 @@ options_string = os.getenv("RETRO_CORE_OPTIONS")
 core_path = sys.argv[1]
 content_path = sys.argv[2] if len(sys.argv) > 2 and len(sys.argv[2]) > 0 else None
 
+options = {
+    k.lower().encode(): v.encode()
+    for k, v in os.environ.items() if k.lower().startswith("melonds_")
+}
+
 default_args = {
     "system_dir": system_dir,
     "save_dir": save_dir,
+    "options": options,
 }
+
 
 def session(**kwargs) -> libretro.Session:
     return libretro.default_session(core_path, content_path, **(default_args | kwargs))
+
 
 def noload_session(**kwargs) -> libretro.Session:
     return libretro.default_session(core_path, libretro.session.DoNotLoad, **(default_args | kwargs))
