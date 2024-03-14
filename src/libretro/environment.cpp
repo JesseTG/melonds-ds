@@ -731,6 +731,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::_message_interface_version = UINT_MAX;
     }
 
+    retro::debug("Frontend report a message API version {}", retro::_message_interface_version);
+
     if (const char* save_dir = nullptr; environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
         // First copy the returned path into the buffer we'll use...
         strlcpy(_saveDir, save_dir, sizeof(_saveDir));
@@ -783,19 +785,14 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) MelonDsDs::subsystems);
 
-    retro_vfs_interface_info vfs { .required_interface_version = 1, .iface = nullptr };
+    retro_vfs_interface_info vfs { .required_interface_version = PATH_REQUIRED_VFS_VERSION, .iface = nullptr };
     if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs)) {
-        if (vfs.required_interface_version >= PATH_REQUIRED_VFS_VERSION) {
-            path_vfs_init(&vfs);
-        }
-
-        if (vfs.required_interface_version >= FILESTREAM_REQUIRED_VFS_VERSION) {
-            filestream_vfs_init(&vfs);
-        }
-
-        if (vfs.required_interface_version >= DIRENT_REQUIRED_VFS_VERSION) {
-            dirent_vfs_init(&vfs);
-        }
+        debug("Requested VFS interface version {}, got {}", PATH_REQUIRED_VFS_VERSION, vfs.required_interface_version);
+        path_vfs_init(&vfs);
+        filestream_vfs_init(&vfs);
+        dirent_vfs_init(&vfs);
+    } else {
+        warn("Could not get VFS interface {}, falling back to libretro-common defaults", PATH_REQUIRED_VFS_VERSION);
     }
 
     yes = true;
