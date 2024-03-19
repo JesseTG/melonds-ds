@@ -247,7 +247,10 @@ add_python_test(
 
 add_python_test(
     NAME "Core gets VFS interface"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_gets_vfs_interface
+    DSI_SYSFILES
+    CORE_OPTION melonds_console_mode=dsi
+    # We use DSi mode because it use the file system more often
 )
 
 add_python_test(
