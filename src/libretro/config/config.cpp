@@ -892,6 +892,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
             retro::debug("Found a DSi NAND image at \"{}\"", dsiNandPaths[i]);
             string_view path = dsiNandPaths[i];
             path.remove_prefix(sysdir->size() + 1);
+            retro_assert(!path_is_absolute(path.data()));
             dsiNandPathOption->values[i].value = path.data();
             dsiNandPathOption->values[i].label = nullptr;
         }
