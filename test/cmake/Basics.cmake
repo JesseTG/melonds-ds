@@ -82,7 +82,8 @@ add_python_test(
 
 add_python_test(
     NAME "Core accepts analog input"
-    TEST_MODULE ""
+    TEST_MODULE basics.core_accepts_analog_input
+    NDS_SYSFILES # This test needs the NDS system menu
 )
 
 add_python_test(
@@ -127,8 +128,11 @@ add_python_test(
 
 add_python_test(
     NAME "Core rotates the screen"
-    TEST_MODULE ""
-)
+    TEST_MODULE basics.core_rotates_screen
+    NDS_SYSFILES
+    DISABLED
+) # TODO: Implement this test
+# TODO: Set the screen layout sequence
 
 add_python_test(
     NAME "Core can send messages (API V0)"
@@ -226,7 +230,8 @@ add_python_test(
 add_python_test(
     NAME "Core loads and unloads with subsystem content"
     TEST_MODULE ""
-)
+    DISABLED
+) # TODO: Implement this test
 
 add_python_test(
     NAME "Core defines controller info"
@@ -237,7 +242,8 @@ add_python_test(
 add_python_test(
     NAME "Core sets geometry at runtime"
     TEST_MODULE ""
-)
+    DISABLED
+) # TODO: Implement this test
 
 add_python_test(
     NAME "Core registers support for achievements"
@@ -295,6 +301,7 @@ add_python_test(
     NDS_SYSFILES
 )
 
+# See https://github.com/JesseTG/melonds-ds/issues/51
 add_python_test(
     NAME "Core sets options (V2 API)"
     TEST_MODULE basics.core_defines_options_v2
@@ -310,12 +317,14 @@ add_python_test(
 add_python_test(
     NAME "Core accepts microphone input"
     TEST_MODULE ""
-)
+    DISABLED
+) # TODO: Implement this test
 
 add_python_test(
     NAME "Core queries device power state"
     TEST_MODULE ""
-)
+    DISABLED
+) # TODO: Implement this test
 
 
 
