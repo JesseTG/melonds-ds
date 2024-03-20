@@ -306,10 +306,11 @@ void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_arg
     if (buffer[buffer.size() - 1] == '\n')
         buffer[buffer.size() - 1] = '\0';
 
+    buffer.push_back('\n');
     buffer.push_back('\0');
 
     if (_log) {
-        _log(level, "%s\n", buffer.data());
+        _log(level, buffer.data());
 #ifdef TRACY_ENABLE
         if (tracy::ProfilerAvailable()) {
             TracyMessageCS(buffer.data(), buffer.size() - 1, GetLogColor(level), 8);
@@ -717,7 +718,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback) && log_callback.log) {
         retro::_log = log_callback.log;
         retro::debug("retro_set_environment({})", fmt::ptr(cb));
-    } else {
+    } else if (!retro::_log) {
+        // retro_set_environment might be called multiple times with different callbacks
         retro::warn("Failed to get log interface");
     }
 
