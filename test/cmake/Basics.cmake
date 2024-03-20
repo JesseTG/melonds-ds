@@ -322,10 +322,6 @@ add_python_test(
 
 add_python_test(
     NAME "Core queries device power state"
-    TEST_MODULE ""
-    DISABLED
-) # TODO: Implement this test
-
-
-
-
+    TEST_MODULE basics.core_gets_power_state
+    CONTENT "${NDS_ROM}"
+)
