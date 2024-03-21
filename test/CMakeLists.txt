@@ -370,6 +370,8 @@ FetchContent_GetProperties(godmode9i)
 FetchContent_MakeAvailable(godmode9i)
 set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 
+set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
+
 add_retroarch_test(
     NAME "RetroArch loads melonDS DS"
     CONTENT "${NDS_ROM}"
