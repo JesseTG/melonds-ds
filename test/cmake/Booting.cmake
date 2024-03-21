@@ -1,12 +1,12 @@
 ## Direct Boot of NDS game ####################################################
 
-add_retroarch_test(
-        NAME "Direct NDS boot with built-in system files succeeds"
-        CONTENT "${NDS_ROM}"
-        MAX_FRAMES 180
-        CORE_OPTION "melonds_boot_mode=direct"
-        CORE_OPTION "melonds_console_mode=ds"
-        CORE_OPTION "melonds_sysfile_mode=builtin"
+add_python_test(
+    NAME "Direct NDS boot with built-in system files succeeds"
+    TEST_MODULE basics.core_run_frames
+    CONTENT "${NDS_ROM}"
+    CORE_OPTION melonds_boot_mode=direct
+    CORE_OPTION melonds_console_mode=ds
+    CORE_OPTION melonds_sysfile_mode=builtin
 )
 
 add_retroarch_test(

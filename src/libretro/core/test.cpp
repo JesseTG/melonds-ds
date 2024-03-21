@@ -18,7 +18,14 @@
 
 #include <string/stdstring.h>
 
+#include "core.hpp"
 #include "environment.hpp"
+
+namespace MelonDsDs
+{
+    // sshhh...don't tell anyone
+    extern CoreState& Core;
+}
 
 extern "C" int libretropy_add_integers(int a, int b) {
     return a + b;
@@ -74,6 +81,38 @@ extern "C" const char* libretropy_get_save_directory() {
     return ok ? path : nullptr;
 }
 
+extern "C" bool libretropy_get_power(retro_device_power* power) {
+    return retro::environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, power);
+}
+
+extern "C" bool melondsds_console_exists() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    return console != nullptr;
+}
+
+extern "C" bool melondsds_arm7_bios_native() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    return console ? console->IsLoadedARM7BIOSKnownNative() : false;
+}
+
+extern "C" bool melondsds_arm9_bios_native() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    return console ? console->IsLoadedARM7BIOSKnownNative() : false;
+}
+
+extern "C" bool melondsds_firmware_native() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    return console ? console->GetFirmware().GetHeader().Identifier != melonDS::GENERATED_FIRMWARE_IDENTIFIER : false;
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -101,6 +140,21 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "libretropy_get_input_device_capabilities"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_get_input_device_capabilities);
+
+    if (string_is_equal(sym, "libretropy_get_power"))
+        return reinterpret_cast<retro_proc_address_t>(libretropy_get_power);
+
+    if (string_is_equal(sym, "melondsds_console_exists"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_console_exists);
+
+    if (string_is_equal(sym, "melondsds_arm7_bios_native"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_arm7_bios_native);
+
+    if (string_is_equal(sym, "melondsds_arm9_bios_native"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_arm9_bios_native);
+
+    if (string_is_equal(sym, "melondsds_firmware_native"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_firmware_native);
 
     return nullptr;
 }

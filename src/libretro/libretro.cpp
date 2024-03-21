@@ -62,7 +62,7 @@ using retro::task::TaskSpec;
 namespace MelonDsDs {
     // Aligned with CoreState to prevent undefined behavior
     alignas(CoreState) static std::array<std::byte, sizeof(CoreState)> CoreStateBuffer;
-    static CoreState& Core = *reinterpret_cast<CoreState*>(CoreStateBuffer.data());
+    CoreState& Core = *reinterpret_cast<CoreState*>(CoreStateBuffer.data());
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
