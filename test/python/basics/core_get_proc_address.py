@@ -12,6 +12,4 @@ with prelude.session() as session:
 
     add_integers = session.get_proc_address(b"libretropy_add_integers", CFUNCTYPE(c_int, c_int, c_int))
     assert add_integers is not None
-
-    assert add_integers is not None
     assert add_integers(1, 2) == 3
