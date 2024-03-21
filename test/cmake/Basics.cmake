@@ -316,9 +316,10 @@ add_python_test(
 
 add_python_test(
     NAME "Core accepts microphone input"
-    TEST_MODULE ""
-    DISABLED
-) # TODO: Implement this test
+    TEST_MODULE basics.core_accepts_microphone_input
+    CONTENT "${MICRECORD_NDS}"
+    CORE_OPTION melonds_boot_mode=direct
+)
 
 add_python_test(
     NAME "Core queries device power state"
