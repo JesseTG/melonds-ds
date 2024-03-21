@@ -16,6 +16,7 @@ save_directory = save_dir
 savestate_directory = os.path.join(testdir.name, "states")
 core_system_dir = os.path.join(system_dir, "melonDS DS")
 core_save_dir = os.path.join(save_dir, "melonDS DS")
+wfcsettings_path = os.path.join(core_system_dir, "wfcsettings.bin")
 
 print("Test dir:", testdir.name)
 print("System dir:", system_dir)
