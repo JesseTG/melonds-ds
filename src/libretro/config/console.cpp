@@ -199,7 +199,8 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
         firmware = make_optional<Firmware>(static_cast<int>(ConsoleType::DS));
     }
 
-    if (config.SysfileMode() == SysfileMode::BuiltIn) {
+    bool isFirmwareGenerated = firmware->GetHeader().Identifier == melonDS::GENERATED_FIRMWARE_IDENTIFIER;
+    if (isFirmwareGenerated) {
         retro::debug("Not loading native ARM BIOS files");
     }
 
@@ -208,8 +209,7 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
     ApplyCommonArgs(config, ndsargs);
 
     // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
-    bool bios7Loaded = (config.SysfileMode() == SysfileMode::Native) && LoadBios(
-                           config.Bios7Path(), BiosType::Arm7, ndsargs.ARM7BIOS);
+    bool bios7Loaded = !isFirmwareGenerated && LoadBios(config.Bios7Path(), BiosType::Arm7, ndsargs.ARM7BIOS);
     bool bios9Loaded = bios7Loaded && LoadBios(config.Bios9Path(), BiosType::Arm9, ndsargs.ARM9BIOS);
 
     if (config.SysfileMode() == SysfileMode::Native && !(bios7Loaded && bios9Loaded)) {
