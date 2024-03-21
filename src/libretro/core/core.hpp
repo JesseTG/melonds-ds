@@ -93,6 +93,8 @@ namespace MelonDsDs {
         void WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
         void WriteFirmware(const melonDS::Firmware& firmware, uint32_t writeoffset, uint32_t writelen) noexcept;
         bool UpdateOptionVisibility() noexcept;
+
+        const melonDS::NDS* GetConsole() const noexcept { return Console.get(); }
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
