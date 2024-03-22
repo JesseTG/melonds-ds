@@ -1,36 +1,19 @@
-find_package(PythonModules COMPONENTS libretro)
 find_package(Python 3.11 REQUIRED)
 
 # FindPython sets "Python_EXECUTABLE", but FindPythonModules wants "PYTHON_EXECUTABLE" (note the caps)
 set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 
+find_package(PythonModules COMPONENTS libretro wand)
 
 # TODO: Make this required once libretro.py is on PyPI
 if (PythonModules_libretro_PATH)
     message(STATUS "Found libretro.py: ${PythonModules_libretro_PATH}")
 endif()
 
-if (NOT RETROARCH)
-    find_program(
-        RETROARCH
-        retroarch
-        HINTS "C:/Program Files/RetroArch" "C:/Program Files/RetroArch-Win64"
-        REQUIRED
-    )
+if (PythonModules_wand_PATH)
+    message(STATUS "Found wand: ${PythonModules_wand_PATH}")
 endif()
-message(STATUS "RETROARCH: ${RETROARCH}")
-
-if (NOT EMUTEST)
-    find_program(
-        EMUTEST
-        emutest
-        HINTS "$ENV{GOPATH}/bin" "$ENV{USERPROFILE}/go/bin"
-        REQUIRED
-    )
-endif()
-message(STATUS "EMUTEST: ${EMUTEST}")
-
-cmake_path(GET RETROARCH PARENT_PATH RETROARCH_DIR)
+## TODO: Write a requirements.txt for all test dependencies
 
 if (NOT NDS_ROM)
     message(WARNING "NDS_ROM must be set to the path of an NDS ROM")
@@ -41,7 +24,7 @@ endif()
 
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
     if (NOT ${BIOS_NAME})
-        find_file(${BIOS_NAME} ${BIOS_FILE} HINTS "${RETROARCH_DIR}/system" REQUIRED)
+        find_file(${BIOS_NAME} ${BIOS_FILE} REQUIRED)
     endif()
 
     file(SIZE ${${BIOS_NAME}} BIOS_SIZE)
@@ -84,169 +67,6 @@ cmake_path(GET DSI_FIRMWARE FILENAME DSI_FIRMWARE_NAME)
 cmake_path(GET DSI_NAND FILENAME DSI_NAND_NAME)
 
 include(CMakePrintHelpers)
-
-function(add_retroarch_test)
-    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
-    set(oneValueArgs NAME MAX_FRAMES CONTENT REQUIRE_FILE_SIZE_UNCHANGED REQUIRE_FILE_CREATED)
-    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
-    cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    if (NOT RETRO_MAX_FRAMES)
-        set(RETRO_MAX_FRAMES 30)
-    endif()
-
-    add_test(
-        NAME "${RETRO_NAME}"
-        COMMAND ${Python3_EXECUTABLE}
-            "${CMAKE_CURRENT_SOURCE_DIR}/python/retroarch.py"
-            --libretro "$<TARGET_FILE:melondsds_libretro>"
-            --max-frames=${RETRO_MAX_FRAMES}
-            "${RETRO_CONTENT}"
-    )
-
-    list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
-    if (RETRO_CONTENT)
-        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
-    endif()
-
-    if (NOT RETRO_NO_SKIP_ERROR_SCREEN)
-        list(APPEND ENVIRONMENT MELONDSDS_SKIP_ERROR_SCREEN=1)
-    endif()
-
-    if (RETRO_REQUIRE_FILE_SIZE_UNCHANGED)
-        list(APPEND ENVIRONMENT "REQUIRE_FILE_SIZE_UNCHANGED=${RETRO_REQUIRE_FILE_SIZE_UNCHANGED}")
-    endif()
-
-    if (RETRO_REQUIRE_FILE_CREATED)
-        list(APPEND ENVIRONMENT "REQUIRE_FILE_CREATED=${RETRO_REQUIRE_FILE_CREATED}")
-    endif()
-
-    list(APPEND ENVIRONMENT "RETROARCH=${RETROARCH}")
-    list(APPEND ENVIRONMENT ${RETRO_CORE_OPTION}) # Not an omission, this is already a list
-
-    macro(expose_system_file SYSFILE)
-        if (RETRO_${SYSFILE})
-            list(APPEND REQUIRED_FILES "${${SYSFILE}}")
-            list(APPEND ENVIRONMENT "${SYSFILE}=${${SYSFILE}}")
-        endif()
-    endmacro()
-
-    expose_system_file(ARM7_BIOS)
-    expose_system_file(ARM9_BIOS)
-    expose_system_file(ARM7_DSI_BIOS)
-    expose_system_file(ARM9_DSI_BIOS)
-    expose_system_file(NDS_FIRMWARE)
-    expose_system_file(DSI_FIRMWARE)
-    expose_system_file(DSI_NAND)
-
-    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "RetroArch")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
-    if (RETRO_PASS_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_FAIL_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_SKIP_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_REGULAR_EXPRESSION "${RETRO_SKIP_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_WILL_FAIL)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES WILL_FAIL TRUE)
-    endif()
-
-    if (RETRO_DISABLED)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
-    endif()
-endfunction()
-
-function(add_emutest_test)
-    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
-    set(oneValueArgs NAME TEST_SCRIPT CONTENT)
-    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
-    cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    add_test(
-        NAME "${RETRO_NAME}"
-        COMMAND ${EMUTEST}
-        -L "$<TARGET_FILE:melondsds_libretro>"
-        -r "${RETRO_CONTENT}"
-        -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/${RETRO_TEST_SCRIPT}"
-    )
-
-    list(APPEND REQUIRED_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
-    list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
-    if (RETRO_CONTENT)
-        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
-    endif()
-
-
-    if (WIN32)
-        cmake_path(CONVERT "$ENV{USERPROFILE}\\.emutest" TO_CMAKE_PATH_LIST EMUTEST_HOME)
-        # emutest hardcodes a single root directory
-    else()
-        set(EMUTEST_HOME "$ENV{HOME}/.emutest")
-    endif()
-    if (NOT RETRO_NO_SKIP_ERROR_SCREEN)
-        list(APPEND ENVIRONMENT MELONDSDS_SKIP_ERROR_SCREEN=1)
-    endif()
-
-    list(APPEND ENVIRONMENT "EMUTEST_HOME=${EMUTEST_HOME}")
-    list(APPEND ENVIRONMENT "PREAMBLE=${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
-    list(JOIN RETRO_CORE_OPTION "\n" RETRO_CORE_OPTIONS)
-    list(APPEND ENVIRONMENT "RETRO_CORE_OPTIONS=${RETRO_CORE_OPTIONS}")
-
-    macro(expose_system_file SYSFILE)
-        if (RETRO_${SYSFILE})
-            cmake_path(GET ${SYSFILE} FILENAME filename)
-            # emutest doesn't use standard Lua; it uses a Go port that happens to not support regexes.
-            # So we have to pass in the basename separately.
-            list(APPEND REQUIRED_FILES "${${SYSFILE}}")
-            list(APPEND ENVIRONMENT "${SYSFILE}=${${SYSFILE}}")
-            list(APPEND ENVIRONMENT "${SYSFILE}_NAME=${filename}")
-        endif()
-    endmacro()
-
-    list(APPEND ENVIRONMENT "CMAKE=${CMAKE_COMMAND}")
-
-    expose_system_file(ARM7_BIOS)
-    expose_system_file(ARM9_BIOS)
-    expose_system_file(ARM7_DSI_BIOS)
-    expose_system_file(ARM9_DSI_BIOS)
-    expose_system_file(NDS_FIRMWARE)
-    expose_system_file(DSI_FIRMWARE)
-    expose_system_file(DSI_NAND)
-
-    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "emutest")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 30)
-
-    # emutest only supports a pre-defined base directory, so we can only run one emutest test at a time
-    set_tests_properties("${RETRO_NAME}" PROPERTIES RESOURCE_LOCK "homedir")
-    if (RETRO_PASS_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_FAIL_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_SKIP_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_REGULAR_EXPRESSION "${RETRO_SKIP_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_WILL_FAIL)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES WILL_FAIL TRUE)
-    endif()
-
-    if (RETRO_DISABLED)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
-    endif()
-endfunction()
 
 function(add_python_test)
     set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NDS_SYSFILES DSI_SYSFILES NO_SKIP_ERROR_SCREEN DISABLED)
@@ -371,17 +191,6 @@ FetchContent_MakeAvailable(godmode9i)
 set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 
 set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
-
-add_retroarch_test(
-    NAME "RetroArch loads melonDS DS"
-    CONTENT "${NDS_ROM}"
-)
-
-add_emutest_test(
-    NAME "emutest loads melonDS DS"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "loads-core.lua"
-)
 
 # TODO: Write the following test capabilities:
 # - Copying a system file to a particular location
