@@ -1,13 +1,19 @@
-import libretro.session
-from libretro import default_session
+from collections.abc import Sequence
 from pprint import pprint
+
+from libretro import Session
+from libretro.api.content import retro_subsystem_info
 
 import prelude
 
-with default_session(prelude.core_path, libretro.session.DoNotLoad) as session:
+subsystems: Sequence[retro_subsystem_info]
+session: Session
+with prelude.noload_session() as session:
     subsystems = session.subsystems
 
-    pprint(subsystems)
     assert subsystems is not None
     assert len(subsystems) > 0
     assert all(s.desc for s in subsystems)
+
+# Testing this _after_ unloading the core to ensure the data is still valid
+pprint(subsystems)
