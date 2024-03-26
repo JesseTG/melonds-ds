@@ -194,6 +194,8 @@ add_python_test(
 add_python_test(
     NAME "Core loads and unloads without content"
     TEST_MODULE basics.core_loads_unloads_without_content
+    NDS_SYSFILES
+    # If we don't have content, then we need bootable firmware
 )
 
 add_python_test(
