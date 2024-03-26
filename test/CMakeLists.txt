@@ -10,8 +10,8 @@ if (PythonModules_libretro_PATH)
     message(STATUS "Found libretro.py: ${PythonModules_libretro_PATH}")
 endif()
 
-if (PythonModules_wand_PATH)
-    message(STATUS "Found wand: ${PythonModules_wand_PATH}")
+if (PythonModules_PIL_PATH)
+    message(STATUS "Found PIL (aka Pillow): ${PythonModules_PIL_PATH}")
 endif()
 ## TODO: Write a requirements.txt for all test dependencies
 
