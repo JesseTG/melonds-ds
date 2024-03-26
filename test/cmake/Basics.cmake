@@ -145,7 +145,6 @@ add_python_test(
     TEST_MODULE basics.core_can_shut_down
     NDS_SYSFILES
     TIMEOUT 30
-    DISABLED
     # Failure is expected, as the frontend will shut down
     # (But segfaults or timeouts are still actual failures)
 )
