@@ -4,6 +4,7 @@ import sys
 import tempfile
 
 import libretro
+from libretro.api.content import SubsystemContent
 
 if not __debug__:
     raise RuntimeError("The melonDS DS test suite should not be run with -O")
@@ -37,8 +38,10 @@ for _f in SYSTEM_FILES:
         shutil.copyfile(os.environ[_f], targetpath)
 
 options_string = os.getenv("RETRO_CORE_OPTIONS")
+subsystem = os.getenv("SUBSYSTEM")
 core_path = sys.argv[1]
-content_path = sys.argv[2] if len(sys.argv) > 2 and len(sys.argv[2]) > 0 else None
+content_path = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else None
+content_paths = tuple(s for s in sys.argv[2:] if s) if len(sys.argv) > 2 else ()
 
 options = {
     k.lower().encode(): v.encode()
@@ -53,7 +56,18 @@ default_args = {
 
 
 def session(**kwargs) -> libretro.Session:
-    return libretro.default_session(core_path, content_path, **(default_args | kwargs))
+    content = None
+    match content_paths:
+        case [] | None:
+            pass
+        case [path]:
+            content = path
+        case [*paths]:
+            content = SubsystemContent(subsystem, paths)
+        case _:
+            raise TypeError(f"Unexpected content_paths {type(content_paths).__name__}")
+
+    return libretro.default_session(core_path, content, **(default_args | kwargs))
 
 
 def noload_session(**kwargs) -> libretro.Session:

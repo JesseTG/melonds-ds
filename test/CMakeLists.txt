@@ -22,6 +22,20 @@ else()
     message(DEBUG "NDS_ROM: ${NDS_ROM}")
 endif()
 
+if (NOT GBA_ROM)
+    message(WARNING "GBA_ROM must be set to the path of a GBA ROM")
+    set(GBA_ROM "GBA_ROM-NOTFOUND" CACHE FILEPATH "Path to a GBA ROM" FORCE)
+else()
+    message(DEBUG "GBA_ROM: ${GBA_ROM}")
+endif()
+
+if (NOT GBA_SRAM)
+    message(WARNING "GBA_SRAM must be set to the path of a GBA save file")
+    set(GBA_SRAM "GBA_SRAM-NOTFOUND" CACHE FILEPATH "Path to a GBA save file" FORCE)
+else()
+    message(DEBUG "GBA_SRAM: ${GBA_SRAM}")
+endif()
+
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
     if (NOT ${BIOS_NAME})
         find_file(${BIOS_NAME} ${BIOS_FILE} REQUIRED)
@@ -88,6 +102,7 @@ function(add_python_test)
     set(oneValueArgs
         NAME
         SKIP_RETURN_CODE
+        SUBSYSTEM
         TEST_MODULE
         TIMEOUT
     )
@@ -103,21 +118,48 @@ function(add_python_test)
     )
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
+    list(LENGTH RETRO_CONTENT RETRO_CONTENT_LENGTH)
+    if (RETRO_CONTENT_LENGTH GREATER 0)
+        list(GET RETRO_CONTENT 0 NDS_CONTENT)
+    endif()
+
+    if (RETRO_CONTENT_LENGTH GREATER 1)
+        list(GET RETRO_CONTENT 1 GBA_CONTENT)
+    endif()
+
+    if (RETRO_CONTENT_LENGTH GREATER 2)
+        list(GET RETRO_CONTENT 2 GBA_SRAM_CONTENT)
+    endif()
+
     add_test(
         NAME "${RETRO_NAME}"
         COMMAND ${Python_EXECUTABLE}
         -m "${RETRO_TEST_MODULE}"
         "$<TARGET_FILE:melondsds_libretro>"
-        "${RETRO_CONTENT}"
+        "${NDS_CONTENT}"
+        "${GBA_CONTENT}"
+        "${GBA_SRAM_CONTENT}"
     )
 
     list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
-    if (RETRO_CONTENT)
-        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
+    if (NDS_CONTENT)
+        list(APPEND REQUIRED_FILES "${NDS_CONTENT}")
+    endif()
+
+    if (GBA_CONTENT)
+        list(APPEND REQUIRED_FILES "${GBA_CONTENT}")
+    endif()
+
+    if (GBA_SRAM_CONTENT)
+        list(APPEND REQUIRED_FILES "${GBA_SRAM_CONTENT}")
     endif()
 
     if (NOT RETRO_NO_SKIP_ERROR_SCREEN)
         list(APPEND ENVIRONMENT MELONDSDS_SKIP_ERROR_SCREEN=1)
+    endif()
+
+    if (RETRO_SUBSYSTEM)
+        list(APPEND ENVIRONMENT SUBSYSTEM=${RETRO_SUBSYSTEM})
     endif()
 
     list(APPEND ENVIRONMENT ${RETRO_CORE_OPTION}) # Not an omission, this is already a list
