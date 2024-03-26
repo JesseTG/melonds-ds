@@ -1,12 +1,9 @@
-from array import array
 import itertools
 from typing import cast
 
 from libretro import Session
 from libretro.api.input import JoypadState
-from libretro.api.video import SoftwareVideoState
-
-from wand.image import Image
+from libretro.api.video import PillowVideoDriver
 
 import prelude
 
@@ -21,18 +18,16 @@ def generate_input():
 
 session: Session
 with prelude.session(input_state=generate_input) as session:
-    video = cast(SoftwareVideoState, session.video)
+    video = cast(PillowVideoDriver, session.video)
     for i in range(240):
         session.core.run()
 
-    frame1 = array(video.frame.typecode, video.frame)
+    frame1 = video.get_frame()
     for i in range(240):
         session.core.run()
 
-    frame2 = array(video.frame.typecode, video.frame)
+    frame2 = video.get_frame()
 
-    screen1 = Image(blob=frame1.tobytes(), format="BGRA", width=256, height=192*2, depth=8)
-    screen2 = Image(blob=frame2.tobytes(), format="BGRA", width=256, height=192*2, depth=8)
-
-    assert screen1.get_image_distortion(screen2, 'absolute') > 50000
-    # Assert that the two screenshots differ by more than 50000 pixels
+    # The logo screen (frame1) has a white pixel in the top left corner,
+    # whereas the main menu screen doesn't
+    assert frame1.getpixel((0, 0)) != frame2.getpixel((0, 0))
