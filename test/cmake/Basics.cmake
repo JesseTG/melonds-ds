@@ -230,9 +230,12 @@ add_python_test(
 
 add_python_test(
     NAME "Core loads and unloads with subsystem content"
-    TEST_MODULE ""
-    DISABLED
-) # TODO: Implement this test
+    TEST_MODULE basics.core_loads_subsystems
+    SUBSYSTEM gba
+    CONTENT "${NDS_ROM}"
+    CONTENT "${GBA_ROM}"
+    CONTENT "${GBA_SRAM}"
+)
 
 add_python_test(
     NAME "Core defines controller info"
