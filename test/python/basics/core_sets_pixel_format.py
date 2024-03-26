@@ -1,8 +1,12 @@
-from sys import argv
-from libretro import default_session
-from libretro.defs import PixelFormat
+from libretro import default_session, Session
+from libretro.api.video import PixelFormat, PillowVideoDriver
 
 import prelude
 
-with default_session(prelude.core_path) as session:
+video = PillowVideoDriver()
+
+assert video.pixel_format != PixelFormat.XRGB8888
+
+session: Session
+with prelude.session() as session:
     assert session.video.pixel_format == PixelFormat.XRGB8888
