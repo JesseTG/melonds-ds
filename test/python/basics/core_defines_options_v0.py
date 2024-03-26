@@ -1,13 +1,13 @@
 from collections.abc import Mapping
 
 from libretro import Session
-from libretro.api.options import retro_core_option_v2_definition, StandardOptionState
+from libretro.api.options import retro_core_option_v2_definition, DictOptionDriver
 
 import prelude
 
 definitions: Mapping[bytes, retro_core_option_v2_definition]
 session: Session
-with prelude.session(options=StandardOptionState(version=0)) as session:
+with prelude.session(options=DictOptionDriver(version=0)) as session:
     assert session.options is not None
     assert session.options.version == 0
 
