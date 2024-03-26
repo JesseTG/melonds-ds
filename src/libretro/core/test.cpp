@@ -113,6 +113,46 @@ extern "C" bool melondsds_firmware_native() {
     return console ? console->GetFirmware().GetHeader().Identifier != melonDS::GENERATED_FIRMWARE_IDENTIFIER : false;
 }
 
+extern "C" size_t melondsds_gba_rom_length() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!(console && console->GetGBACart()))
+        return 0;
+
+    return console->GetGBACart()->GetROMLength();
+}
+
+extern "C" const uint8_t* melondsds_gba_rom() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!(console && console->GetGBACart()))
+        return nullptr;
+
+    return console->GetGBACart()->GetROM();
+}
+
+extern "C" size_t melondsds_gba_sram_length() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!(console && console->GetGBACart()))
+        return 0;
+
+    return console->GetGBACart()->GetSaveMemoryLength();
+}
+
+extern "C" const uint8_t* melondsds_gba_sram() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!(console && console->GetGBACart()))
+        return nullptr;
+
+    return console->GetGBACart()->GetSaveMemory();
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -155,6 +195,18 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_firmware_native"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_firmware_native);
+
+    if (string_is_equal(sym, "melondsds_gba_rom_length"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_gba_rom_length);
+
+    if (string_is_equal(sym, "melondsds_gba_rom"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_gba_rom);
+
+    if (string_is_equal(sym, "melondsds_gba_sram_length"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_gba_sram_length);
+
+    if (string_is_equal(sym, "melondsds_gba_sram"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_gba_sram);
 
     return nullptr;
 }
