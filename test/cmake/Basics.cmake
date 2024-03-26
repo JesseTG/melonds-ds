@@ -241,9 +241,9 @@ add_python_test(
 
 add_python_test(
     NAME "Core sets geometry at runtime"
-    TEST_MODULE ""
-    DISABLED
-) # TODO: Implement this test
+    TEST_MODULE basics.core_sets_geometry
+    CONTENT "${NDS_ROM}"
+)
 
 add_python_test(
     NAME "Core registers support for achievements"
