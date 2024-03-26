@@ -69,9 +69,38 @@ cmake_path(GET DSI_NAND FILENAME DSI_NAND_NAME)
 include(CMakePrintHelpers)
 
 function(add_python_test)
-    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NDS_SYSFILES DSI_SYSFILES NO_SKIP_ERROR_SCREEN DISABLED REQUIRES_OPENGL)
-    set(oneValueArgs NAME TEST_MODULE SKIP_RETURN_CODE TIMEOUT)
-    set(multiValueArgs CONTENT CORE_OPTION DEPENDS PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION LABELS)
+    set(options
+        ARM7_BIOS
+        ARM7_DSI_BIOS
+        ARM9_BIOS
+        ARM9_DSI_BIOS
+        DISABLED
+        DSI_FIRMWARE
+        DSI_NAND
+        DSI_SYSFILES
+        NDS_FIRMWARE
+        NDS_SYSFILES
+        NO_SKIP_ERROR_SCREEN
+        REQUIRES_OPENGL
+        WILL_FAIL
+    )
+
+    set(oneValueArgs
+        NAME
+        SKIP_RETURN_CODE
+        TEST_MODULE
+        TIMEOUT
+    )
+
+    set(multiValueArgs
+        CONTENT
+        CORE_OPTION
+        DEPENDS
+        FAIL_REGULAR_EXPRESSION
+        LABELS
+        PASS_REGULAR_EXPRESSION
+        SKIP_REGULAR_EXPRESSION
+    )
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     add_test(
