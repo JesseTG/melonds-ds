@@ -8,7 +8,6 @@ from libretro.api import ArrayAudioState
 from libretro.api.input import JoypadState
 
 import prelude
-from libretro.api.video import SoftwareVideoState
 
 
 def generate_input() -> Iterator[int]:
@@ -39,7 +38,6 @@ kwargs = {
 session: Session
 with prelude.session(**kwargs) as session:
     audio = cast(ArrayAudioState, session.audio)
-    video = cast(SoftwareVideoState, session.video)
     for i in range(300):
         session.core.run()
 

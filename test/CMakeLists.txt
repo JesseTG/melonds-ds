@@ -3,7 +3,7 @@ find_package(Python 3.11 REQUIRED)
 # FindPython sets "Python_EXECUTABLE", but FindPythonModules wants "PYTHON_EXECUTABLE" (note the caps)
 set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
 
-find_package(PythonModules COMPONENTS libretro wand)
+find_package(PythonModules COMPONENTS libretro PIL)
 
 # TODO: Make this required once libretro.py is on PyPI
 if (PythonModules_libretro_PATH)
