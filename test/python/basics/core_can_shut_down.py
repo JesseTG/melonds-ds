@@ -1,11 +1,8 @@
 import itertools
-from typing import cast
 
-from libretro import Session, CoreShutDownException
-from libretro.api.input import DeviceIdJoypad
+from libretro import DeviceIdJoypad, CoreShutDownException
 
 import prelude
-from libretro.api.video import PillowVideoDriver
 
 
 def generate_input():
@@ -33,9 +30,7 @@ def generate_input():
     yield from itertools.repeat(None)
 
 
-session: Session
-with prelude.session(input_state=generate_input) as session:
-    video = cast(PillowVideoDriver, session.video)
+with prelude.builder().with_input(generate_input).build() as session:
 
     for i in range(600):
         session.core.run()

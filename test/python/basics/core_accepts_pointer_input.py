@@ -2,9 +2,7 @@ import itertools
 from typing import cast
 from math import sin, cos, pi
 
-from libretro import Session
-from libretro.api.input import Point, Pointer
-from libretro.api.video import PillowVideoDriver
+from libretro import Session, Point, Pointer, PillowVideoDriver
 
 import prelude
 
@@ -30,17 +28,17 @@ def generate_input():
 
 
 session: Session
-with prelude.session(input_state=generate_input) as session:
+with prelude.builder().with_input(generate_input).with_video(PillowVideoDriver).build() as session:
     video = cast(PillowVideoDriver, session.video)
     for i in range(180):
         session.core.run()
 
-    frame1 = video.get_frame()
+    frame1 = video.frame
 
     for i in range(240):
         session.core.run()
 
-    frame2 = video.get_frame()
+    frame2 = video.frame
 
     # The logo screen (frame1) has a white pixel in the top left corner,
     # whereas the main menu screen doesn't

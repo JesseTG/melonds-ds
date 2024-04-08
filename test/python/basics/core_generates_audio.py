@@ -1,12 +1,11 @@
 from typing import cast
-from libretro import Session
-from libretro.api import ArrayAudioState
+from libretro import Session, ArrayAudioDriver
 
 import prelude
 
 session: Session
 with prelude.session() as session:
-    audio = cast(ArrayAudioState, session.audio)
+    audio = cast(ArrayAudioDriver, session.audio)
     for i in range(300):
         session.core.run()
 

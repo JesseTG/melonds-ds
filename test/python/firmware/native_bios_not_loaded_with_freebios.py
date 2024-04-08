@@ -1,11 +1,11 @@
 from libretro import Session
-from libretro.api.vfs import StandardFileSystemInterface, HistoryFileSystemInterface, VfsOperation, VfsOperationType
+from libretro import StandardFileSystemInterface, HistoryFileSystemInterface, VfsOperation, VfsOperationType
 
 import prelude
 
 vfs = HistoryFileSystemInterface(StandardFileSystemInterface())
 session: Session
-with prelude.session(vfs=vfs) as session:
+with prelude.builder().with_vfs(vfs).build() as session:
     for i in range(300):
         session.core.run()
 
