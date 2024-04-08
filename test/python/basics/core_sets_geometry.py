@@ -1,9 +1,7 @@
 import itertools
 from typing import cast
 
-from libretro import Session
-from libretro.api.input import JoypadState
-from libretro.api.video import PillowVideoDriver
+from libretro import JoypadState, PillowVideoDriver
 
 import prelude
 
@@ -24,14 +22,13 @@ def generate_input():
     yield from itertools.repeat(None)
 
 
-session: Session
-with prelude.session(input_state=generate_input) as session:
+with prelude.builder().with_input(generate_input).with_video(PillowVideoDriver).build() as session:
     video = cast(PillowVideoDriver, session.video)
     for i in range(10):
         session.core.run()
 
-    frame1 = video.get_frame()
-    framebuffer1 = video.get_frame_max()
+    frame1 = video.frame
+    framebuffer1 = video.frame_max
     geometry1 = video.geometry
 
     assert frame1 is not None
@@ -64,8 +61,8 @@ with prelude.session(input_state=generate_input) as session:
 
     # Now that we've changed the screen layout, let's make sure we changed the geometry
 
-    frame2 = video.get_frame()
-    framebuffer2 = video.get_frame_max()
+    frame2 = video.frame
+    framebuffer2 = video.frame_max
     geometry2 = video.geometry
 
     assert frame2 is not None

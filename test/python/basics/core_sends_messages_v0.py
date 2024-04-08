@@ -2,16 +2,14 @@ import logging
 import typing
 from ctypes import *
 
-from libretro import Session
-
 import prelude
-from libretro.api.message import LoggerMessageInterface
+from libretro import LoggerMessageInterface
 
-session: Session
-with prelude.session(message=LoggerMessageInterface(0, logging.getLogger('libretro'))) as session:
+driver = LoggerMessageInterface(0, logging.getLogger('libretro'))
+with prelude.builder().with_message(driver).build() as session:
     message = typing.cast(LoggerMessageInterface, session.message)
     assert message is not None
-    assert message.version == 0
+    assert message.version == 0, f"Expected version 0, got {message.version}"
 
     send_message = session.get_proc_address(b"libretropy_send_message", CFUNCTYPE(c_bool, c_char_p))
     assert send_message is not None

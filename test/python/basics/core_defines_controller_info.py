@@ -1,12 +1,7 @@
-from collections.abc import Sequence
 from pprint import pprint
-from libretro import Session
-from libretro.api.input.info import retro_controller_info
 
 import prelude
 
-info: Sequence[retro_controller_info]
-session: Session
 with prelude.session() as session:
     info = session.controller_info
 

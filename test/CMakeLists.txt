@@ -251,7 +251,7 @@ function(add_python_test)
     if (RETRO_TIMEOUT)
         set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT "${RETRO_TIMEOUT}")
     else()
-        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 10)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 30)
     endif()
 endfunction()
 

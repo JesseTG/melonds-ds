@@ -1,5 +1,4 @@
-from libretro import default_session, Session
-from libretro.api.video import PixelFormat, PillowVideoDriver
+from libretro import Session, PixelFormat, PillowVideoDriver
 
 import prelude
 

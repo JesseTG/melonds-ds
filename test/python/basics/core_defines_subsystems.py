@@ -1,14 +1,8 @@
-from collections.abc import Sequence
 from pprint import pprint
-
-from libretro import Session
-from libretro.api.content import retro_subsystem_info
 
 import prelude
 
-subsystems: Sequence[retro_subsystem_info]
-session: Session
-with prelude.noload_session() as session:
+with prelude.session() as session:
     subsystems = session.subsystems
 
     assert subsystems is not None

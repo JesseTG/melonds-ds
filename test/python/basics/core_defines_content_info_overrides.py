@@ -4,7 +4,7 @@ import libretro
 import prelude
 
 session: libretro.Session
-with prelude.noload_session() as session:
+with prelude.session() as session:
     overrides = session.content_info_overrides
 
     pprint(overrides)

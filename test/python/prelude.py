@@ -4,7 +4,10 @@ import sys
 import tempfile
 
 import libretro
-from libretro.api.content import SubsystemContent
+from libretro import SubsystemContent, SessionBuilder
+from libretro.driver.path import DefaultPathDriver
+from libretro.driver.video import PillowVideoDriver
+from libretro.builder import SessionBuilder
 
 if not __debug__:
     raise RuntimeError("The melonDS DS test suite should not be run with -O")
@@ -12,6 +15,8 @@ if not __debug__:
 SYSTEM_FILES = ("ARM7_BIOS", "ARM9_BIOS", "ARM7_DSI_BIOS", "ARM9_DSI_BIOS", "NDS_FIRMWARE", "DSI_FIRMWARE", "DSI_NAND")
 testdir = tempfile.TemporaryDirectory(".libretro")
 system_dir = os.path.join(testdir.name, "system")
+assets_dir = os.path.join(testdir.name, "assets")
+playlist_dir = os.path.join(testdir.name, "playlist")
 save_dir = os.path.join(testdir.name, "savefiles")
 save_directory = save_dir
 savestate_directory = os.path.join(testdir.name, "states")
@@ -55,7 +60,7 @@ default_args = {
 }
 
 
-def session(**kwargs) -> libretro.Session:
+def builder(**kwargs) -> SessionBuilder:
     content = None
     match content_paths:
         case [] | None:
@@ -67,8 +72,26 @@ def session(**kwargs) -> libretro.Session:
         case _:
             raise TypeError(f"Unexpected content_paths {type(content_paths).__name__}")
 
-    return libretro.default_session(core_path, content, **(default_args | kwargs))
+    return (
+        libretro
+        .defaults(core_path)
+        .with_content(content)
+        .with_paths(
+            DefaultPathDriver(
+                corepath=core_path,
+                system=system_dir,
+                assets=assets_dir,
+                save=save_dir,
+                playlist=playlist_dir,
+            )
+        )
+        .with_options(options)
+    )
+
+
+def session(**kwargs) -> libretro.Session:
+    return builder(**kwargs).build()
 
 
 def noload_session(**kwargs) -> libretro.Session:
-    return libretro.default_session(core_path, libretro.session.DoNotLoad, **(default_args | kwargs))
+    return builder(**kwargs).with_content_driver(None).build()
