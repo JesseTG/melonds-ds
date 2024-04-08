@@ -11,6 +11,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Fixed a bug where native BIOS images would be used
   when the core was supposed to fall back to built-in system files.
+- Fixed a bug where GBA SRAM wouldn't be loaded.
 
 ## [1.1.1] - 2024-02-29
 
