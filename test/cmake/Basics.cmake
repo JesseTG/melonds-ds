@@ -53,7 +53,6 @@ add_python_test(
     NAME "Core runs for multiple frames"
     TEST_MODULE basics.core_run_frames
     CONTENT "${NDS_ROM}"
-    TIMEOUT 30
 )
 
 add_python_test(
