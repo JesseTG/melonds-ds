@@ -667,7 +667,7 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
     // First initialize the content info...
     switch (type) {
         case MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT:
-            if (game.size() > 2 && game[2].path != nullptr && game[2].size > 0) {
+            if (game.size() > 2 && game[2].path != nullptr) {
                 // If we got a GBA SRAM file...
                 _gbaSaveInfo = game[2];
             }
