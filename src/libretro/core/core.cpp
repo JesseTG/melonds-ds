@@ -144,6 +144,11 @@ void MelonDsDs::CoreState::Run() noexcept {
         UpdateConsole(Config, nds);
     }
 
+    if (!_ndsSramInstalled) [[unlikely]] {
+        InstallNdsSram();
+        _ndsSramInstalled = true;
+    }
+
     if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
         HandleInput(nds, _inputState, _screenLayout);
@@ -244,6 +249,7 @@ void MelonDsDs::CoreState::Reset() {
         Console->SetGBASave(gbaSram.data(), gbaSram.size());
     }
 
+    _ndsSramInstalled = false;
     InitFlushFirmwareTask();
 
     StartConsole();
@@ -323,6 +329,29 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
 
 std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
     return std::chrono::system_clock::from_time_t(time.time_since_epoch().count());
+}
+
+void MelonDsDs::CoreState::InstallNdsSram() noexcept {
+    ZoneScopedN(TracyFunction);
+
+    if (_ndsSramInstalled) return;
+
+    // Apply the save data from the core's SRAM buffer to the cart's SRAM;
+    // we need to do this in the first frame of retro_run because
+    // retro_get_memory_data is used to copy the loaded SRAM
+    // in between retro_load and the first retro_run call.
+
+    // Nintendo DS SRAM is loaded by the frontend
+    // and copied into NdsSaveManager via the pointer returned by retro_get_memory.
+    // This is where we install the SRAM data into the emulated DS.
+    if (_ndsInfo && _ndsSaveManager && _ndsSaveManager->SramLength() > 0) {
+        // If we're loading a NDS game that has SRAM...
+        ZoneScopedN("NDS::SetNDSSave");
+        Console->SetNDSSave(_ndsSaveManager->Sram(), _ndsSaveManager->SramLength());
+        retro::debug("Installed {}-byte SRAM", _ndsSaveManager->SramLength());
+    }
+
+    _ndsSramInstalled = true;
 }
 
 void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
@@ -833,8 +862,7 @@ std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
             retro_assert(Console != nullptr);
             return reinterpret_cast<std::byte*>(Console->MainRAM);
         case RETRO_MEMORY_SAVE_RAM:
-            retro_assert(Console != nullptr);
-            return reinterpret_cast<std::byte*>(Console->GetNDSSave());
+            return _ndsSaveManager ? reinterpret_cast<std::byte*>(_ndsSaveManager->Sram()) : nullptr;
         default:
             return nullptr;
     }
@@ -860,8 +888,7 @@ size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) noexcept {
             }
         }
         case RETRO_MEMORY_SAVE_RAM:
-            retro_assert(Console != nullptr);
-            return Console->GetNDSSaveLength();
+            return _ndsSaveManager ? _ndsSaveManager->SramLength() : 0;
         default:
             return 0;
     }

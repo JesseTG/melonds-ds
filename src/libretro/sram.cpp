@@ -96,6 +96,7 @@ void MelonDsDs::sram::SaveManager::Flush(const u8 *savedata, u32 savelen, u32 wr
 }
 
 // Does not load the NDS SRAM, since retro_get_memory is used for that.
+// But it will allocate the SRAM buffer
 void MelonDsDs::CoreState::InitNdsSave(const NdsCart &nds_cart) {
     ZoneScopedN(TracyFunction);
     using std::runtime_error;
@@ -114,11 +115,28 @@ void MelonDsDs::CoreState::InitNdsSave(const NdsCart &nds_cart) {
             }
         }
     }
+    else {
+        // Get the length of the ROM's SRAM, if any
+        u32 sram_length = nds_cart.GetSaveMemoryLength();
+
+        if (sram_length > 0) {
+            _ndsSaveManager = std::make_optional<sram::SaveManager>(sram_length);
+            retro::debug("Allocated {}-byte SRAM buffer for loaded NDS ROM.", sram_length);
+        } else {
+            retro::debug("Loaded NDS ROM does not use SRAM.");
+        }
+        // The actual SRAM file is installed later; it's loaded into the core via retro_get_memory_data,
+        // and it's applied in the first frame of retro_run.
+    }
 }
 
-void MelonDsDs::CoreState::WriteNdsSave(std::span<const std::byte>, uint32_t, uint32_t) noexcept {
-    // No need to maintain a save buffer or flush timer for NDS SRAM,
+void MelonDsDs::CoreState::WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
+    // No need to maintain a flush timer for NDS SRAM,
     // because retro_get_memory lets us delegate autosave to the frontend.
+
+    if (_ndsSaveManager) {
+        _ndsSaveManager->Flush((const uint8_t*)savedata.data(), savedata.size(), writeoffset, writelen);
+    }
 }
 
 void MelonDsDs::CoreState::WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept {
