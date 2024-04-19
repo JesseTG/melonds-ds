@@ -37,6 +37,7 @@
 #include "info.hpp"
 #include "libretro.hpp"
 #include "config/config.hpp"
+#include "core/test.hpp"
 #include "tracy.hpp"
 #include "version.hpp"
 
@@ -139,6 +140,8 @@ bool retro::set_core_options(const retro_core_options_v2& options) noexcept {
     unsigned version = 0;
     if (!retro::environment(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version))
         version = 0;
+
+    retro::debug("Frontend reports core options version: {}", version);
 
     if (version >= 2) {
         if (retro::environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2, (void *) &options)) {
@@ -295,24 +298,26 @@ constexpr uint32_t GetLogColor(retro_log_level level) noexcept {
 #endif
 
 void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_args args) noexcept {
+    fmt::basic_memory_buffer<char, 1024> buffer;
+    fmt::vformat_to(std::back_inserter(buffer), fmt, args);
+    // We can't pass the va_list directly to the libretro callback,
+    // so we have to construct the string and print that
+
+    if (buffer[buffer.size() - 1] == '\n')
+        buffer[buffer.size() - 1] = '\0';
+
+    buffer.push_back('\n');
+    buffer.push_back('\0');
+
     if (_log) {
-        fmt::basic_memory_buffer<char, 1024> buffer;
-        fmt::vformat_to(std::back_inserter(buffer), fmt, args);
-        // We can't pass the va_list directly to the libretro callback,
-        // so we have to construct the string and print that
-
-        if (buffer[buffer.size() - 1] == '\n')
-            buffer[buffer.size() - 1] = '\0';
-
-        buffer.push_back('\0');
-        _log(level, "%s\n", buffer.data());
+        _log(level, buffer.data());
 #ifdef TRACY_ENABLE
         if (tracy::ProfilerAvailable()) {
             TracyMessageCS(buffer.data(), buffer.size() - 1, GetLogColor(level), 8);
         }
 #endif
     } else {
-        fmt::vprint(stderr, fmt, args);
+        fprintf(stderr, "%s\n", buffer.data());
     }
 }
 
@@ -457,7 +462,7 @@ bool retro::set_message(const struct retro_message_ext& message) {
                 return false;
             }
 
-            fmt_log(message.level, "%s", fmt::make_format_args(message.msg));
+            fmt_log(message.level, "{}", fmt::make_format_args(message.msg));
             return true;
         }
         default:
@@ -710,10 +715,16 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     environment(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &yes);
 
     retro_log_callback log_callback = {nullptr};
-    if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback)) {
+    if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback) && log_callback.log) {
         retro::_log = log_callback.log;
         retro::debug("retro_set_environment({})", fmt::ptr(cb));
+    } else if (!retro::_log) {
+        // retro_set_environment might be called multiple times with different callbacks
+        retro::warn("Failed to get log interface");
     }
+
+    retro_get_proc_address_interface get_proc_address {MelonDsDs::GetRetroProcAddress};
+    environment(RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK, &get_proc_address);
 
     retro::_supports_bitmasks |= environment(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, nullptr);
     retro::_supportsPowerStatus |= environment(RETRO_ENVIRONMENT_GET_DEVICE_POWER, nullptr);
@@ -721,6 +732,8 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     if (retro::_message_interface_version == UINT_MAX && !environment(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION, &retro::_message_interface_version)) {
         retro::_message_interface_version = UINT_MAX;
     }
+
+    retro::debug("Frontend report a message API version {}", retro::_message_interface_version);
 
     if (const char* save_dir = nullptr; environment(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir) {
         // First copy the returned path into the buffer we'll use...
@@ -774,19 +787,14 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     environment(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*) MelonDsDs::subsystems);
 
-    retro_vfs_interface_info vfs { .required_interface_version = 1, .iface = nullptr };
+    retro_vfs_interface_info vfs { .required_interface_version = PATH_REQUIRED_VFS_VERSION, .iface = nullptr };
     if (environment(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs)) {
-        if (vfs.required_interface_version >= PATH_REQUIRED_VFS_VERSION) {
-            path_vfs_init(&vfs);
-        }
-
-        if (vfs.required_interface_version >= FILESTREAM_REQUIRED_VFS_VERSION) {
-            filestream_vfs_init(&vfs);
-        }
-
-        if (vfs.required_interface_version >= DIRENT_REQUIRED_VFS_VERSION) {
-            dirent_vfs_init(&vfs);
-        }
+        debug("Requested VFS interface version {}, got {}", PATH_REQUIRED_VFS_VERSION, vfs.required_interface_version);
+        path_vfs_init(&vfs);
+        filestream_vfs_init(&vfs);
+        dirent_vfs_init(&vfs);
+    } else {
+        warn("Could not get VFS interface {}, falling back to libretro-common defaults", PATH_REQUIRED_VFS_VERSION);
     }
 
     yes = true;

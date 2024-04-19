@@ -30,6 +30,8 @@ add_library(melondsds_libretro MODULE
     core/core.cpp
     core/core.hpp
     core/tasks.cpp
+    core/test.cpp
+    core/test.hpp
     environment.cpp
     environment.hpp
     exceptions.cpp

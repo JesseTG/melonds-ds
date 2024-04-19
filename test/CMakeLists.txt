@@ -1,26 +1,19 @@
-find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+find_package(Python 3.11 REQUIRED)
 
-if (NOT RETROARCH)
-    find_program(
-        RETROARCH
-        retroarch
-        HINTS "C:/Program Files/RetroArch" "C:/Program Files/RetroArch-Win64"
-        REQUIRED
-    )
+# FindPython sets "Python_EXECUTABLE", but FindPythonModules wants "PYTHON_EXECUTABLE" (note the caps)
+set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+
+find_package(PythonModules COMPONENTS libretro PIL)
+
+# TODO: Make this required once libretro.py is on PyPI
+if (PythonModules_libretro_PATH)
+    message(STATUS "Found libretro.py: ${PythonModules_libretro_PATH}")
 endif()
-message(STATUS "RETROARCH: ${RETROARCH}")
 
-if (NOT EMUTEST)
-    find_program(
-        EMUTEST
-        emutest
-        HINTS "$ENV{GOPATH}/bin" "$ENV{USERPROFILE}/go/bin"
-        REQUIRED
-    )
+if (PythonModules_PIL_PATH)
+    message(STATUS "Found PIL (aka Pillow): ${PythonModules_PIL_PATH}")
 endif()
-message(STATUS "EMUTEST: ${EMUTEST}")
-
-cmake_path(GET RETROARCH PARENT_PATH RETROARCH_DIR)
+## TODO: Write a requirements.txt for all test dependencies
 
 if (NOT NDS_ROM)
     message(WARNING "NDS_ROM must be set to the path of an NDS ROM")
@@ -29,9 +22,23 @@ else()
     message(DEBUG "NDS_ROM: ${NDS_ROM}")
 endif()
 
+if (NOT GBA_ROM)
+    message(WARNING "GBA_ROM must be set to the path of a GBA ROM")
+    set(GBA_ROM "GBA_ROM-NOTFOUND" CACHE FILEPATH "Path to a GBA ROM" FORCE)
+else()
+    message(DEBUG "GBA_ROM: ${GBA_ROM}")
+endif()
+
+if (NOT GBA_SRAM)
+    message(WARNING "GBA_SRAM must be set to the path of a GBA save file")
+    set(GBA_SRAM "GBA_SRAM-NOTFOUND" CACHE FILEPATH "Path to a GBA save file" FORCE)
+else()
+    message(DEBUG "GBA_SRAM: ${GBA_SRAM}")
+endif()
+
 function(find_bios BIOS_NAME BIOS_FILE EXPECTED_BIOS_SIZES KNOWN_BIOS_HASHES)
     if (NOT ${BIOS_NAME})
-        find_file(${BIOS_NAME} ${BIOS_FILE} HINTS "${RETROARCH_DIR}/system" REQUIRED)
+        find_file(${BIOS_NAME} ${BIOS_FILE} REQUIRED)
     endif()
 
     file(SIZE ${${BIOS_NAME}} BIOS_SIZE)
@@ -75,43 +82,86 @@ cmake_path(GET DSI_NAND FILENAME DSI_NAND_NAME)
 
 include(CMakePrintHelpers)
 
-function(add_retroarch_test)
-    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
-    set(oneValueArgs NAME MAX_FRAMES CONTENT REQUIRE_FILE_SIZE_UNCHANGED REQUIRE_FILE_CREATED)
-    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
+function(add_python_test)
+    set(options
+        ARM7_BIOS
+        ARM7_DSI_BIOS
+        ARM9_BIOS
+        ARM9_DSI_BIOS
+        DISABLED
+        DSI_FIRMWARE
+        DSI_NAND
+        DSI_SYSFILES
+        NDS_FIRMWARE
+        NDS_SYSFILES
+        NO_SKIP_ERROR_SCREEN
+        REQUIRES_OPENGL
+        WILL_FAIL
+    )
+
+    set(oneValueArgs
+        NAME
+        SKIP_RETURN_CODE
+        SUBSYSTEM
+        TEST_MODULE
+        TIMEOUT
+    )
+
+    set(multiValueArgs
+        CONTENT
+        CORE_OPTION
+        DEPENDS
+        FAIL_REGULAR_EXPRESSION
+        LABELS
+        PASS_REGULAR_EXPRESSION
+        SKIP_REGULAR_EXPRESSION
+    )
     cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
-    if (NOT RETRO_MAX_FRAMES)
-        set(RETRO_MAX_FRAMES 30)
+    list(LENGTH RETRO_CONTENT RETRO_CONTENT_LENGTH)
+    if (RETRO_CONTENT_LENGTH GREATER 0)
+        list(GET RETRO_CONTENT 0 NDS_CONTENT)
+    endif()
+
+    if (RETRO_CONTENT_LENGTH GREATER 1)
+        list(GET RETRO_CONTENT 1 GBA_CONTENT)
+    endif()
+
+    if (RETRO_CONTENT_LENGTH GREATER 2)
+        list(GET RETRO_CONTENT 2 GBA_SRAM_CONTENT)
     endif()
 
     add_test(
         NAME "${RETRO_NAME}"
-        COMMAND ${Python3_EXECUTABLE}
-            "${CMAKE_CURRENT_SOURCE_DIR}/python/retroarch.py"
-            --libretro "$<TARGET_FILE:melondsds_libretro>"
-            --max-frames=${RETRO_MAX_FRAMES}
-            "${RETRO_CONTENT}"
+        COMMAND ${Python_EXECUTABLE}
+        -m "${RETRO_TEST_MODULE}"
+        "$<TARGET_FILE:melondsds_libretro>"
+        "${NDS_CONTENT}"
+        "${GBA_CONTENT}"
+        "${GBA_SRAM_CONTENT}"
     )
 
     list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
-    if (RETRO_CONTENT)
-        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
+    if (NDS_CONTENT)
+        list(APPEND REQUIRED_FILES "${NDS_CONTENT}")
+    endif()
+
+    if (GBA_CONTENT)
+        list(APPEND REQUIRED_FILES "${GBA_CONTENT}")
+    endif()
+
+    if (GBA_SRAM_CONTENT)
+        list(APPEND REQUIRED_FILES "${GBA_SRAM_CONTENT}")
     endif()
 
     if (NOT RETRO_NO_SKIP_ERROR_SCREEN)
         list(APPEND ENVIRONMENT MELONDSDS_SKIP_ERROR_SCREEN=1)
     endif()
 
-    if (RETRO_REQUIRE_FILE_SIZE_UNCHANGED)
-        list(APPEND ENVIRONMENT "REQUIRE_FILE_SIZE_UNCHANGED=${RETRO_REQUIRE_FILE_SIZE_UNCHANGED}")
+    if (RETRO_SUBSYSTEM)
+        list(APPEND ENVIRONMENT SUBSYSTEM=${RETRO_SUBSYSTEM})
     endif()
 
-    if (RETRO_REQUIRE_FILE_CREATED)
-        list(APPEND ENVIRONMENT "REQUIRE_FILE_CREATED=${RETRO_REQUIRE_FILE_CREATED}")
-    endif()
-
-    list(APPEND ENVIRONMENT "RETROARCH=${RETROARCH}")
     list(APPEND ENVIRONMENT ${RETRO_CORE_OPTION}) # Not an omission, this is already a list
 
     macro(expose_system_file SYSFILE)
@@ -121,86 +171,38 @@ function(add_retroarch_test)
         endif()
     endmacro()
 
-    expose_system_file(ARM7_BIOS)
-    expose_system_file(ARM9_BIOS)
-    expose_system_file(ARM7_DSI_BIOS)
-    expose_system_file(ARM9_DSI_BIOS)
-    expose_system_file(NDS_FIRMWARE)
-    expose_system_file(DSI_FIRMWARE)
-    expose_system_file(DSI_NAND)
-
-    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "RetroArch")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
-    if (RETRO_PASS_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_FAIL_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_SKIP_REGULAR_EXPRESSION)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_REGULAR_EXPRESSION "${RETRO_SKIP_REGULAR_EXPRESSION}")
-    endif()
-
-    if (RETRO_WILL_FAIL)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES WILL_FAIL TRUE)
-    endif()
-
-    if (RETRO_DISABLED)
-        set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
-    endif()
-endfunction()
-
-function(add_emutest_test)
-    set(options WILL_FAIL ARM7_BIOS ARM9_BIOS ARM7_DSI_BIOS ARM9_DSI_BIOS NDS_FIRMWARE DSI_FIRMWARE DSI_NAND NO_SKIP_ERROR_SCREEN DISABLED)
-    set(oneValueArgs NAME TEST_SCRIPT CONTENT)
-    set(multiValueArgs CORE_OPTION PASS_REGULAR_EXPRESSION FAIL_REGULAR_EXPRESSION SKIP_REGULAR_EXPRESSION)
-    cmake_parse_arguments(PARSE_ARGV 0 RETRO "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    add_test(
-        NAME "${RETRO_NAME}"
-        COMMAND ${EMUTEST}
-        -L "$<TARGET_FILE:melondsds_libretro>"
-        -r "${RETRO_CONTENT}"
-        -t "${CMAKE_CURRENT_SOURCE_DIR}/lua/${RETRO_TEST_SCRIPT}"
-    )
-
-    list(APPEND REQUIRED_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
-    list(APPEND REQUIRED_FILES "$<TARGET_FILE:melondsds_libretro>")
-    if (RETRO_CONTENT)
-        list(APPEND REQUIRED_FILES "${RETRO_CONTENT}")
-    endif()
-
-
-    if (WIN32)
-        cmake_path(CONVERT "$ENV{USERPROFILE}\\.emutest" TO_CMAKE_PATH_LIST EMUTEST_HOME)
-        # emutest hardcodes a single root directory
-    else()
-        set(EMUTEST_HOME "$ENV{HOME}/.emutest")
-    endif()
-    if (NOT RETRO_NO_SKIP_ERROR_SCREEN)
-        list(APPEND ENVIRONMENT MELONDSDS_SKIP_ERROR_SCREEN=1)
-    endif()
-
-    list(APPEND ENVIRONMENT "EMUTEST_HOME=${EMUTEST_HOME}")
-    list(APPEND ENVIRONMENT "PREAMBLE=${CMAKE_CURRENT_SOURCE_DIR}/lua/preamble.lua")
-    list(JOIN RETRO_CORE_OPTION "\n" RETRO_CORE_OPTIONS)
-    list(APPEND ENVIRONMENT "RETRO_CORE_OPTIONS=${RETRO_CORE_OPTIONS}")
-
-    macro(expose_system_file SYSFILE)
-        if (RETRO_${SYSFILE})
-            cmake_path(GET ${SYSFILE} FILENAME filename)
-            # emutest doesn't use standard Lua; it uses a Go port that happens to not support regexes.
-            # So we have to pass in the basename separately.
-            list(APPEND REQUIRED_FILES "${${SYSFILE}}")
-            list(APPEND ENVIRONMENT "${SYSFILE}=${${SYSFILE}}")
-            list(APPEND ENVIRONMENT "${SYSFILE}_NAME=${filename}")
+    if(${RETRO_NDS_SYSFILES})
+        if (NOT RETRO_ARM7_BIOS)
+            set(RETRO_ARM7_BIOS 1)
         endif()
-    endmacro()
+        if (NOT RETRO_ARM9_BIOS)
+            set(RETRO_ARM9_BIOS 1)
+        endif()
+        if (NOT RETRO_NDS_FIRMWARE)
+            set(RETRO_NDS_FIRMWARE 1)
+        endif()
+    endif()
 
-    list(APPEND ENVIRONMENT "CMAKE=${CMAKE_COMMAND}")
+    if(${RETRO_DSI_SYSFILES})
+        if (NOT RETRO_ARM7_BIOS)
+            set(RETRO_ARM7_BIOS 1)
+        endif()
+        if (NOT RETRO_ARM9_BIOS)
+            set(RETRO_ARM9_BIOS 1)
+        endif()
+        if (NOT RETRO_ARM7_DSI_BIOS)
+            set(RETRO_ARM7_DSI_BIOS 1)
+        endif()
+        if (NOT RETRO_ARM9_DSI_BIOS)
+            set(RETRO_ARM9_DSI_BIOS 1)
+        endif()
+        if (NOT RETRO_DSI_FIRMWARE)
+            set(RETRO_DSI_FIRMWARE 1)
+        endif()
+        if (NOT RETRO_DSI_NAND)
+            set(RETRO_DSI_NAND 1)
+        endif()
+    endif()
 
     expose_system_file(ARM7_BIOS)
     expose_system_file(ARM9_BIOS)
@@ -210,17 +212,15 @@ function(add_emutest_test)
     expose_system_file(DSI_FIRMWARE)
     expose_system_file(DSI_NAND)
 
-    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "emutest")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "libretro.py;${RETRO_LABELS}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES REQUIRED_FILES "${REQUIRED_FILES}")
-    set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 30)
-
-    # emutest only supports a pre-defined base directory, so we can only run one emutest test at a time
-    set_tests_properties("${RETRO_NAME}" PROPERTIES RESOURCE_LOCK "homedir")
+    set_tests_properties("${RETRO_NAME}" PROPERTIES WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/python")
     if (RETRO_PASS_REGULAR_EXPRESSION)
         set_tests_properties("${RETRO_NAME}" PROPERTIES PASS_REGULAR_EXPRESSION "${RETRO_PASS_REGULAR_EXPRESSION}")
     endif()
 
+    set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "Exception ignored on calling ctypes callback function")
     if (RETRO_FAIL_REGULAR_EXPRESSION)
         set_tests_properties("${RETRO_NAME}" PROPERTIES FAIL_REGULAR_EXPRESSION "${RETRO_FAIL_REGULAR_EXPRESSION}")
     endif()
@@ -235,6 +235,23 @@ function(add_emutest_test)
 
     if (RETRO_DISABLED)
         set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
+    elseif(RETRO_REQUIRES_OPENGL AND NOT HAVE_OPENGL)
+        message(WARNING "Test '${RETRO_NAME}' requires OpenGL, but the core wasn't built with it. Disabling.")
+        set_tests_properties("${RETRO_NAME}" PROPERTIES DISABLED TRUE)
+    endif()
+
+    if (RETRO_SKIP_RETURN_CODE)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES SKIP_RETURN_CODE "${RETRO_SKIP_RETURN_CODE}")
+    endif()
+
+    if (RETRO_DEPENDS)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES DEPENDS "${RETRO_DEPENDS}")
+    endif()
+
+    if (RETRO_TIMEOUT)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT "${RETRO_TIMEOUT}")
+    else()
+        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 10)
     endif()
 endfunction()
 
@@ -247,495 +264,7 @@ FetchContent_GetProperties(godmode9i)
 FetchContent_MakeAvailable(godmode9i)
 set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 
-add_retroarch_test(
-    NAME "RetroArch loads melonDS DS"
-    CONTENT "${NDS_ROM}"
-)
-
-add_emutest_test(
-    NAME "emutest loads melonDS DS"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "loads-core.lua"
-)
-
-## Loading invalid data ####################################################
-
-add_emutest_test(
-    NAME "Loading invalid ROM does not cause a crash"
-    CONTENT "$<TARGET_FILE:melondsds_libretro>"
-    TEST_SCRIPT "no-crash-on-invalid-rom.lua"
-    WILL_FAIL
-)
-
-# See https://github.com/JesseTG/melonds-ds/issues/70
-add_retroarch_test(
-    NAME "Core unloads with threaded software rendering"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_sysfile_mode=builtin"
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_threaded_renderer=enabled"
-)
-
-# See https://github.com/JesseTG/melonds-ds/issues/62
-add_emutest_test(
-    NAME "Core resets when using built-in system files and direct boot (NDS)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    CORE_OPTION melonds_boot_mode="direct"
-    CORE_OPTION melonds_show_cursor="disabled"
-    CORE_OPTION melonds_sysfile_mode="builtin"
-    CORE_OPTION melonds_console_mode="ds"
-)
-
-add_emutest_test(
-    NAME "Core resets when using native system files and direct boot (NDS)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    NDS_FIRMWARE
-    CORE_OPTION melonds_firmware_nds_path='melonDS DS/${NDS_FIRMWARE_NAME}'
-    CORE_OPTION melonds_boot_mode="direct"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-    CORE_OPTION melonds_console_mode="ds"
-)
-
-add_emutest_test(
-    NAME "Core resets when using native system files and native boot (NDS)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    NDS_FIRMWARE
-    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION melonds_boot_mode="native"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "Core resets when using native system files and direct boot (DSi)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_boot_mode="direct"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "Core resets when using native system files and native boot (DSi)"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "no-hang-on-reboot.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_boot_mode="native"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-# See https://github.com/JesseTG/melonds-ds/issues/51
-add_retroarch_test(
-    NAME "Core exposes config options to frontend"
-    CONTENT "${NDS_ROM}"
-    FAIL_REGULAR_EXPRESSION "GET_VARIABLE: melonds_[a-z_]+ - Not implemented"
-)
-
-### Preventing Unneeded Loads
-
-add_retroarch_test(
-    NAME "Core doesn't try to load native BIOS if using FreeBIOS (NDS)"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=builtin"
-    PASS_REGULAR_EXPRESSION "Not loading native ARM BIOS files"
-)
-
-### With Content
-
-add_retroarch_test(
-    NAME "Core falls back to FreeBIOS if ARM7 BIOS is missing (NDS)"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_boot_mode=direct"
-    ARM9_BIOS
-    PASS_REGULAR_EXPRESSION "Falling back to FreeBIOS"
-)
-
-add_retroarch_test(
-    NAME "Core falls back to FreeBIOS if ARM9 BIOS is missing (NDS)"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_boot_mode=direct"
-    ARM7_BIOS
-    PASS_REGULAR_EXPRESSION "Falling back to FreeBIOS"
-)
-
-add_retroarch_test(
-    NAME "Core falls back to built-in firmware if native firmware is missing (NDS)"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    PASS_REGULAR_EXPRESSION "Falling back to built-in firmware"
-)
-
-
-## Direct Boot of NDS game ####################################################
-
-add_retroarch_test(
-    NAME "Direct NDS boot with built-in system files succeeds"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=builtin"
-)
-
-add_retroarch_test(
-    NAME "Direct NDS boot with native system files succeeds"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    NDS_FIRMWARE
-    FAIL_REGULAR_EXPRESSION "Failed to load ARM[79]"
-    FAIL_REGULAR_EXPRESSION "Failed to load the required firmware"
-)
-
-add_retroarch_test(
-    NAME "Direct NDS boot with native BIOS and non-bootable firmware succeeds"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    DSI_FIRMWARE
-    FAIL_REGULAR_EXPRESSION "Failed to load ARM[79]"
-    FAIL_REGULAR_EXPRESSION "Failed to load the required firmware"
-)
-
-## Boot to firmware ####################################################
-
-add_retroarch_test(
-    NAME "NDS boot with no content, native BIOS, and bootable firmware succeeds"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_boot_mode=native"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    NDS_FIRMWARE
-    ARM7_BIOS
-    ARM9_BIOS
-)
-
-add_retroarch_test(
-    NAME "NDS boot with no content and built-in system files fails"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=builtin"
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "NDS boot with no content, native BIOS, and non-bootable firmware fails"
-    MAX_FRAMES 180
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_sysfile_mode=builtin"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    DSI_FIRMWARE
-    WILL_FAIL
-)
-
-## DSi boot ####################################################
-
-add_retroarch_test(
-    NAME "DSi boot to menu with no NAND image fails"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=/notfound"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "DSi boot to menu with no NDS BIOS fails"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "DSi boot to menu with no DSi BIOS fails"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "DSi boot to menu with NDS firmware fails"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    NDS_FIRMWARE
-    DSI_NAND
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "DSi boot to menu with no firmware fails"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_NAND
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "DSi boot to menu with all system files succeeds"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-)
-
-add_retroarch_test(
-    NAME "Direct DSi boot to NDS game with no NAND image fails"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=/notfound"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "Direct DSi boot to NDS game with no NDS BIOS image fails"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "Direct DSi boot to NDS game with no DSi BIOS image fails"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_boot_mode=direct"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-    WILL_FAIL
-)
-
-add_retroarch_test(
-    NAME "Direct DSi boot to NDS game with all system files succeeds"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=dsi"
-    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    DSI_FIRMWARE
-    DSI_NAND
-)
-
-### Using wfcsettings.bin
-
-# See https://github.com/JesseTG/melonds-ds/issues/59
-add_retroarch_test(
-    NAME "Native firmware is not overwritten by contents of wfcsettings.bin"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_firmware_nds_path=melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION "melonds_sysfile_mode=native"
-    CORE_OPTION "melonds_boot_mode=native"
-    ARM7_BIOS
-    ARM9_BIOS
-    NDS_FIRMWARE
-    REQUIRE_FILE_SIZE_UNCHANGED "system/melonDS DS/${NDS_FIRMWARE_NAME}"
-)
-
-add_retroarch_test(
-    NAME "Core saves wi-fi settings to wfcsettings.bin when using built-in firmware"
-    CONTENT "${NDS_ROM}"
-    MAX_FRAMES 6
-    CORE_OPTION "melonds_console_mode=ds"
-    CORE_OPTION "melonds_firmware_nds_path=/builtin"
-    ARM7_BIOS
-    ARM9_BIOS
-    REQUIRE_FILE_CREATED "system/melonDS DS/wfcsettings.bin"
-)
-
-### Overwriting Firmware
-
-add_emutest_test(
-    NAME "NDS firmware is not overwritten when switching from DS to DSi mode"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "firmware-not-overwritten.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    NDS_FIRMWARE
-    DSI_FIRMWARE
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_console_mode="ds"
-    CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "NDS firmware is not overwritten when switching from DSi to NDS mode"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "firmware-not-overwritten.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    NDS_FIRMWARE
-    DSI_FIRMWARE
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "DSi firmware is not overwritten when switching from NDS to DSi mode"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "firmware-not-overwritten.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    NDS_FIRMWARE
-    DSI_FIRMWARE
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
-
-add_emutest_test(
-    NAME "DSi firmware is not overwritten when switching from DSi to NDS mode"
-    CONTENT "${NDS_ROM}"
-    TEST_SCRIPT "firmware-not-overwritten.lua"
-    ARM7_BIOS
-    ARM9_BIOS
-    ARM7_DSI_BIOS
-    ARM9_DSI_BIOS
-    NDS_FIRMWARE
-    DSI_FIRMWARE
-    DSI_NAND
-    CORE_OPTION melonds_firmware_dsi_path="melonDS DS/${DSI_FIRMWARE_NAME}"
-    CORE_OPTION melonds_firmware_nds_path="melonDS DS/${NDS_FIRMWARE_NAME}"
-    CORE_OPTION melonds_dsi_nand_path="melonDS DS/${DSI_NAND_NAME}"
-    CORE_OPTION melonds_console_mode="dsi"
-    CORE_OPTION melonds_boot_directly="false"
-    CORE_OPTION melonds_sysfile_mode="native"
-    CORE_OPTION melonds_show_cursor="disabled"
-)
+set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
 
 # TODO: Write the following test capabilities:
 # - Copying a system file to a particular location
@@ -751,4 +280,10 @@ add_emutest_test(
 # - Core loads NDS game with GBA game in slot-2 and save data, and can save GBA data
 # (will need to find a test case besides Pokemon)
 
+include(cmake/Basics.cmake)
+include(cmake/Booting.cmake)
+include(cmake/Errors.cmake)
+include(cmake/Firmware.cmake)
+include(cmake/Reset.cmake)
 include(cmake/TestHomebrewSDCards.cmake)
+include(cmake/Video.cmake)

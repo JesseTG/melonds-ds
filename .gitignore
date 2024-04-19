@@ -36,3 +36,6 @@ out.txt
 
 # Act
 .actrc
+
+# Python
+venv*

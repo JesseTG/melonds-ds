@@ -889,14 +889,15 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
         memset(dsiNandPathOption->values, 0, sizeof(dsiNandPathOption->values));
         int length = std::min((int)dsiNandPaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
-            retro::debug("Found a DSi NAND image at \"{}\"", dsiNandPaths[i]);
             string_view path = dsiNandPaths[i];
             path.remove_prefix(sysdir->size() + 1);
+            retro::debug("Found a DSi NAND image at \"{}\", presenting it in the options as \"{}\"", dsiNandPaths[i], path);
+            retro_assert(!path_is_absolute(path.data()));
             dsiNandPathOption->values[i].value = path.data();
             dsiNandPathOption->values[i].label = nullptr;
         }
 
-        dsiNandPathOption->default_value = dsiNandPaths[0].c_str();
+        dsiNandPathOption->default_value = dsiNandPathOption->values[0].value;
     }
 
     if (!firmware.empty()) {

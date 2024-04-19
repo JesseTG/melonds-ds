@@ -62,7 +62,7 @@ using retro::task::TaskSpec;
 namespace MelonDsDs {
     // Aligned with CoreState to prevent undefined behavior
     alignas(CoreState) static std::array<std::byte, sizeof(CoreState)> CoreStateBuffer;
-    static CoreState& Core = *reinterpret_cast<CoreState*>(CoreStateBuffer.data());
+    CoreState& Core = *reinterpret_cast<CoreState*>(CoreStateBuffer.data());
 }
 
 PUBLIC_SYMBOL void retro_init(void) {
@@ -87,7 +87,7 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
     ZoneScopedN(TracyFunction);
     if (info) {
         ZoneText(info->path, strlen(info->path));
-        retro::debug("retro_load_game(\"{}\", {})", info->path, info->size);
+        retro::debug("retro_load_game(\"{}\", {})", info->path ? info->path : "", info->size);
     }
     else {
         retro::debug("retro_load_game(<no content>)");
@@ -260,7 +260,7 @@ PUBLIC_SYMBOL size_t retro_get_memory_size(unsigned type) {
     return MelonDsDs::Core.GetMemorySize(type);
 }
 
-void MelonDsDs::HardwareContextReset() noexcept {
+extern "C" void MelonDsDs::HardwareContextReset() noexcept {
     try {
         Core.ResetRenderState();
     }
@@ -285,11 +285,11 @@ void MelonDsDs::HardwareContextReset() noexcept {
     }
 }
 
-void MelonDsDs::HardwareContextDestroyed() noexcept {
+extern "C" void MelonDsDs::HardwareContextDestroyed() noexcept {
     Core.DestroyRenderState();
 }
 
-bool MelonDsDs::UpdateOptionVisibility() noexcept {
+extern "C" bool MelonDsDs::UpdateOptionVisibility() noexcept {
     return Core.UpdateOptionVisibility();
 }
 
@@ -334,5 +334,3 @@ void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writ
 
     MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
 }
-
-

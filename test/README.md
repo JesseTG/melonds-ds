@@ -17,12 +17,14 @@ through the steps described in the [main README](../README.md#building).
 
 Once you do that, you'll need to obtain the following dependencies:
 
-- [RetroArch][retroarch]
-- [Emutest][emutest]
-- [Go][go], to install Emutest (since it doesn't offer prebuilt binaries)
-- [Python 3][python]
-- A Nintendo DS ROM
+- [Python][python] 3.11 or later.
+- A Nintendo DS ROM, preferably retail.
+  The tests don't assume any particular ROM.
 - The set of Nintendo DS/DSi system files described in the [main README](../README.md#installing-nintendo-ds-bios)
+
+## Configuring the Python Environment
+
+TODO: Describe how to install the Python dependencies.
 
 ## Configuring the Tests
 
@@ -39,14 +41,10 @@ with the following variables defined on the command line:
 - `DSI_FIRMWARE`: Set to the location of your DSi firmware image.
 - `DSI_NAND`: Set to the location of your DSi NAND image.
 - `NDS_ROM`: Set to the location of your NDS ROM image.
-- `RETROARCH`: Set to the location of the RetroArch executable.
-  Not necessary if it's on your `PATH`.
-- `EMU_TEST`: Set to the location of the Emutest executable.
-  Not necessary if it's on your `PATH`.
 
 > [!NOTE]
 > The test suite will not modify these files;
-> they will be copied into appropriate directories before each test.
+> they will be copied into a temporary directory before each test.
 
 Here's an example:
 
@@ -61,9 +59,7 @@ cmake -B build \
     -DNDS_FIRMWARE="$SYSTEM_PATH/firmware.bin" \
     -DDSI_FIRMWARE="$SYSTEM_PATH/dsi_firmware.bin" \
     -DDSI_NAND="$SYSTEM_PATH/dsi_nand.bin" \
-    -DNDS_ROM="$ROM_PATH/your_nds_rom.nds" \
-    -DRETROARCH="$RETROARCH_PATH/retroarch" \
-    -DEMU_TEST="$EMUTEST_PATH/emutest"
+    -DNDS_ROM="$ROM_PATH/your_nds_rom.nds"
 ```
 
 You may want to put these variables in a script or an IDE configuration.
@@ -89,7 +85,4 @@ ctest --test-dir build # Run the tests. (CTest is included with CMake)
 > If you can't reproduce a bug that should cause a test to fail,
 > try a different firmware image.
 
-[emutest]: https://github.com/kivutar/emutest
-[go]: https://go.dev
 [python]: https://www.python.org
-[retroarch]: https://www.retroarch.com

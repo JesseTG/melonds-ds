@@ -20,6 +20,10 @@ on:
         required: true
       NDS_ROM:
         required: true
+      GBA_ROM:
+        required: true
+      GBA_SRAM:
+        required: true
       DSI_NAND_ARCHIVE:
         required: true
       DSI_NAND:
@@ -94,6 +98,8 @@ jobs:
             -DDSI_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_FIRMWARE }}" \
             -DDSI_NAND="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_NAND }}" \
             -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
+            -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
+            -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
             ${{ inputs.cmake-args }}
 
       - name: Run Test Suite (Linux)
