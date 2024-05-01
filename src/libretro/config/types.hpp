@@ -156,6 +156,8 @@ namespace MelonDsDs {
         Relative,
         Absolute,
     };
+
+    enum class FormattedGLEnum {};
 }
 
 #endif // MELONDSDS_CONFIG_TYPES_HPP

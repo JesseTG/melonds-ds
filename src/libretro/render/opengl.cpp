@@ -30,6 +30,7 @@
 
 #include "../core/core.hpp"
 #include "exceptions.hpp"
+#include "format.hpp"
 #include "screenlayout.hpp"
 #include "tracy.hpp"
 
@@ -168,6 +169,9 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     retro_assert(hw_render.debug_context);
 #endif
 
+    uintptr_t framebuffer = hw_render.get_current_framebuffer();
+    retro::debug("OpenGL context requested. Current framebuffer: {}", framebuffer);
+
     gl_query_core_context_set(hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
 }
 
@@ -203,6 +207,12 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     // Initialize all OpenGL function pointers
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
     TracyGpuContext; // Must be called AFTER the function pointers are bound!
+
+    uintptr_t fbo = glsm_get_current_framebuffer();
+    retro::debug("Current OpenGL framebuffer: {}", fbo);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    retro::debug("Framebuffer status: {}", static_cast<FormattedGLEnum>(status));
 
     // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
     glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
