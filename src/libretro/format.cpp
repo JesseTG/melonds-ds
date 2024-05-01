@@ -15,10 +15,64 @@
 */
 
 #include "format.hpp"
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+#include "PlatformOGLPrivate.h"
+#endif
 
 using namespace melonDS;
 using FirmwareConsoleType = Firmware::FirmwareConsoleType;
 using DSi_NAND::ConsoleRegion;
+
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+auto fmt::formatter<MelonDsDs::FormattedGLEnum>::format(MelonDsDs::FormattedGLEnum e, format_context& ctx) const -> decltype(ctx.out()) {
+    string_view name = "<unknown>";
+    switch ((int)e) {
+        case GL_NO_ERROR:
+            name = "GL_NO_ERROR";
+            break;
+        case GL_INVALID_VALUE:
+            name = "GL_INVALID_VALUE";
+            break;
+        case GL_INVALID_OPERATION:
+            name = "GL_INVALID_OPERATION";
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            name = "GL_INVALID_FRAMEBUFFER_OPERATION";
+            break;
+        case GL_OUT_OF_MEMORY:
+            name = "GL_OUT_OF_MEMORY";
+            break;
+        case GL_INVALID_ENUM:
+            name = "GL_INVALID_ENUM";
+            break;
+        case GL_FRAMEBUFFER_COMPLETE:
+            name = "GL_FRAMEBUFFER_COMPLETE";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            name = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            name = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+            name = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+            name = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            name = "GL_FRAMEBUFFER_UNSUPPORTED";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            name = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+            break;
+        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+            name = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+            break;
+    }
+    return formatter<string_view>::format(name, ctx);
+}
+#endif
 
 auto fmt::formatter<MelonDsDs::BiosType>::format(MelonDsDs::BiosType c, format_context& ctx) const -> decltype(ctx.out()) {
     string_view name = "unknown";

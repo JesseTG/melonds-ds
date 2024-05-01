@@ -37,6 +37,11 @@
 
 namespace fmt {
     template<>
+    struct formatter<MelonDsDs::FormattedGLEnum> : formatter<std::string_view> {
+        auto format(MelonDsDs::FormattedGLEnum e, format_context& ctx) const -> decltype(ctx.out());
+    };
+
+    template<>
     struct formatter<MelonDsDs::BiosType> : formatter<std::string_view> {
         auto format(MelonDsDs::BiosType c, format_context& ctx) const -> decltype(ctx.out());
     };
