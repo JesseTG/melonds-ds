@@ -135,7 +135,7 @@ libretro-build-ios-arm64:
     - .libretro-ios-cmake-arm64
     - .core-defs
   variables:
-    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=13
+    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=13 -DBUILD_AS_SHARED_LIBRARY=ON
     IOS_MINVER: "13.0"
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
 
@@ -145,6 +145,6 @@ libretro-build-tvos-arm64:
     - .libretro-tvos-cmake-arm64
     - .core-defs
   variables:
-    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=13
+    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=13 -DBUILD_AS_SHARED_LIBRARY=ON
     IOS_MINVER: "13.0"
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes

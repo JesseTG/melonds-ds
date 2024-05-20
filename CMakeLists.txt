@@ -100,6 +100,9 @@ option(ENABLE_THREADED_RENDERER "Enable the threaded software renderer." ON)
 option(BUILD_TESTING "Build test suite." OFF)
 include(CTest)
 
+# iOS/tvOS want the library built SHARED, other platforms have been happy with MODULE
+option(BUILD_AS_SHARED_LIBRARY "Allow for both linking and loading" OFF)
+
 add_subdirectory(src/libretro)
 include(cmake/GenerateAttributions.cmake)
 
