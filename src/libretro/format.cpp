@@ -48,6 +48,9 @@ auto fmt::formatter<MelonDsDs::FormattedGLEnum>::format(MelonDsDs::FormattedGLEn
         case GL_FRAMEBUFFER_COMPLETE:
             name = "GL_FRAMEBUFFER_COMPLETE";
             break;
+        case GL_FRAMEBUFFER_UNDEFINED:
+            name = "GL_FRAMEBUFFER_UNDEFINED";
+            break;
         case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
             name = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
             break;
