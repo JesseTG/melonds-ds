@@ -7,7 +7,7 @@ vfs = HistoryFileSystemInterface(StandardFileSystemInterface())
 session: Session
 with prelude.builder().with_vfs(vfs).build() as session:
     for i in range(300):
-        session.core.run()
+        session.run()
 
     op: VfsOperation
     for op in filter(lambda f: f.operation == VfsOperationType.OPEN, vfs.history):

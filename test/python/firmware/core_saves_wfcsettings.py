@@ -9,6 +9,6 @@ assert not os.access(prelude.wfcsettings_path, os.F_OK), f"{prelude.wfcsettings_
 session: Session
 with prelude.session() as session:
     for i in range(300):
-        session.core.run()
+        session.run()
 
     assert os.access(prelude.wfcsettings_path, os.F_OK), f"{prelude.wfcsettings_path} should exist by now"

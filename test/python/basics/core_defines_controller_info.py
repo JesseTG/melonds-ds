@@ -3,7 +3,7 @@ from pprint import pprint
 import prelude
 
 with prelude.session() as session:
-    info = session.controller_info
+    info = session.environment.controller_info
 
     assert info is not None
     assert len(info) > 0

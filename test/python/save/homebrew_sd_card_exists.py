@@ -7,7 +7,7 @@ import prelude
 
 session: Session
 with prelude.session() as session:
-    session.core.run()
+    session.run()
 
     dldi_sdcard_stat = os.stat(prelude.dldi_sd_card_path)
 

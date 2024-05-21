@@ -29,7 +29,7 @@ session: Session
 with prelude.builder().with_input(generate_input).with_mic(generate_sine_wave).with_options(options).build() as session:
     audio = cast(ArrayAudioDriver, session.audio)
     for i in range(300):
-        session.core.run()
+        session.run()
 
     assert audio.buffer is not None
     assert len(audio.buffer) > 0

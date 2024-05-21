@@ -13,13 +13,13 @@ with prelude.builder().with_video(PillowVideoDriver).build() as session:
     for i in range(70):
         session.core.run()
 
-    frame1 = video.frame
+    frame1 = video.screenshot
     assert frame1 is not None
 
     for i in range(70):
         session.core.run()
 
-    frame2 = video.frame
+    frame2 = video.screenshot
     assert frame2 is not None
 
     assert frame1.size == frame2.size

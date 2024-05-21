@@ -8,7 +8,7 @@ assert prelude.subsystem is not None
 
 session: Session
 with prelude.session() as session:
-    subsystems = session.subsystems
+    subsystems = session.environment.subsystems
 
     assert subsystems is not None
     subsystem: bytes = prelude.subsystem.encode()
@@ -28,6 +28,7 @@ with prelude.session() as session:
 
     rom = gba_rom()
     assert rom, "GBA ROM not loaded"
+
 
     gba_sram_length = session.get_proc_address(b"melondsds_gba_sram_length", CFUNCTYPE(c_size_t))
     assert gba_sram_length is not None, "Core needs to define melondsds_gba_sram_length"

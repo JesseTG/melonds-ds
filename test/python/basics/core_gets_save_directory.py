@@ -9,4 +9,4 @@ with prelude.session() as session:
     assert get_save_directory is not None
 
     save_directory = get_save_directory()
-    assert save_directory == session.save_dir
+    assert save_directory == session.environment.path.save_dir

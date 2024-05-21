@@ -3,4 +3,4 @@ import prelude
 
 session: Session
 with prelude.session() as session:
-    assert session.support_achievements
+    assert session.environment.support_achievements
