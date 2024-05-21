@@ -208,11 +208,21 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
     TracyGpuContext; // Must be called AFTER the function pointers are bound!
 
+    const char *vendor   = (const char*)glGetString(GL_VENDOR);
+    const char *rendererName = (const char*)glGetString(GL_RENDERER);
+    const char *version  = (const char*)glGetString(GL_VERSION);
+
+    retro::info("OpenGL version: {}", version);
+    retro::info("OpenGL vendor: {}", vendor);
+    retro::info("OpenGL renderer: {}", rendererName);
+
     uintptr_t fbo = glsm_get_current_framebuffer();
+    retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
     retro::debug("Current OpenGL framebuffer: {}", fbo);
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     retro::debug("Framebuffer status: {}", static_cast<FormattedGLEnum>(status));
+    retro_assert(status == GL_FRAMEBUFFER_COMPLETE);
 
     // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
     glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
@@ -256,6 +266,8 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
     if (_openGlDebugAvailable) {
         retro::debug("OpenGL debugging extensions are available");
     }
+
+    // TODO: Check gl_check_capability for GL_CAPS_VAO and GL_CAPS_FBO
 
     if (!melonDS::OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader.data(), SHADER_PROGRAM_NAME))
         throw shader_compilation_failed_exception("Failed to compile melonDS DS shaders.");
