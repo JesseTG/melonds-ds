@@ -14,7 +14,7 @@ assert original_nds_firmware_size > 0, f"{nds_firmware_path} is empty"
 session: Session
 with prelude.session() as session:
     for i in range(300):
-        session.core.run()
+        session.run()
 
     test_nds_firmware_size = os.stat(test_nds_firmware_path).st_size
 

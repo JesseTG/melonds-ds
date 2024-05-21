@@ -3,7 +3,7 @@ from pprint import pprint
 import prelude
 
 with prelude.session() as session:
-    subsystems = session.subsystems
+    subsystems = session.environment.subsystems
 
     assert subsystems is not None
     assert len(subsystems) > 0

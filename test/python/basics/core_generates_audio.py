@@ -7,7 +7,7 @@ session: Session
 with prelude.session() as session:
     audio = cast(ArrayAudioDriver, session.audio)
     for i in range(300):
-        session.core.run()
+        session.run()
 
     assert audio.buffer is not None
     assert len(audio.buffer) > 0

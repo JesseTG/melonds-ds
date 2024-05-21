@@ -13,7 +13,7 @@ with prelude.session() as session:
     assert session.options.variable_updated
     # Assert that setting an option in the frontend marks variables as updated
 
-    session.core.run()
+    session.run()
 
     assert not session.options.variable_updated
     # Assert that running the core clears the updated flag

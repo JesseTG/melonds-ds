@@ -33,7 +33,7 @@ def generate_input():
 with prelude.builder().with_input(generate_input).build() as session:
 
     for i in range(600):
-        session.core.run()
+        session.run()
         # The core should shut down at some point during the test
 
     assert False, "session.core should've raised CoreShutDownException and exited the runtime context"
@@ -44,7 +44,7 @@ assert session.is_shutdown
 assert session.is_exited
 
 try:
-    session.core.run()
+    session.run()
 except CoreShutDownException as e:
     pass
 

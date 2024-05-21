@@ -12,7 +12,7 @@ WHITE = (0xFF, 0xFF, 0xFF, 0xFF)
 
 session: Session
 with prelude.builder().with_options(options).with_video(PillowVideoDriver).build() as session:
-    session.core.run()
+    session.run()
 
     video = cast(PillowVideoDriver, session.video)
 
@@ -22,7 +22,7 @@ with prelude.builder().with_options(options).with_video(PillowVideoDriver).build
     assert blank_colors is not None and len(blank_colors) == 1, f"Expected an all-white frame, got {blank_colors}"
 
     for i in range(300):
-        session.core.run()
+        session.run()
 
     after_frame = video.frame
     assert blank_frame != after_frame, "Screen is still blank after 300 frames"
