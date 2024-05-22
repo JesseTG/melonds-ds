@@ -227,12 +227,13 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in" "${CMAKE_CURRENT_BIN
 target_compile_definitions(melondsds_libretro PUBLIC
     GLM_ENABLE_EXPERIMENTAL
     PNTR_ENABLE_DEFAULT_FONT
-    PNTR_ENABLE_FILTER_SMOOTH
     PNTR_ENABLE_TTF
     PNTR_ENABLE_VARGS
     PNTR_PIXELFORMAT_ARGB
     PNTR_ENABLE_MATH
     PNTR_ENABLE_UTF8
+    PNTR_NO_STDIO
+    PNTR_NO_SAVE_IMAGE
     STB_IMAGE_STATIC # To avoid using any dynamically-linked STB implementations
 )
 

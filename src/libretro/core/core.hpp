@@ -155,6 +155,7 @@ namespace MelonDsDs {
         bool _deferredInitializationPending = false;
         uint32_t _flushTaskId = 0;
         NetworkMode _activeNetworkMode = NetworkMode::None;
+        enum retro_language language = RETRO_LANGUAGE_ENGLISH;
     };
 }
 #endif //MELONDSDS_CORE_HPP

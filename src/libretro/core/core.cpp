@@ -313,7 +313,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
     }
 
     retro::task::reset();
-    _messageScreen = std::make_unique<error::ErrorScreen>(e);
+    _messageScreen = std::make_unique<error::ErrorScreen>(e, language);
     Config.SetConfiguredRenderer(RenderMode::Software);
     _screenLayout.Update();
     retro::error("Error screen initialized");
@@ -474,6 +474,14 @@ void MelonDsDs::CoreState::DestroyRenderState() {
 
 bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept try {
     ZoneScopedN(TracyFunction);
+
+    printf("Initialize languageCoreState::LoadGame  ");
+
+    // Initialize the language.
+    unsigned lang = 0;
+    if (retro::environment(RETRO_ENVIRONMENT_GET_LANGUAGE, (void*)&lang)) {
+        language = (enum retro_language)lang;
+    }
 
     InitContent(type, game);
 

@@ -36,13 +36,13 @@ constexpr pntr_color TEXT_COLOR_BOTTOM = {.rgba = {.b = 0x98, .g = 0xE5, .r = 0x
 
 static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
-static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS! Θ.Θ";
+static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
 
 using std::span;
 using MelonDsDs::NDS_SCREEN_AREA;
 
 // I intentionally fix the error message to the DS screen size to simplify the layout.
-MelonDsDs::error::ErrorScreen::ErrorScreen(const config_exception& e) noexcept : exception(e) {
+MelonDsDs::error::ErrorScreen::ErrorScreen(const config_exception& e, enum retro_language language) noexcept : exception(e) {
     ZoneScopedN(TracyFunction);
 
     pntr_font* titleFont = pntr_load_font_ttf_from_memory(
@@ -105,7 +105,7 @@ void MelonDsDs::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_fon
     pntr_draw_text(
         topScreen,
         titleFont,
-        ERROR_TITLE,
+        translate(ERROR_TITLE),
         (NDS_SCREEN_WIDTH - titleTextSize.x) / 2,
         MARGIN,
         TEXT_COLOR_TOP
@@ -115,7 +115,7 @@ void MelonDsDs::error::ErrorScreen::DrawTopScreen(pntr_font* titleFont, pntr_fon
     pntr_draw_text_wrapped(
         topScreen,
         bodyFont,
-        exception.what(),
+        translate(exception.what()),
         MARGIN,
         titleTextSize.y + MARGIN * 2,
         NDS_SCREEN_WIDTH - MARGIN * 2,
@@ -150,7 +150,7 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
     pntr_draw_text(
         bottomScreen,
         titleFont,
-        SOLUTION_TITLE,
+        translate(SOLUTION_TITLE),
         (NDS_SCREEN_WIDTH - titleTextSize.x) / 2,
         MARGIN,
         TEXT_COLOR_BOTTOM
@@ -160,7 +160,7 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
     pntr_draw_text_wrapped(
         bottomScreen,
         bodyFont,
-        exception.user_message(),
+        translate(exception.user_message()),
         MARGIN,
         titleTextSize.y + MARGIN * 2,
         NDS_SCREEN_WIDTH - MARGIN * 2,
@@ -171,7 +171,7 @@ void MelonDsDs::error::ErrorScreen::DrawBottomScreen(pntr_font* titleFont, pntr_
     pntr_draw_text(
         bottomScreen,
         bodyFont,
-        THANK_YOU,
+        translate(THANK_YOU),
         NDS_SCREEN_WIDTH - thankYouTextSize.x - MARGIN,
         NDS_SCREEN_HEIGHT - thankYouTextSize.y - MARGIN,
         TEXT_COLOR_BOTTOM
@@ -184,4 +184,30 @@ span<const uint32_t, NDS_SCREEN_AREA<size_t>> MelonDsDs::error::ErrorScreen::Top
 
 span<const uint32_t, NDS_SCREEN_AREA<size_t>> MelonDsDs::error::ErrorScreen::BottomScreen() const noexcept {
     return span<const uint32_t, NDS_SCREEN_AREA<size_t>>{(const uint32_t*)bottomScreen->data, NDS_SCREEN_AREA<size_t>};
+}
+
+#include <stdio.h>
+/**
+ * Translates the given message into the active current `language`.
+ * 
+ * @param message The message to translate.
+ * 
+ * @return A translated message if a translation is available, otherwise the original message.
+ */
+const char* MelonDsDs::error::ErrorScreen::translate(const char* message) const noexcept {
+    printf("Lagnuage: %d\n", (int)language);
+    switch (language) {
+        case RETRO_LANGUAGE_SPANISH:
+            if (message == ERROR_TITLE)     return "¡Oh no! melonDS DS no pudo iniciar...";
+            if (message == SOLUTION_TITLE)  return "Esto es lo que puedes hacer:";
+            if (message == THANK_YOU)       return "¡Gracias por usar melonDS DS!";
+        case RETRO_LANGUAGE_FRENCH:
+            if (message == ERROR_TITLE)     return "Oh non! melonDS DS n'a pas pu démarrer...";
+            if (message == SOLUTION_TITLE)  return "Voici ce que vous pouvez faire:";
+            if (message == THANK_YOU)       return "Merci d'utiliser melonDS DS!";
+        default:
+            return message;
+    }
+
+    // TODO: Add translations of the possible exceptions?
 }
