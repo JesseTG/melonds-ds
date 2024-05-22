@@ -1,8 +1,8 @@
-from libretro import Session, PixelFormat, PillowVideoDriver
+from libretro import Session, PixelFormat, ArrayVideoDriver
 
 import prelude
 
-video = PillowVideoDriver()
+video = ArrayVideoDriver()
 
 assert video.pixel_format != PixelFormat.XRGB8888
 

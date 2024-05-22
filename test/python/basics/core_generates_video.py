@@ -1,26 +1,22 @@
 from typing import cast
 
-from libretro import Session, PillowVideoDriver
+from libretro import Session, Screenshot
 
 import prelude
 
 session: Session
-with prelude.builder().with_video(PillowVideoDriver).build() as session:
-    video = cast(PillowVideoDriver, session.video)
+with prelude.builder().build() as session:
+    for i in range(70):
+        session.run()
 
-    assert isinstance(video, PillowVideoDriver), f"Expected PillowVideoDriver, got {type(video).__name__}"
+    frame1 = session.video.screenshot()
+    assert isinstance(frame1, Screenshot)
 
     for i in range(70):
-        session.core.run()
+        session.run()
 
-    frame1 = video.screenshot
-    assert frame1 is not None
+    frame2 = session.video.screenshot()
+    assert isinstance(frame2, Screenshot)
 
-    for i in range(70):
-        session.core.run()
-
-    frame2 = video.screenshot
-    assert frame2 is not None
-
-    assert frame1.size == frame2.size
-    assert frame1 != frame2
+    assert (frame1.width, frame1.height) == (frame2.width, frame2.height)
+    assert frame1.data != frame2.data
