@@ -4,7 +4,7 @@ import sys
 import tempfile
 
 import libretro
-from libretro import SubsystemContent, SessionBuilder, DefaultPathDriver, PillowVideoDriver
+from libretro import SubsystemContent, SessionBuilder, DefaultPathDriver
 
 if not __debug__:
     raise RuntimeError("The melonDS DS test suite should not be run with -O")

@@ -1,7 +1,7 @@
 import itertools
 from typing import cast
 
-from libretro import JoypadState, PillowVideoDriver
+from libretro import JoypadState
 
 import prelude
 
@@ -22,27 +22,15 @@ def generate_input():
     yield from itertools.repeat(None)
 
 
-with prelude.builder().with_input(generate_input).with_video(PillowVideoDriver).build() as session:
-    video = cast(PillowVideoDriver, session.video)
+with prelude.builder().with_input(generate_input).build() as session:
     for i in range(10):
-        session.core.run()
+        session.run()
 
-    frame1 = video.frame
-    framebuffer1 = video.frame_max
-    geometry1 = video.geometry
+    frame1 = session.video.screenshot()
+    geometry1 = session.video.geometry
 
     assert frame1 is not None
-    assert framebuffer1 is not None
     assert geometry1 is not None
-
-    assert frame1.size != framebuffer1.size, \
-        f"Frame size should not be the same as framebuffer size ({frame1.size})"
-
-    assert frame1.width < framebuffer1.width, \
-        f"Frame width ({frame1.width}) shouldn't exceed framebuffer width ({framebuffer1.width})"
-
-    assert frame1.height < framebuffer1.height, \
-        f"Frame height ({frame1.height}) shouldn't exceed framebuffer height ({framebuffer1.height})"
 
     assert frame1.width == geometry1.base_width, \
         f"Frame width ({frame1.width}) should match geometry base width ({geometry1.base_width})"
@@ -50,25 +38,15 @@ with prelude.builder().with_input(generate_input).with_video(PillowVideoDriver).
     assert frame1.height == geometry1.base_height, \
         f"Frame height ({frame1.height}) should match geometry base height ({geometry1.height})"
 
-    assert framebuffer1.width == geometry1.max_width, \
-        f"Framebuffer width ({framebuffer1.width}) should match geometry max width ({geometry1.max_width})"
-
-    assert framebuffer1.height == geometry1.max_height, \
-        f"Framebuffer height ({framebuffer1.height}) should match geometry max height ({geometry1.max_height})"
-
     for i in range(20):
-        session.core.run()
+        session.run()
 
     # Now that we've changed the screen layout, let's make sure we changed the geometry
 
-    frame2 = video.frame
-    framebuffer2 = video.frame_max
-    geometry2 = video.geometry
+    frame2 = session.video.screenshot()
+    geometry2 = session.video.geometry
 
     assert frame2 is not None
-    assert framebuffer2 is not None
     assert geometry2 is not None
 
     assert geometry1 != geometry2, f"Geometry should have changed from {geometry1} after switching screen layout"
-    assert framebuffer1.size == framebuffer2.size, \
-        f"Framebuffer size changed from {framebuffer1.size} to {framebuffer2.size}, but it shouldn't have"
