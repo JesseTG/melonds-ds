@@ -95,6 +95,7 @@ namespace MelonDsDs {
         bool UpdateOptionVisibility() noexcept;
 
         const melonDS::NDS* GetConsole() const noexcept { return Console.get(); }
+        const InputState& GetInputState() const noexcept { return _inputState; }
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
