@@ -153,6 +153,16 @@ extern "C" const uint8_t* melondsds_gba_sram() {
     return console->GetGBACart()->GetSaveMemory();
 }
 
+extern "C" int melondsds_analog_cursor_x() {
+    using namespace MelonDsDs;
+    return Core.GetInputState().JoystickTouchPosition().x;
+}
+
+extern "C" int melondsds_analog_cursor_y() {
+    using namespace MelonDsDs;
+    return Core.GetInputState().JoystickTouchPosition().y;
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -207,6 +217,12 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_gba_sram"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_gba_sram);
+
+    if (string_is_equal(sym, "melondsds_analog_cursor_x"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_analog_cursor_x);
+
+    if (string_is_equal(sym, "melondsds_analog_cursor_y"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_analog_cursor_y);
 
     return nullptr;
 }
