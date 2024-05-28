@@ -24,6 +24,7 @@
 
 #include "config/config.hpp"
 #include "environment.hpp"
+#include "format.hpp"
 #include "libretro.hpp"
 #include "math.hpp"
 #include "screenlayout.hpp"
@@ -132,7 +133,8 @@ void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLay
     if (inputState.CycleLayoutPressed()) {
         // If the user wants to change the active screen layout...
         screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
-        retro::debug("Switched to screen layout {} of {}", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts());
+        retro::debug("Switched to screen layout {} of {} ({})", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts(), screenLayout.Layout());
+        // Add 1 to the index because we present the layout index as 1-based to the user.
     }
 }
 
