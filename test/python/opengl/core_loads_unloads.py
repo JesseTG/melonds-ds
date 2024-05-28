@@ -1,12 +1,8 @@
 from typing import cast
-import time
 from libretro import ModernGlVideoDriver
 
 from PIL import Image
 import prelude
-
-def dd():
-    return ModernGlVideoDriver(window="pyglet")
 
 with prelude.builder().with_video(ModernGlVideoDriver).build() as session:
     video = cast(ModernGlVideoDriver, session.video)
