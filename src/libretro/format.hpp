@@ -34,6 +34,7 @@
 #include <gfx/scaler/scaler.h>
 
 #include "config/config.hpp"
+#include "config/types.hpp"
 
 namespace fmt {
     template<>
@@ -89,6 +90,11 @@ namespace fmt {
     template<>
     struct formatter<melonDS::Platform::FileMode> : formatter<std::vector<std::string_view>> {
         auto format(melonDS::Platform::FileMode mode, format_context& ctx) const -> decltype(ctx.out());
+    };
+
+    template<>
+    struct formatter<MelonDsDs::ScreenLayout> : formatter<std::string_view> {
+        auto format(MelonDsDs::ScreenLayout layout, format_context& ctx) const -> decltype(ctx.out());
     };
 }
 

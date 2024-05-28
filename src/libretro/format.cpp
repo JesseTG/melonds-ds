@@ -402,3 +402,48 @@ auto fmt::formatter<Platform::FileMode>::format(Platform::FileMode mode, format_
 
     return formatter<std::vector<std::string_view>>::format(bits, ctx);
 }
+
+auto fmt::formatter<MelonDsDs::ScreenLayout>::format(MelonDsDs::ScreenLayout layout, format_context& ctx) const -> decltype(ctx.out()) {
+    string_view name;
+
+    switch (layout) {
+        case MelonDsDs::ScreenLayout::TopBottom:
+            name = "TopBottom";
+            break;
+        case MelonDsDs::ScreenLayout::BottomTop:
+            name = "BottomTop";
+            break;
+        case MelonDsDs::ScreenLayout::LeftRight:
+            name = "LeftRight";
+            break;
+        case MelonDsDs::ScreenLayout::RightLeft:
+            name = "RightLeft";
+            break;
+        case MelonDsDs::ScreenLayout::TopOnly:
+            name = "TopOnly";
+            break;
+        case MelonDsDs::ScreenLayout::BottomOnly:
+            name = "BottomOnly";
+            break;
+        case MelonDsDs::ScreenLayout::HybridTop:
+            name = "HybridTop";
+            break;
+        case MelonDsDs::ScreenLayout::HybridBottom:
+            name = "HybridBottom";
+            break;
+        case MelonDsDs::ScreenLayout::TurnLeft:
+            name = "TurnLeft";
+            break;
+        case MelonDsDs::ScreenLayout::TurnRight:
+            name = "TurnRight";
+            break;
+        case MelonDsDs::ScreenLayout::UpsideDown:
+            name = "UpsideDown";
+            break;
+        default:
+            name = "<unknown>";
+            break;
+    }
+
+    return formatter<string_view>::format(name, ctx);
+}
