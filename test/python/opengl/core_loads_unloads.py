@@ -1,7 +1,6 @@
 from typing import cast
 from libretro import ModernGlVideoDriver
 
-from PIL import Image
 import prelude
 
 with prelude.builder().with_video(ModernGlVideoDriver).build() as session:
@@ -12,18 +11,17 @@ with prelude.builder().with_video(ModernGlVideoDriver).build() as session:
     for i in range(70):
         session.run()
 
-    frame1 = video.screenshot
+    frame1 = video.screenshot()
     assert frame1 is not None
 
-    for i in range(360 * 2):
+    for i in range(360):
         session.run()
 
-    frame2 = video.screenshot
+    frame2 = video.screenshot()
     assert frame2 is not None
 
     geometry = video.geometry
     size = (geometry.base_width, geometry.base_height)
-    image = Image.frombuffer("RGB", size, frame2)
-    #image.show()
-    assert len(frame1) == len(frame2)
+
+    assert len(frame1.data) == len(frame2.data)
     assert frame1 != frame2
