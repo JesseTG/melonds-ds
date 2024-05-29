@@ -96,6 +96,7 @@ namespace MelonDsDs {
 
         const melonDS::NDS* GetConsole() const noexcept { return Console.get(); }
         const InputState& GetInputState() const noexcept { return _inputState; }
+        const ScreenLayoutData& GetScreenLayoutData() const noexcept { return _screenLayout; }
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;

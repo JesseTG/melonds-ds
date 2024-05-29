@@ -163,6 +163,12 @@ extern "C" int melondsds_analog_cursor_y() {
     return Core.GetInputState().JoystickTouchPosition().y;
 }
 
+extern "C" int melondsds_screen_layout() {
+    using namespace MelonDsDs;
+    return static_cast<int>(Core.GetScreenLayoutData().Layout());
+}
+
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -223,6 +229,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_analog_cursor_y"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_analog_cursor_y);
+
+    if (string_is_equal(sym, "melondsds_screen_layout"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_screen_layout);
 
     return nullptr;
 }
