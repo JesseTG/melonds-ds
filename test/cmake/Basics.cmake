@@ -130,9 +130,7 @@ add_python_test(
     NAME "Core rotates the screen"
     TEST_MODULE basics.core_rotates_screen
     NDS_SYSFILES
-    DISABLED
-) # TODO: Implement this test
-# TODO: Set the screen layout sequence
+)
 
 add_python_test(
     NAME "Core can send messages (API V0)"
