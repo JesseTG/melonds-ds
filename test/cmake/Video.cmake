@@ -8,3 +8,18 @@ add_python_test(
     CORE_OPTION "melonds_console_mode=ds"
     CORE_OPTION "melonds_threaded_renderer=enabled"
 )
+
+add_python_test(
+    NAME "Core loads and unloads with the OpenGL renderer"
+    TEST_MODULE opengl.core_loads_unloads
+    CONTENT "${NDS_ROM}"
+    CORE_OPTION "melonds_render_mode=opengl"
+    REQUIRES_OPENGL
+)
+
+add_python_test(
+    NAME "Core runs for multiple frames with OpenGL and software rendering"
+    TEST_MODULE opengl.core_loads_unloads
+    CONTENT "${NDS_ROM}"
+    REQUIRES_OPENGL
+)
