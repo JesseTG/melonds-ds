@@ -168,6 +168,19 @@ extern "C" int melondsds_screen_layout() {
     return static_cast<int>(Core.GetScreenLayoutData().Layout());
 }
 
+extern "C" bool melondsds_is_opengl_renderer() {
+    using namespace MelonDsDs;
+    auto mode = Core.GetRenderMode();
+
+    return mode && *mode == RenderMode::OpenGl;
+}
+
+extern "C" bool melondsds_is_software_renderer() {
+    using namespace MelonDsDs;
+    auto mode = Core.GetRenderMode();
+
+    return mode && *mode == RenderMode::Software;
+}
 
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
@@ -232,6 +245,12 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_screen_layout"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_screen_layout);
+
+    if (string_is_equal(sym, "melondsds_is_opengl_renderer"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_is_opengl_renderer);
+
+    if (string_is_equal(sym, "melondsds_is_software_renderer"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_is_software_renderer);
 
     return nullptr;
 }
