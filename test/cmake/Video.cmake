@@ -23,3 +23,11 @@ add_python_test(
     CONTENT "${NDS_ROM}"
     REQUIRES_OPENGL
 )
+
+add_python_test(
+    NAME "Core falls back to software renderer if OpenGL is unavailable"
+    TEST_MODULE opengl.core_falls_back_to_software
+    CONTENT "${NDS_ROM}"
+    CORE_OPTION "melonds_render_mode=opengl"
+    REQUIRES_OPENGL
+)
