@@ -10,7 +10,7 @@ add_python_test(
 )
 
 add_python_test(
-    NAME "Core loads and unloads with the OpenGL renderer"
+    NAME "Core runs for multiple frames with OpenGL"
     TEST_MODULE opengl.core_loads_unloads
     CONTENT "${NDS_ROM}"
     CORE_OPTION "melonds_render_mode=opengl"
