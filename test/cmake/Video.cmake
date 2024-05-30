@@ -44,7 +44,11 @@ add_python_test(
     TEST_MODULE opengl.core_switch_opengl_to_software_runtime
     CONTENT "${NDS_ROM}"
     REQUIRES_OPENGL
+    TIMEOUT 30
 )
+# This test is slower for some reason;
+# there must be a lot of overhead
+# in the OpenGL context creation
 
 add_python_test(
     NAME "Core can switch from software to OpenGL mode and back at runtime"
@@ -58,4 +62,15 @@ add_python_test(
     TEST_MODULE opengl.core_switch_opengl_to_software_and_back_runtime
     CONTENT "${NDS_ROM}"
     REQUIRES_OPENGL
+    TIMEOUT 30
 )
+
+# See https://github.com/JesseTG/melonds-ds/issues/155
+add_python_test(
+    NAME "Core does not crash at in-core error screen when using OpenGL"
+    TEST_MODULE ""
+    CONTENT "${NDS_ROM}"
+    CORE_OPTION "melonds_render_mode=opengl"
+    REQUIRES_OPENGL
+    DISABLED
+) # TODO: Implement
