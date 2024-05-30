@@ -27,6 +27,7 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
+#include <fmt/std.h>
 #include <SPI_Firmware.h>
 #include <DSi_NAND.h>
 #include <Platform.h>
@@ -95,6 +96,11 @@ namespace fmt {
     template<>
     struct formatter<MelonDsDs::ScreenLayout> : formatter<std::string_view> {
         auto format(MelonDsDs::ScreenLayout layout, format_context& ctx) const -> decltype(ctx.out());
+    };
+
+    template<>
+    struct formatter<MelonDsDs::RenderMode> : formatter<std::string_view> {
+        auto format(MelonDsDs::RenderMode mode, format_context& ctx) const -> decltype(ctx.out());
     };
 }
 

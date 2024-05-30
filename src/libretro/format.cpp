@@ -447,3 +447,21 @@ auto fmt::formatter<MelonDsDs::ScreenLayout>::format(MelonDsDs::ScreenLayout lay
 
     return formatter<string_view>::format(name, ctx);
 }
+
+auto fmt::formatter<MelonDsDs::RenderMode>::format(MelonDsDs::RenderMode mode, format_context& ctx) const -> decltype(ctx.out()) {
+    string_view name;
+
+    switch (mode) {
+        case MelonDsDs::RenderMode::Software:
+            name = "Software";
+            break;
+        case MelonDsDs::RenderMode::OpenGl:
+            name = "OpenGL";
+            break;
+        default:
+            name = "<unknown>";
+            break;
+    }
+
+    return formatter<string_view>::format(name, ctx);
+}
