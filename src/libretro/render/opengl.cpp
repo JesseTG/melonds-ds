@@ -205,6 +205,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     retro::debug(TracyFunction);
 
     // Initialize all OpenGL function pointers
+    retro::debug("Initializing OpenGL function pointers");
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
     TracyGpuContext; // Must be called AFTER the function pointers are bound!
 
