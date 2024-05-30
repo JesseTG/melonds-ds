@@ -139,6 +139,7 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (retro::is_variable_updated()) [[unlikely]] {
         // If any settings have changed...
+        retro::debug("At least one setting has changed; updating now");
         ParseConfig(Config);
         ApplyConfig(Config);
         UpdateConsole(Config, nds);
@@ -414,6 +415,7 @@ void MelonDsDs::CoreState::StartConsole() {
 
     retro_assert(Console != nullptr); // This function should only be called if the console is initialized
 
+    retro::debug(TracyFunction);
     _renderState.UpdateRenderer(Config, *Console);
 
     {
@@ -652,6 +654,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         // If this isn't the first time we're setting the renderer...
         if (oldRenderer != newRenderer) {
             // If we're switching renderer modes...
+            retro::debug("Switching render mode from {} to {}", *oldRenderer, *newRenderer);
             retro_system_av_info av = GetSystemAvInfo(*newRenderer);
             retro::set_system_av_info(av);
         }
