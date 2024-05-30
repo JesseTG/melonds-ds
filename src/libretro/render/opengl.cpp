@@ -137,7 +137,7 @@ std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New(
     try {
         return std::make_unique<OpenGLRenderState>();
     } catch (const opengl_not_initialized_exception& e) {
-        retro::debug("OpenGL context could not be initialized: %s", e.what());
+        retro::debug("OpenGL context could not be initialized: {}", e.what());
         return nullptr;
     }
 }
