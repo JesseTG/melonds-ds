@@ -31,3 +31,10 @@ add_python_test(
     CORE_OPTION "melonds_render_mode=opengl"
     REQUIRES_OPENGL
 )
+
+add_python_test(
+    NAME "Core can switch from software to OpenGL mode at runtime"
+    TEST_MODULE opengl.core_switch_software_to_opengl_runtime
+    CONTENT "${NDS_ROM}"
+    REQUIRES_OPENGL
+)
