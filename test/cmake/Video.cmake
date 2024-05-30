@@ -38,3 +38,24 @@ add_python_test(
     CONTENT "${NDS_ROM}"
     REQUIRES_OPENGL
 )
+
+add_python_test(
+    NAME "Core can switch from OpenGL to software mode at runtime"
+    TEST_MODULE opengl.core_switch_opengl_to_software_runtime
+    CONTENT "${NDS_ROM}"
+    REQUIRES_OPENGL
+)
+
+add_python_test(
+    NAME "Core can switch from software to OpenGL mode and back at runtime"
+    TEST_MODULE opengl.core_switch_software_to_opengl_and_back_runtime
+    CONTENT "${NDS_ROM}"
+    REQUIRES_OPENGL
+)
+
+add_python_test(
+    NAME "Core can switch from OpenGL to software mode and back at runtime"
+    TEST_MODULE opengl.core_switch_opengl_to_software_and_back_runtime
+    CONTENT "${NDS_ROM}"
+    REQUIRES_OPENGL
+)
