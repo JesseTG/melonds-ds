@@ -22,9 +22,16 @@ Once you do that, you'll need to obtain the following dependencies:
   The tests don't assume any particular ROM.
 - The set of Nintendo DS/DSi system files described in the [main README](../README.md#installing-nintendo-ds-bios)
 
-## Configuring the Python Environment
+### Optional: Configuring the Python Environment
 
-TODO: Describe how to install the Python dependencies.
+By default, CMake finds Python and configures its own internal Python environment in the build directory.
+You can use your own virtual environment or the system Python installation with the following steps:
+
+```bash
+# If you want to use a venv, activate it beforehand.
+pip install -r test/requirements.txt # Install the test framework's dependencies
+cmake -B build -DMELONDSDS_INTERNAL_VENV=OFF
+```
 
 ## Configuring the Tests
 
