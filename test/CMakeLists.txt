@@ -13,7 +13,6 @@ endif()
 if (PythonModules_PIL_PATH)
     message(STATUS "Found PIL (aka Pillow): ${PythonModules_PIL_PATH}")
 endif()
-## TODO: Write a requirements.txt for all test dependencies
 
 if (NOT NDS_ROM)
     message(WARNING "NDS_ROM must be set to the path of an NDS ROM")
