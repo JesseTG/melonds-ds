@@ -68,9 +68,8 @@ add_python_test(
 # See https://github.com/JesseTG/melonds-ds/issues/155
 add_python_test(
     NAME "Core does not crash at in-core error screen when using OpenGL"
-    TEST_MODULE ""
-    CONTENT "${NDS_ROM}"
+    TEST_MODULE basics.core_run_frames
     CORE_OPTION "melonds_render_mode=opengl"
     REQUIRES_OPENGL
-    DISABLED
-) # TODO: Implement
+    NO_SKIP_ERROR_SCREEN
+)
