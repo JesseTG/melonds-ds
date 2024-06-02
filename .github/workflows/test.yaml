@@ -84,8 +84,11 @@ jobs:
 
       - name: Configure Test Suite
         working-directory: "${{ env.BUILD_DIR }}"
+        shell: bash
         run: |
           source ~/.venv/melondsds/bin/activate
+          ls -halR ~/.venv
+          which -a python
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
@@ -101,6 +104,7 @@ jobs:
             -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
             -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
             -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
+            -DPython_EXECUTABLE:FILEPATH=~/.venv/melondsds/bin/python
             -DMELONDSDS_INTERNAL_VENV=OFF \
             ${{ inputs.cmake-args }}
 
