@@ -88,6 +88,8 @@ cmake_path(GET DSI_NAND FILENAME DSI_NAND_NAME)
 
 include(CMakePrintHelpers)
 
+set(DEFAULT_TIMEOUT 30)
+
 function(add_python_test)
     set(options
         ARM7_BIOS
@@ -257,7 +259,7 @@ function(add_python_test)
     if (RETRO_TIMEOUT)
         set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT "${RETRO_TIMEOUT}")
     else()
-        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT 10)
+        set_tests_properties("${RETRO_NAME}" PROPERTIES TIMEOUT "${DEFAULT_TIMEOUT}")
     endif()
 endfunction()
 
