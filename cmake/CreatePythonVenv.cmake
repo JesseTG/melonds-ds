@@ -17,7 +17,8 @@ function(CreatePythonVenv venv_dest venv_name out_venv_executable)
         FIND_PACKAGE(Python3 COMPONENTS Interpreter)
         MESSAGE(STATUS "Creating Python virtual environment at ${VENV_PATH} with ${Python3_EXECUTABLE}")
         EXECUTE_PROCESS(COMMAND ${Python3_EXECUTABLE} "-m" "venv" ${venv_name}
-                WORKING_DIRECTORY ${venv_dest})
+                WORKING_DIRECTORY ${venv_dest}
+                COMMAND_ECHO STDOUT)
     endif()
 
     # check if virtual environment was made successfully/already exists (path exists)
