@@ -21,23 +21,18 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Add RetroArch PPA (Linux)
-      if: ${{ runner.os == 'Linux' }}
-      shell: bash
-      run: sudo add-apt-repository --yes ppa:libretro/stable
-
       # Skip this step on act due to https://github.com/nektos/act/issues/1849
     - name: Install Dependencies (Linux x86_64/Android)
       if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: cmake p7zip-full xvfb xdg-utils x11-xserver-utils retroarch
+        packages: cmake p7zip-full xvfb xdg-utils x11-xserver-utils
         version: 1.0
 
     - name: Install Dependencies (Linux x86_64/Android + act)
       if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       shell: bash
-      run: sudo apt-get update -qy && sudo apt-get install -qy cmake p7zip-full xvfb xdg-utils x11-xserver-utils retroarch
+      run: sudo apt-get update -qy && sudo apt-get install -qy cmake p7zip-full xvfb xdg-utils x11-xserver-utils
 
     - name: Install MSYS2 Dependencies (Windows)
       uses: msys2/setup-msys2@v2
@@ -47,12 +42,11 @@ runs:
         update: true
         install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
 
-    - name: Install RetroArch (Windows)
-      if: ${{ runner.os == 'Windows' }}
-      shell: powershell
-      run: |
-        Invoke-WebRequest -Uri https://buildbot.libretro.com/stable/1.16.0/windows/x86_64/RetroArch.7z -OutFile RetroArch.7z
-        7z x -o"$Env:ProgramFiles" RetroArch.7z
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
 
     - name: Download Test Files
       uses: actions/checkout@v4
@@ -65,12 +59,3 @@ runs:
       working-directory: "${{ inputs.testfile-dir }}"
       shell: bash
       run: 7z x "${{ inputs.dsi-nand-archive }}"
-
-    - name: Install Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '^1.21.0'
-
-    - name: Install Emutest
-      shell: bash
-      run: go install github.com/kivutar/emutest@latest
