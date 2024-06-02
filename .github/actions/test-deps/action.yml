@@ -52,7 +52,7 @@ runs:
       shell: bash
       run: |
         python -m venv ~/.venv/melondsds
-        source activate ~/.venv/melondsds/bin/activate
+        source ~/.venv/melondsds/bin/activate
         pip install -r "${{ github.workspace }}/test/requirements.txt"
 
     - name: Download Test Files
