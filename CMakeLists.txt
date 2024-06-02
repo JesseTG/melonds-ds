@@ -20,6 +20,10 @@ project("melonDS DS"
     LANGUAGES C CXX)
 
 message(STATUS "Configuring a ${CMAKE_BUILD_TYPE} build.")
+if (APPLE)
+    message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
+endif ()
+message(STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 include(CheckSymbolExists)
