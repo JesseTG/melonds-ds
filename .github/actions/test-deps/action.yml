@@ -48,6 +48,13 @@ runs:
         python-version: '3.12'
         cache: 'pip'
 
+    - name: Install Python Dependencies
+      shell: bash
+      run: |
+        python -m venv ~/.venv/melondsds
+        source activate ~/.venv/melondsds/bin/activate
+        pip install -r "${{ github.workspace }}/test/requirements.txt"
+
     - name: Download Test Files
       uses: actions/checkout@v4
       with:
