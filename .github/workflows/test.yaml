@@ -85,6 +85,7 @@ jobs:
       - name: Configure Test Suite
         working-directory: "${{ env.BUILD_DIR }}"
         run: |
+          source ~/.venv/melondsds/bin/activate
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             -DMELONDS_REPOSITORY_URL="${{ vars.MELONDS_REPOSITORY_URL }}" \
