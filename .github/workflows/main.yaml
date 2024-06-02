@@ -52,7 +52,7 @@ jobs:
       runs-on: macos-latest
       target: macos-x86_64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF $EXTRA_CMAKE_ARGS
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64" $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   macos-arm64:
@@ -64,7 +64,7 @@ jobs:
       runs-on: macos-latest
       target: macos-arm64
       lib-ext: dylib
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF $EXTRA_CMAKE_ARGS
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64" $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
 
   linux-x86_64:
