@@ -52,7 +52,7 @@ runs:
     - name: Install Python Dependencies
       shell: bash
       run: |
-        pip install -r "${{ github.workspace }}/test/requirements.txt"
+        pip install -v -r "${{ github.workspace }}/test/requirements.txt"
 
     - name: Download Test Files
       uses: actions/checkout@v4
