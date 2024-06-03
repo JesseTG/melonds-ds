@@ -53,8 +53,7 @@ runs:
       shell: bash
       run: |
         python -m venv ~/.venv/melondsds
-        source ~/.venv/melondsds/bin/activate
-        pip install -r "${{ github.workspace }}/test/requirements.txt"
+        ~/.venv/melondsds/bin/pip install -r "${{ github.workspace }}/test/requirements.txt"
 
     - name: Download Test Files
       uses: actions/checkout@v4
