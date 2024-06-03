@@ -52,8 +52,7 @@ runs:
     - name: Install Python Dependencies
       shell: bash
       run: |
-        python -m venv ~/.venv/melondsds
-        ~/.venv/melondsds/bin/pip install -r "${{ github.workspace }}/test/requirements.txt"
+        pip install -r "${{ github.workspace }}/test/requirements.txt"
 
     - name: Download Test Files
       uses: actions/checkout@v4
