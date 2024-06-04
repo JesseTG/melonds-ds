@@ -26,13 +26,13 @@ runs:
       if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: cmake p7zip-full xvfb xdg-utils x11-xserver-utils
-        version: 1.0
+        packages: cmake libopengl0 libopengl-dev p7zip-full xvfb xdg-utils x11-xserver-utils
+        version: 1.1
 
     - name: Install Dependencies (Linux x86_64/Android + act)
       if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
       shell: bash
-      run: sudo apt-get update -qy && sudo apt-get install -qy cmake p7zip-full xvfb xdg-utils x11-xserver-utils
+      run: sudo apt-get update -qy && sudo apt-get install -qy cmake libopengl0 libopengl-dev p7zip-full xvfb xdg-utils x11-xserver-utils
 
     - name: Install MSYS2 Dependencies (Windows)
       uses: msys2/setup-msys2@v2
