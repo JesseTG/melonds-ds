@@ -176,6 +176,7 @@ function (basis_find_python_module CACHEVAR)
     # 1. search specified paths
     foreach (P ${ARGN_PATH}) # ignore empty entries
         if (IS_ABSOLUTE "${P}")
+            message(DEBUG "Looking for ${ARGN_NAME} in ${P}")
             if (EXISTS "${P}/${ARGN_NAME}.py"  OR EXISTS "${P}/${ARGN_NAME}/__init__.py" OR
                 EXISTS "${P}/${ARGN_NAME}.pyc" OR EXISTS "${P}/${ARGN_NAME}/__init__.pyc")
                 set_property (CACHE ${CACHEVAR} PROPERTY VALUE "${P}")
@@ -187,6 +188,7 @@ function (basis_find_python_module CACHEVAR)
     if (ARGN_PYTHON_EXECUTABLE)
         set (IMPORT_SITE_ERROR FALSE)
         # 2a. try it with -E option -- the preferred way to run Python
+        message(DEBUG "Trying to import ${ARGN_NAME} using Python interpreter ${ARGN_PYTHON_EXECUTABLE}")
         execute_process (
             COMMAND "${ARGN_PYTHON_EXECUTABLE}" -E -c "import ${ARGN_NAME}; print(${ARGN_NAME}.__file__)"
             RESULT_VARIABLE STATUS
@@ -234,19 +236,26 @@ function (basis_find_python_module CACHEVAR)
             endif ()
             set_property (CACHE ${CACHEVAR} PROPERTY VALUE "${P}")
             return ()
-        elseif (IMPORT_SITE_ERROR)
-            message (WARNING "Import of site module failed when running Python interpreter ${ARGN_PYTHON_EXECUTABLE}"
-                " with and without -E option. Make sure that the Python interpreter is installed properly"
-                " and that the PYTHONHOME environment variable is either not set (recommended) or at"
-                " least set correctly for this Python installation. Maybe you need to enable this Python"
-                " version first somehow if more than one version of Python is installed on your system?"
-                " Otherwise, set PYTHON_EXECUTABLE to the right Python interpreter executable (python).")
+        else()
+            if (NOT STATUS EQUAL 0)
+                message(WARNING "${ERROR}")
+            endif ()
+
+            if (IMPORT_SITE_ERROR)
+                message (WARNING "Import of site module failed when running Python interpreter ${ARGN_PYTHON_EXECUTABLE}"
+                    " with and without -E option. Make sure that the Python interpreter is installed properly"
+                    " and that the PYTHONHOME environment variable is either not set (recommended) or at"
+                    " least set correctly for this Python installation. Maybe you need to enable this Python"
+                    " version first somehow if more than one version of Python is installed on your system?"
+                    " Otherwise, set PYTHON_EXECUTABLE to the right Python interpreter executable (python).")
+            endif()
         endif ()
     endif ()
     # 3. search PYTHONPATH
     if (NOT ARGN_NO_PYTHONPATH)
         string (REPLACE ":" ";" PYTHONPATH "$ENV{PYTHONPATH}")
         foreach (P ${PYTHONPATH}) # ignore empty entries
+            message(DEBUG "Looking for ${ARGN_NAME} in ${P}")
             if (IS_ABSOLUTE "${P}")
                 if (EXISTS "${P}/${ARGN_NAME}.py"  OR EXISTS "${P}/${ARGN_NAME}/__init__.py" OR
                     EXISTS "${P}/${ARGN_NAME}.pyc" OR EXISTS "${P}/${ARGN_NAME}/__init__.pyc")
