@@ -129,29 +129,30 @@ jobs:
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14 $EXTRA_CMAKE_ARGS
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
-  # Temporarily disabled until I finish writing that test program;
-  # emutest is too limiting
-  #  test-windows:
-  #    name: Test Suite (Windows)
-  #    uses: ./.github/workflows/test.yaml
-  #    needs: [ windows ]
-  #    with:
-  #      archive-name: melondsds_libretro-win32-x86_64
-  #      target: win32
-  #      runs-on: windows-latest
-  #      shell: msys2 {0}
-  #    secrets:
-  #      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
-  #      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
-  #      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
-  #      DSI_NAND: ${{ secrets.DSI_NAND }}
-  #      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
-  #      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
-  #      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
-  #      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
-  #      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
-  #      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
-  #      NDS_ROM: ${{ secrets.NDS_ROM }}
+  test-windows:
+    name: Test Suite (Windows)
+    uses: ./.github/workflows/test.yaml
+    needs: [ windows ]
+    if: github.event_name == 'push'
+    with:
+      archive-name: melondsds_libretro-win32-x86_64
+      target: win32
+      runs-on: windows-latest
+      shell: msys2 {0}
+    secrets:
+      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
+      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
+      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
+      DSI_NAND: ${{ secrets.DSI_NAND }}
+      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
+      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
+      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
+      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
+      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
+      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
+      NDS_ROM: ${{ secrets.NDS_ROM }}
+      GBA_ROM: ${{ secrets.GBA_ROM }}
+      GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
   test-linux-x86_64:
     name: Test Suite (Linux x86_64)
@@ -179,7 +180,7 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [ windows, macos-x86_64, macos-arm64, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64 ]
+    needs: [ windows, macos-x86_64, macos-arm64, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64, test-windows ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
