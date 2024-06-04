@@ -88,6 +88,7 @@ jobs:
         run: |
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DFETCHCONTENT_QUIET=OFF \
             -DBUILD_TESTING=ON \
             -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
             -DARM9_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_BIOS }}" \
