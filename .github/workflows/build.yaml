@@ -211,7 +211,7 @@ jobs:
             -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
             -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
             -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
-            -DMELONDSDS_INTERNAL_VENV=OFF
+            -DMELONDSDS_INTERNAL_VENV=OFF \
             ${{ inputs.cmake-args }}
 
       - name: Build
