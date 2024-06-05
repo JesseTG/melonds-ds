@@ -29,6 +29,20 @@ jobs:
       shell: msys2 {0}
       test-suite: true
       cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
+    secrets:
+      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
+      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
+      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
+      DSI_NAND: ${{ secrets.DSI_NAND }}
+      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
+      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
+      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
+      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
+      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
+      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
+      NDS_ROM: ${{ secrets.NDS_ROM }}
+      GBA_ROM: ${{ secrets.GBA_ROM }}
+      GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
   macos-x86_64:
     name: macOS (x86_64)
@@ -61,6 +75,20 @@ jobs:
       runs-on: ubuntu-latest
       lib-ext: so
       test-suite: true
+    secrets:
+      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
+      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
+      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
+      DSI_NAND: ${{ secrets.DSI_NAND }}
+      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
+      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
+      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
+      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
+      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
+      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
+      NDS_ROM: ${{ secrets.NDS_ROM }}
+      GBA_ROM: ${{ secrets.GBA_ROM }}
+      GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
   linux-aarch64:
     name: Linux (arm64)
@@ -108,58 +136,9 @@ jobs:
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
-  test-windows:
-    name: Test Suite (Windows)
-    uses: ./.github/workflows/test.yaml
-    needs: [ windows ]
-    if: github.event_name == 'push'
-    with:
-      archive-name: melondsds_libretro-win32-x86_64
-      target: win32
-      runs-on: windows-latest
-      shell: msys2 {0}
-    secrets:
-      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
-      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
-      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
-      DSI_NAND: ${{ secrets.DSI_NAND }}
-      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
-      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
-      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
-      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
-      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
-      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
-      NDS_ROM: ${{ secrets.NDS_ROM }}
-      GBA_ROM: ${{ secrets.GBA_ROM }}
-      GBA_SRAM: ${{ secrets.GBA_SRAM }}
-
-  test-linux-x86_64:
-    name: Test Suite (Linux x86_64)
-    uses: ./.github/workflows/test.yaml
-    needs: [ linux-x86_64 ]
-    if: github.event_name == 'push'
-    with:
-      archive-name: melondsds_libretro-linux-x86_64
-      target: linux-x86_64
-      runs-on: ubuntu-latest
-    secrets:
-      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
-      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
-      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
-      DSI_NAND: ${{ secrets.DSI_NAND }}
-      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
-      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
-      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
-      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
-      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
-      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
-      NDS_ROM: ${{ secrets.NDS_ROM }}
-      GBA_ROM: ${{ secrets.GBA_ROM }}
-      GBA_SRAM: ${{ secrets.GBA_SRAM }}
-
   create-release:
     name: Create Release
-    needs: [ windows, macos-x86_64, macos-arm64, linux-x86_64, linux-aarch64, android, ios, tvos, test-linux-x86_64, test-windows ]
+    needs: [ windows, macos-x86_64, macos-arm64, linux-x86_64, linux-aarch64, android, ios, tvos ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -196,6 +175,7 @@ jobs:
         with:
           name: melondsds_libretro.info
           path: artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info
+          # The .info file doesn't vary by platform, so we only need to upload one
       - name: Create Release
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
         uses: softprops/action-gh-release@v1
