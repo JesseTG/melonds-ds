@@ -247,6 +247,7 @@ jobs:
         env:
           GLCONTEXT_WIN_LIBGL: "C:/msys64/mingw64/bin/opengl32.dll"
         run: |
-          ls -hal "$Python3_ROOT_DIR/DLLs" "$Python3_ROOT_DIR/libs" "$Python3_ROOT_DIR/Lib" "$Python3_ROOT_DIR/Scripts"
+          ls -hal /mingw64/bin
+          ls -hal /c/msys64/mingw64/bin
           echo $PATH
           ctest --extra-verbose --exclude-regex example --output-on-failure
