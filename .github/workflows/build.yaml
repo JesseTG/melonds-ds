@@ -246,6 +246,4 @@ jobs:
         shell: msys2 {0}
         env:
           GLCONTEXT_WIN_LIBGL: "C:/msys64/mingw64/bin/opengl32.dll"
-        run: |
-          env | sort
-          ctest --extra-verbose --exclude-regex example --output-on-failure
+        run: ctest --extra-verbose --exclude-regex example --output-on-failure
