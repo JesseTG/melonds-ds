@@ -194,7 +194,7 @@ jobs:
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             ${{ inputs.cmake-args }}
 
-      - name: Configure (Test Suite)
+      - name: Configure (With Test Suite)
         working-directory: "${{ env.BUILD_DIR }}"
         if: ${{ inputs.test-suite }}
         run: |
