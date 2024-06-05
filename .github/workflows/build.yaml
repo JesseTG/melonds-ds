@@ -175,11 +175,11 @@ jobs:
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
           token: "${{ secrets.TESTFILE_REPO_TOKEN }}"
-          path: "${{ inputs.testfile-dir }}"
+          path: "testfiles"
 
       - name: Prepare Test Files
         if: ${{ inputs.test-suite }}
-        working-directory: "${{ inputs.testfile-dir }}"
+        working-directory: "${{ github.workspace }}/testfiles"
         shell: bash
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
 
@@ -200,7 +200,6 @@ jobs:
         if: ${{ inputs.test-suite }}
         shell: bash
         run: |
-          ls -hal "${{ github.workspace }}"
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             -DBUILD_TESTING=ON \
