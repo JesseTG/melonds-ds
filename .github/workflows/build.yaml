@@ -196,7 +196,7 @@ jobs:
 
       - name: Configure (Test Suite)
         working-directory: "${{ env.BUILD_DIR }}"
-        if: ${{ ! inputs.test-suite }}
+        if: ${{ inputs.test-suite }}
         run: |
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
