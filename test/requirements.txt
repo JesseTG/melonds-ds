@@ -1,5 +1,5 @@
 # melonDS DS doesn't support OpenGL on macOS,
 # so there's no need to install OpenGL dependencies
-libretro.py==0.1.6
-libretro.py[opengl]==0.1.6 ; sys_platform != "darwin"
+libretro.py==0.1.7
+libretro.py[opengl]==0.1.7 ; sys_platform != "darwin"
 Pillow==10.3.0
