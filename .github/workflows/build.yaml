@@ -1,6 +1,33 @@
 name: Build (Internal)
 on:
   workflow_call:
+    secrets:
+      TESTFILE_REPO_TOKEN:
+        required: false
+      TESTFILE_REPO:
+        required: false
+      ARM7_BIOS:
+        required: false
+      ARM9_BIOS:
+        required: false
+      ARM7_DSI_BIOS:
+        required: false
+      ARM9_DSI_BIOS:
+        required: false
+      NDS_FIRMWARE:
+        required: false
+      DSI_FIRMWARE:
+        required: false
+      NDS_ROM:
+        required: false
+      GBA_ROM:
+        required: false
+      GBA_SRAM:
+        required: false
+      DSI_NAND_ARCHIVE:
+        required: false
+      DSI_NAND:
+        required: false
     inputs:
       cmake-args:
         description: Additional arguments to pass to CMake.
@@ -60,6 +87,7 @@ on:
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
+  TESTFILE_DIR: "${{ github.workspace }}/testfiles"
 jobs:
   build:
     strategy:
@@ -81,19 +109,109 @@ jobs:
         with:
           build-directory: ${{ env.BUILD_DIR }}
 
-      - name: Install Dependencies
-        uses: ./.github/actions/deps
+      - name: Install MSYS2 Dependencies (Windows)
+        uses: msys2/setup-msys2@v2
+        if: ${{ runner.os == 'Windows' }}
         with:
-          target: ${{ inputs.target }}
+          msystem: MINGW64
+          update: true
+          install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
+
+      - name: Install Dependencies (macOS)
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash
+        run: brew install pkg-config cmake ninja ccache
+
+        # Skip this step on act due to https://github.com/nektos/act/issues/1849
+      - name: Install Dependencies (Linux x86_64/Android)
+        if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+        uses: awalsh128/cache-apt-pkgs-action@6460a33c29e99ddc3c9f61ebd04653105b260906
+        with:
+          packages: ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
+          version: 1.2
+
+      - name: Install Dependencies (Linux x86_64/Android + act)
+        if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+        shell: bash
+        run: sudo apt-get update -qy && sudo apt-get install -qy ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
+
+      - name: Install Cross-Compile Support (Linux aarch64)
+        if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
+        uses: cyberjunk/gha-ubuntu-cross@v4
+        with:
+          arch: arm64
+
+      - name: Install Dependencies (Linux aarch64)
+        if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
+        uses: awalsh128/cache-apt-pkgs-action@6460a33c29e99ddc3c9f61ebd04653105b260906
+        with:
+          packages: cmake ninja-build libepoxy-dev:arm64 ccache
+          version: 1.1
+
+      - name: Install CCache
+        uses: hendrikmuhs/ccache-action@v1.2.11
+        with:
+          key: ${{ inputs.target }}-${{ matrix.build-type }}
+          variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
+          # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
+
+      - name: Install Python
+        if: ${{ inputs.test-suite }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: "${{ github.workspace }}/test/requirements.txt"
+
+      - name: Install Python Dependencies
+        if: ${{ inputs.test-suite }}
+        shell: bash
+        run: |
+          pip install -v -r "${{ github.workspace }}/test/requirements.txt"
+
+      - name: Download Test Files
+        if: ${{ inputs.test-suite }}
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ secrets.TESTFILE_REPO }}"
+          token: "${{ secrets.TESTFILE_REPO_TOKEN }}"
+          path: "${{ inputs.testfile-dir }}"
+
+      - name: Prepare Test Files
+        if: ${{ inputs.test-suite }}
+        working-directory: "${{ inputs.testfile-dir }}"
+        shell: bash
+        run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
 
       - name: Create build environment
         run: mkdir -vp "${{ env.BUILD_DIR }}"
 
       - name: Configure
         working-directory: "${{ env.BUILD_DIR }}"
+        if: ${{ ! inputs.test-suite }}
         run: |
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            ${{ inputs.cmake-args }}
+
+      - name: Configure (Test Suite)
+        working-directory: "${{ env.BUILD_DIR }}"
+        if: ${{ ! inputs.test-suite }}
+        run: |
+          cmake "${{ github.workspace }}" \
+            -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DBUILD_TESTING=ON \
+            -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
+            -DARM9_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_BIOS }}" \
+            -DARM7_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_DSI_BIOS }}" \
+            -DARM9_DSI_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_DSI_BIOS }}" \
+            -DNDS_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_FIRMWARE }}" \
+            -DDSI_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_FIRMWARE }}" \
+            -DDSI_NAND="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_NAND }}" \
+            -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
+            -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
+            -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
+            -DMELONDSDS_INTERNAL_VENV=OFF
             ${{ inputs.cmake-args }}
 
       - name: Build
@@ -117,17 +235,13 @@ jobs:
           if-no-files-found: error
           path: "${{ env.DIST_DIR }}"
 
-      - name: Remove Extra Artifacts
-        if: ${{ matrix.build-type == 'Debug' && inputs.test-suite }}
-        run: |
-          rm -rf "${{ env.BUILD_DIR }}/_deps" "${{ env.BUILD_DIR }}/src/libretro/CMakeFiles"
-        # Remove various files that we won't need to pass to the test suite
+      - name: Run Test Suite (Linux)
+        if: ${{ inputs.test-suite && runner.os == 'Linux' }}
+        working-directory: "${{ env.BUILD_DIR }}"
+        run: xvfb-run ctest --extra-verbose --exclude-regex example --output-on-failure
 
-      - name: Upload CMake Build Directory
-        uses: actions/upload-artifact@v3
-        if: ${{ matrix.build-type == 'Debug' && inputs.test-suite }}
-        with:
-          name: "zzz-not-for-players-cmake-build-${{ inputs.archive-name }}-${{ matrix.build-type }}"
-          # So no one tries to download this on nightly.link
-          if-no-files-found: error
-          path: "${{ env.BUILD_DIR }}"
+      - name: Run Test Suite (Windows)
+        if: ${{ inputs.test-suite && runner.os == 'Windows' }}
+        working-directory: "${{ env.BUILD_DIR }}"
+        shell: msys2 {0}
+        run: ctest --extra-verbose --exclude-regex example --output-on-failure
