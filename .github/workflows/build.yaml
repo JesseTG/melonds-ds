@@ -200,6 +200,7 @@ jobs:
         if: ${{ inputs.test-suite }}
         shell: bash
         run: |
+          ls -hal "${{ github.workspace }}"
           cmake "${{ github.workspace }}" \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             -DBUILD_TESTING=ON \
