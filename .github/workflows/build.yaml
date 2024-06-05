@@ -247,7 +247,5 @@ jobs:
         env:
           GLCONTEXT_WIN_LIBGL: "C:/msys64/mingw64/bin/opengl32.dll"
         run: |
-          ls -hal /mingw64/bin
-          ls -hal /c/msys64/mingw64/bin
-          echo $PATH
+          export PATH="/mingw64/bin:$PATH"
           ctest --extra-verbose --exclude-regex example --output-on-failure
