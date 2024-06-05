@@ -244,4 +244,6 @@ jobs:
         if: ${{ inputs.test-suite && runner.os == 'Windows' }}
         working-directory: "${{ env.BUILD_DIR }}"
         shell: msys2 {0}
+        env:
+          GLCONTEXT_WIN_LIBGL: "C:\msys64\mingw64\bin\opengl32.dll"
         run: ctest --extra-verbose --exclude-regex example --output-on-failure
