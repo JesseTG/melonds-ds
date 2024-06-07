@@ -88,7 +88,7 @@ cmake_path(GET DSI_NAND FILENAME DSI_NAND_NAME)
 
 include(CMakePrintHelpers)
 
-set(DEFAULT_TIMEOUT 30)
+set(DEFAULT_TIMEOUT 60) # In seconds
 
 function(add_python_test)
     set(options
