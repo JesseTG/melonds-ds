@@ -248,4 +248,5 @@ jobs:
           GLCONTEXT_WIN_LIBGL: "C:/mingw64/bin/opengl32.dll"
         run: |
           export PATH="/mingw64/bin:$PATH"
+          stat "$GLCONTEXT_WIN_LIBGL"
           ctest --extra-verbose --exclude-regex example --output-on-failure
