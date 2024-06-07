@@ -247,5 +247,4 @@ jobs:
         env:
           GLCONTEXT_WIN_LIBGL: "${{ env.RUNNER_TEMP }}/msys64/mingw64/bin/opengl32.dll"
         run: |
-          env | sort
           ctest --extra-verbose --exclude-regex example --output-on-failure
