@@ -1,4 +1,9 @@
-import itertools
+import sys
+
+if sys.version_info >= (3, 12):
+    from itertools import batched
+else:
+    from more_itertools import batched
 
 from libretro import Session
 from PIL import Image
@@ -17,7 +22,7 @@ with prelude.builder().with_options(options).build() as session:
     blank_frame = session.video.screenshot()
     blank_framebuffer = blank_frame.data
 
-    blank_colors = set(itertools.batched(blank_framebuffer, 4))
+    blank_colors = set(batched(blank_framebuffer, 4))
     assert blank_colors is not None and len(blank_colors) == 1, f"Expected an all-white frame, got {blank_colors}"
 
     for i in range(300):
