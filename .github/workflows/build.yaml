@@ -244,7 +244,7 @@ jobs:
         if: ${{ inputs.test-suite && runner.os == 'Windows' }}
         working-directory: "${{ env.BUILD_DIR }}"
         shell: msys2 {0}
-        env:
-          GLCONTEXT_WIN_LIBGL: "${{ env.RUNNER_TEMP }}/msys64/mingw64/bin/opengl32.dll"
         run: |
+          export GLCONTEXT_WIN_LIBGL="$RUNNER_TEMP/msys64/mingw64/bin/opengl32.dll"
+          # Needed by glcontext (which is a dependency for libretro.py's OpenGL driver)
           ctest --extra-verbose --exclude-regex example --output-on-failure
