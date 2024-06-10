@@ -100,6 +100,7 @@ PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
 
 PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     ZoneScopedN(TracyFunction);
+    retro::debug(TracyFunction);
 
     retro_assert(info != nullptr);
 
