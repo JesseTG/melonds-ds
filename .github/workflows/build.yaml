@@ -248,6 +248,7 @@ jobs:
         shell: msys2 {0}
         env:
           PYTHONUNBUFFERED: 1
+          MESA_DEBUG: 1
         run: |
           export GLCONTEXT_WIN_LIBGL="$RUNNER_TEMP/msys64/mingw64/bin/opengl32.dll"
           # Needed by glcontext (which is a dependency for libretro.py's OpenGL driver)
