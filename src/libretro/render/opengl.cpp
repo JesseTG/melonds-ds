@@ -244,6 +244,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     nds.GPU.GPU3D.SetCurrentRenderer(std::make_unique<melonDS::SoftRenderer>());
     auto renderer = melonDS::GLRenderer::New();
     if (!renderer) {
+        retro::error("Failed to initialize OpenGL renderer!");
         throw opengl_not_initialized_exception();
     }
     renderer->SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
