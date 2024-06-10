@@ -238,12 +238,16 @@ jobs:
       - name: Run Test Suite (Linux)
         if: ${{ inputs.test-suite && runner.os == 'Linux' }}
         working-directory: "${{ env.BUILD_DIR }}"
+        env:
+          PYTHONUNBUFFERED: 1
         run: xvfb-run ctest --extra-verbose --exclude-regex example --output-on-failure
 
       - name: Run Test Suite (Windows)
         if: ${{ inputs.test-suite && runner.os == 'Windows' }}
         working-directory: "${{ env.BUILD_DIR }}"
         shell: msys2 {0}
+        env:
+          PYTHONUNBUFFERED: 1
         run: |
           export GLCONTEXT_WIN_LIBGL="$RUNNER_TEMP/msys64/mingw64/bin/opengl32.dll"
           # Needed by glcontext (which is a dependency for libretro.py's OpenGL driver)
