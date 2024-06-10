@@ -247,15 +247,19 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
         retro::error("Failed to initialize OpenGL renderer!");
         throw opengl_not_initialized_exception();
     }
+    retro::debug("Constructed OpenGL renderer");
     renderer->SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
+    retro::debug("Applied OpenGL renderer settings");
     nds.GPU.SetRenderer3D(std::move(renderer));
     retro::debug("Installed OpenGL renderer");
 
     SetUpCoreOpenGlState(config);
+    retro::debug("Initialized core OpenGL state");
     _contextInitialized = true;
 
     // Stop using OpenGL structures
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
+    retro::debug("Unbound GL state");
 
     retro::debug("OpenGL context reset successfully.");
 }
