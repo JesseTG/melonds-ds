@@ -226,12 +226,16 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     retro_assert(status == GL_FRAMEBUFFER_COMPLETE);
 
     // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
+    retro::debug("Setting up GL state");
     glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
+    retro::debug("Set up GL state");
 
     // Start using global OpenGL structures
     {
         TracyGpuZone("GLSM_CTL_STATE_BIND");
+        retro::debug("Binding GL state");
         glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
+        retro::debug("Bound GL state");
     }
 
     // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
@@ -244,6 +248,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     }
     renderer->SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
     nds.GPU.SetRenderer3D(std::move(renderer));
+    retro::debug("Installed OpenGL renderer");
 
     SetUpCoreOpenGlState(config);
     _contextInitialized = true;
