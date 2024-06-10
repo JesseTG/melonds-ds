@@ -240,7 +240,7 @@ jobs:
         working-directory: "${{ env.BUILD_DIR }}"
         env:
           PYTHONUNBUFFERED: 1
-        run: xvfb-run ctest --extra-verbose --exclude-regex example --output-on-failure
+        run: xvfb-run ctest --exclude-regex example --output-on-failure
 
       - name: Run Test Suite (Windows)
         if: ${{ inputs.test-suite && runner.os == 'Windows' }}
