@@ -105,6 +105,8 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     retro_assert(info != nullptr);
 
     *info = MelonDsDs::Core.GetSystemAvInfo();
+
+    retro::debug("retro_get_system_av_info finished");
 }
 
 PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
