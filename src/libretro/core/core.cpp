@@ -656,7 +656,12 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
             // If we're switching renderer modes...
             retro::debug("Switching render mode from {} to {}", *oldRenderer, *newRenderer);
             retro_system_av_info av = GetSystemAvInfo(*newRenderer);
-            retro::set_system_av_info(av);
+            if (retro::set_system_av_info(av)) {
+                retro::info("Updated system AV info for new renderer");
+            }
+            else {
+                retro::warn("Failed to update system AV info for new renderer");
+            }
         }
 
         _renderState.UpdateRenderer(Config, *Console);
