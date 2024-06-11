@@ -117,6 +117,16 @@ jobs:
           update: true
           install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-mesa mingw-w64-x86_64-python
 
+      - name: Install winget
+        uses: Cyberboss/install-winget@v1
+        if: ${{ runner.os == 'Windows' }}
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install OpenGL Compatibility Pack (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        run: winget install 9NQPSL29BFFF --disable-interactivity --accept-source-agreements
+
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         shell: bash
