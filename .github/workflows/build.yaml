@@ -125,7 +125,9 @@ jobs:
 
       - name: Install OpenGL Compatibility Pack (Windows)
         if: ${{ runner.os == 'Windows' }}
-        run: winget install 9NQPSL29BFFF --disable-interactivity --accept-source-agreements
+        run: |
+          echo $Env:PATH
+          winget install 9NQPSL29BFFF --disable-interactivity --accept-source-agreements
 
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
