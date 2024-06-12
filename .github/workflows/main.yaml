@@ -52,8 +52,23 @@ jobs:
       runs-on: macos-latest
       target: macos-x86_64
       lib-ext: dylib
+      test-suite: true
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
+    secrets:
+      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
+      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
+      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
+      DSI_NAND: ${{ secrets.DSI_NAND }}
+      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
+      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
+      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
+      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
+      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
+      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
+      NDS_ROM: ${{ secrets.NDS_ROM }}
+      GBA_ROM: ${{ secrets.GBA_ROM }}
+      GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
   macos-arm64:
     name: macOS (arm64)
@@ -63,8 +78,23 @@ jobs:
       runs-on: macos-latest
       target: macos-arm64
       lib-ext: dylib
+      test-suite: true
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
+    secrets:
+      TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
+      TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
+      DSI_NAND_ARCHIVE: ${{ secrets.DSI_NAND_ARCHIVE }}
+      DSI_NAND: ${{ secrets.DSI_NAND }}
+      ARM7_BIOS: ${{ secrets.ARM7_BIOS }}
+      ARM9_BIOS: ${{ secrets.ARM9_BIOS }}
+      ARM7_DSI_BIOS: ${{ secrets.ARM7_DSI_BIOS }}
+      ARM9_DSI_BIOS: ${{ secrets.ARM9_DSI_BIOS }}
+      NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
+      DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
+      NDS_ROM: ${{ secrets.NDS_ROM }}
+      GBA_ROM: ${{ secrets.GBA_ROM }}
+      GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
   linux-x86_64:
     name: Linux (x86_64)
