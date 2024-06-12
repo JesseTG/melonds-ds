@@ -128,7 +128,7 @@ jobs:
         shell: powershell
         run: |
           winget source update
-          winget install 9NQPSL29BFFF --source=msstore --disable-interactivity --accept-source-agreements --accept-package-agreements
+          winget install 9NQPSL29BFFF --source=msstore --disable-interactivity --accept-source-agreements --accept-package-agreements --verbose
 
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
