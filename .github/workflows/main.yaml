@@ -49,7 +49,7 @@ jobs:
     uses: ./.github/workflows/build.yaml
     with:
       archive-name: melondsds_libretro-macos-x86_64
-      runs-on: macos-latest
+      runs-on: macos-13
       target: macos-x86_64
       lib-ext: dylib
       test-suite: true
