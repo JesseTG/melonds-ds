@@ -115,7 +115,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-mesa mingw-w64-x86_64-python
+          install: git pkgconf mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake
 
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
