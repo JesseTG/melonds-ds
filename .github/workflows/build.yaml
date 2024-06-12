@@ -248,6 +248,13 @@ jobs:
           if-no-files-found: error
           path: "${{ env.DIST_DIR }}"
 
+      - name: Run Test Suite (macOS)
+        if: ${{ inputs.test-suite && runner.os == 'macOS' }}
+        working-directory: "${{ env.BUILD_DIR }}"
+        env:
+          PYTHONUNBUFFERED: 1
+        run: ctest --exclude-regex example --output-on-failure
+
       - name: Run Test Suite (Linux)
         if: ${{ inputs.test-suite && runner.os == 'Linux' }}
         working-directory: "${{ env.BUILD_DIR }}"
