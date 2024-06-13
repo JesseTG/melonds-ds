@@ -3,9 +3,6 @@ name: Build Artifacts
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - dev
     paths-ignore:
       - "*.gitlab-ci.yml"
       - "*.gitignore"
