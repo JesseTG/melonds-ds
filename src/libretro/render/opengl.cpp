@@ -148,9 +148,9 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     glsm_ctx_params_t params = {};
 
     // MelonDS DS wants an opengl 3.1 context, so glcore is required for mesa compatibility
-    params.context_type = RETRO_HW_CONTEXT_OPENGL;
+    params.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
     params.major = 3;
-    params.minor = 1;
+    params.minor = 2;
     params.context_reset = HardwareContextReset;
     params.context_destroy = HardwareContextDestroyed;
     params.environ_cb = retro::environment;
