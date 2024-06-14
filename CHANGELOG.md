@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project roughly adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2024-06-14
+
+### Fixed
+
+- Fixed a crash that would occur when attempting to use the OpenGL renderer on some GPUs. [#203](https://github.com/JesseTG/melonds-ds/issues/203)
+
 ## [1.1.2] - 2024-06-12
 
 ### Fixed

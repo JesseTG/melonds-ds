@@ -147,10 +147,11 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     retro::debug(TracyFunction);
     glsm_ctx_params_t params = {};
 
-    // MelonDS DS wants an opengl 3.1 context, so glcore is required for mesa compatibility
-    params.context_type = RETRO_HW_CONTEXT_OPENGL;
+    // MelonDS needs at least OpenGL 3.2 for OpenGL renderer
+    // (it doesn't use the legacy fixed-function pipeline)
+    params.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
     params.major = 3;
-    params.minor = 1;
+    params.minor = 2;
     params.context_reset = HardwareContextReset;
     params.context_destroy = HardwareContextDestroyed;
     params.environ_cb = retro::environment;
@@ -219,11 +220,8 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 
     uintptr_t fbo = glsm_get_current_framebuffer();
     retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
-    retro::debug("Current OpenGL framebuffer: {}", fbo);
-
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    retro::debug("Framebuffer status: {}", static_cast<FormattedGLEnum>(status));
-    retro_assert(status == GL_FRAMEBUFFER_COMPLETE);
+    retro::debug("Current OpenGL framebuffer: id={}, status={}", fbo, static_cast<FormattedGLEnum>(status));
 
     // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
     retro::debug("Setting up GL state");
