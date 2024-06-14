@@ -219,11 +219,8 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 
     uintptr_t fbo = glsm_get_current_framebuffer();
     retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
-    retro::debug("Current OpenGL framebuffer: {}", fbo);
-
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    retro::debug("Framebuffer status: {}", static_cast<FormattedGLEnum>(status));
-    retro_assert(status == GL_FRAMEBUFFER_COMPLETE);
+    retro::debug("Current OpenGL framebuffer: id={}, status={}", fbo, static_cast<FormattedGLEnum>(status));
 
     // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
     retro::debug("Setting up GL state");
