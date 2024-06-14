@@ -50,7 +50,7 @@ jobs:
       target: macos-x86_64
       lib-ext: dylib
       test-suite: true
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=ON -DENABLE_OPENGL=ON -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
@@ -76,7 +76,7 @@ jobs:
       target: macos-arm64
       lib-ext: dylib
       test-suite: true
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=ON -DENABLE_OPENGL=ON -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
