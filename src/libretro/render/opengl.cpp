@@ -147,7 +147,8 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     retro::debug(TracyFunction);
     glsm_ctx_params_t params = {};
 
-    // MelonDS DS wants an opengl 3.1 context, so glcore is required for mesa compatibility
+    // MelonDS needs at least OpenGL 3.2 for OpenGL renderer
+    // (it doesn't use the legacy fixed-function pipeline)
     params.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
     params.major = 3;
     params.minor = 2;
