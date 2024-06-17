@@ -241,7 +241,11 @@ namespace MelonDsDs::config {
         static constexpr const char *const UPSIDE_DOWN = "rotate-180";
     }
 
-    constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
+    constexpr size_t NOCASH_FOOTER_SIZE = 0x40;
+    constexpr size_t NOCASH_FOOTER_OFFSET = 0xFF800;
+    constexpr std::array<size_t, 2> DSI_NAND_SIZES_NOFOOTER = { 0xF000000, 0xF580000 }; // Taken from GBATek
+    constexpr const char *const NOCASH_FOOTER_MAGIC = "DSi eMMC CID/CPU";
+    constexpr size_t NOCASH_FOOTER_MAGIC_SIZE = 16;
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
