@@ -300,13 +300,12 @@ constexpr uint32_t GetLogColor(retro_log_level level) noexcept {
 void retro::fmt_log(retro_log_level level, fmt::string_view fmt, fmt::format_args args) noexcept {
     fmt::basic_memory_buffer<char, 1024> buffer;
     fmt::vformat_to(std::back_inserter(buffer), fmt, args);
-    // We can't pass the va_list directly to the libretro callback,
-    // so we have to construct the string and print that
 
-    if (buffer[buffer.size() - 1] == '\n')
-        buffer[buffer.size() - 1] = '\0';
+    if (buffer[buffer.size() - 1] != '\n')
+        // If the string doesn't end with a newline...
+        buffer.push_back('\n');
 
-    buffer.push_back('\n');
+    // vformat_to doesn't append a null terminator, so we have to do it ourselves
     buffer.push_back('\0');
 
     if (_log) {
