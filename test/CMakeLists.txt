@@ -274,11 +274,6 @@ set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 
 set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
 
-# TODO: Write the following test capabilities:
-# - Copying a system file to a particular location
-# - Select a GBA ROM
-# - Select a GBA save file
-
 # TODO: Write the following tests:
 
 # - Core loads BIOS from system
