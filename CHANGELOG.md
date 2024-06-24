@@ -10,6 +10,7 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 ### Fixed
 
 - Fixed some log entries not being output with a newline.
+- Fixed a crash when using a hybrid screen layout with a screen ratio of 3:1.
 
 ## [1.1.3] - 2024-06-14
 

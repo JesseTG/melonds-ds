@@ -90,7 +90,7 @@ namespace MelonDsDs::config {
     namespace screen {
         constexpr unsigned MAX_HYBRID_RATIO = 3;
         constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
-        constexpr unsigned MAX_SCREEN_GAP = 128;
+        constexpr unsigned MAX_SCREEN_GAP = 126;
         static constexpr const char *const CATEGORY = "screen";
         static constexpr const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
         static constexpr const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
