@@ -17,6 +17,8 @@
 #ifndef MELONDS_DS_ERROR_HPP
 #define MELONDS_DS_ERROR_HPP
 
+#include <libretro.h> // enum retro_language
+
 #include "exceptions.hpp"
 #include "screenlayout.hpp"
 
@@ -31,7 +33,7 @@ namespace MelonDsDs {
 namespace MelonDsDs::error {
     class ErrorScreen {
     public:
-        explicit ErrorScreen(const config_exception& e) noexcept;
+        explicit ErrorScreen(const config_exception& e, enum retro_language language) noexcept;
         ~ErrorScreen();
         ErrorScreen(const ErrorScreen&) = delete;
         ErrorScreen& operator=(const ErrorScreen&) = delete;
@@ -43,9 +45,11 @@ namespace MelonDsDs::error {
     private:
         void DrawTopScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
         void DrawBottomScreen(pntr_font* titleFont, pntr_font* bodyFont) const noexcept;
+        const char* translate(const char* message) const noexcept;
         config_exception exception;
         pntr_image* bottomScreen = nullptr;
         pntr_image* topScreen = nullptr;
+        enum retro_language language = RETRO_LANGUAGE_ENGLISH;
     };
 }
 
