@@ -36,7 +36,7 @@ constexpr pntr_color TEXT_COLOR_BOTTOM = {.rgba = {.b = 0x98, .g = 0xE5, .r = 0x
 
 static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
 static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
-static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
+static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS! Θ.Θ";
 
 using std::span;
 using MelonDsDs::NDS_SCREEN_AREA;
