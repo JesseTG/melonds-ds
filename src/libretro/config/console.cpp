@@ -40,6 +40,7 @@
 #include "format.hpp"
 #include "retro/http.hpp"
 #include "retro/info.hpp"
+#include "strings/strings.hpp"
 #include "types.hpp"
 
 using std::make_optional;
@@ -59,6 +60,7 @@ namespace MelonDsDs {
     const char *TMD_DIR_NAME = "tmd";
     const char* SENTINEL_NAME = "melon.dat";
     constexpr uint32_t RSA256_SIGNATURE_TYPE = 16777472;
+    using namespace strings::en_us;
 
     static melonDS::NDSArgs GetNdsArgs(
         const CoreConfig& config,
@@ -134,9 +136,7 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
     if (type == ConsoleType::DSi) {
         // If we're in DSi mode...
         if (gbaInfo || gbaSaveInfo) {
-            retro::set_warn_message(
-                "The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM."
-            );
+            retro::set_warn_message(DsiDoesntHaveGbaSlot);
         }
         return std::make_unique<melonDS::DSi>(GetDSiArgs(config, ndsInfo));
     }
@@ -471,11 +471,7 @@ static std::pair<unique_ptr<uint8_t[]>, size_t> MelonDsDs::LoadGbaSram(const ret
         // We don't support GBA SRAM files in archives right now;
         // libretro-common has APIs for extracting and re-inserting them,
         // but I just can't be bothered.
-        retro::set_error_message(
-            "melonDS DS does not support archived GBA save data right now. "
-            "Please extract it and try again. "
-            "Continuing without using the save data."
-        );
+        retro::set_error_message(ArchivedGbaSaveNotSupported);
 
         return { nullptr, 0 };
     }
@@ -492,11 +488,7 @@ static std::pair<unique_ptr<uint8_t[]>, size_t> MelonDsDs::LoadGbaSram(const ret
 
         // We don't support rzip-compressed GBA save files right now;
         // I can't be bothered.
-        retro::set_error_message(
-            "melonDS DS does not support compressed GBA save data right now. "
-            "Please disable save data compression in the frontend and try again. "
-            "Continuing without using the save data."
-        );
+        retro::set_error_message(CompressedGbaSaveNotSupported);
 
         rzipstream_close(gba_save_file);
         return { nullptr, 0 };
@@ -955,15 +947,13 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
         memset(&chk2[0x0C], 0, 8);
 
         if (!memcmp(chk1, chk2, sizeof(chk1))) {
-            constexpr const char* const WARNING_MESSAGE =
-                "Corrupted firmware detected!\n"
-                "Any game that alters Wi-fi settings will break this firmware, even on real hardware.\n";
+
 
             if (config.ShowBiosWarnings()) {
-                retro::set_warn_message(WARNING_MESSAGE);
+                retro::set_warn_message(HackedFirmwareWarning);
             }
             else {
-                retro::warn(WARNING_MESSAGE);
+                retro::warn(HackedFirmwareWarning);
             }
         }
     }
@@ -981,7 +971,7 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
 
         optional<u16string> convertedUsername = ConvertUsername(*username);
         if (!convertedUsername) {
-            retro::set_warn_message("Can't use the name \"{}\" on the DS, using default name instead.", *username);
+            retro::set_warn_message(UsernameFailed, fmt::arg("name", *username));
             convertedUsername = ConvertUsername(config::values::firmware::DEFAULT_USERNAME);
         }
 

@@ -67,12 +67,14 @@
 #include "std/span.hpp"
 #include "tracy.hpp"
 #include "pcap.hpp"
+#include "strings/en_us.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 using namespace melonDS;
+using namespace MelonDsDs::strings::en_us;
 using std::array;
 using std::find_if;
 using std::from_chars;
@@ -874,7 +876,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
         }
 
     } else {
-        retro::set_error_message("Failed to get system directory, anything that needs it won't work.");
+        retro::set_error_message(SysDirFailed);
     }
 
     if (!dsiNandPaths.empty()) {
@@ -1004,7 +1006,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 #endif
 
     if (!retro::set_core_options(optionsUs)) {
-        retro::set_error_message("Failed to set core option definitions, functionality will be limited.");
+        retro::set_error_message(OptionInitFailed);
         return false;
     }
 

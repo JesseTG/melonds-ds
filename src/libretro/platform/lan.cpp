@@ -27,9 +27,11 @@
 #include "../config/constants.hpp"
 #include "../config/config.hpp"
 #include "../environment.hpp"
+#include "../strings/strings.hpp"
 #include "tracy.hpp"
 #include "pcap.hpp"
 
+using namespace MelonDsDs::strings::en_us;
 using namespace melonDS;
 using std::string;
 using std::string_view;
@@ -164,7 +166,7 @@ bool MelonDsDs::CoreState::LanInit() noexcept {
                 return true;
             }
 
-            retro::set_error_message("Failed to initialize indirect-mode Wi-fi support. Wi-fi will not be emulated.");
+            retro::set_error_message(IndirectWifiInitFailed);
             [[fallthrough]];
         default:
             _activeNetworkMode = MelonDsDs::NetworkMode::None;
