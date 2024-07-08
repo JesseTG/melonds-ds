@@ -490,7 +490,6 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         _optionVisibility.Update();
     }
     ApplyConfig(Config);
-    // Must initialize the render state if using OpenGL (so the function pointers can be loaded
 
     _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
     retro_assert(Console == nullptr);
