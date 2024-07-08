@@ -7,10 +7,16 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 ## [Unreleased]
 
+### Changed
+
+- Updated the "DSi NAND Path" core option description to clarify the role of the no$gba footer.
+
 ### Fixed
 
 - Fixed some log entries not being output with a newline.
 - Fixed a crash when using a hybrid screen layout with a screen ratio of 3:1.
+- Fixed DSi NAND images not being recognized if they lacked a no$gba footer
+  despite having equivalent data at offset 0xFF800. [#195](https://github.com/JesseTG/melonds-ds/issues/195)
 
 ## [1.1.3] - 2024-06-14
 
