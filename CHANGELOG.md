@@ -17,6 +17,8 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 - Fixed a crash when using a hybrid screen layout with a screen ratio of 3:1.
 - Fixed DSi NAND images not being recognized if they lacked a no$gba footer
   despite having equivalent data at offset 0xFF800. [#195](https://github.com/JesseTG/melonds-ds/issues/195)
+- Fixed the screen being rendered when using the OpenGL renderer while the emulated lid is closed,
+  which caused flickering in some games. [#214](https://github.com/JesseTG/melonds-ds/issues/214)
 
 ## [1.1.3] - 2024-06-14
 
