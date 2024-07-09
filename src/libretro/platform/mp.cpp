@@ -19,43 +19,37 @@
 //! Local multiplayer is not implemented in melonDS DS.
 
 using namespace melonDS;
-bool Platform::MP_Init() {
-    return false;
+
+void Platform::MP_Begin(void*) {
 }
 
-void Platform::MP_DeInit() {
+void Platform::MP_End(void*) {
 }
 
-void Platform::MP_Begin() {
-}
-
-void Platform::MP_End() {
-}
-
-int Platform::MP_SendPacket(u8*, int, u64) {
+int Platform::MP_SendPacket(u8*, int, u64, void*) {
     return 0;
 }
 
-int Platform::MP_RecvPacket(u8*, u64 *) {
+int Platform::MP_RecvPacket(u8*, u64*, void*) {
     return 0;
 }
 
-int Platform::MP_SendCmd(u8*, int, u64) {
+int Platform::MP_SendCmd(u8*, int, u64, void*) {
     return 0;
 }
 
-int Platform::MP_SendReply(u8*, int, u64, u16) {
+int Platform::MP_SendReply(u8*, int, u64, u16, void*) {
     return 0;
 }
 
-int Platform::MP_SendAck(u8*, int, u64) {
+int Platform::MP_SendAck(u8*, int, u64, void*) {
     return 0;
 }
 
-int Platform::MP_RecvHostPacket(u8 *, u64 *) {
+int Platform::MP_RecvHostPacket(u8*, u64 *, void*) {
     return 0;
 }
 
-u16 Platform::MP_RecvReplies(u8 *, u64, u16) {
+u16 Platform::MP_RecvReplies(u8*, u64, u16, void*) {
     return 0;
 }
