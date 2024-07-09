@@ -52,7 +52,7 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         "Determines whether melonDS uses native BIOS/firmware dumps "
         "or its own built-in replacements. "
-        "Only applies to DS mode, as DSi mode requires native BIOS and firmware dumps.\n"
+        "Only applies to DS mode, as DSi mode always requires native BIOS and firmware dumps.\n"
         "\n"
         "Native mode uses BIOS and firmware files from a real DS. "
         "Place your dumps of these in the system directory or its \"melonDS DS\" subdirectory "
@@ -66,8 +66,7 @@ namespace MelonDsDs::config::definitions {
         "Falls back to Built-In if any BIOS/firmware file isn't found.\n"
         "\n"
         "Built-In mode uses melonDS's built-in BIOS and firmware, "
-        "and it suitable for most games. "
-        "Also used as a fallback from Native mode if any required file isn't found.\n"
+        "and is suitable for most games.\n"
         "\n"
         "Changes take effect at next restart.",
         nullptr,
@@ -136,8 +135,8 @@ namespace MelonDsDs::config::definitions {
         "Files are listed here if they:\n"
         "\n"
         "- Are inside the frontend's system directory, or a subdirectory named \"melonDS DS\".\n"
-        "- Are exactly 251,658,304 bytes (240MB) or 257,425,472 bytes (245.5MB) long.\n"
-        "- Contain valid footer data for DSi NAND images.\n"
+        "- Are exactly 251,658,304 bytes (240MB) or 257,425,472 bytes (245.5MB) long with valid footer data, OR;\n"
+        "- Are 64 bytes shorter than these lengths and contain equivalent data at file offset 0xFF800.\n"
         "\n"
         "Changes take effect at next restart.",
         nullptr,

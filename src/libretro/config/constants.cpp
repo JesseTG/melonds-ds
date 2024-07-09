@@ -35,18 +35,63 @@ using std::nullopt;
 using std::string;
 using namespace melonDS;
 
+// We verify the filesize of the NAND image and the presence of the no$gba footer (since melonDS needs it)
 bool MelonDsDs::config::IsDsiNandImage(const retro::dirent &file) noexcept {
     ZoneScopedN(TracyFunction);
     ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
 
-    // TODO: Validate the NoCash footer
     if (!file.is_regular_file())
         return false;
 
-    if (find(DSI_NAND_SIZES.begin(), DSI_NAND_SIZES.end(), file.size) == DSI_NAND_SIZES.end())
+    switch (file.size) {
+        case DSI_NAND_SIZES_NOFOOTER[0] + NOCASH_FOOTER_SIZE: // 240MB + no$gba footer
+        case DSI_NAND_SIZES_NOFOOTER[1] + NOCASH_FOOTER_SIZE: // 245.5MB + no$gba footer
+        case DSI_NAND_SIZES_NOFOOTER[0]: // 240MB
+        case DSI_NAND_SIZES_NOFOOTER[1]: // 245.5MB
+            break; // the size is good, let's look for the footer!
+        default:
+            return false;
+    }
+
+    RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!stream)
         return false;
 
-    return true;
+    if (filestream_seek(stream, -static_cast<int64_t>(NOCASH_FOOTER_SIZE), RETRO_VFS_SEEK_POSITION_END) < 0) {
+        filestream_close(stream);
+        return false;
+    }
+
+    std::array<uint8_t , NOCASH_FOOTER_SIZE> footer;
+    if (filestream_read(stream, footer.data(), footer.size()) != NOCASH_FOOTER_SIZE) {
+        filestream_close(stream);
+        return false;
+    }
+
+    if (filestream_seek(stream, NOCASH_FOOTER_OFFSET, RETRO_VFS_SEEK_POSITION_START) < 0) {
+        filestream_close(stream);
+        return false;
+    }
+
+    std::array<uint8_t , NOCASH_FOOTER_SIZE> unusedArea;
+    if (filestream_read(stream, unusedArea.data(), unusedArea.size()) != NOCASH_FOOTER_SIZE) {
+        filestream_close(stream);
+        return false;
+    }
+
+    filestream_close(stream);
+
+    if (memcmp(footer.data(), NOCASH_FOOTER_MAGIC, NOCASH_FOOTER_MAGIC_SIZE) == 0) {
+        // If the no$gba footer is present at the end of the file and correctly starts with the magic bytes...
+        return true;
+    }
+
+    if (memcmp(unusedArea.data(), NOCASH_FOOTER_MAGIC, NOCASH_FOOTER_MAGIC_SIZE) == 0) {
+        // If the no$gba footer is present in a normally-unused section of the DSi NAND, and it starts with the magic bytes...
+        return true;
+    }
+
+    return false;
 }
 
 bool MelonDsDs::config::IsFirmwareImage(const retro::dirent& file, Firmware::FirmwareHeader& header) noexcept {

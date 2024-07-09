@@ -407,7 +407,15 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    if (nds.IsLidClosed()) [[unlikely]] {
+        // If the emulated lid is closed, just draw a blank
+        // so that there's no annoying flickering with some games
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    else {
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    }
 
     glFlush();
 

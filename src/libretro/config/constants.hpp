@@ -90,7 +90,7 @@ namespace MelonDsDs::config {
     namespace screen {
         constexpr unsigned MAX_HYBRID_RATIO = 3;
         constexpr unsigned MAX_SCREEN_LAYOUTS = 8; // Chosen arbitrarily; if you need more, open a PR
-        constexpr unsigned MAX_SCREEN_GAP = 128;
+        constexpr unsigned MAX_SCREEN_GAP = 126;
         static constexpr const char *const CATEGORY = "screen";
         static constexpr const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
         static constexpr const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
@@ -241,7 +241,11 @@ namespace MelonDsDs::config {
         static constexpr const char *const UPSIDE_DOWN = "rotate-180";
     }
 
-    constexpr std::array<size_t, 2> DSI_NAND_SIZES = { 251658304, 257425472 };
+    constexpr size_t NOCASH_FOOTER_SIZE = 0x40;
+    constexpr size_t NOCASH_FOOTER_OFFSET = 0xFF800;
+    constexpr std::array<size_t, 2> DSI_NAND_SIZES_NOFOOTER = { 0xF000000, 0xF580000 }; // Taken from GBATek
+    constexpr const char *const NOCASH_FOOTER_MAGIC = "DSi eMMC CID/CPU";
+    constexpr size_t NOCASH_FOOTER_MAGIC_SIZE = 16;
     constexpr std::array<size_t, 3> FIRMWARE_SIZES = { 131072, 262144, 524288 };
 
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
