@@ -142,7 +142,8 @@ endif ()
 
 if (HAVE_NETWORKING)
     target_sources(melondsds_libretro PRIVATE
-        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_Socket.cpp
+        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_Slirp.cpp
+        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_Slirp.h
         platform/lan.cpp
     )
 
@@ -150,7 +151,8 @@ if (HAVE_NETWORKING)
 
     if (HAVE_NETWORKING_DIRECT_MODE)
         target_sources(melondsds_libretro PRIVATE
-            ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/LAN_PCap.cpp
+            ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_PCap.cpp
+            ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_PCap.h
         )
     endif()
 endif ()
