@@ -38,7 +38,7 @@ using namespace melonDS;
 constexpr unsigned DSI_CAMERA_WIDTH = 640;
 constexpr unsigned DSI_CAMERA_HEIGHT = 480;
 
-void Platform::SignalStop(Platform::StopReason reason) {
+void Platform::SignalStop(Platform::StopReason reason, void* userdata) {
     retro::debug("Platform::SignalStop({})\n", reason);
     switch (reason) {
         case StopReason::BadExceptionRegion:
@@ -56,14 +56,6 @@ void Platform::SignalStop(Platform::StopReason reason) {
             break;
             // no-op; not every stop reason needs a message shown to the user
     }
-}
-
-int Platform::InstanceID() {
-    return 0;
-}
-
-std::string Platform::InstanceFileSuffix() {
-    return "";
 }
 
 static retro_log_level to_retro_log_level(Platform::LogLevel level) {
@@ -102,16 +94,16 @@ void Platform::Sleep(u64 usecs) {
     sleep_impl(usecs);
 }
 
-void Platform::WriteDateTime(int year, int month, int day, int hour, int minute, int second) {
+void Platform::WriteDateTime(int year, int month, int day, int hour, int minute, int second, void* userdata) {
     ZoneScopedN(TracyFunction);
     retro::debug("Platform::WriteDateTime({}, {}, {}, {}, {}, {})", year, month, day, hour, minute, second);
 }
 
-void Platform::Camera_Start(int num) {
+void Platform::Camera_Start(int num, void* userdata) {
 }
 
-void Platform::Camera_Stop(int num) {
+void Platform::Camera_Stop(int num, void* userdata) {
 }
 
-void Platform::Camera_CaptureFrame(int num, u32 *frame, int width, int height, bool yuv) {
+void Platform::Camera_CaptureFrame(int num, u32 *frame, int width, int height, bool yuv, void* userdata) {
 }

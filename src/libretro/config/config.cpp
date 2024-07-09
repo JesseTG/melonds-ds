@@ -49,7 +49,7 @@
 #include <SPI_Firmware.h>
 #include <FreeBIOS.h>
 #include <file/config_file.h>
-#include <LAN_PCap.h>
+#include <Net_PCap.h>
 
 #include "config/constants.hpp"
 #include "config/definitions.hpp"

@@ -308,31 +308,31 @@ void Platform::LAN_DeInit() {
     MelonDsDs::Core.LanDeinit();
 }
 
-int Platform::LAN_SendPacket(u8* data, int len) {
+int Platform::Net_SendPacket(u8* data, int len, void*) {
     ZoneScopedN(TracyFunction);
 
     return MelonDsDs::Core.LanSendPacket(std::span((std::byte*)data, len));
 }
 
-int Platform::LAN_RecvPacket(u8* data) {
+int Platform::Net_RecvPacket(u8* data, void*) {
     ZoneScopedN(TracyFunction);
 
     return MelonDsDs::Core.LanRecvPacket(data);
 }
 
-void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+void Platform::WriteNDSSave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen, void*) {
     ZoneScopedN(TracyFunction);
 
     MelonDsDs::Core.WriteNdsSave(span((const std::byte*)savedata, savelen), writeoffset, writelen);
 }
 
-void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen) {
+void Platform::WriteGBASave(const u8 *savedata, u32 savelen, u32 writeoffset, u32 writelen, void*) {
     ZoneScopedN(TracyFunction);
 
     MelonDsDs::Core.WriteGbaSave(span((const std::byte*)savedata, savelen), writeoffset, writelen);
 }
 
-void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writelen) {
+void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writelen, void*) {
     ZoneScopedN(TracyFunction);
 
     MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
