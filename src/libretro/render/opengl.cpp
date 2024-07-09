@@ -185,8 +185,7 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
 
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
-
-        melonDS::OpenGL::DeleteShaderProgram(shader.data());
+        glDeleteProgram(_screenProgram);
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
     }
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
@@ -278,27 +277,32 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
 
     // TODO: Check gl_check_capability for GL_CAPS_VAO and GL_CAPS_FBO
 
-    if (!melonDS::OpenGL::BuildShaderProgram(embedded_melondsds_vertex_shader, embedded_melondsds_fragment_shader, shader.data(), SHADER_PROGRAM_NAME))
-        throw shader_compilation_failed_exception("Failed to compile melonDS DS shaders.");
+    bool shaderCompiled = melonDS::OpenGL::CompileVertexFragmentProgram(
+        _screenProgram,
+        embedded_melondsds_vertex_shader,
+        embedded_melondsds_fragment_shader,
+        SHADER_PROGRAM_NAME,
+        {
+            {"vPosition", 0},
+            {"vTexcoord", 1},
+        },
+        {
+            {"oColor", 0},
+        }
+    );
+
+    if (!shaderCompiled)
+        throw shader_compilation_failed_exception("Failed to compile and link melonDS DS screen shader program.");
 
     if (_openGlDebugAvailable) {
-        glObjectLabel(GL_SHADER, shader[0], -1, "melonDS DS Vertex Shader");
-        glObjectLabel(GL_SHADER, shader[1], -1, "melonDS DS Fragment Shader");
-        glObjectLabel(GL_PROGRAM, shader[2], -1, SHADER_PROGRAM_NAME);
+        glObjectLabel(GL_PROGRAM, _screenProgram, -1, SHADER_PROGRAM_NAME);
     }
 
-    glBindAttribLocation(shader[2], 0, "vPosition");
-    glBindAttribLocation(shader[2], 1, "vTexcoord");
-    glBindFragDataLocation(shader[2], 0, "oColor");
+    GLuint uConfigBlockIndex = glGetUniformBlockIndex(_screenProgram, "uConfig");
+    glUniformBlockBinding(_screenProgram, uConfigBlockIndex, 16); // TODO: Where does 16 come from? It's not a size.
 
-    if (!melonDS::OpenGL::LinkShaderProgram(shader.data()))
-        throw shader_compilation_failed_exception("Failed to link compiled shaders.");
-
-    GLuint uConfigBlockIndex = glGetUniformBlockIndex(shader[2], "uConfig");
-    glUniformBlockBinding(shader[2], uConfigBlockIndex, 16); // TODO: Where does 16 come from? It's not a size.
-
-    glUseProgram(shader[2]);
-    GLuint uni_id = glGetUniformLocation(shader[2], "ScreenTex");
+    glUseProgram(_screenProgram);
+    GLuint uni_id = glGetUniformLocation(_screenProgram, "ScreenTex");
     glUniform1i(uni_id, 0);
 
     memset(&GL_ShaderConfig, 0, sizeof(GL_ShaderConfig));
@@ -387,7 +391,7 @@ void MelonDsDs::OpenGLRenderState::Render(
     if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    melonDS::OpenGL::UseShaderProgram(shader.data());
+    glUseProgram(_screenProgram);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
@@ -397,7 +401,7 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glActiveTexture(GL_TEXTURE0);
 
-    renderer.GetCompositor().BindOutputTexture(nds.GPU.FrontBuffer);
+    renderer.BindOutputTexture(nds.GPU.FrontBuffer);
 
     // Set the filtering mode for the active texture
     // For simplicity, we'll just use the same filter for both minification and magnification
@@ -438,7 +442,7 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     _openGlDebugAvailable = false;
     _needsRefresh = false;
     _contextInitialized = false;
-    shader = {};
+    _screenProgram = 0;
     screen_framebuffer_texture = 0;
     screen_vertices = {};
     vertexCount = 0;
