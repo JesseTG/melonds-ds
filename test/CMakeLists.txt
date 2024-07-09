@@ -266,6 +266,7 @@ endfunction()
 FetchContent_Declare(
     godmode9i
     URL "https://github.com/DS-Homebrew/GodMode9i/releases/download/v3.4.1/GodMode9i.7z"
+    DOWNLOAD_EXTRACT_TIMESTAMP true
 )
 
 FetchContent_GetProperties(godmode9i)
