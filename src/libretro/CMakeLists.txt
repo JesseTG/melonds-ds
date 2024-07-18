@@ -66,6 +66,8 @@ add_library(melondsds_libretro MODULE
     render/software.hpp
     retro/dirent.cpp
     retro/dirent.hpp
+    retro/file.cpp
+    retro/file.hpp
     retro/http.cpp
     retro/http.hpp
     retro/info.cpp
@@ -142,17 +144,23 @@ endif ()
 
 if (HAVE_NETWORKING)
     target_sources(melondsds_libretro PRIVATE
-        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_Slirp.cpp
-        ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_Slirp.h
+        ${melonDS_SOURCE_DIR}/src/net/Net_Slirp.cpp
+        ${melonDS_SOURCE_DIR}/src/net/Net_Slirp.h
+        ${melonDS_SOURCE_DIR}/src/net/Net.cpp
+        ${melonDS_SOURCE_DIR}/src/net/Net.h
+        ${melonDS_SOURCE_DIR}/src/net/LocalMP.cpp
+        ${melonDS_SOURCE_DIR}/src/net/LocalMP.h
+        ${melonDS_SOURCE_DIR}/src/net/PacketDispatcher.cpp
+        ${melonDS_SOURCE_DIR}/src/net/PacketDispatcher.h
         platform/lan.cpp
     )
 
-    target_include_directories(melondsds_libretro SYSTEM PRIVATE "${melonDS_SOURCE_DIR}/src/frontend/qt_sdl")
+    target_include_directories(melondsds_libretro SYSTEM PRIVATE "${melonDS_SOURCE_DIR}/src/net")
 
     if (HAVE_NETWORKING_DIRECT_MODE)
         target_sources(melondsds_libretro PRIVATE
-            ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_PCap.cpp
-            ${melonDS_SOURCE_DIR}/src/frontend/qt_sdl/Net_PCap.h
+            ${melonDS_SOURCE_DIR}/src/net/Net_PCap.cpp
+            ${melonDS_SOURCE_DIR}/src/net/Net_PCap.h
         )
     endif()
 endif ()

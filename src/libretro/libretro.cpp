@@ -33,7 +33,6 @@
 #include <retro_assert.h>
 #include <retro_miscellaneous.h>
 
-#include <frontend/FrontendUtil.h>
 #undef isnan
 #include <fmt/format.h>
 

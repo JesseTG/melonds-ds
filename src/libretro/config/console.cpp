@@ -208,9 +208,12 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
 
     ApplyCommonArgs(config, ndsargs);
 
+    retro_assert(ndsargs.ARM7BIOS != nullptr);
+    retro_assert(ndsargs.ARM9BIOS != nullptr);
+
     // Try to load the ARM7 and ARM9 BIOS files (but don't bother with the ARM9 BIOS if the ARM7 BIOS failed)
-    bool bios7Loaded = !isFirmwareGenerated && LoadBios(config.Bios7Path(), BiosType::Arm7, ndsargs.ARM7BIOS);
-    bool bios9Loaded = bios7Loaded && LoadBios(config.Bios9Path(), BiosType::Arm9, ndsargs.ARM9BIOS);
+    bool bios7Loaded = !isFirmwareGenerated && LoadBios(config.Bios7Path(), BiosType::Arm7, *ndsargs.ARM7BIOS);
+    bool bios9Loaded = bios7Loaded && LoadBios(config.Bios9Path(), BiosType::Arm9, *ndsargs.ARM9BIOS);
 
     if (config.SysfileMode() == SysfileMode::Native && !(bios7Loaded && bios9Loaded)) {
         // If we're trying to load native BIOS files, but at least one of them failed...
@@ -237,8 +240,8 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
         retro::debug("Installed native ARM7 and ARM9 NDS BIOS images");
     }
     else {
-        ndsargs.ARM9BIOS = melonDS::bios_arm9_bin;
-        ndsargs.ARM7BIOS = melonDS::bios_arm7_bin;
+        ndsargs.ARM9BIOS = std::make_unique<melonDS::ARM9BIOSImage>(melonDS::bios_arm9_bin);
+        ndsargs.ARM7BIOS = std::make_unique<melonDS::ARM7BIOSImage>(melonDS::bios_arm7_bin);
         retro::debug("Installed built-in ARM7 and ARM9 NDS BIOS images");
     }
 
@@ -271,23 +274,23 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
     }
 
     // DSi mode requires all native BIOS files
-    std::array<uint8_t, melonDS::DSiBIOSSize> arm7i;
-    if (!LoadBios(config.DsiBios7Path(), BiosType::Arm7i, arm7i)) {
+    unique_ptr<melonDS::DSiBIOSImage> arm7i = make_unique<melonDS::DSiBIOSImage>();
+    if (!LoadBios(config.DsiBios7Path(), BiosType::Arm7i, *arm7i)) {
         throw dsi_missing_bios_exception(BiosType::Arm7i, config.DsiBios7Path());
     }
 
-    std::array<uint8_t, melonDS::DSiBIOSSize> arm9i;
-    if (!LoadBios(config.DsiBios9Path(), BiosType::Arm9i, arm9i)) {
+    unique_ptr<melonDS::DSiBIOSImage> arm9i = make_unique<melonDS::DSiBIOSImage>();
+    if (!LoadBios(config.DsiBios9Path(), BiosType::Arm9i, *arm9i)) {
         throw dsi_missing_bios_exception(BiosType::Arm9i, config.DsiBios9Path());
     }
 
-    std::array<uint8_t, melonDS::ARM7BIOSSize> arm7;
-    if (!LoadBios(config.Bios7Path(), BiosType::Arm7, arm7)) {
+    unique_ptr<melonDS::ARM7BIOSImage> arm7 = make_unique<melonDS::ARM7BIOSImage>();
+    if (!LoadBios(config.Bios7Path(), BiosType::Arm7, *arm7)) {
         throw dsi_missing_bios_exception(BiosType::Arm7, config.Bios7Path());
     }
 
-    std::array<uint8_t, melonDS::ARM9BIOSSize> arm9;
-    if (!LoadBios(config.Bios9Path(), BiosType::Arm9, arm9)) {
+    unique_ptr<melonDS::ARM9BIOSImage> arm9 = make_unique<melonDS::ARM9BIOSImage>();
+    if (!LoadBios(config.Bios9Path(), BiosType::Arm9, *arm9)) {
         throw dsi_missing_bios_exception(BiosType::Arm9, config.Bios9Path());
     }
 
@@ -317,7 +320,7 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
         throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
     }
 
-    NANDImage nand = LoadNANDImage(*nandPath, &arm7i[0x8308]);
+    NANDImage nand = LoadNANDImage(*nandPath, &(*arm7i)[0x8308]);
     unique_ptr<melonDS::NDSCart::CartCommon> ndsRom = ndsInfo ? LoadNdsCart(config, *ndsInfo) : nullptr;
 
     { // Scoped to limit the mount's lifetime
@@ -341,12 +344,12 @@ static melonDS::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const re
         {
             .NDSROM = std::move(ndsRom),
             .GBAROM = nullptr, // Irrelevant on DSi
-            .ARM9BIOS = arm9,
-            .ARM7BIOS = arm7,
+            .ARM9BIOS = std::move(arm9),
+            .ARM7BIOS = std::move(arm7),
             .Firmware = std::move(*firmware),
         },
-        arm9i,
-        arm7i,
+        std::move(arm9i),
+        std::move(arm7i),
         std::move(nand),
         LoadDSiSDCardImage(config),
     };
@@ -412,7 +415,7 @@ static unique_ptr<melonDS::NDSCart::CartCommon> MelonDsDs::LoadNdsCart(const Cor
     std::unique_ptr<melonDS::NDSCart::CartCommon> cart;
     {
         ZoneScopedN("NDSCart::ParseROM");
-        cart = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(rom.data()), rom.size(), std::move(sdargs));
+        cart = melonDS::NDSCart::ParseROM(reinterpret_cast<const uint8_t*>(rom.data()), rom.size(), nullptr, std::move(sdargs));
     }
 
     if (!cart) {

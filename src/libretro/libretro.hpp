@@ -19,6 +19,7 @@
 
 #include <libretro.h>
 
+#include <NDS.h> // TODO: Submit a forward declaration PR
 #include <GBACart.h>
 #include <NDSCart.h>
 

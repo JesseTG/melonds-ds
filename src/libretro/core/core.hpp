@@ -35,7 +35,7 @@
 #include "../PlatformOGLPrivate.h"
 #include "../sram.hpp"
 
-namespace LAN_PCap {
+namespace Net_PCap {
     struct AdapterData;
 }
 
@@ -119,7 +119,7 @@ namespace MelonDsDs {
         [[gnu::cold]] void RenderErrorScreen() noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
 
-        const LAN_PCap::AdapterData* SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept;
+        const Net_PCap::AdapterData* SelectNetworkInterface(std::span<const Net_PCap::AdapterData> adapters) const noexcept;
 
         retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
         retro::task::TaskSpec OnScreenDisplayTask() noexcept;

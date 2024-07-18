@@ -18,8 +18,8 @@
 #include <string_view>
 #include <Platform.h>
 #include <dynamic/dylib.h>
-#include <frontend/qt_sdl/LAN_PCap.h>
-#include <frontend/qt_sdl/LAN_Socket.h>
+#include <Net_PCap.h>
+#include <Net_Slirp.h>
 #include <retro_assert.h>
 #include <pcap/pcap.h>
 
@@ -35,13 +35,13 @@ using std::string;
 using std::string_view;
 struct Slirp;
 
-namespace LAN_Socket
+namespace Net_Slirp
 {
     extern Slirp* Ctx;
 }
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-namespace LAN_PCap
+namespace Net_PCap
 {
     extern Platform::DynamicLibrary* PCapLib;
 }
@@ -54,7 +54,7 @@ namespace Config {
 }
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-bool MelonDsDs::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept {
+bool MelonDsDs::IsAdapterAcceptable(const Net_PCap::AdapterData& adapter) noexcept {
     ZoneScopedN(TracyFunction);
     const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC);
 
@@ -72,13 +72,13 @@ bool MelonDsDs::IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexce
     return true;
 }
 
-const LAN_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(const LAN_PCap::AdapterData* adapters, int numAdapters) const noexcept {
+const Net_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(std::span<const Net_PCap::AdapterData> adapters) const noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs;
 
 
     if (Config.NetworkInterface() != config::values::AUTO) {
-        const auto* selected = std::find_if(adapters, adapters + numAdapters, [this](const LAN_PCap::AdapterData& a) {
+        const auto* selected = std::find_if(adapters.begin(), adapters.end(), [this](const Net_PCap::AdapterData& a) {
 
             string mac = fmt::format("{:02x}", fmt::join(a.MAC, ":"));
             return Config.NetworkInterface() == mac;
@@ -88,9 +88,7 @@ const LAN_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(const 
         return selected;
     }
 
-    const auto* best = std::max_element(adapters, adapters + numAdapters, [](const LAN_PCap::AdapterData& a, const LAN_PCap::AdapterData& b) {
-        retro_assert(a.Internal != nullptr);
-        retro_assert(b.Internal != nullptr);
+    const auto* best = std::max_element(adapters.begin(), adapters.end(), [](const Net_PCap::AdapterData& a, const Net_PCap::AdapterData& b) {
 
         const pcap_if_t& a_if = *static_cast<const pcap_if_t*>(a.Internal);
         const pcap_if_t& b_if = *static_cast<const pcap_if_t*>(b.Internal);
@@ -121,7 +119,7 @@ const LAN_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(const 
         return a_score < b_score;
     });
 
-    retro_assert(best != adapters + numAdapters);
+    retro_assert(best != adapters.end());
 
     return best;
 }
@@ -130,16 +128,17 @@ const LAN_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(const 
 bool MelonDsDs::CoreState::LanInit() noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_activeNetworkMode == MelonDsDs::NetworkMode::None);
-    retro_assert(LAN_Socket::Ctx == nullptr);
+    retro_assert(Net_Slirp::Ctx == nullptr);
 
     // LAN::PCap may already be initialized if we're using direct mode,
     // as it was necessary to query the available interfaces for the core options
     switch (Config.NetworkMode()) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case MelonDsDs::NetworkMode::Direct: {
-            const LAN_PCap::AdapterData* adapter = SelectNetworkInterface(LAN_PCap::Adapters, LAN_PCap::NumAdapters);
+            std::span adapters(Net_PCap::Adapters, Net_PCap::NumAdapters);
+            const Net_PCap::AdapterData* adapter = SelectNetworkInterface(adapters);
             Config::LANDevice = adapter->DeviceName;
-            if (LAN_PCap::Init(true)) {
+            if (Net_PCap::InitAdapterList()) {
                 retro::debug(
                     "Initialized direct-mode Wi-fi support with adapter {} ({:02x})\n",
                     adapter->FriendlyName,
@@ -158,7 +157,7 @@ bool MelonDsDs::CoreState::LanInit() noexcept {
         }
 #endif
         case MelonDsDs::NetworkMode::Indirect:
-            if (LAN_Socket::Init()) {
+            if (Net_Slirp::Init()) {
                 retro::debug("Initialized indirect-mode Wi-fi support\n");
                 _activeNetworkMode = MelonDsDs::NetworkMode::Indirect;
                 return true;
@@ -176,11 +175,17 @@ void MelonDsDs::CoreState::LanDeinit() noexcept {
     ZoneScopedN(TracyFunction);
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-    LAN_PCap::DeInit();
-    retro_assert(LAN_PCap::PCapLib == nullptr);
+    Net_PCap::DeInit();
+    retro_assert(Net_PCap::PCapLib == nullptr);
+
+    if (Net_PCap::Adapters) {
+        delete[] Net_PCap::Adapters;
+        Net_PCap::Adapters = nullptr;
+        Net_PCap::NumAdapters = 0;
+    }
 #endif
-    LAN_Socket::DeInit();
-    retro_assert(LAN_Socket::Ctx == nullptr);
+    Net_Slirp::DeInit();
+    retro_assert(Net_Slirp::Ctx == nullptr);
 
     _activeNetworkMode = MelonDsDs::NetworkMode::None;
 }
@@ -190,10 +195,10 @@ int MelonDsDs::CoreState::LanSendPacket(std::span<std::byte> data) noexcept {
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case MelonDsDs::NetworkMode::Direct:
-            return LAN_PCap::SendPacket((u8*)data.data(), data.size());
+            return Net_PCap::SendPacket((u8*)data.data(), data.size());
 #endif
         case MelonDsDs::NetworkMode::Indirect:
-            return LAN_Socket::SendPacket((u8*)data.data(), data.size());
+            return Net_Slirp::SendPacket((u8*)data.data(), data.size());
         default:
             return 0;
     }
@@ -204,10 +209,10 @@ int MelonDsDs::CoreState::LanRecvPacket(u8 *data) noexcept {
     switch (_activeNetworkMode) {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         case MelonDsDs::NetworkMode::Direct:
-            return LAN_PCap::RecvPacket(data);
+            return Net_PCap::RecvPacket(data);
 #endif
         case MelonDsDs::NetworkMode::Indirect:
-            return LAN_Socket::RecvPacket(data);
+            return Net_Slirp::RecvPacket(data);
         default:
             return 0;
     }

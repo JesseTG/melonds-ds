@@ -21,6 +21,7 @@
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
 #include <pcap/pcap.h>
+#include <Net_PCap.h>
 #define PCAP_IF_WIRELESS                                0x00000008      /* interface is wireless (*NOT* necessarily Wi-Fi!) */
 #define PCAP_IF_CONNECTION_STATUS                       0x00000030      /* connection status: */
 #define PCAP_IF_CONNECTION_STATUS_UNKNOWN               0x00000000      /* unknown */
@@ -32,7 +33,7 @@ namespace MelonDsDs {
     constexpr std::array<uint8_t, 6> BAD_MAC = {0, 0, 0, 0, 0, 0};
     constexpr std::array<uint8_t, 6> BROADCAST_MAC = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-    bool IsAdapterAcceptable(const LAN_PCap::AdapterData& adapter) noexcept;
+    bool IsAdapterAcceptable(const Net_PCap::AdapterData& adapter) noexcept;
 }
 #endif
 #endif //MELONDS_DS_PCAP_HPP
