@@ -159,6 +159,13 @@ bool MelonDsDs::config::IsFirmwareImage(const retro::dirent& file, Firmware::Fir
         return false;
     }
 
+    bool isDsFirmware = loadedHeader.ConsoleType == Firmware::FirmwareConsoleType::DS || loadedHeader.ConsoleType == Firmware::FirmwareConsoleType::DSLite;
+    if (isDsFirmware && strncmp(reinterpret_cast<const char*>(loadedHeader.Identifier.data()), "MAC", 3) != 0) {
+        retro::debug("{} doesn't look like valid NDS firmware (unrecognized identifier {})", file.path, fmt::join(loadedHeader.Identifier, ""));
+        return false;
+    }
+    // TODO: Validate the checksum of the userdata region
+
     memcpy(&header, &buffer, sizeof(buffer));
     return true;
 }
