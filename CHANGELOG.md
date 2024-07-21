@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project roughly adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed system files from other cores
+  being incorrectly treated as NDS firmware images,
+  which caused strange behavior when one of these
+  were selected as a default. [#183](https://github.com/JesseTG/melonds-ds/issues/183)
+
 ## [1.1.4] - 2024-07-08
 
 ### Changed
