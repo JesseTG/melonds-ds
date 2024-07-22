@@ -875,15 +875,14 @@ std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {
     }
 }
 
-size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) noexcept {
+size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) const noexcept {
     if (_messageScreen)
         return 0;
 
     switch (id) {
         case RETRO_MEMORY_SYSTEM_RAM: {
             retro_assert(Console != nullptr);
-            auto consoleType = static_cast<ConsoleType>(Console->ConsoleType);
-            switch (consoleType) {
+            switch (auto consoleType = static_cast<ConsoleType>(Console->ConsoleType)) {
                 default:
                     retro::warn("Unknown console type {}, returning memory size of 4MB.", consoleType);
                     [[fallthrough]];

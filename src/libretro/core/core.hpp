@@ -81,7 +81,7 @@ namespace MelonDsDs {
         bool LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept;
         void UnloadGame() noexcept;
         std::byte* GetMemoryData(unsigned id) noexcept;
-        size_t GetMemorySize(unsigned id) noexcept;
+        size_t GetMemorySize(unsigned id) const noexcept;
         void ResetRenderState();
         void DestroyRenderState();
         bool LanInit() noexcept;
