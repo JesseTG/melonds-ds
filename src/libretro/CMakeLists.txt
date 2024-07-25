@@ -3,7 +3,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(embed-binaries)
 
-add_library(melondsds_libretro MODULE
+if (BUILD_AS_SHARED_LIBRARY)
+    set(LIBRARY_TYPE SHARED)
+else ()
+    set(LIBRARY_TYPE MODULE)
+endif ()
+
+add_library(melondsds_libretro ${LIBRARY_TYPE}
     buffer.cpp
     buffer.hpp
     config/config.hpp
