@@ -11,8 +11,8 @@ and this project roughly adheres to [Semantic Versioning](https://semver.org/spe
 
 - Fixed system files from other cores
   being incorrectly treated as NDS firmware images,
-  which caused strange behavior when one of these
-  were selected as a default. [#183](https://github.com/JesseTG/melonds-ds/issues/183)
+  which resulted in strange behavior when such a file was chosen.
+  [#183](https://github.com/JesseTG/melonds-ds/issues/183)
 
 ## [1.1.4] - 2024-07-08
 
