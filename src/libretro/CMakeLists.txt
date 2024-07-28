@@ -238,6 +238,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
     PNTR_ENABLE_VARGS
     PNTR_PIXELFORMAT_ARGB
     PNTR_ENABLE_MATH
+    PNTR_ENABLE_UTF8
     STB_IMAGE_STATIC # To avoid using any dynamically-linked STB implementations
 )
 
