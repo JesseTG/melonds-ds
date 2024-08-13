@@ -17,11 +17,9 @@
 #ifndef MELONDSDS_CORE_HPP
 #define MELONDSDS_CORE_HPP
 
-#include <array>
 #include <cstddef>
 #include <memory>
 #include <regex>
-#include <span>
 
 #include <NDS.h>
 
@@ -38,6 +36,7 @@
 namespace Net_PCap {
     struct AdapterData;
 }
+#include "std/span.hpp"
 
 struct retro_game_info;
 struct retro_system_av_info;
