@@ -57,7 +57,7 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     message/error.hpp
     microphone.cpp
     microphone.hpp
-    pcap.hpp
+    net/pcap.hpp
     platform/file.cpp
     platform/lan.cpp
     platform/mp.cpp

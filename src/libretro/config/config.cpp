@@ -62,11 +62,11 @@
 #include "input.hpp"
 #include "libretro.hpp"
 #include "microphone.hpp"
+#include "net/pcap.hpp"
 #include "retro/dirent.hpp"
 #include "screenlayout.hpp"
 #include "std/span.hpp"
 #include "tracy.hpp"
-#include "pcap.hpp"
 
 #ifdef interface
 #undef interface

@@ -32,10 +32,6 @@
 #include "../screenlayout.hpp"
 #include "../PlatformOGLPrivate.h"
 #include "../sram.hpp"
-
-namespace Net_PCap {
-    struct AdapterData;
-}
 #include "std/span.hpp"
 
 struct retro_game_info;
@@ -48,6 +44,7 @@ namespace retro::task {
 
 namespace melonDS {
     class NDS;
+    struct AdapterData;
 
     namespace DSi_NAND {
         class NANDImage;

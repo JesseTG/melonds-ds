@@ -28,7 +28,7 @@
 #include "../config/config.hpp"
 #include "../environment.hpp"
 #include "tracy.hpp"
-#include "pcap.hpp"
+#include "net/pcap.hpp"
 
 using namespace melonDS;
 using std::string;
