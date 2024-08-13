@@ -9,6 +9,12 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
+## [Unreleased]
+
+### Changed
+
+- Updated melonDS to commit [deb1ba2](https://github.com/melonDS-emu/melonDS/tree/deb1ba2bb2bc6e4bf8fef7ca944d56cae23e3f6a).
+
 ## [1.1.5] - 2024-07-25
 
 ### Fixed
