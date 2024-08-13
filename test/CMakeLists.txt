@@ -1,14 +1,17 @@
 option(MELONDSDS_INTERNAL_VENV "Use an internal Python virtual environment for the test suite; disable if using your own." ON)
 
+find_package(Python3 3.11 REQUIRED)
+
 if (MELONDSDS_INTERNAL_VENV)
     include(../cmake/CreatePythonVenv.cmake)
     CreatePythonVenv("${CMAKE_BINARY_DIR}" "venv" VENV "${CMAKE_CURRENT_LIST_DIR}/requirements.txt")
     set(PYTHON_EXECUTABLE "${VENV}")
 else()
-    find_package(Python 3.11 REQUIRED)
-    # FindPython sets "Python_EXECUTABLE", but FindPythonModules wants "PYTHON_EXECUTABLE" (note the caps)
-    set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+    # FindPython sets "Python3_EXECUTABLE", but FindPythonModules wants "PYTHON_EXECUTABLE" (note the caps)
+    set(PYTHON_EXECUTABLE "${Python3_EXECUTABLE}")
 endif()
+
+message(STATUS "Using external Python environment at ${PYTHON_EXECUTABLE}")
 
 # NOTE: These are modules, not package names (i.e. these names get imported as-is)
 find_package(PythonModules REQUIRED COMPONENTS libretro PIL)
