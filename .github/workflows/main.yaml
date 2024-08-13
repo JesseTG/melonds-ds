@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - "*.gitlab-ci.yml"
       - "*.gitignore"
+      - "*.github/ISSUE_TEMPLATE/**"
+      - "*.github/FUNDING.yml"
   pull_request:
     branches:
       - dev
@@ -13,6 +15,8 @@ on:
       - "**.md"
       - ".gitignore"
       - "*.gitlab-ci.yml"
+      - "*.github/ISSUE_TEMPLATE/**"
+      - "*.github/FUNDING.yml"
 jobs:
   windows:
     name: Windows (x86_64)
