@@ -87,7 +87,6 @@ using std::string;
 using std::string_view;
 using std::unique_ptr;
 using std::vector;
-using Net_PCap::AdapterData;
 
 constexpr unsigned AUTO_SDCARD_SIZE = 0;
 constexpr uint64_t DEFAULT_SDCARD_SIZE = 4096ull * 1024ull * 1024ull; // 4GB
@@ -952,7 +951,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
         memset(wifiAdapterOption->values + 1, 0, sizeof(retro_core_option_value) * (RETRO_NUM_CORE_OPTION_VALUES_MAX - 1));
         int length = std::min<int>(Net_PCap::NumAdapters, RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
         for (int i = 0; i < length; ++i) {
-            const Net_PCap::AdapterData& adapter = Net_PCap::Adapters[i];
+            const AdapterData& adapter = Net_PCap::Adapters[i];
             if (IsAdapterAcceptable(adapter)) {
                 // If this interface would potentially work...
 
@@ -964,7 +963,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
                     adapter.DeviceName,
                     mac,
                     fmt::join(adapter.IP_v4, "."),
-                    fmt::join(fmt_flags(*static_cast<const pcap_if_t*>(adapter.Internal)), "|")
+                    fmt::join(fmt_flags(*adapter.Flags), "|")
                 );
                 string label = fmt::format("{} ({})", string_is_empty(adapter.FriendlyName) ? adapter.DeviceName : adapter.FriendlyName, mac);
                 adapters.emplace_back(AdapterOption {

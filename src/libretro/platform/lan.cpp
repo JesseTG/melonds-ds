@@ -54,31 +54,26 @@ namespace Config {
 }
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
-bool MelonDsDs::IsAdapterAcceptable(const Net_PCap::AdapterData& adapter) noexcept {
+bool MelonDsDs::IsAdapterAcceptable(const AdapterData& adapter) noexcept {
     ZoneScopedN(TracyFunction);
-    const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC);
 
-    if (mac == BAD_MAC || mac == BROADCAST_MAC)
+    if (const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC); mac == BAD_MAC || mac == BROADCAST_MAC)
         return false;
 
-    const pcap_if_t* iface = static_cast<const pcap_if_t*>(adapter.Internal);
-    if (iface == nullptr)
-        return false;
-
-    if (iface->flags & PCAP_IF_LOOPBACK)
+    if (adapter.Flags & PCAP_IF_LOOPBACK)
         // If this is a loopback interface...
         return false;
 
     return true;
 }
 
-const Net_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(std::span<const Net_PCap::AdapterData> adapters) const noexcept {
+const AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(std::span<const AdapterData> adapters) const noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs;
 
 
     if (Config.NetworkInterface() != config::values::AUTO) {
-        const auto* selected = std::find_if(adapters.begin(), adapters.end(), [this](const Net_PCap::AdapterData& a) {
+        const auto* selected = std::find_if(adapters.begin(), adapters.end(), [this](const AdapterData& a) {
 
             string mac = fmt::format("{:02x}", fmt::join(a.MAC, ":"));
             return Config.NetworkInterface() == mac;
@@ -88,26 +83,25 @@ const Net_PCap::AdapterData* MelonDsDs::CoreState::SelectNetworkInterface(std::s
         return selected;
     }
 
-    const auto* best = std::max_element(adapters.begin(), adapters.end(), [](const Net_PCap::AdapterData& a, const Net_PCap::AdapterData& b) {
+    const auto* best = std::max_element(adapters.begin(), adapters.end(), [](const AdapterData& a, const AdapterData& b) {
 
-        const pcap_if_t& a_if = *static_cast<const pcap_if_t*>(a.Internal);
-        const pcap_if_t& b_if = *static_cast<const pcap_if_t*>(b.Internal);
-
+        u32 a_flags = a.Flags;
+        u32 b_flags = b.Flags;
         int a_score = 0;
         int b_score = 0;
 
         // Prefer interfaces that are connected
-        if ((a_if.flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
+        if ((a_flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
             a_score += 1000;
 
-        if ((b_if.flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
+        if ((b_flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
             b_score += 1000;
 
         // Prefer wired interfaces
-        if (!(a_if.flags & PCAP_IF_WIRELESS))
+        if (!(a_flags & PCAP_IF_WIRELESS))
             a_score += 100;
 
-        if (!(b_if.flags & PCAP_IF_WIRELESS))
+        if (!(b_flags & PCAP_IF_WIRELESS))
             b_score += 100;
 
         if (!MelonDsDs::IsAdapterAcceptable(a))
