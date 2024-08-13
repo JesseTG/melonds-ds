@@ -161,12 +161,13 @@ if (HAVE_NETWORKING)
         platform/lan.cpp
     )
 
-    target_link_libraries(melondsds_libretro PUBLIC net-utils)
-
     target_include_directories(melondsds_libretro SYSTEM PRIVATE "${melonDS_SOURCE_DIR}/src/net")
 
     if (HAVE_NETWORKING_DIRECT_MODE)
-        # TODO: Support this conditionally
+        target_sources(melondsds_libretro PRIVATE
+            ${melonDS_SOURCE_DIR}/src/net/Net_PCap.cpp
+            ${melonDS_SOURCE_DIR}/src/net/Net_PCap.h
+        )
     endif()
 endif ()
 
