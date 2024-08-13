@@ -154,6 +154,7 @@ if (HAVE_NETWORKING)
         ${melonDS_SOURCE_DIR}/src/net/Net_Slirp.h
         ${melonDS_SOURCE_DIR}/src/net/Net.cpp
         ${melonDS_SOURCE_DIR}/src/net/Net.h
+        ${melonDS_SOURCE_DIR}/src/net/NetDriver.h
         ${melonDS_SOURCE_DIR}/src/net/LocalMP.cpp
         ${melonDS_SOURCE_DIR}/src/net/LocalMP.h
         ${melonDS_SOURCE_DIR}/src/net/PacketDispatcher.cpp
