@@ -58,6 +58,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     microphone.cpp
     microphone.hpp
     net/pcap.hpp
+    net/net.cpp
+    net/net.hpp
     platform/file.cpp
     platform/lan.cpp
     platform/mp.cpp
