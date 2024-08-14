@@ -15,3 +15,186 @@
 */
 
 #include "net.hpp"
+
+#include <string_view>
+
+#include <Net_Slirp.h>
+#include <retro_assert.h>
+#include <fmt/format.h>
+
+#include "environment.hpp"
+#include "config/config.hpp"
+#include "pcap.hpp"
+#include "tracy.hpp"
+
+using std::vector;
+using namespace melonDS;
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+bool MelonDsDs::IsAdapterAcceptable(const AdapterData& adapter) noexcept
+{
+    ZoneScopedN(TracyFunction);
+
+    if (const MacAddress& mac = *reinterpret_cast<const MacAddress*>(adapter.MAC); mac == BAD_MAC || mac ==
+        BROADCAST_MAC)
+        return false;
+
+    if (adapter.Flags & PCAP_IF_LOOPBACK)
+        // If this is a loopback interface...
+        return false;
+
+    return true;
+}
+
+const AdapterData* SelectNetworkInterface(std::string_view iface, std::span<const AdapterData> adapters) noexcept
+{
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs;
+
+
+    if (iface != config::values::AUTO)
+    {
+        // If we're explicitly selecting a particular interface...
+        const auto* selected = std::find_if(adapters.begin(), adapters.end(), [iface](const AdapterData& a)
+        {
+            string mac = fmt::format("{:02x}", fmt::join(a.MAC, ":"));
+            return iface == mac;
+        });
+
+        return selected != adapters.end() ? selected : nullptr;
+    }
+
+    const auto* best = std::max_element(adapters.begin(), adapters.end(), [](const AdapterData& a, const AdapterData& b)
+    {
+        u32 a_flags = a.Flags;
+        u32 b_flags = b.Flags;
+        int a_score = 0;
+        int b_score = 0;
+
+        // Prefer interfaces that are connected
+        if ((a_flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
+            a_score += 1000;
+
+        if ((b_flags & PCAP_IF_CONNECTION_STATUS) == PCAP_IF_CONNECTION_STATUS_CONNECTED)
+            b_score += 1000;
+
+        // Prefer wired interfaces
+        if (!(a_flags & PCAP_IF_WIRELESS))
+            a_score += 100;
+
+        if (!(b_flags & PCAP_IF_WIRELESS))
+            b_score += 100;
+
+        if (!MelonDsDs::IsAdapterAcceptable(a))
+            a_score = INT_MIN;
+
+        if (!MelonDsDs::IsAdapterAcceptable(b))
+            b_score = INT_MIN;
+
+        return a_score < b_score;
+    });
+
+    retro_assert(best != adapters.end());
+
+    return best;
+}
+#endif
+
+MelonDsDs::NetState::NetState()
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    : _pcap(melonDS::LibPCap::New())
+#endif
+{
+}
+
+int MelonDsDs::NetState::SendPacket(std::span<std::byte> data) noexcept
+{
+    return _net.SendPacket(reinterpret_cast<u8*>(data.data()), data.size(), 0);
+}
+
+int MelonDsDs::NetState::RecvPacket(u8* data) noexcept
+{
+    return _net.RecvPacket(data, 0);
+}
+
+vector<melonDS::AdapterData> MelonDsDs::NetState::GetAdapters() const noexcept
+{
+    ZoneScopedN(TracyFunction);
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    if (_pcap)
+    {
+        return _pcap->GetAdapters();
+    }
+#endif
+
+    return {};
+}
+
+void MelonDsDs::NetState::Apply(const CoreConfig& config) noexcept
+{
+    ZoneScopedN(TracyFunction);
+
+    switch (config.NetworkMode())
+    {
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    case NetworkMode::Direct:
+        if (!_pcap)
+        {
+            // If a previous attempt to load libpcap failed...
+            _pcap = melonDS::LibPCap::New(); // ...then try again.
+            // (This can happen if the player installed it with RetroArch running in the background)
+        }
+
+        if (_pcap)
+        {
+            auto adapters = _pcap->GetAdapters();
+
+            if (const AdapterData* adapter = SelectNetworkInterface(config.NetworkInterface(), adapters); adapter)
+            {
+                auto driver = _pcap->Open(*adapter, [this](const u8* data, int len)
+                {
+                    _net.RXEnqueue(data, len);
+                });
+
+                if (driver)
+                {
+                    retro::debug(
+                        "Initialized direct-mode Wi-fi support with adapter {} ({:02x})\n",
+                        adapter->FriendlyName,
+                        fmt::join(adapter->MAC, ":")
+                    );
+                    _net.SetDriver(std::move(driver));
+                    return;
+                }
+                else
+                {
+                    retro::warn(
+                        "Failed to initialize direct-mode Wi-fi support with adapter {} ({:02x}); falling back to indirect mode\n",
+                        adapter->FriendlyName,
+                        fmt::join(adapter->MAC, ":")
+                    );
+                }
+            }
+        }
+        else
+        {
+            retro::set_warn_message("Failed to load libpcap. Falling back to indirect mode.");
+        }
+
+        [[fallthrough]];
+#endif
+
+    case NetworkMode::Indirect:
+        _net.SetDriver(std::make_unique<Net_Slirp>([this](const u8* data, int len)
+        {
+            _net.RXEnqueue(data, len);
+        }));
+
+        retro::debug("Initialized indirect-mode Wi-fi support\n");
+        break;
+
+    case NetworkMode::None:
+        _net.SetDriver(nullptr);
+    }
+}

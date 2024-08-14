@@ -891,18 +891,17 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
         retro_assert(firmwarePathDsiOption->default_value != nullptr);
     }
 
-    bool pcapOk;
-    {
-        ZoneScopedN("LAN_PCap::Init");
-        pcapOk = Net_PCap::InitAdapterList();
-    }
+
+    // TODO: Pass in the LibPCap instance created by NetState
+    // TODO: Create a DynamicOption class, pass in instances of that
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
     // holds on to strings used in dynamic options until we finish submitting the options to the frontend
-    vector<AdapterOption> adapters;
-    if (pcapOk) {
+    if (std::optional<LibPCap> pcap = LibPCap::New(); pcap) {
         ZoneScopedN("MelonDsDs::config::set_core_options::init_adapter_options");
         // If we successfully initialized PCap and got some adapters...
+        vector<AdapterData> availableAdapters = pcap->GetAdapters();
+        vector<AdapterOption> adapters;
         retro_core_option_v2_definition* wifiAdapterOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
             return string_is_equal(def.key, MelonDsDs::config::network::DIRECT_NETWORK_INTERFACE);
         });
@@ -910,12 +909,9 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 
         // Zero all option values except for the first (Automatic)
         memset(wifiAdapterOption->values + 1, 0, sizeof(retro_core_option_value) * (RETRO_NUM_CORE_OPTION_VALUES_MAX - 1));
-        int length = std::min<int>(Net_PCap::NumAdapters, RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
-        for (int i = 0; i < length; ++i) {
-            const AdapterData& adapter = Net_PCap::Adapters[i];
-            if (IsAdapterAcceptable(adapter)) {
-                // If this interface would potentially work...
-
+        for (const AdapterData& adapter : availableAdapters) {
+            if (IsAdapterAcceptable(adapter) && adapters.size() < RETRO_NUM_CORE_OPTION_VALUES_MAX - 1) {
+                // If this interface would potentially work, and we haven't added the max...
                 string mac = fmt::format("{:02x}", fmt::join(adapter.MAC, ":"));
                 retro::debug(
                     "Found a \"{}\" ({}) interface with ID {} at {} bound to {} ({})",
@@ -926,6 +922,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
                     fmt::join(adapter.IP_v4, "."),
                     static_cast<FormattedPCapFlags>(adapter.Flags)
                 );
+
                 string label = fmt::format("{} ({})", string_is_empty(adapter.FriendlyName) ? adapter.DeviceName : adapter.FriendlyName, mac);
                 adapters.emplace_back(AdapterOption {
                     .adapter = adapter,

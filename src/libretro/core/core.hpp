@@ -32,6 +32,7 @@
 #include "../screenlayout.hpp"
 #include "../PlatformOGLPrivate.h"
 #include "../sram.hpp"
+#include "net/net.hpp"
 #include "std/span.hpp"
 
 struct retro_game_info;
@@ -80,8 +81,6 @@ namespace MelonDsDs {
         size_t GetMemorySize(unsigned id) const noexcept;
         void ResetRenderState();
         void DestroyRenderState();
-        bool LanInit() noexcept;
-        void LanDeinit() noexcept;
         int LanSendPacket(std::span<std::byte> data) noexcept;
         int LanRecvPacket(uint8_t* data) noexcept;
 
@@ -127,6 +126,7 @@ namespace MelonDsDs {
         [[gnu::cold]] void InitNdsSave(const NdsCart &nds_cart);
 
         std::unique_ptr<melonDS::NDS> Console = nullptr;
+        NetState _netState;
         CoreConfig Config {};
         CoreOptionVisibility _optionVisibility {};
         ScreenLayoutData _screenLayout {};
@@ -153,7 +153,6 @@ namespace MelonDsDs {
         bool _ndsSramInstalled = false;
         bool _deferredInitializationPending = false;
         uint32_t _flushTaskId = 0;
-        NetworkMode _activeNetworkMode = NetworkMode::None;
     };
 }
 #endif //MELONDSDS_CORE_HPP

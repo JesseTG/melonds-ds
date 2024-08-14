@@ -295,18 +295,6 @@ extern "C" bool MelonDsDs::UpdateOptionVisibility() noexcept {
     return Core.UpdateOptionVisibility();
 }
 
-bool Platform::LAN_Init() {
-    ZoneScopedN(TracyFunction);
-
-    return MelonDsDs::Core.LanInit();
-}
-
-void Platform::LAN_DeInit() {
-    ZoneScopedN(TracyFunction);
-
-    MelonDsDs::Core.LanDeinit();
-}
-
 int Platform::Net_SendPacket(u8* data, int len, void*) {
     ZoneScopedN(TracyFunction);
 

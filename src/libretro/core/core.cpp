@@ -633,6 +633,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
     _micState.Apply(config);
+    _netState.Apply(config);
     _screenLayout.SetDirty();
 
     if (oldMicInputMode != MicInputMode::HostMic && config.MicInputMode() == MicInputMode::HostMic) {
@@ -936,5 +937,6 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
     }
 
     retro_assert(Console != nullptr);
-    Console->AREngine.RunCheat(curcode);
+    // Console->AREngine.RunCheat(curcode);
+    // TODO: Append the cheat to the cheat list
 }

@@ -16,10 +16,43 @@
 
 #pragma once
 
+#include <memory>
+#include <optional>
+
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+#include <Net_PCap.h>
+#endif
+
+#include "Net.h"
+#include "std/span.hpp"
+
+namespace melonDS
+{
+    class NetDriver;
+}
+
 namespace MelonDsDs
 {
+    class CoreConfig;
+
     class NetState
     {
+    public:
+        NetState();
+        ~NetState() noexcept = default;
+        NetState(const NetState&) = delete;
+        NetState(NetState&&) = delete;
+        NetState& operator=(const NetState&) = delete;
+        NetState& operator=(NetState&&) = delete;
 
+        int SendPacket(std::span<std::byte> data) noexcept;
+        int RecvPacket(melonDS::u8* data) noexcept;
+        [[nodiscard]] std::vector<melonDS::AdapterData> GetAdapters() const noexcept;
+        void Apply(const CoreConfig& config) noexcept;
+    private:
+        melonDS::Net _net;
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        std::optional<melonDS::LibPCap> _pcap;
+#endif
     };
 }
