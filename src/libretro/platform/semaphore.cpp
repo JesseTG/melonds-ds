@@ -24,9 +24,7 @@ using namespace melonDS;
 using Platform::Semaphore;
 
 struct Platform::Semaphore {
-    std::counting_semaphore<> semaphore;
-
-    Semaphore() : semaphore(0) {}
+    std::counting_semaphore<> semaphore {0};
 };
 
 Semaphore *Platform::Semaphore_Create()
