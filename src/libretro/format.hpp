@@ -19,6 +19,7 @@
 #define MELONDS_DS_FORMAT_HPP
 
 #include <string_view>
+#include <vector>
 
 #undef isinf
 #undef isnan
@@ -41,6 +42,11 @@ namespace fmt {
     template<>
     struct formatter<MelonDsDs::FormattedGLEnum> : formatter<std::string_view> {
         auto format(MelonDsDs::FormattedGLEnum e, format_context& ctx) const -> decltype(ctx.out());
+    };
+
+    template<>
+    struct formatter<MelonDsDs::FormattedPCapFlags> : formatter<std::vector<string_view>> {
+        auto format(MelonDsDs::FormattedPCapFlags e, format_context& ctx) const -> decltype(ctx.out());
     };
 
     template<>

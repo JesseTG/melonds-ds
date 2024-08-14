@@ -795,45 +795,6 @@ struct AdapterOption {
     string value;
     string label;
 };
-
-
-static vector<string_view> fmt_flags(const pcap_if_t& interface) noexcept {
-    fmt::memory_buffer buffer;
-
-    vector<string_view> flagNames;
-    if (interface.flags & PCAP_IF_LOOPBACK) {
-        flagNames.emplace_back("Loopback");
-    }
-
-    if (interface.flags & PCAP_IF_UP) {
-        flagNames.emplace_back("Up");
-    }
-
-    if (interface.flags & PCAP_IF_RUNNING) {
-        flagNames.emplace_back("Running");
-    }
-
-    if (interface.flags & PCAP_IF_WIRELESS) {
-        flagNames.emplace_back("Wireless");
-    }
-
-    switch (interface.flags & PCAP_IF_CONNECTION_STATUS) {
-        case PCAP_IF_CONNECTION_STATUS_UNKNOWN:
-            flagNames.emplace_back("UnknownStatus");
-            break;
-        case PCAP_IF_CONNECTION_STATUS_CONNECTED:
-            flagNames.emplace_back("Connected");
-            break;
-        case PCAP_IF_CONNECTION_STATUS_DISCONNECTED:
-            flagNames.emplace_back("Disconnected");
-            break;
-        case PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE:
-            flagNames.emplace_back("ConnectionStatusNotApplicable");
-            break;
-    }
-
-    return flagNames;
-}
 #endif
 
 // If I make an option depend on the game (e.g. different defaults for different games),
@@ -963,7 +924,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
                     adapter.DeviceName,
                     mac,
                     fmt::join(adapter.IP_v4, "."),
-                    fmt::join(fmt_flags(*adapter.Flags), "|")
+                    static_cast<FormattedPCapFlags>(adapter.Flags)
                 );
                 string label = fmt::format("{} ({})", string_is_empty(adapter.FriendlyName) ? adapter.DeviceName : adapter.FriendlyName, mac);
                 adapters.emplace_back(AdapterOption {

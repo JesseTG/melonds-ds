@@ -158,6 +158,8 @@ namespace MelonDsDs {
     };
 
     enum class FormattedGLEnum {};
+
+    enum class FormattedPCapFlags : uint32_t {};
 }
 
 #endif // MELONDSDS_CONFIG_TYPES_HPP

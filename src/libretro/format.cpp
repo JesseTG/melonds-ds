@@ -19,6 +19,10 @@
 #include "PlatformOGLPrivate.h"
 #endif
 
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+#include "net/pcap.hpp"
+#endif
+
 using namespace melonDS;
 using FirmwareConsoleType = Firmware::FirmwareConsoleType;
 using DSi_NAND::ConsoleRegion;
@@ -76,6 +80,44 @@ auto fmt::formatter<MelonDsDs::FormattedGLEnum>::format(MelonDsDs::FormattedGLEn
     return formatter<string_view>::format(name, ctx);
 }
 #endif
+
+auto fmt::formatter<MelonDsDs::FormattedPCapFlags>::format(MelonDsDs::FormattedPCapFlags e, format_context& ctx) const -> decltype(ctx.out()) {
+    auto flags = static_cast<uint32_t>(e);
+
+    std::vector<string_view> flagNames;
+    if (flags & PCAP_IF_LOOPBACK) {
+        flagNames.emplace_back("Loopback");
+    }
+
+    if (flags & PCAP_IF_UP) {
+        flagNames.emplace_back("Up");
+    }
+
+    if (flags & PCAP_IF_RUNNING) {
+        flagNames.emplace_back("Running");
+    }
+
+    if (flags & PCAP_IF_WIRELESS) {
+        flagNames.emplace_back("Wireless");
+    }
+
+    switch (flags & PCAP_IF_CONNECTION_STATUS) {
+    case PCAP_IF_CONNECTION_STATUS_UNKNOWN:
+        flagNames.emplace_back("UnknownStatus");
+        break;
+    case PCAP_IF_CONNECTION_STATUS_CONNECTED:
+        flagNames.emplace_back("Connected");
+        break;
+    case PCAP_IF_CONNECTION_STATUS_DISCONNECTED:
+        flagNames.emplace_back("Disconnected");
+        break;
+    case PCAP_IF_CONNECTION_STATUS_NOT_APPLICABLE:
+        flagNames.emplace_back("ConnectionStatusNotApplicable");
+        break;
+    }
+
+    return formatter<decltype(flagNames)>::format(flagNames, ctx);
+}
 
 auto fmt::formatter<MelonDsDs::BiosType>::format(MelonDsDs::BiosType c, format_context& ctx) const -> decltype(ctx.out()) {
     string_view name = "unknown";
