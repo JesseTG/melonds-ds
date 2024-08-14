@@ -16,6 +16,7 @@
 
 #include "input.hpp"
 
+#include <Platform.h>
 #include "PlatformOGLPrivate.h"
 #include <NDS.h>
 #include <glm/gtx/common.hpp>
@@ -349,4 +350,14 @@ ivec2 MelonDsDs::InputState::TouchPosition() const noexcept {
     }
 
     return pointerUpdateTimestamp > joystickTimestamp ? pointerTouchPosition : joystickCursorPosition;
+}
+
+void melonDS::Platform::Addon_RumbleStart(melonDS::u32 len, void* userdata)
+{
+    // TODO: Implement with RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE
+}
+
+void melonDS::Platform::Addon_RumbleStop(void* userdata)
+{
+    // TODO: Implement with RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE
 }
