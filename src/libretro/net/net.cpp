@@ -105,6 +105,14 @@ MelonDsDs::NetState::NetState()
     : _pcap(melonDS::LibPCap::New())
 #endif
 {
+    _net.RegisterInstance(0);
+    // TODO: Handle registration properly when it comes time to actually integrate LAN support
+    // (not yet sure what that'll entail)
+}
+
+MelonDsDs::NetState::~NetState() noexcept
+{
+    _net.UnregisterInstance(0);
 }
 
 int MelonDsDs::NetState::SendPacket(std::span<std::byte> data) noexcept

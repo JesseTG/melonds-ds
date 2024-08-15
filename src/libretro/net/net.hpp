@@ -39,7 +39,7 @@ namespace MelonDsDs
     {
     public:
         NetState();
-        ~NetState() noexcept = default;
+        ~NetState() noexcept;
         NetState(const NetState&) = delete;
         NetState(NetState&&) = delete;
         NetState& operator=(const NetState&) = delete;
