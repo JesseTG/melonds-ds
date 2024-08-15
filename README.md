@@ -193,8 +193,9 @@ If you want to see them, ask how you can get involved!
 
 - **Local Wireless:**
   Upstream melonDS supports emulating local wireless multiplayer
-  (e.g. Multi-Card Play, Download Play) with multiple instances of melonDS on the same computer.
-  However, melonDS DS does not support this functionality at this time.
+  (e.g. Multi-Card Play, Download Play) with multiple instances of melonDS on the same computer
+  or on the same network.
+  This feature is not yet integrated into melonDS DS.
 - **Homebrew Savestates:**
   melonDS has limited support for taking savestates of homebrew games,
   as the virtual SD card is not included in savestate data.
@@ -212,9 +213,9 @@ If you want to see them, ask how you can get involved!
   GBA emulation is not within the scope of melonDS;
   use a GBA emulator instead.
 - **Slot-2 Accessories:**
-  The only Slot-2 accessories that melonDS currently supports
-  are the [solar sensor][solar-sensor] and [Memory Expansion Pak][memory-pak].
-  However, melonDS DS does not yet support these devices.
+  melonDS currently supports the
+  [solar sensor][solar-sensor], [Memory Expansion Pak][memory-pak], and [Rumble Pak][rumble-pak].
+  melonDS DS has not yet integrated support for these accessories.
 - **GDB Stub Support:**
   melonDS recently gained support
   for debugging emulated DS games with GDB.
@@ -225,6 +226,11 @@ If you want to see them, ask how you can get involved!
   Standalone melonDS supports emulating the DSi's cameras.
   Support in melonDS DS is planned,
   but has not yet been integrated.
+- **OpenGL Compute Shader Renderer:**
+  melonDS introduced a new renderer that uses OpenGL compute shaders,
+  enabling the accuracy of the software renderer
+  with the upscaling of the legacy OpenGL renderer.
+  Support has not yet been integrated into melonDS DS.
 
 # Compatibility
 
@@ -477,5 +483,6 @@ This project is not affiliated with, developed by, or endorsed by the melonDS te
 [melondsds-latest-release]: https://github.com/JesseTG/melonds-ds/releases/latest
 [issue-tracker]: https://github.com/JesseTG/melonds-ds/issues
 [memory-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Memory_Expansion_Pak
+[rumble-pak]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Rumble_Pak
 [solar-sensor]: https://en.wikipedia.org/wiki/List_of_Nintendo_DS_accessories#Solar_Sensors
 [workflows]: https://nightly.link/JesseTG/melonds-ds/workflows/main.yaml/dev
