@@ -24,6 +24,7 @@
 #endif
 
 #include "Net.h"
+#include "config/types.hpp"
 #include "std/span.hpp"
 
 namespace melonDS
@@ -49,10 +50,12 @@ namespace MelonDsDs
         int RecvPacket(melonDS::u8* data) noexcept;
         [[nodiscard]] std::vector<melonDS::AdapterData> GetAdapters() const noexcept;
         void Apply(const CoreConfig& config) noexcept;
+        [[nodiscard]] NetworkMode GetNetworkMode() const noexcept;
     private:
         melonDS::Net _net;
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         std::optional<melonDS::LibPCap> _pcap;
+        std::optional<melonDS::AdapterData> _adapter;
 #endif
     };
 }

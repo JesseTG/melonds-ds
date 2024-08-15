@@ -139,17 +139,30 @@ vector<melonDS::AdapterData> MelonDsDs::NetState::GetAdapters() const noexcept
     return {};
 }
 
+bool operator==(const melonDS::AdapterData& lhs, const melonDS::AdapterData& rhs)
+{
+    return
+        lhs.Flags == rhs.Flags &&
+        memcmp(lhs.MAC, rhs.MAC, sizeof(lhs.MAC)) == 0 &&
+        memcmp(lhs.IP_v4, rhs.IP_v4, sizeof(lhs.IP_v4)) == 0 &&
+        strncmp(lhs.Description, rhs.Description, sizeof(lhs.Description)) == 0 &&
+        strncmp(lhs.FriendlyName, rhs.FriendlyName, sizeof(lhs.FriendlyName)) == 0 &&
+        strncmp(lhs.DeviceName, rhs.DeviceName, sizeof(lhs.DeviceName)) == 0
+    ;
+}
+
 void MelonDsDs::NetState::Apply(const CoreConfig& config) noexcept
 {
     ZoneScopedN(TracyFunction);
+
+    NetworkMode lastMode = GetNetworkMode();
 
     switch (config.NetworkMode())
     {
 #ifdef HAVE_NETWORKING_DIRECT_MODE
     case NetworkMode::Direct:
         if (!_pcap)
-        {
-            // If a previous attempt to load libpcap failed...
+        { // If a previous attempt to load libpcap failed...
             _pcap = melonDS::LibPCap::New(); // ...then try again.
             // (This can happen if the player installed it with RetroArch running in the background)
         }
@@ -160,6 +173,17 @@ void MelonDsDs::NetState::Apply(const CoreConfig& config) noexcept
 
             if (const AdapterData* adapter = SelectNetworkInterface(config.NetworkInterface(), adapters); adapter)
             {
+                if (lastMode == NetworkMode::Direct && _adapter && *adapter == *_adapter)
+                { // If we were already using direct-mode, and with the same selected adapter...
+                    retro::debug(
+                        "Already using direct-mode Wi-fi support with adapter {} ({:02x}); no need to reset\n",
+                        adapter->FriendlyName,
+                        fmt::join(adapter->MAC, ":")
+                    );
+
+                    return;
+                }
+
                 auto driver = _pcap->Open(*adapter, [this](const u8* data, int len)
                 {
                     _net.RXEnqueue(data, len);
@@ -173,6 +197,7 @@ void MelonDsDs::NetState::Apply(const CoreConfig& config) noexcept
                         fmt::join(adapter->MAC, ":")
                     );
                     _net.SetDriver(std::move(driver));
+                    _adapter = *adapter;
                     return;
                 }
                 else
@@ -194,15 +219,48 @@ void MelonDsDs::NetState::Apply(const CoreConfig& config) noexcept
 #endif
 
     case NetworkMode::Indirect:
-        _net.SetDriver(std::make_unique<Net_Slirp>([this](const u8* data, int len)
+        if (lastMode != NetworkMode::Indirect)
         {
-            _net.RXEnqueue(data, len);
-        }));
+            // If we're not already using indirect mode...
+            _net.SetDriver(std::make_unique<Net_Slirp>([this](const u8* data, int len)
+            {
+                _net.RXEnqueue(data, len);
+            }));
 
-        retro::debug("Initialized indirect-mode Wi-fi support\n");
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+            _adapter = std::nullopt;
+#endif
+
+            retro::debug("Initialized indirect-mode Wi-fi support\n");
+        }
+        else
+        {
+            retro::debug("Already using indirect mode, no need to reset network driver\n");
+        }
+
         break;
 
     case NetworkMode::None:
         _net.SetDriver(nullptr);
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+        _adapter = std::nullopt;
+#endif
     }
+}
+
+[[nodiscard]] MelonDsDs::NetworkMode MelonDsDs::NetState::GetNetworkMode() const noexcept
+{
+#ifdef HAVE_NETWORKING_DIRECT_MODE
+    if (dynamic_cast<const Net_PCap*>(_net.GetDriver().get()))
+    {
+        return NetworkMode::Direct;
+    }
+#endif
+
+    if (dynamic_cast<const Net_Slirp*>(_net.GetDriver().get()))
+    {
+        return NetworkMode::Indirect;
+    }
+
+    return NetworkMode::None;
 }
