@@ -897,11 +897,13 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 
 #ifdef HAVE_NETWORKING_DIRECT_MODE
     // holds on to strings used in dynamic options until we finish submitting the options to the frontend
+    // DO NOT move this into a deeper scope, or else the strings that the options point to will be destroyed
+    // ReSharper disable once CppTooWideScope
+    vector<AdapterOption> adapters;
     if (std::optional<LibPCap> pcap = LibPCap::New(); pcap) {
         ZoneScopedN("MelonDsDs::config::set_core_options::init_adapter_options");
         // If we successfully initialized PCap and got some adapters...
         vector<AdapterData> availableAdapters = pcap->GetAdapters();
-        vector<AdapterOption> adapters;
         retro_core_option_v2_definition* wifiAdapterOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
             return string_is_equal(def.key, MelonDsDs::config::network::DIRECT_NETWORK_INTERFACE);
         });
