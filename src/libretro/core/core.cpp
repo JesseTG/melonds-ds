@@ -901,6 +901,17 @@ size_t MelonDsDs::CoreState::GetMemorySize(unsigned id) const noexcept {
     }
 }
 
+void MelonDsDs::CoreState::CheatReset() noexcept
+{
+    ZoneScopedN(TracyFunction);
+    retro::debug("retro_cheat_reset()\n");
+
+    if (Console)
+    {
+        Console->AREngine.Cheats.clear();
+    }
+}
+
 void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_view code) noexcept {
     // Cheat codes are small programs, so we can't exactly turn them off (that would be undoing them)
     ZoneScopedN(TracyFunction);

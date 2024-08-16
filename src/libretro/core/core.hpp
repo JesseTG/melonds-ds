@@ -74,6 +74,7 @@ namespace MelonDsDs {
         size_t SerializeSize() const noexcept;
         [[gnu::hot]] bool Serialize(std::span<std::byte> data) const noexcept;
         bool Unserialize(std::span<const std::byte> data) noexcept;
+        void CheatReset() noexcept;
         void CheatSet(unsigned index, bool enabled, std::string_view code) noexcept;
         bool LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept;
         void UnloadGame() noexcept;
