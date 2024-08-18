@@ -35,4 +35,6 @@ with prelude.session() as session:
     for i in range(60):
         session.run()
 
+    # The memory buffer will be different after a reset since the console is thrown out
+    memory = session.core.get_memory(RETRO_MEMORY_SYSTEM_RAM)
     assert memory[0:4].tobytes() == b'\xef\xbe\xad\xde', f"Expected 0xDEADBEEF, got {memory[0:4].tobytes()}"
