@@ -231,6 +231,8 @@ void MelonDsDs::CoreState::Reset() {
         memcpy(gbaSram.data(), Console->GetGBASave(), Console->GetGBASaveLength());
     }
 
+    std::vector<melonDS::ARCode> cheats = std::move(Console->AREngine.Cheats);
+
     Console = nullptr;
     melonDS::NDS::Current = nullptr;
     Console = CreateConsole(
@@ -249,6 +251,8 @@ void MelonDsDs::CoreState::Reset() {
     if (!gbaSram.empty()) {
         Console->SetGBASave(gbaSram.data(), gbaSram.size());
     }
+
+    Console->AREngine.Cheats = std::move(cheats);
 
     _ndsSramInstalled = false;
     InitFlushFirmwareTask();

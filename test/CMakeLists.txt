@@ -289,6 +289,7 @@ set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
 
 include(cmake/Basics.cmake)
 include(cmake/Booting.cmake)
+include(cmake/Cheats.cmake)
 include(cmake/Errors.cmake)
 include(cmake/Firmware.cmake)
 include(cmake/Reset.cmake)

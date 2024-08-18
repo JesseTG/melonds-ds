@@ -182,6 +182,15 @@ extern "C" bool melondsds_is_software_renderer() {
     return mode && *mode == RenderMode::Software;
 }
 
+extern "C" unsigned melondsds_num_cheats() {
+    using namespace MelonDsDs;
+    const auto *console = Core.GetConsole();
+    if (!console)
+        return 0;
+
+    return console->AREngine.Cheats.size();
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -251,6 +260,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_is_software_renderer"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_is_software_renderer);
+
+    if (string_is_equal(sym, "melondsds_num_cheats"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_num_cheats);
 
     return nullptr;
 }
