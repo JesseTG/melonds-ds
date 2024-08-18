@@ -16,9 +16,11 @@ with prelude.session() as session:
     # See https://mgba-emu.github.io/gbatek/#dscartcheatactionreplayds for more details
 
     # Slicing reads the bytes in sequence, not as a word
-    assert memory[0:4].tobytes() == b'\xef\xbe\xad\xde'
+    assert memory[0:4].tobytes() != b'\xef\xbe\xad\xde'
 
-    session.core.cheat_set(0, False, b'02000000 CAFEBABE')
+    # Cheats aren't applied immediately, they're applied when the ARM7 processes a VBlank IRQ
+    # (so we need to run a few frames)
+    for i in range(60):
+        session.run()
 
-    assert memory[0:4].tobytes() == b'\xef\xbe\xad\xde'
-    # Passing False to enabled shouldn't apply the cheat
+    assert memory[0:4].tobytes() == b'\xef\xbe\xad\xde', f"Expected 0xDEADBEEF, got {memory[0:4].tobytes()}"

@@ -913,16 +913,13 @@ void MelonDsDs::CoreState::CheatReset() noexcept
 }
 
 void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_view code) noexcept {
-    // Cheat codes are small programs, so we can't exactly turn them off (that would be undoing them)
     ZoneScopedN(TracyFunction);
     retro::debug("retro_cheat_set({}, {}, {})\n", index, enabled, code);
     if (code.empty())
         return;
 
-    if (!enabled) {
-        retro::set_warn_message("Action Replay codes can't be undone, restart the game to remove their effects.");
+    if (!Console)
         return;
-    }
 
     if (!regex_match(code.data(), _cheatSyntax)) {
         // If we're trying to activate this cheat code, but it's not valid...
@@ -931,7 +928,7 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
     }
 
     melonDS::ARCode curcode {
-        .Name = "",
+        .Name = string(code),
         .Enabled = enabled,
         .Code = {}
     };
@@ -947,7 +944,12 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
         curcode.Code.push_back(token);
     }
 
-    retro_assert(Console != nullptr);
-    // Console->AREngine.RunCheat(curcode);
-    // TODO: Append the cheat to the cheat list
+    if (index < Console->AREngine.Cheats.size())
+    { // If we're updating the state of a cheat that already exists...
+        Console->AREngine.Cheats[index] = std::move(curcode);
+    }
+    else
+    { // If we're adding a new cheat...
+        Console->AREngine.Cheats.push_back(std::move(curcode));
+    }
 }

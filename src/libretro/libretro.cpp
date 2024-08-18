@@ -202,12 +202,14 @@ PUBLIC_SYMBOL void retro_reset(void) {
 }
 
 PUBLIC_SYMBOL void retro_cheat_reset(void) {
-    retro::debug("retro_cheat_reset()");
+    ZoneScopedN(TracyFunction);
+
+    MelonDsDs::Core.CheatReset();
 }
 
 PUBLIC_SYMBOL void retro_cheat_set(unsigned index, bool enabled, const char *code) {
     // Cheat codes are small programs, so we can't exactly turn them off (that would be undoing them)
-    ZoneScopedN("retro_cheat_set");
+    ZoneScopedN(TracyFunction);
 
     MelonDsDs::Core.CheatSet(index, enabled, code);
 }

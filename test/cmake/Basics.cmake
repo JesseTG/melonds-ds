@@ -120,6 +120,7 @@ add_python_test(
 add_python_test(
     NAME "Core applies cheats"
     TEST_MODULE basics.core_applies_cheats
+    CORE_OPTION "melonds_boot_mode=direct"
     CONTENT "${NDS_ROM}"
 )
 
