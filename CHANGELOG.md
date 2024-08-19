@@ -14,11 +14,14 @@ a design goal is to avoid a 2.x release for as long as possible.
 ### Changed
 
 - Updated melonDS to commit [824eb37](https://github.com/melonDS-emu/melonDS/tree/824eb37).
-- Fixed cheat codes not being applied to the game. [#196](https://github.com/JesseTG/melonds-ds/issues/196)
 - Updated glm to commit [33b4a62](https://github.com/g-truc/glm/tree/33b4a62).
 - **BREAKING:** The savestate format has changed.
   Savestates from previous versions are incompatible with this one.
   Please save your progress in-game before updating.
+
+### Fixed
+
+- Fixed cheat codes not being applied to the game. [#196](https://github.com/JesseTG/melonds-ds/issues/196)
 
 ## [1.1.5] - 2024-07-25
 
