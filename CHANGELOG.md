@@ -14,7 +14,6 @@ a design goal is to avoid a 2.x release for as long as possible.
 ### Changed
 
 - Updated melonDS to commit [824eb37](https://github.com/melonDS-emu/melonDS/tree/824eb37).
-- Updated glm to commit [33b4a62](https://github.com/g-truc/glm/tree/33b4a62).
 - **BREAKING:** The savestate format has changed.
   Savestates from previous versions are incompatible with this one.
   Please save your progress in-game before updating.
