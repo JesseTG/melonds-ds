@@ -179,7 +179,7 @@ jobs:
           fetch-depth: 0 # To ensure we have all tags
       - name: Get Latest Changelog Version
         id: changelog
-        uses: release-flow/keep-a-changelog-action@v2
+        uses: release-flow/keep-a-changelog-action@v3
         with:
           command: query
           version: latest
@@ -189,7 +189,7 @@ jobs:
           echo "version=`git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n1 | cut -c2-`" >> "$GITHUB_OUTPUT"
       - name: Download Artifacts
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifact
       - name: Zip Release Artifacts
@@ -202,14 +202,14 @@ jobs:
           done
       - name: Upload .info File Artifact
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: melondsds_libretro.info
           path: artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info
           # The .info file doesn't vary by platform, so we only need to upload one
       - name: Create Release
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           tag_name: "v${{ steps.changelog.outputs.version }}"
@@ -238,7 +238,7 @@ jobs:
 
       - name: Open Pull Request
         if: "${{ steps.changelog.outputs.version != steps.newest-tag.outputs.version }}"
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           path: libretro-super
