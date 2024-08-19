@@ -147,10 +147,8 @@ jobs:
 
       - name: Install Dependencies (Linux aarch64)
         if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
-        with:
-          packages: cmake ninja-build libepoxy-dev:arm64 libopengl0:arm64 libopengl-dev:arm64 ccache
-          version: 1.2
+        shell: bash
+        run: sudo apt-get update -qy && sudo apt-get install -qy cmake ninja-build libepoxy-dev:arm64 libopengl0:arm64 libopengl-dev:arm64 ccache
 
       - name: Install CCache
         uses: hendrikmuhs/ccache-action@v1.2.14
