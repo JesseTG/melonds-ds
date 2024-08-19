@@ -129,7 +129,7 @@ jobs:
       target: linux-aarch64
       runs-on: ubuntu-latest
       lib-ext: so
-      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config
+      cmake-args: -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ -DPKG_CONFIG_EXECUTABLE=/usr/bin/aarch64-linux-gnu-pkg-config -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
 
   android:
     name: Android
