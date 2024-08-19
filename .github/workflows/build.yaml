@@ -149,8 +149,8 @@ jobs:
         if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
         uses: awalsh128/cache-apt-pkgs-action@6460a33c29e99ddc3c9f61ebd04653105b260906
         with:
-          packages: cmake ninja-build libepoxy-dev:arm64 ccache
-          version: 1.1
+          packages: cmake ninja-build libepoxy-dev:arm64 libopengl0:arm64 libopengl-dev:arm64 ccache
+          version: 1.2
 
       - name: Install CCache
         uses: hendrikmuhs/ccache-action@v1.2.11
