@@ -38,19 +38,19 @@ function(fetch_dependency name default_url default_tag)
 endfunction()
 
 fetch_dependency(melonDS "https://github.com/melonDS-emu/melonDS" "0e6235a")
-fetch_dependency("libretro-common" "https://github.com/libretro/libretro-common.git" "fce57fd")
+fetch_dependency(libretro-common "https://github.com/libretro/libretro-common" "70ed90c")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm" "33b4a62")
-fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror.git" "44e7877")
-fetch_dependency(pntr "https://github.com/robloach/pntr" "a3dc08c")
-fetch_dependency(fmt "https://github.com/fmtlib/fmt" "10.2.1")
+fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror" "e61dbd4")
+fetch_dependency(pntr "https://github.com/robloach/pntr" "650237a")
+fetch_dependency(fmt "https://github.com/fmtlib/fmt" "11.0.2")
 fetch_dependency(yamc "https://github.com/yohhoy/yamc" "4e015a7")
-fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "bc08bf8")
-fetch_dependency(date "https://github.com/HowardHinnant/date" "88a3b15")
+fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "00afc28")
+fetch_dependency(date "https://github.com/HowardHinnant/date" "1ead671")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
-fetch_dependency(zlib "https://github.com/madler/zlib.git" "v1.3")
+fetch_dependency(zlib "https://github.com/madler/zlib" "v1.3.1")
 
 if (TRACY_ENABLE)
     fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.10")

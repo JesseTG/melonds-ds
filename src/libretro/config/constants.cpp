@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <string>
+#include <fmt/ranges.h>
 #include <net/net_compat.h>
 #include <string/stdstring.h>
 #include <retro_assert.h>

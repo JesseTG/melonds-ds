@@ -21,6 +21,7 @@
 #include <Net_Slirp.h>
 #include <retro_assert.h>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "environment.hpp"
 #include "config/config.hpp"
