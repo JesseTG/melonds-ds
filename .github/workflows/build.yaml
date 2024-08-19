@@ -105,7 +105,7 @@ jobs:
 
       - name: Install GCC Problem Matcher
         uses: root-project/gcc-problem-matcher-improved@f570674bcaf59d17ec0e6ae3ee0d03f8d68c1989
-        #if: ${{ runner.os != 'Windows' }} # See https://github.com/root-project/gcc-problem-matcher-improved/issues/3
+        if: ${{ runner.os != 'Windows' }} # See https://github.com/root-project/gcc-problem-matcher-improved/issues/3
         with:
           build-directory: ${{ env.BUILD_DIR }}
 
