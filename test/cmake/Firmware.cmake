@@ -69,3 +69,11 @@ add_python_test(
     CORE_OPTION "melonds_boot_directly=false"
     CORE_OPTION "melonds_sysfile_mode=native"
 )
+
+add_python_test(
+    NAME "Core loads Wi-fi settings from wfcsettings.bin if using built-in firmware"
+    TEST_MODULE firmware.core_loads_wfcsettings
+    CONTENT "${NDS_ROM}"
+    CORE_OPTION "melonds_console_mode=ds"
+    CORE_OPTION "melonds_sysfile_mode=builtin"
+)

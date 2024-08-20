@@ -24,6 +24,9 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Fixed changes to the built-in firmware's settings and data
   not being persisted to disk.
   [#211](https://github.com/JesseTG/melonds-ds/issues/211)
+- Fixed the built-in firmware's Wi-fi settings
+  not being loaded from the correct file.
+  [#205](https://github.com/JesseTG/melonds-ds/issues/205)
 
 ## [1.1.5] - 2024-07-25
 

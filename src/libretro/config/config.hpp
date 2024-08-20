@@ -300,7 +300,7 @@ namespace MelonDsDs {
         string_view DsiBios7Path() const noexcept { return "dsi_bios7.bin"; }
 
         [[nodiscard]] std::string_view GeneratedFirmwareSettingsPath() const noexcept {
-            return "melonDS DS/wfcsettings.bin";
+            return "wfcsettings.bin";
         }
         [[nodiscard]] string_view FirmwarePath(MelonDsDs::ConsoleType type) const noexcept {
             return type == ConsoleType::DSi ? DsiFirmwarePath() : FirmwarePath();

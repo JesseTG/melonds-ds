@@ -38,6 +38,7 @@
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "format.hpp"
+#include "retro/file.hpp"
 #include "retro/http.hpp"
 #include "retro/info.hpp"
 #include "types.hpp"
@@ -909,8 +910,7 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
     // If using generated firmware, we keep the wi-fi settings on the host disk separately.
     // Wi-fi access point data includes Nintendo WFC settings,
     // and if we didn't keep them then the player would have to reset them in each session.
-    if (RFILE* file = filestream_open(wfcsettingspath->c_str(), RETRO_VFS_FILE_ACCESS_READ,
-                                      RETRO_VFS_FILE_ACCESS_HINT_NONE)) {
+    if (retro::rfile_ptr file = retro::make_rfile(*wfcsettingspath, RETRO_VFS_FILE_ACCESS_READ)) {
         // If we have Wi-fi settings to load...
         constexpr unsigned TOTAL_WFC_SETTINGS_SIZE =
             3 * (sizeof(Firmware::WifiAccessPoint) + sizeof(Firmware::ExtendedWifiAccessPoint));
@@ -921,7 +921,7 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
         // (Extended access points first, then regular ones.)
         uint8_t* userdata = firmware.GetExtendedAccessPointPosition();
 
-        if (filestream_read(file, userdata, TOTAL_WFC_SETTINGS_SIZE) != TOTAL_WFC_SETTINGS_SIZE) {
+        if (filestream_read(file.get(), userdata, TOTAL_WFC_SETTINGS_SIZE) != TOTAL_WFC_SETTINGS_SIZE) {
             // If we couldn't read the Wi-fi settings from this file...
             retro::warn("Failed to read Wi-fi settings from \"{}\"; using defaults instead\n", *wfcsettingspath);
 
@@ -937,8 +937,9 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
                 Firmware::ExtendedWifiAccessPoint(),
             };
         }
-
-        filestream_close(file);
+    }
+    else {
+        retro::info("No existing Wi-fi settings found at {}\n", *wfcsettingspath);
     }
 
     // If we don't have Wi-fi settings to load,

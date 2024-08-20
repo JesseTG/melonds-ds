@@ -270,7 +270,7 @@ retro::task::TaskSpec MelonDsDs::CoreState::FlushFirmwareTask(string_view firmwa
     }
 
     string_view wfcSettingsName = Config.GeneratedFirmwareSettingsPath();
-    optional<string> wfcSettingsPath = retro::get_system_path(wfcSettingsName);
+    optional<string> wfcSettingsPath = retro::get_system_subdir_path(wfcSettingsName);
     if (!wfcSettingsPath) {
         retro::error("Failed to get system path for WFC settings at \"{}\", firmware changes won't be saved.",
                      wfcSettingsName);
