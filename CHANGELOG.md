@@ -9,6 +9,12 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
+## [1.1.7] - 2024-08-20
+
+### Fixed
+
+- Fixed a build error on iOS on the libretro infrastructure.
+
 ## [1.1.6] - 2024-08-20
 
 ### Changed
