@@ -23,7 +23,6 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Fixed cheat codes not being applied to the game. [#196](https://github.com/JesseTG/melonds-ds/issues/196)
 - Fixed changes to the built-in firmware's settings and data
   not being persisted to disk.
-  [#205](https://github.com/JesseTG/melonds-ds/issues/205)
   [#211](https://github.com/JesseTG/melonds-ds/issues/211)
 
 ## [1.1.5] - 2024-07-25
