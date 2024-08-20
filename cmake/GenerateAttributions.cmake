@@ -14,4 +14,4 @@ file(READ "${zlib_SOURCE_DIR}/LICENSE" ZLIB_LICENSE)
 
 configure_file("${CMAKE_SOURCE_DIR}/cmake/melondsds-LICENSE.txt.in" "${CMAKE_CURRENT_BINARY_DIR}/melondsds-LICENSE.txt")
 
-# TODO: Conditionally add licenses for pcap and tracy
+# TODO: Conditionally add license for tracy
