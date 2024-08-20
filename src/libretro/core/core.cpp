@@ -28,6 +28,7 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 
+#include "../strings/strings.hpp"
 #include "../config/console.hpp"
 #include "../exceptions.hpp"
 #include "../format.hpp"
@@ -44,16 +45,10 @@
 
 using std::span;
 using namespace melonDS::DSi_NAND;
+using namespace MelonDsDs::strings::en_us;
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
-static const char* const INTERNAL_ERROR_MESSAGE =
-    "An internal error occurred with melonDS DS. "
-    "Please contact the developer with the log file.";
-
-static const char* const UNKNOWN_ERROR_MESSAGE =
-    "An unknown error has occurred with melonDS DS. "
-    "Please contact the developer with the log file.";
 
 date::local_seconds LocalTime() noexcept {
     using namespace std::chrono;
@@ -195,7 +190,7 @@ void MelonDsDs::CoreState::Reset() {
     ZoneScopedN(TracyFunction);
 
     if (_messageScreen) {
-        retro::set_error_message("Please follow the advice on this screen, then unload/reload the core.");
+        retro::set_error_message(PleaseResetCore);
         return;
         // TODO: Allow the game to be reset from the error screen
         // (gotta reinitialize the DS here)
@@ -297,7 +292,7 @@ bool MelonDsDs::CoreState::RunDeferredInitialization() noexcept {
     }
     catch (...) {
         retro::error("Deferred initialization failed; exiting core");
-        retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
+        retro::set_error_message(UnknownError);
         return false;
     }
 
@@ -461,9 +456,6 @@ void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept
         _flushTaskId = flushTask.Identifier();
         retro::task::push(std::move(flushTask));
     }
-    else {
-        retro::set_error_message("System path not found, changes to firmware settings won't be saved.");
-    }
 }
 
 void MelonDsDs::CoreState::ResetRenderState() {
@@ -481,8 +473,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     // ...then load the game.
     if (!retro::set_pixel_format(RETRO_PIXEL_FORMAT_XRGB8888)) {
-        throw environment_exception(
-            "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
+        throw environment_exception(PixelFormatUnsupported);
     }
 
     if (RegisterCoreOptions()) {
@@ -558,11 +549,11 @@ catch (const emulator_exception& e) {
 }
 catch (const std::exception& e) {
     retro::error("{}", e.what());
-    retro::set_error_message(INTERNAL_ERROR_MESSAGE);
+    retro::set_error_message(InternalError);
     return false;
 }
 catch (...) {
-    retro::set_error_message(UNKNOWN_ERROR_MESSAGE);
+    retro::set_error_message(UnknownError);
     return false;
 }
 
@@ -640,7 +631,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         // (so that excessive warnings aren't shown)
         if (!_micState.IsMicInterfaceAvailable() && config.ShowUnsupportedFeatureWarnings()) {
             // ...but this frontend doesn't support it...
-            retro::set_warn_message("This frontend doesn't support microphones.");
+            retro::set_warn_message(MicNotSupported);
         }
         else if (!_micState.IsHostMicOpen()) {
             retro::warn("Failed to open host microphone");
@@ -696,7 +687,6 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
             break;
         default:
             retro::error("Unknown game type {}", type);
-            retro::set_error_message(INTERNAL_ERROR_MESSAGE);
             throw std::runtime_error("Unknown game type");
     }
 }
@@ -835,16 +825,11 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
 
         if (major < SAVESTATE_MAJOR) {
             // If this savestate is too old...
-            retro::set_error_message(
-                "This savestate is too old, can't load it.\n"
-                "Save your game normally in the older version and import the save data.");
+            retro::set_error_message(StateTooOld);
         }
         else if (major > SAVESTATE_MAJOR) {
             // If this savestate is too new...
-            retro::set_error_message(
-                "This savestate is too new, can't load it.\n"
-                "Save your game normally in the newer version, "
-                "then update this core or import the save data.");
+            retro::set_error_message(StateTooNew);
         }
 
         return false;
@@ -852,7 +837,7 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
 
     if (data.size() != *_savestateSize) {
         retro::error("Expected a {}-byte savestate, got one of {} bytes", *_savestateSize, data.size());
-        retro::set_error_message("Can't load this savestate, most likely the ROM or the core is wrong.");
+        retro::set_error_message(StateLoadFailed);
         return false;
     }
 
@@ -909,13 +894,13 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
         return;
 
     if (!enabled) {
-        retro::set_warn_message("Action Replay codes can't be undone, restart the game to remove their effects.");
+        retro::set_warn_message(CantDisableCheat);
         return;
     }
 
     if (!regex_match(code.data(), _cheatSyntax)) {
         // If we're trying to activate this cheat code, but it's not valid...
-        retro::set_warn_message("Cheat #{} ({:.8}...) isn't valid, ignoring it.", index, code);
+        retro::set_warn_message(InvalidCheat, fmt::arg("index", index), fmt::arg("code", code));
         return;
     }
 

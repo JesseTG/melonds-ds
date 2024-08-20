@@ -44,10 +44,12 @@
 #include "info.hpp"
 #include "retro/task_queue.hpp"
 #include "sram.hpp"
+#include "strings/strings.hpp"
 #include "tracy.hpp"
 #include "version.hpp"
 
 using namespace melonDS;
+using namespace MelonDsDs::strings::en_us;
 using std::make_optional;
 using std::optional;
 using std::nullopt;
@@ -197,7 +199,7 @@ PUBLIC_SYMBOL void retro_reset(void) {
         retro::shutdown();
     }
     catch (...) {
-        retro::set_error_message("An unknown error has occurred.");
+        retro::set_error_message(UnknownError);
         retro::shutdown();
     }
 }
@@ -283,7 +285,7 @@ extern "C" void MelonDsDs::HardwareContextReset() noexcept {
         retro::shutdown();
     }
     catch (...) {
-        retro::set_error_message("OpenGL context initialization failed with an unknown error. Please report this issue.");
+        retro::set_error_message(UnknownError);
         retro::shutdown();
     }
 }

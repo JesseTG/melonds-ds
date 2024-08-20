@@ -26,13 +26,14 @@
 #include "message/error.hpp"
 #include "render/software.hpp"
 #include "screenlayout.hpp"
+#include "strings/en_us.hpp"
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
 #include <GPU3D_OpenGL.h>
 #include "render/opengl.hpp"
 #endif
 
-
+using namespace MelonDsDs::strings::en_us;
 void MelonDsDs::RenderStateWrapper::Render(
     melonDS::NDS& nds,
     const InputState& input,
@@ -73,7 +74,7 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config) {
                 break;
             }
 
-            retro::set_warn_message("Failed to initialize OpenGL render state, falling back to software mode.");
+            retro::set_warn_message(OpenGlInitFailed);
             [[fallthrough]];
         }
 #endif
@@ -116,7 +117,7 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
             nds.GPU.SetRenderer3D(std::move(renderer));
             glRender->RequestRefresh();
         } else {
-            retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
+            retro::set_warn_message(OpenGlInitFailed);
             _renderState = std::make_unique<SoftwareRenderState>(config);
             nds.GPU.SetRenderer3D(std::make_unique<melonDS::SoftRenderer>(config.ThreadedSoftRenderer()));
         }

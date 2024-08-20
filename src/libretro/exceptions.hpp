@@ -97,7 +97,7 @@ namespace MelonDsDs
     class nds_firmware_not_bootable_exception : public bios_exception {
     public:
         explicit nds_firmware_not_bootable_exception() noexcept;
-        explicit nds_firmware_not_bootable_exception(std::string_view firmwareName) noexcept;
+        explicit nds_firmware_not_bootable_exception(std::string_view path) noexcept;
     };
 
 
