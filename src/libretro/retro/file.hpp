@@ -18,6 +18,7 @@
 #define MELONDSDS_RETRO_FILE_HPP
 
 #include <memory>
+#include <string_view>
 
 struct RFILE;
 
@@ -30,6 +31,9 @@ namespace retro {
     using rfile_ptr = std::unique_ptr<RFILE, rfile_deleter>;
 
     rfile_ptr make_rfile(const char *path, unsigned mode, unsigned hints) noexcept;
+    rfile_ptr make_rfile(std::string_view path, unsigned mode, unsigned hints) noexcept;
+    rfile_ptr make_rfile(const char *path, unsigned mode) noexcept;
+    rfile_ptr make_rfile(std::string_view path, unsigned mode) noexcept;
 }
 
 

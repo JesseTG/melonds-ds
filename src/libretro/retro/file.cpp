@@ -25,3 +25,15 @@ void retro::rfile_deleter::operator()(RFILE* file) const noexcept {
 retro::rfile_ptr retro::make_rfile(const char *path, unsigned mode, unsigned hints) noexcept {
     return rfile_ptr(filestream_open(path, mode, hints));
 }
+
+retro::rfile_ptr retro::make_rfile(std::string_view path, unsigned mode, unsigned hints) noexcept {
+    return make_rfile(path.data(), mode, hints);
+}
+
+retro::rfile_ptr retro::make_rfile(const char *path, unsigned mode) noexcept {
+    return make_rfile(path, mode, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+}
+
+retro::rfile_ptr retro::make_rfile(std::string_view path, unsigned mode) noexcept {
+    return make_rfile(path.data(), mode);
+}
