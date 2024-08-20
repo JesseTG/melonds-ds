@@ -156,6 +156,10 @@ function(add_common_definitions TARGET)
         # macOS has deprecated OpenGL, and its headers spit out a lot of warnings
     endif()
 
+    if (IOS)
+        target_compile_definitions(${TARGET} PUBLIC IOS=1)
+    endif ()
+
     if (HAVE_NEON)
         target_compile_definitions(${TARGET} PUBLIC HAVE_NEON)
     endif ()
