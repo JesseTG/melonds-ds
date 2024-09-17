@@ -77,6 +77,8 @@ namespace MelonDsDs {
         switch (layout) {
             case ScreenLayout::HybridTop:
             case ScreenLayout::HybridBottom:
+            case ScreenLayout::FlippedHybridTop:
+            case ScreenLayout::FlippedHybridBottom:
                 return true;
             default:
                 return false;

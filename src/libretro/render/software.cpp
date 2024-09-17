@@ -168,7 +168,7 @@ void MelonDsDs::SoftwareRenderState::CombineScreens(
     ScreenLayout layout = screenLayout.Layout();
 
     if (IsHybridLayout(layout)) {
-        auto primaryBuffer = layout == ScreenLayout::HybridTop ? topBuffer : bottomBuffer;
+        auto primaryBuffer = layout == ScreenLayout::HybridTop || layout == ScreenLayout::FlippedHybridTop ? topBuffer : bottomBuffer;
 
         hybridScaler.Scale(hybridBuffer[0], primaryBuffer.data());
         buffer.CopyRows(
@@ -179,12 +179,12 @@ void MelonDsDs::SoftwareRenderState::CombineScreens(
 
         HybridSideScreenDisplay smallScreenLayout = screenLayout.HybridSmallScreenLayout();
 
-        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom) {
+        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridBottom || layout == ScreenLayout::FlippedHybridBottom) {
             // If we should display both screens, or if the bottom one is the primary...
             buffer.CopyRows(topBuffer.data(), screenLayout.GetTopScreenTranslation(), NDS_SCREEN_SIZE<unsigned>);
         }
 
-        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop) {
+        if (smallScreenLayout == HybridSideScreenDisplay::Both || layout == ScreenLayout::HybridTop || layout == ScreenLayout::FlippedHybridTop) {
             // If we should display both screens, or if the top one is being focused...
             buffer.CopyRows(bottomBuffer.data(), screenLayout.GetBottomScreenTranslation(), NDS_SCREEN_SIZE<unsigned>);
         }
