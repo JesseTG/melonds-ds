@@ -93,6 +93,7 @@ constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout)
             }
             break;
         case ScreenLayout::HybridTop:
+        case ScreenLayout::FlippedHybridTop:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 indexes[i] = hybridPositionIndexes[i];
                 indexes[i + VERTEXES_PER_SCREEN] = bottomPositionIndexes[i];
@@ -100,6 +101,7 @@ constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout)
             }
             break;
         case ScreenLayout::HybridBottom:
+        case ScreenLayout::FlippedHybridBottom:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 indexes[i] = hybridPositionIndexes[i];
                 indexes[i + VERTEXES_PER_SCREEN] = topPositionIndexes[i];
@@ -118,6 +120,8 @@ constexpr unsigned GetVertexCount(ScreenLayout layout, MelonDsDs::HybridSideScre
             return 6; // 1 screen, 2 triangles
         case ScreenLayout::HybridTop:
         case ScreenLayout::HybridBottom:
+        case ScreenLayout::FlippedHybridTop:
+        case ScreenLayout::FlippedHybridBottom:
             if (hybridScreen == MelonDsDs::HybridSideScreenDisplay::Both)
                 return 18; // 3 screens, 6 triangles
         [[fallthrough]];
@@ -566,6 +570,7 @@ void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLa
             }
             break;
         case ScreenLayout::HybridTop:
+        case ScreenLayout::FlippedHybridTop:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 // Hybrid screen
                 screen_vertices[i] = {
@@ -588,6 +593,7 @@ void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLa
             }
             break;
         case ScreenLayout::HybridBottom:
+        case ScreenLayout::FlippedHybridBottom:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 // Hybrid screen
                 screen_vertices[i] = {

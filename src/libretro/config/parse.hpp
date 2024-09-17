@@ -129,6 +129,8 @@ namespace MelonDsDs {
         if (value == config::values::BOTTOM) return ScreenLayout::BottomOnly;
         if (value == config::values::HYBRID_TOP) return ScreenLayout::HybridTop;
         if (value == config::values::HYBRID_BOTTOM) return ScreenLayout::HybridBottom;
+        if (value == config::values::FLIPPED_HYBRID_TOP) return ScreenLayout::FlippedHybridTop;
+        if (value == config::values::FLIPPED_HYBRID_BOTTOM) return ScreenLayout::FlippedHybridBottom;
         if (value == config::values::ROTATE_LEFT) return ScreenLayout::TurnLeft;
         if (value == config::values::ROTATE_RIGHT) return ScreenLayout::TurnRight;
         if (value == config::values::UPSIDE_DOWN) return ScreenLayout::UpsideDown;

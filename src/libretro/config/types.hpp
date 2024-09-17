@@ -128,9 +128,11 @@ namespace MelonDsDs {
         BottomOnly = 5,
         HybridTop = 6,
         HybridBottom = 7,
-        TurnLeft = 8,
-        TurnRight = 9,
-        UpsideDown = 10,
+        FlippedHybridTop = 8,
+        FlippedHybridBottom = 9,
+        TurnLeft = 10,
+        TurnRight = 11,
+        UpsideDown = 12,
     };
 
     enum class HybridSideScreenDisplay {
