@@ -6,7 +6,7 @@ import prelude
 
 nds_firmware_path = os.environ["NDS_FIRMWARE"]
 nds_firmware_basename = os.path.basename(nds_firmware_path)
-test_nds_firmware_path = os.path.join(prelude.core_system_dir, nds_firmware_basename)
+test_nds_firmware_path = os.path.join(prelude.core_system_dir, nds_firmware_basename.encode())
 
 original_nds_firmware_size = os.stat(nds_firmware_path).st_size
 assert original_nds_firmware_size > 0, f"{nds_firmware_path} is empty"

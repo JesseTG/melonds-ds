@@ -9,7 +9,7 @@ with open(os.environ["NDS_FIRMWARE"], "rb") as f:
 assert len(firmware) == 262144
 firmware[0x8:0xC] = b"NNNN"
 
-badfirmwarepath = os.path.join(prelude.core_system_dir, "badfirmware.bin")
+badfirmwarepath = os.path.join(prelude.core_system_dir, b"badfirmware.bin")
 with open(badfirmwarepath, "wb") as f:
     f.write(firmware)
 

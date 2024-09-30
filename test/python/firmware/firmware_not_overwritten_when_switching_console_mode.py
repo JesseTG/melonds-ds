@@ -5,9 +5,9 @@ from libretro import Session
 import prelude
 
 nds_firmware_path = os.environ["NDS_FIRMWARE"]
-nds_firmware_basename = os.path.basename(nds_firmware_path)
+nds_firmware_basename = os.path.basename(nds_firmware_path).encode()
 dsi_firmware_path = os.environ["DSI_FIRMWARE"]
-dsi_firmware_basename = os.path.basename(dsi_firmware_path)
+dsi_firmware_basename = os.path.basename(dsi_firmware_path).encode()
 
 with open(nds_firmware_path, "rb") as firmware_file:
     nds_firmware = firmware_file.read()

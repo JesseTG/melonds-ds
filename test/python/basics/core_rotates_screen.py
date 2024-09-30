@@ -34,7 +34,7 @@ with prelude.builder().with_input(generate_input).with_options(options).build() 
     layout1 = screen_layout()
     assert layout1 == 0, f"Expected screen layout 0 (TopBottom), got {layout1}"
 
-    frame1 = session.video.screenshot()
+    frame1 = session.video.screenshot(False)
     geometry1 = session.video.geometry
 
     assert frame1 is not None
@@ -54,7 +54,7 @@ with prelude.builder().with_input(generate_input).with_options(options).build() 
     layout2 = screen_layout()
     assert layout2 == 8, f"Expected screen layout 8 (TurnLeft), got {layout2}"
 
-    frame2 = session.video.screenshot()
+    frame2 = session.video.screenshot(False)
     geometry2 = session.video.geometry
 
     assert frame2 is not None

@@ -7,7 +7,7 @@ with prelude.session() as session:
 
     assert info is not None
     assert len(info) > 0
-    assert all(len(i) for i in info)
+    assert all(i.desc for i in info)
 
 
 # Testing this _after_ unloading the core to ensure the data is still valid
