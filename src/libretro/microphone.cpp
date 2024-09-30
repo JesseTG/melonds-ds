@@ -122,7 +122,7 @@ void MelonDsDs::MicrophoneState::Read(std::span<int16_t> buffer) noexcept {
     switch (_micInputMode) {
         case MicInputMode::WhiteNoise: {
             for (short& i : buffer)
-                i = rand() & 0xFFFF;
+                i = _random(_randomEngine);
 
             break;
         }
