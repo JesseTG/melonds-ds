@@ -251,6 +251,14 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
 
     if (ndsInfo) {
         ndsargs.NDSROM = LoadNdsCart(config, *ndsInfo);
+        const uint8_t* romdata = ndsargs.NDSROM->GetROM();
+        const NDSHeader &header = ndsargs.NDSROM->GetHeader();
+
+        bool romDecrypted = (*(uint32_t*)&romdata[header.ARM9ROMOffset] == 0xE7FFDEFF && *(uint32_t*)&romdata[header.ARM9ROMOffset + 0x10] != 0xE7FFDEFF);
+        if (!header.IsHomebrew() && !romDecrypted && !(bios7Loaded && bios9Loaded)) {
+            // If this is an encrypted retail ROM but we aren't using the native BIOS...
+            throw encrypted_rom_exception();
+        }
     }
 
     if (gbaInfo) {

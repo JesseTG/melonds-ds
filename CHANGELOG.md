@@ -9,6 +9,14 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed encrypted NDS ROMs failing to load without any feedback;
+  loading one without using the native BIOS will now display an error message.
+  [#228](https://github.com/JesseTG/melonds-ds/issues/228)
+
 ## [1.1.7] - 2024-08-20
 
 ### Fixed

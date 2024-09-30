@@ -73,6 +73,14 @@ MelonDsDs::wrong_firmware_type_exception::wrong_firmware_type_exception(
 ) {
 }
 
+MelonDsDs::encrypted_rom_exception::encrypted_rom_exception() noexcept : bios_exception(
+    "The loaded ROM is encrypted and needs native NDS BIOS files, "
+    "but they're not loaded.",
+    "Ensure that you have the required files in your frontend's system folder. "
+    "Select Native in the BIOS/Firmware Mode core option, then restart the core."
+) {
+}
+
 
 MelonDsDs::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
     string_view nandName,

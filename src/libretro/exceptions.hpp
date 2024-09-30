@@ -70,6 +70,11 @@ namespace MelonDsDs
         using config_exception::config_exception;
     };
 
+    class encrypted_rom_exception : public bios_exception {
+    public:
+        encrypted_rom_exception() noexcept;
+    };
+
     class dsi_region_mismatch_exception : public config_exception {
     public:
         dsi_region_mismatch_exception(std::string_view nandName, melonDS::DSi_NAND::ConsoleRegion nandRegion, melonDS::RegionMask gameRegionMask) noexcept;
