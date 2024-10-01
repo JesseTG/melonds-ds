@@ -53,7 +53,7 @@ fetch_dependency(date "https://github.com/HowardHinnant/date" "1ead671")
 fetch_dependency(zlib "https://github.com/madler/zlib" "v1.3.1")
 
 if (TRACY_ENABLE)
-    fetch_dependency(tracy "https://github.com/wolfpld/tracy.git" "v0.10")
+    fetch_dependency(tracy "https://github.com/wolfpld/tracy" "v0.11.1")
 endif()
 
 set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTENT_BASE_DIR}/embed-binaries-src/cmake" "${CMAKE_MODULE_PATH}")
