@@ -54,6 +54,7 @@ namespace MelonDsDs {
 
     enum class MicInputMode {
         None,
+        Blow,
         HostMic,
         WhiteNoise,
     };

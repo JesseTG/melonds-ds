@@ -325,6 +325,14 @@ add_python_test(
 )
 
 add_python_test(
+    NAME "Core accepts microphone input with Blow mode"
+    TEST_MODULE basics.core_accepts_microphone_input
+    CONTENT "${MICRECORD_NDS}"
+    CORE_OPTION melonds_boot_mode=direct
+    CORE_OPTION melonds_mic_input=blow
+)
+
+add_python_test(
     NAME "Core queries device power state"
     TEST_MODULE basics.core_gets_power_state
     CONTENT "${NDS_ROM}"

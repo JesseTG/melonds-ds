@@ -16,6 +16,9 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Fixed encrypted NDS ROMs failing to load without any feedback;
   loading one without using the native BIOS will now display an error message.
   [#228](https://github.com/JesseTG/melonds-ds/issues/228)
+- Fixed Blow mode for emulated microphone input not being implemented
+  despite being available in the core options.
+  [#187](https://github.com/JesseTG/melonds-ds/issues/187)
 
 ## [1.1.7] - 2024-08-20
 

@@ -160,6 +160,7 @@ namespace MelonDsDs {
     constexpr std::optional<MicInputMode> ParseMicInputMode(std::string_view value) noexcept {
         if (value == config::values::MICROPHONE) return MicInputMode::HostMic;
         if (value == config::values::NOISE) return MicInputMode::WhiteNoise;
+        if (value == config::values::BLOW) return MicInputMode::Blow;
         if (value == config::values::SILENCE) return MicInputMode::None;
 
         return std::nullopt;

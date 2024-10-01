@@ -53,6 +53,7 @@ namespace MelonDsDs {
         std::optional<retro::Microphone> _microphone {};
         MicInputMode _micInputMode = MicInputMode::None;
         MicButtonMode _micButtonMode = MicButtonMode::Hold;
+        size_t _blowSampleOffset = 0;
         std::default_random_engine _randomEngine;
         std::uniform_int_distribution<int16_t> _random {std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max()};
         bool _micButtonDown = false;

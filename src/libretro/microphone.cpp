@@ -19,6 +19,7 @@
 #include <optional>
 
 #include <libretro.h>
+#include <frontend/mic_blow.h>
 
 #include "config/config.hpp"
 #include "environment.hpp"
@@ -123,6 +124,18 @@ void MelonDsDs::MicrophoneState::Read(std::span<int16_t> buffer) noexcept {
         case MicInputMode::WhiteNoise: {
             for (short& i : buffer)
                 i = _random(_randomEngine);
+
+            break;
+        }
+        case MicInputMode::Blow: {
+            constexpr size_t MIC_BLOW_LENGTH = sizeof(mic_blow) / sizeof(mic_blow[0]);
+
+            // builtin sample is 16-bit signed PCM
+            // sample rate is 44.1KHz
+            for (int i = 0; i < buffer.size(); ++i) {
+                buffer[i] = static_cast<int16_t>(mic_blow[_blowSampleOffset] ^ 0x8000);
+                _blowSampleOffset = (_blowSampleOffset + 1) % MIC_BLOW_LENGTH;
+            }
 
             break;
         }
