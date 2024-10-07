@@ -245,6 +245,7 @@ jobs:
         working-directory: "${{ env.BUILD_DIR }}"
         env:
           PYTHONUNBUFFERED: 1
+          TRACY_NO_INVARIANT_CHECK: 1
         run: ctest --exclude-regex example --output-on-failure
 
       - name: Run Test Suite (Linux)
