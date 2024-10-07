@@ -447,6 +447,8 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     vbo = 0;
     GL_ShaderConfig = {};
     ubo = 0;
+    // TODO: Delete these objects, since the context hasn't been destroyed yet
+    // (just in case it's not really destroyed afterwards)
 }
 
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
