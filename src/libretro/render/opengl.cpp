@@ -170,9 +170,6 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     retro_assert(hw_render.debug_context);
 #endif
 
-    uintptr_t framebuffer = hw_render.get_current_framebuffer();
-    retro::debug("OpenGL context requested. Current framebuffer: {}", framebuffer);
-
     gl_query_core_context_set(hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
 }
 
