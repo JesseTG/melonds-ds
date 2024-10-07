@@ -126,7 +126,7 @@
 
 #if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES))
 #include <array>
-#include <vector>
+#include <queue>
 
 #include "PlatformOGLPrivate.h"
 #include <tracy/TracyOpenGL.hpp>
@@ -151,7 +151,7 @@ namespace MelonDsDs {
         std::array<GLuint, 4> _tracyPbos;
         std::array<GLsync, 4> _tracyFences;
         int _tracyIndex = 0;
-        std::vector<int> _tracyQueue;
+        std::queue<int> _tracyQueue;
     };
 }
 #else

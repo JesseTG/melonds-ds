@@ -125,7 +125,7 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
         auto ptr = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, NDS_SCREEN_AREA<GLuint> * 2 * 4, GL_MAP_READ_BIT);
         FrameImage(ptr, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, _tracyQueue.size(), true);
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-        _tracyQueue.erase(_tracyQueue.begin());
+        _tracyQueue.pop();
     }
 
     // TODO: Only downscale if playing at a scale factor other than 1
@@ -138,7 +138,7 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     glReadPixels(0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     _tracyFences[_tracyIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    _tracyQueue.emplace_back(_tracyIndex);
+    _tracyQueue.push(_tracyIndex);
     _tracyIndex = (_tracyIndex + 1) % 4;
 }
 
