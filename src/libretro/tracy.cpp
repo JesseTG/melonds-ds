@@ -116,6 +116,7 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);
 
+    // TODO: Capture the OpenGL renderer's buffer, not the RetroArch framebuffer
     while (!_tracyQueue.empty()) {
         const auto fiIdx = _tracyQueue.front();
         if (glClientWaitSync(_tracyFences[fiIdx], 0, 0) == GL_TIMEOUT_EXPIRED) break;
