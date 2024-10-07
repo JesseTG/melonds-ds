@@ -453,6 +453,9 @@ What do these games have in common?
 
 I see this core as an enhanced remake of the [legacy melonDS core][melonds-libretro],
 so I wanted to embody that in the name.
+Put differently,
+if I had given [the DeSmuME core](https://github.com/libretro/desmume) a similar treatment
+then I would've named it "DeSmuME DS"!
 
 # Special Thanks
 
