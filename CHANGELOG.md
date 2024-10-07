@@ -11,6 +11,12 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+### Added
+
+- Added `RelWithDebInfo` builds that include Tracy support.
+  These will be distributed on GitHub for all supported platforms,
+  starting with this release.
+
 ### Fixed
 
 - Fixed encrypted NDS ROMs failing to load without any feedback;
