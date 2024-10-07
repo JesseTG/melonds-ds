@@ -814,26 +814,21 @@ void retro::NormalizePath(std::span<char> buffer, size_t& pathLength) noexcept {
 }
 
 PUBLIC_SYMBOL void retro_set_video_refresh(retro_video_refresh_t video_refresh) {
-    ZoneScopedN(TracyFunction);
     retro::_video_refresh = video_refresh;
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample(retro_audio_sample_t) {
-    ZoneScopedN(TracyFunction);
     // Noop, we don't use this callback
 }
 
 PUBLIC_SYMBOL void retro_set_audio_sample_batch(retro_audio_sample_batch_t audio_sample_batch) {
-    ZoneScopedN(TracyFunction);
     retro::_audio_sample_batch = audio_sample_batch;
 }
 
 PUBLIC_SYMBOL void retro_set_input_poll(retro_input_poll_t input_poll) {
-    ZoneScopedN(TracyFunction);
     retro::_input_poll = input_poll;
 }
 
 PUBLIC_SYMBOL void retro_set_input_state(retro_input_state_t input_state) {
-    ZoneScopedN(TracyFunction);
     retro::_input_state = input_state;
 }
