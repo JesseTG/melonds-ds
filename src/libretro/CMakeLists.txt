@@ -101,7 +101,6 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     utils.cpp
     utils.hpp
     ../pntr/pntr.c
-    tracy/memory.cpp
 )
 
 target_include_directories(melondsds_libretro SYSTEM PUBLIC
