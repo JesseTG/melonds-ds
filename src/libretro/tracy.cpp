@@ -128,7 +128,7 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     }
 
     // TODO: Only downscale if playing at a scale factor other than 1
-    assert (m_fiQueue.empty() || m_fiQueue.front() != m_fiIdx); // check for buffer overrun
+    assert(_tracyQueue.empty() || _tracyQueue.front() != _tracyIndex); // check for buffer overrun
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _tracyFbos[_tracyIndex]);
     glBlitFramebuffer(0, 0, NDS_SCREEN_WIDTH * scale, NDS_SCREEN_HEIGHT * 2 * scale, 0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
