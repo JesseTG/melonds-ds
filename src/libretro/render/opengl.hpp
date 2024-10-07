@@ -30,6 +30,7 @@
 
 #ifdef HAVE_TRACY
 #include "tracy.hpp"
+#include "tracy/opengl.hpp"
 #endif
 
 namespace MelonDsDs {

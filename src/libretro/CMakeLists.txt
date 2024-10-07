@@ -96,9 +96,12 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     sram.cpp
     sram.hpp
     tracy.hpp
+    tracy/client.hpp
+    tracy/opengl.hpp
     utils.cpp
     utils.hpp
     ../pntr/pntr.c
+    tracy/memory.cpp
 )
 
 target_include_directories(melondsds_libretro SYSTEM PUBLIC
@@ -175,7 +178,11 @@ if (HAVE_NETWORKING)
 endif ()
 
 if (TRACY_ENABLE)
-    target_sources(melondsds_libretro PRIVATE tracy.cpp)
+    target_sources(melondsds_libretro PRIVATE tracy/memory.cpp)
+
+    if (HAVE_OPENGL OR HAVE_OPENGLES)
+        target_sources(melondsds_libretro PRIVATE tracy/opengl.cpp)
+    endif()
 endif ()
 
 if (HAVE_OPENGL OR HAVE_OPENGLES)

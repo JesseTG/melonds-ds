@@ -1,5 +1,5 @@
 /*
-    Copyright 2023 Jesse Talavera-Greenberg
+    Copyright 2024 Jesse Talavera
 
     melonDS DS is free software: you can redistribute it and/or modify it under
     the terms of the GNU General Public License as published by the Free
@@ -14,32 +14,9 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#include "tracy.hpp"
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+#include "opengl.hpp"
 #include "screenlayout.hpp"
-#endif
 
-void* operator new(std::size_t count)
-{
-    if (count == 0)
-        ++count; // avoid std::malloc(0) which may return nullptr on success
-
-    if (void *ptr = std::malloc(count)) {
-        TracySecureAlloc(ptr, count);
-        return ptr;
-    }
-
-    throw std::bad_alloc{}; // required by [new.delete.single]/3
-}
-
-void operator delete(void* ptr) noexcept
-{
-    TracySecureFree(ptr);
-    std::free(ptr);
-}
-
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
 MelonDsDs::OpenGlTracyCapture::OpenGlTracyCapture() {
     if (!tracy::ProfilerAvailable()) {
         throw std::runtime_error("Tracy not available");
@@ -141,5 +118,3 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     _tracyQueue.push(_tracyIndex);
     _tracyIndex = (_tracyIndex + 1) % 4;
 }
-
-#endif // defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
