@@ -245,6 +245,8 @@ jobs:
         working-directory: "${{ env.BUILD_DIR }}"
         env:
           PYTHONUNBUFFERED: 1
+          # Defining TRACY_NO_INVARIANT_CHECK fixes test suite failures on the macos-13 runner;
+          # this is fine because we're not taking traces on the CI anyway.
           TRACY_NO_INVARIANT_CHECK: 1
         run: ctest --exclude-regex example --output-on-failure
 
