@@ -28,6 +28,10 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
+#ifdef HAVE_TRACY
+#include "tracy.hpp"
+#endif
+
 namespace MelonDsDs {
     using glm::vec2;
     using glm::vec4;
@@ -85,6 +89,10 @@ namespace MelonDsDs {
         } GL_ShaderConfig {};
 
         GLuint ubo = 0;
+
+#ifdef HAVE_TRACY
+        std::optional<OpenGlTracyCapture> _tracyCapture;
+#endif
     };
 }
 

@@ -184,6 +184,10 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
         glDeleteBuffers(1, &vbo);
         glDeleteProgram(_screenProgram);
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+
+#ifdef HAVE_TRACY
+        _tracyCapture = std::nullopt;
+#endif
     }
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
     gl_query_core_context_unset();
@@ -254,6 +258,14 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     // Stop using OpenGL structures
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
     retro::debug("Unbound GL state");
+
+#ifdef HAVE_TRACY
+    if (tracy::ProfilerAvailable()) {
+        // If we're using Tracy...
+        retro::debug("Using Tracy, will capture OpenGL calls");
+        _tracyCapture.emplace(); // ...then get ready to capture OpenGL calls
+    }
+#endif
 
     retro::debug("OpenGL context reset successfully.");
 }
@@ -422,6 +434,12 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
+#ifdef HAVE_TRACY
+    if (_tracyCapture) {
+        _tracyCapture->CaptureFrame(config.ScaleFactor());
+    }
+#endif
+
     retro::video_refresh(
         RETRO_HW_FRAME_BUFFER_VALID,
         screenLayout.BufferWidth(),
@@ -449,6 +467,10 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     ubo = 0;
     // TODO: Delete these objects, since the context hasn't been destroyed yet
     // (just in case it's not really destroyed afterwards)
+
+#ifdef HAVE_TRACY
+    _tracyCapture = std::nullopt;
+#endif
 }
 
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {

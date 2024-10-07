@@ -125,8 +125,35 @@
 #endif
 
 #if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES))
+#include <array>
+#include <vector>
+
 #include "PlatformOGLPrivate.h"
 #include <tracy/TracyOpenGL.hpp>
+
+namespace MelonDsDs {
+    /// \brief Class for capturing OpenGL frames for Tracy.
+    /// Suitable for both OpenGL renderers.
+    class OpenGlTracyCapture {
+    public:
+        OpenGlTracyCapture();
+        ~OpenGlTracyCapture() noexcept;
+
+        // Copying the OpenGL objects is too much of a hassle.
+        OpenGlTracyCapture(const OpenGlTracyCapture&) = delete;
+        OpenGlTracyCapture& operator=(const OpenGlTracyCapture&) = delete;
+        OpenGlTracyCapture(OpenGlTracyCapture&&) = delete;
+        OpenGlTracyCapture& operator=(OpenGlTracyCapture&&) = delete;
+        void CaptureFrame(float scale) noexcept;
+    private:
+        std::array<GLuint, 4> _tracyTextures;
+        std::array<GLuint, 4> _tracyFbos;
+        std::array<GLuint, 4> _tracyPbos;
+        std::array<GLsync, 4> _tracyFences;
+        int _tracyIndex = 0;
+        std::vector<int> _tracyQueue;
+    };
+}
 #else
 #define TracyGpuContext
 #define TracyGpuContextName(x,y)
