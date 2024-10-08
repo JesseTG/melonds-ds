@@ -15,9 +15,15 @@
 */
 
 #include "opengl.hpp"
+
+#include <string>
+#include <fmt/format.h>
+
 #include "screenlayout.hpp"
 
-MelonDsDs::OpenGlTracyCapture::OpenGlTracyCapture() {
+using std::string;
+
+MelonDsDs::OpenGlTracyCapture::OpenGlTracyCapture(bool debug) : _debug(debug) {
     if (!tracy::ProfilerAvailable()) {
         throw std::runtime_error("Tracy not available");
     }
@@ -39,6 +45,19 @@ MelonDsDs::OpenGlTracyCapture::OpenGlTracyCapture() {
     // Create some PBOs to let the CPU read from the textures
     glGenBuffers(4, _tracyPbos.data());
     for (int i = 0; i < 4; i++) {
+    if (_debug) {
+        assert(glObjectLabel != nullptr);
+        for (int i = 0; i < FRAME_LAG; ++i) {
+            fmt::basic_memory_buffer<char, 1024> label_buffer;
+            fmt::format_to(std::back_inserter(label_buffer), "Tracy Capture Texture #{}", i);
+            glObjectLabel(GL_TEXTURE, _tracyTextures[i], -1, label_buffer.data());
+            fmt::format_to(std::back_inserter(label_buffer), "Tracy Capture FBO #{}", i);
+            glObjectLabel(GL_FRAMEBUFFER, _tracyFbos[i], -1, label_buffer.data());
+            fmt::format_to(std::back_inserter(label_buffer), "Tracy Capture PBO #{}", i);
+            glObjectLabel(GL_BUFFER, _tracyPbos[i], -1, label_buffer.data());
+        }
+    }
+
         // Let's configure one texture at a time...
         glBindTexture(GL_TEXTURE_2D, _tracyTextures[i]);
 
@@ -154,6 +173,11 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     // Create a new fence that'll go off when every OpenGL command that came before it finishes
     // (No other acceptable arguments are currently defined for glFenceSync)
     _tracyFences[_tracyIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    if (_debug) {
+        fmt::basic_memory_buffer<char, 1024> label_buffer;
+        fmt::format_to(std::back_inserter(label_buffer), "Tracy Capture Fence Slot #{}", _tracyIndex);
+        glObjectPtrLabel(_tracyFences[_tracyIndex], -1, label_buffer.data());
+    }
 
     // "Hang onto this flag for now, we'll check it again next frame."
     _tracyQueue.push(_tracyIndex);

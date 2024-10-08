@@ -28,7 +28,7 @@ namespace MelonDsDs {
     /// Suitable for both OpenGL renderers.
     class OpenGlTracyCapture {
     public:
-        OpenGlTracyCapture();
+        OpenGlTracyCapture(bool debug);
         ~OpenGlTracyCapture() noexcept;
 
         // Copying the OpenGL objects is too much of a hassle.
@@ -42,8 +42,10 @@ namespace MelonDsDs {
         std::array<GLuint, 4> _tracyFbos;
         std::array<GLuint, 4> _tracyPbos;
         std::array<GLsync, 4> _tracyFences;
+        static constexpr int FRAME_LAG = 4;
         int _tracyIndex = 0;
         std::queue<int> _tracyQueue;
+        bool _debug;
     };
 }
 #endif

@@ -263,7 +263,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     if (tracy::ProfilerAvailable()) {
         // If we're using Tracy...
         retro::debug("Using Tracy, will capture OpenGL calls");
-        _tracyCapture.emplace(); // ...then get ready to capture OpenGL calls
+        _tracyCapture.emplace(_openGlDebugAvailable); // ...then get ready to capture OpenGL calls
     }
 #endif
 
@@ -304,6 +304,7 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
         throw shader_compilation_failed_exception("Failed to compile and link melonDS DS screen shader program.");
 
     if (_openGlDebugAvailable) {
+        // TODO: Fall back to glLabelObjectEXT if glObjectLabel isn't available
         glObjectLabel(GL_PROGRAM, _screenProgram, -1, SHADER_PROGRAM_NAME);
     }
 
