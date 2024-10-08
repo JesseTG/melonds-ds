@@ -38,11 +38,11 @@ namespace MelonDsDs {
         OpenGlTracyCapture& operator=(OpenGlTracyCapture&&) = delete;
         void CaptureFrame(float scale) noexcept;
     private:
-        std::array<GLuint, 4> _tracyTextures;
-        std::array<GLuint, 4> _tracyFbos;
-        std::array<GLuint, 4> _tracyPbos;
-        std::array<GLsync, 4> _tracyFences;
         static constexpr int FRAME_LAG = 4;
+        std::array<GLuint, FRAME_LAG> _tracyTextures;
+        std::array<GLuint, FRAME_LAG> _tracyFbos;
+        std::array<GLuint, FRAME_LAG> _tracyPbos;
+        std::array<GLsync, FRAME_LAG> _tracyFences;
         int _tracyIndex = 0;
         std::queue<int> _tracyQueue;
         bool _debug;

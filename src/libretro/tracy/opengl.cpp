@@ -37,14 +37,14 @@ MelonDsDs::OpenGlTracyCapture::OpenGlTracyCapture(bool debug) : _debug(debug) {
     TracyGpuZone(TracyFunction);
 
     // Allocate the textures for the resized image
-    glGenTextures(4, _tracyTextures.data());
+    glGenTextures(FRAME_LAG, _tracyTextures.data());
 
     // Create some FBOs to let us write to the textures
-    glGenFramebuffers(4, _tracyFbos.data());
+    glGenFramebuffers(FRAME_LAG, _tracyFbos.data());
 
     // Create some PBOs to let the CPU read from the textures
-    glGenBuffers(4, _tracyPbos.data());
-    for (int i = 0; i < 4; i++) {
+    glGenBuffers(FRAME_LAG, _tracyPbos.data());
+
     if (_debug) {
         assert(glObjectLabel != nullptr);
         for (int i = 0; i < FRAME_LAG; ++i) {
@@ -58,6 +58,7 @@ MelonDsDs::OpenGlTracyCapture::OpenGlTracyCapture(bool debug) : _debug(debug) {
         }
     }
 
+    for (int i = 0; i < FRAME_LAG; i++) {
         // Let's configure one texture at a time...
         glBindTexture(GL_TEXTURE_2D, _tracyTextures[i]);
 
