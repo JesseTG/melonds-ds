@@ -36,7 +36,7 @@ namespace MelonDsDs {
         OpenGlTracyCapture& operator=(const OpenGlTracyCapture&) = delete;
         OpenGlTracyCapture(OpenGlTracyCapture&&) = delete;
         OpenGlTracyCapture& operator=(OpenGlTracyCapture&&) = delete;
-        void CaptureFrame(float scale) noexcept;
+        void CaptureFrame(GLuint current_fbo, float scale) noexcept;
     private:
         static constexpr int FRAME_LAG = 4;
         std::array<GLuint, FRAME_LAG> _tracyTextures;

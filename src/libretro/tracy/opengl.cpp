@@ -105,7 +105,7 @@ MelonDsDs::OpenGlTracyCapture::~OpenGlTracyCapture() noexcept {
     }
 }
 
-void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
+void MelonDsDs::OpenGlTracyCapture::CaptureFrame(GLuint current_fbo, float scale) noexcept {
     if (!tracy::ProfilerAvailable()) {
         return;
     }
@@ -156,7 +156,7 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     glBlitFramebuffer(0, 0, NDS_SCREEN_WIDTH * scale, NDS_SCREEN_HEIGHT * 2 * scale, 0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
     // Okay, we're done downscaling the screen
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // TODO: Use the retro_hw_render_callback's default FBO
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, current_fbo);
 
     // Get the capture FBO ready to read its contents out...
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _tracyFbos[_tracyIndex]);
@@ -168,8 +168,8 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
     // (nullptr means to read data into the bound PBO, not to the CPU)
     glReadPixels(0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-    // Okay, now we're done with the capture FBO; you can have the default FBO back
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // TODO: Use the retro_hw_render_callback's default FBO
+    // Okay, now we're done with the capture FBO; you can have the current FBO back
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, current_fbo);
 
     // Create a new fence that'll go off when every OpenGL command that came before it finishes
     // (No other acceptable arguments are currently defined for glFenceSync)

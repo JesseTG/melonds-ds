@@ -370,8 +370,9 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
 
+    GLuint current_fbo = glsm_get_current_framebuffer();
     // Tell OpenGL that we want to draw to (and read from) the screen framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, glsm_get_current_framebuffer());
+    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 
     melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GetRenderer3D());
 
@@ -437,7 +438,7 @@ void MelonDsDs::OpenGLRenderState::Render(
 
 #ifdef HAVE_TRACY
     if (_tracyCapture) {
-        _tracyCapture->CaptureFrame(config.ScaleFactor());
+        _tracyCapture->CaptureFrame(current_fbo, config.ScaleFactor());
     }
 #endif
 
