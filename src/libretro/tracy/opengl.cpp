@@ -110,7 +110,7 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
 
         // Thanks for your hard work, fence; you're no longer needed
         glDeleteSync(_tracyFences[fiIdx]);
-        _tracyFences[fiIdx] = 0;
+        _tracyFences[fiIdx] = nullptr;
 
         // Get the capture PBO ready to read its contents out...
         glBindBuffer(GL_PIXEL_PACK_BUFFER, _tracyPbos[fiIdx]);
