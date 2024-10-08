@@ -95,26 +95,66 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(float scale) noexcept {
 
     // TODO: Capture the OpenGL renderer's buffer, not the RetroArch framebuffer
     while (!_tracyQueue.empty()) {
+        // Until we've checked all the capture fences...
+
+        // Pull the oldest capture fence from the queue
         const auto fiIdx = _tracyQueue.front();
+
+        // Check this fence, but don't wait for it
+        // If the fence hasn't gone off yet, then stop checking
+        // (none of the newer fences will have been signaled yet)
         if (glClientWaitSync(_tracyFences[fiIdx], 0, 0) == GL_TIMEOUT_EXPIRED) break;
+
+        // The fence has been signaled!
+        // That means the capture we want is ready to send to Tracy
+
+        // Thanks for your hard work, fence; you're no longer needed
         glDeleteSync(_tracyFences[fiIdx]);
+
+        // Get the capture PBO ready to read its contents out...
         glBindBuffer(GL_PIXEL_PACK_BUFFER, _tracyPbos[fiIdx]);
+
+        // Expose the capture PBO's contents to RAM
         auto ptr = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, NDS_SCREEN_AREA<GLuint> * 2 * 4, GL_MAP_READ_BIT);
+
+        // Send the frame to Tracy
         FrameImage(ptr, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, _tracyQueue.size(), true);
+
+        // We're done with the capture PBO
         glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         _tracyQueue.pop();
     }
 
     // TODO: Only downscale if playing at a scale factor other than 1
     assert(_tracyQueue.empty() || _tracyQueue.front() != _tracyIndex); // check for buffer overrun
+
+    // Get the capture FBO ready to receive the screen(s)...
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _tracyFbos[_tracyIndex]);
+
+    // Copy the active framebuffer's contents to the capture FBO, downscaling along the way
     glBlitFramebuffer(0, 0, NDS_SCREEN_WIDTH * scale, NDS_SCREEN_HEIGHT * 2 * scale, 0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+    // Okay, we're done downscaling the screen
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // TODO: Use the retro_hw_render_callback's default FBO
+
+    // Get the capture FBO ready to read its contents out...
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _tracyFbos[_tracyIndex]);
+
+    // Get the PBO ready to receive the downscaled screen(s)...
     glBindBuffer(GL_PIXEL_PACK_BUFFER, _tracyPbos[_tracyIndex]);
+
+    // Actually read the screen into the PBO
+    // (nullptr means to read data into the bound PBO, not to the CPU)
     glReadPixels(0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+    // Okay, now we're done with the capture FBO; you can have the default FBO back
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // TODO: Use the retro_hw_render_callback's default FBO
+
+    // Create a new fence that'll go off when every OpenGL command that came before it finishes
+    // (No other acceptable arguments are currently defined for glFenceSync)
     _tracyFences[_tracyIndex] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+    // "Hang onto this flag for now, we'll check it again next frame."
     _tracyQueue.push(_tracyIndex);
     _tracyIndex = (_tracyIndex + 1) % 4;
 }
