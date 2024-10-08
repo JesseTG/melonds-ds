@@ -16,6 +16,12 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Added `RelWithDebInfo` builds that include Tracy support.
   These will be distributed on GitHub for all supported platforms,
   starting with this release.
+- Added a contributor's guide at `CONTRIBUTING.md`.
+  [#107](https://github.com/JesseTG/melonds-ds/issues/107)
+
+### Changed
+
+- Moved build instructions from `README.md` to the new `CONTRIBUTING.md`.
 
 ### Fixed
 
