@@ -438,6 +438,7 @@ void MelonDsDs::OpenGLRenderState::Render(
 
 #ifdef HAVE_TRACY
     if (_tracyCapture) {
+        // TODO: Expose the FBO that the emulator's GLRenderer uses for rendering, then pass it here
         _tracyCapture->CaptureFrame(current_fbo, config.ScaleFactor());
     }
 #endif
