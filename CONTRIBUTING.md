@@ -104,7 +104,7 @@ However, some platforms or features need you to add some extra flags to the firs
 
 If building for the macOS architecture that your device uses,
 no extra flags are required.
-To produce a build for a specific arhitecture,
+To produce a build for a specific architecture,
 pass `-DCMAKE_OSX_ARCHITECTURES:STRING=$ARCH` to the initial `cmake` command,
 where `$ARCH` is one of the following:
 
