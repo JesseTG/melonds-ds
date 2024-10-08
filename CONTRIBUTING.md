@@ -1,30 +1,121 @@
 # Contributing to melonDS DS
 
-TODO thanks for helping me out
-you can help me even if you're not a programmer
-
-## Reporting Issues
-
-## Capturing Traces
-
-TODO use a tracy build
+Thanks for your interest in contributing to melonDS DS!
+There are many ways you can help improve the project,
+even if you're not a coder.
 
 ## Contributing Upstream
 
-TODO you can also help out upstream
-any changes you make will eventually make their way to melondsds
-see [here][melonds-contributing] for more information
+First and foremost, you can help improve melonDS DS
+by contributing to the [underlying emulator][melonds-contributing]
+that this project is based on;
+since parity with standalone melonDS is a priority for melonDS DS,
+most improvements to the original emulator
+will eventually make their way here.
+
+## Reporting Issues
+
+Found a bug? Have a feature request?
+You can open a ticket by going [here][melondsds-issues]
+and following the instructions --
+or if your issue is something I already know about,
+you can comment on an existing ticket
+with details about how it affects you.
+
+Having a record of bugs or feature requests helps me keep my backlog organized
+and plan long-term improvements to the project,
+so don't be shy!
+
+When reporting a bug,
+you'll usually want to include supporting information.
+Here are some common artifacts that I may ask for:
+
+### Logs
+
+Usually, providing a log when reporting a bug or asking for help
+can eliminate a lot of blind guesswork.
+When in doubt, include a log.
+
+See [here](https://docs.libretro.com/guides/generating-retroarch-logs)
+for guidance on generating a log with RetroArch.
+Instructions may vary for other libretro frontends.
+
+### Traces
+
+melonDS DS supports the [Tracy][tracy] frame profiler,
+which is a great way to diagnose performance issues.
+Having a Tracy capture can help me learn more about:
+
+You can take a trace with the following steps:
+
+1. Download a Tracy-enabled build of melonDS DS for your platform
+   from the [Releases][melondsds-releases] or a GitHub Actions artifact.
+   These builds have `RelWithDebInfo` in the name.
+2. Install the Tracy-enabled build of melonDS DS in place of your normal build.
+3. Download, install, and launch [Tracy][tracy].
+4. If you're running RetroArch on a different device than you're running Tracy,
+   enter the device's IP address in the "client address" field.
+5. Launch RetroArch with the Tracy-enabled core.
+   The trace will start automatically,
+   and the Tracy window should start updating immediately.
+6. Perform the actions that you want to profile
+   (i.e. do the thing that's causing the slowdown).
+7. Close RetroArch to stop the trace.
+8. Save the trace to a file,
+   then attach it to the relevant ticket.
+
+> [!NOTE]
+> For most platforms, running RetroArch (or any Tracy-instrumented app)
+> with admin privileges will allow Tracy to capture extra data.
+> However, the resulting trace **will contain personal information**
+> about everything else that's running on your system.
+>
+> If you capture a trace with elevated privileges,
+> don't post it publicly.
+> Send it to me privately instead.
+
+## Translating Text
+
+melonDS DS is only available in English right now,
+but support for other languages is planned.
+Once the infrastructure for that is in place,
+you'll be able to help translate melonDS DS
+through libretro's [Crowdin][libretro-crowdin] project.
+
+## Sponsorship
+
+Spare change burning a hole in your bank account?
+[Sponsoring me through GitHub Sponsors][sponsor] is a great way to say thanks!
+melonDS DS is a passion project that will always be free to use
+(just like the original emulator),
+but I'm always grateful for financial support!
+The fine people behind [melonDS](https://melonds.kuribo64.net/donate.php)
+and [RetroArch](https://www.retroarch.com/index.php?page=donate)
+certainly wouldn't mind, either.
+
+> [!NOTE]
+> Right now I can't guarantee specific benefits for sponsors,
+> but I will reevaluate that stance if I see a sustained desire for it.
+
+## Spreading the Word
+
+If you enjoy using melonDS DS,
+you can help me out by spreading the good word!
+Tweet it, stream it, invite me on your podcast, book a television ad --
+whatever you think will help.
+The more people who use the project,
+the more likely one of them will want to contribute
+(and the more joy it'll bring to players)!
 
 ## Contributing Code
 
-TODO build instructions
+Submitting improvements to melonDS DS is a great way to help out,
+but it also requires the most attention and coordination.
+I don't want to see your hard work go to waste,
+so if there's something specific you want to work on
+then I _strongly_ recommend you run it by me beforehand.
 
-
-### Building
-
-melonDS DS is built with CMake.
-
-### Dependencies
+### Installing Dependencies
 
 You will need to install the following beforehand:
 
@@ -174,7 +265,7 @@ To enable it, add `-DTRACY_ENABLE=ON` to the initial `cmake` command.
 For best results, build with the `RelWithDebInfo` configuration
 by adding `-DCMAKE_BUILD_TYPE=RelWithDebInfo` when running `cmake`.
 
-### CMake Variables
+### Customizing the Build
 
 These are some of the most important CMake variables
 that can be used to configure the build.
@@ -195,5 +286,68 @@ and [here](https://cmake.org/cmake/help/latest/module/FetchContent.html#id8)
 for more information about the variables that CMake and its modules define;
 these can also be used to customize the build.
 
+### Getting Your Patch Merged
+
+Remember, I ultimately have to maintain whatever changes you submit.
+Submissions that complicate this would harm melonDS DS in the long run,
+so I will be picky about what gets merged.
+
+That said, I _want_ you to succeed!
+If you come to me in advance with your idea,
+I can guide you towards a solution that everyone can be happy with --
+or at least prevent you from wasting time on a non-starter.
+
+Here are some rules and guidelines you'll need to follow
+as you implement your contribution:
+
+#### Tests
+
+melonDS DS has a suite of tests to ensure that
+most of the core works as expected.
+The tests will automatically be run on the CI pipeline
+when new commits are pushed.
+
+> [!TIP]
+> You are _strongly_ encouraged to run the test suite locally,
+> as doing so will help you catch issues early and speed up iteration.
+> See [here][melondsds-tests] for instructions on doing so.
+
+**All builds must succeed and all test cases must pass
+for your contribution to be merged,
+barring exceptional circumstances.**
+
+You encouraged to write new tests
+if doing so makes sense for your contribution
+(and [libretro.py][libretro.py] supports it) --
+I may even ask you to do so as a condition of merging.
+
+Note that tests are only run on GitHub Actions --
+they are not run on libretro's build infrastructure.
+
+#### Style
+
+There isn't currently a style guide for the codebase (C++ or otherwise).
+But I do have some rules you'll need to follow:
+
+- Do not introduce new dependencies unless absolutely necessary.
+- If you _do_ need to introduce a new dependency,
+  then fetch it at configure-time with `FetchContent` instead of vendoring it.
+  See [here](cmake/FetchDependencies.cmake) for more details.
+- All C++ code (including dependencies) *must* be built as C++17.
+- All text should use [Semantic Line Breaks][sembr] (aka SemBr),
+  including comments and string literals in the code.
+  It helps with readability and version control.
+- Please update documentation and comments as you work,
+  if relevant to your changes.
+
+[libretro.py]: https://github.com/JesseTG/libretro.py
+[libretro-crowdin]: https://docs.libretro.com/development/retroarch/new-translations-crowdin
 [melonds]: https://github.com/melonDS-emu/melonDS
 [melonds-contributing]: https://github.com/melonDS-emu/melonDS/blob/master/CONTRIBUTING.md
+[melondsds-actions]: https://github.com/JesseTG/melonds-ds/actions
+[melondsds-issues]: https://github.com/JesseTG/melonds-ds/issues/new/choose
+[melondsds-releases]: https://github.com/JesseTG/melonds-ds/releases
+[melondsds-tests]: test/README.md
+[sembr]: https://sembr.org
+[sponsor]: https://github.com/sponsors/JesseTG
+[tracy]: https://github.com/wolfpld/tracy
