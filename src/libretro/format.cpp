@@ -473,6 +473,12 @@ auto fmt::formatter<MelonDsDs::ScreenLayout>::format(MelonDsDs::ScreenLayout lay
         case MelonDsDs::ScreenLayout::HybridBottom:
             name = "HybridBottom";
             break;
+        case MelonDsDs::ScreenLayout::FlippedHybridTop:
+            name = "FlippedHybridTop";
+        break;
+        case MelonDsDs::ScreenLayout::FlippedHybridBottom:
+            name = "FlippedHybridBottom";
+        break;
         case MelonDsDs::ScreenLayout::TurnLeft:
             name = "TurnLeft";
             break;
