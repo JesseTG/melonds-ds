@@ -6,7 +6,6 @@ on:
     types: [completed]
     branches:
       - main
-      - jtg/prs
 jobs:
   check-release-version:
     name: Check Release Version
