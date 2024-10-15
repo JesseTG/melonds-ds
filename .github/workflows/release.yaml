@@ -1,0 +1,95 @@
+name: Release New Version
+on:
+  workflow_run:
+    # Run this workflow right after the build succeeds and test pass on the main branch
+    workflows: ["Build Artifacts"]
+    types: [completed]
+    branches:
+      - main
+      - jtg/prs
+jobs:
+  check-release-version:
+    name: Check Release Version
+    if: github.ref == 'refs/heads/main' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # To ensure we have all tags
+      - name: Get Latest Changelog Version
+        id: changelog
+        uses: release-flow/keep-a-changelog-action@v3
+        with:
+          command: query
+          version: latest
+      - name: Get the Newest Tag
+        id: newest-tag
+        run: |
+          echo "newest-tag=`git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n1 | cut -c2-`" >> "$GITHUB_OUTPUT"
+    outputs:
+      newest-version: ${{ steps.changelog.outputs.version }}
+      newest-tag: ${{ steps.newest-tag.outputs.version }}
+      release-notes: ${{ steps.changelog.outputs.release-notes}}
+
+  create-release:
+    name: Create Release
+    needs: check-release-version
+    if: "${{ needs.check-release-version.outputs.newest-tag != needs.check-release-version.outputs.newest-version }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifact
+
+      - name: Zip Release Artifacts
+        shell: bash
+        working-directory: artifact
+        run: |
+          for file in melondsds_libretro-*-Release; do
+            zip -r "${file}.zip" "$file"
+          done
+
+      - name: Upload .info File Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: melondsds_libretro.info
+          path: artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info
+          # The .info file doesn't vary by platform, so we only need to upload one
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          tag_name: "v${{ needs.check-release-version.outputs.newest-version }}"
+          body: "${{ needs.check-release-version.outputs.release-notes }}"
+          files: |
+            artifact/melondsds_libretro-win32-x86_64-Release.zip
+            artifact/melondsds_libretro-macos-x86_64-Release.zip
+            artifact/melondsds_libretro-macos-arm64-Release.zip
+            artifact/melondsds_libretro-linux-x86_64-Release.zip
+            artifact/melondsds_libretro-linux-arm64-Release.zip
+            artifact/melondsds_libretro-android-Release.zip
+            artifact/melondsds_libretro-ios-Release.zip
+            artifact/melondsds_libretro-tvos-Release.zip
+
+      - name: Checkout libretro-super
+        uses: actions/checkout@v4
+        with:
+          repository: "libretro/libretro-super"
+          path: libretro-super
+
+      - name: Add Updated .info File
+        run: |
+          cp -f "${{ github.workspace }}/artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info" libretro-super/dist/info/melondsds_libretro.info
+
+      - name: Open Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          path: libretro-super
+          commit-message: 'Submit melondsds_libretro.info for melonDS DS release v${{ needs.check-release-version.outputs.newest-version }} on behalf of @${{ github.triggering_actor }}'
+          title: "Update melonDS DS to ${{ needs.check-release-version.outputs.newest-version }}"
+          branch: "melondsds-v${{ needs.check-release-version.outputs.newest-version }}"
+          push-to-fork: "${{ github.triggering_actor }}/libretro-super"
