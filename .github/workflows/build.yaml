@@ -194,7 +194,7 @@ jobs:
         shell: bash
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
 
-      - name: Create build environment
+      - name: Create Build Directory
         run: mkdir -vp "${{ env.BUILD_DIR }}"
 
       - name: Configure
