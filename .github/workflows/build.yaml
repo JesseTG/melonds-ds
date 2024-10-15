@@ -172,8 +172,16 @@ jobs:
         run: |
           pip install -v -r "${{ github.workspace }}/test/requirements.txt"
 
-      - name: Download Test Files
+      - name: Use Cached Test Files
         if: ${{ inputs.test-suite }}
+        id: cache-test-files
+        uses: actions/cache@v4
+        with:
+          path: "${{ github.workspace }}/testfiles"
+          key: "testfiles"
+
+      - name: Download Test Files
+        if: ${{ inputs.test-suite && steps.cache-test-files.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
@@ -181,7 +189,7 @@ jobs:
           path: "testfiles"
 
       - name: Prepare Test Files
-        if: ${{ inputs.test-suite }}
+        if: ${{ inputs.test-suite && steps.cache-test-files.outputs.cache-hit != 'true' }}
         working-directory: "${{ github.workspace }}/testfiles"
         shell: bash
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
