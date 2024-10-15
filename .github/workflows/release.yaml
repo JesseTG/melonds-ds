@@ -4,9 +4,9 @@ on:
     # Run this workflow right after the build succeeds and test pass on the main branch
     workflows: ["Build Artifacts"]
     types: [completed]
-    branches:
-      - main
-      - dev
+#    branches:
+#      - main
+#      - dev
 jobs:
   check-release-version:
     name: Check Release Version
