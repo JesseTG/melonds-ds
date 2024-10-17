@@ -8,7 +8,8 @@ on:
       - "*.gitignore"
       - "*.github/ISSUE_TEMPLATE/**"
       - "*.github/FUNDING.yml"
-  pull_request:
+      - "*.github/workflows/**"
+  pull_request_target:
     branches:
       - dev
     paths-ignore:
@@ -17,6 +18,7 @@ on:
       - "*.gitlab-ci.yml"
       - "*.github/ISSUE_TEMPLATE/**"
       - "*.github/FUNDING.yml"
+      - "*.github/workflows/**"
 jobs:
   windows:
     name: Windows (x86_64)
