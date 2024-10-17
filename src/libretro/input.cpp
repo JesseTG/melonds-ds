@@ -254,6 +254,7 @@ glm::uvec2 MelonDsDs::InputState::ConsoleTouchCoordinates(const ScreenLayoutData
 
     switch (layout.Layout()) {
         case ScreenLayout::HybridBottom:
+        case ScreenLayout::FlippedHybridBottom:
             if (layout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
                 // If the touch screen is only shown in the hybrid-screen position...
                 clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
