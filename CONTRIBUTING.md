@@ -32,7 +32,7 @@ Here are some common artifacts that I may ask for:
 
 ### Logs
 
-Usually, providing a log when reporting a bug or asking for help
+Providing a log when reporting a bug or asking for help
 can eliminate a lot of blind guesswork.
 When in doubt, include a log.
 
@@ -40,28 +40,26 @@ See [here](https://docs.libretro.com/guides/generating-retroarch-logs)
 for guidance on generating a log with RetroArch.
 Instructions may vary for other libretro frontends.
 
-### Traces
+### Performance Traces
 
 melonDS DS supports the [Tracy][tracy] frame profiler,
 which is a great way to diagnose performance issues.
-Having a Tracy capture can help me learn more about:
+You can take a trace with the following steps,
+including for mobile builds:
 
-You can take a trace with the following steps:
-
-1. Download a Tracy-enabled build of melonDS DS for your platform
-   from the [Releases][melondsds-releases] or a GitHub Actions artifact.
-   These builds have `RelWithDebInfo` in the name.
-2. Install the Tracy-enabled build of melonDS DS in place of your normal build.
-3. Download, install, and launch [Tracy][tracy].
-4. If you're running RetroArch on a different device than you're running Tracy,
-   enter the device's IP address in the "client address" field.
-5. Launch RetroArch with the Tracy-enabled core.
-   The trace will start automatically,
-   and the Tracy window should start updating immediately.
-6. Perform the actions that you want to profile
+1. Download a `RelWithDebInfo` build of melonDS DS for your platform
+   from the [Releases][melondsds-releases]
+   and replace your installed copy of the core with it.
+2. Download, install, and launch [Tracy][tracy].
+3. If you're running RetroArch and Tracy on different devices,
+   enter the IP address of the device running RetroArch in the "client address" field.
+4. Start your game in RetroArch.
+   The trace will start as soon as the core loads,
+   and the Tracy window will start updating immediately.
+5. Perform the actions that you want to profile
    (i.e. do the thing that's causing the slowdown).
-7. Close RetroArch to stop the trace.
-8. Save the trace to a file,
+6. Close RetroArch to stop the trace.
+7. Save the trace to a file,
    then attach it to the relevant ticket.
 
 > [!NOTE]
@@ -109,11 +107,15 @@ the more likely one of them will want to contribute
 
 ## Contributing Code
 
-Submitting improvements to melonDS DS is a great way to help out,
-but it also requires the most attention and coordination.
-I don't want to see your hard work go to waste,
-so if there's something specific you want to work on
-then I _strongly_ recommend you run it by me beforehand.
+> [!TIP]
+> Submitting improvements to melonDS DS is a great way to help out,
+> but it also requires the most attention and coordination.
+> I don't want to see your hard work go to waste,
+> so if there's something specific you want to work on
+> then I _strongly_ recommend you run it by me beforehand.
+
+The following sections explain how to start
+building and running melonDS DS locally.
 
 ### Installing Dependencies
 
@@ -243,7 +245,7 @@ but the paths will be different.
 See [here](https://developer.android.com/ndk/guides/cmake#variables) for more information
 about these and other Android-specific CMake variables.
 
-#### iOS/tvOS
+#### iOS & tvOS
 
 You will need to add the following flags to build for iOS or tvOS:
 
