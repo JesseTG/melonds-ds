@@ -50,7 +50,7 @@ jobs:
         shell: bash
         working-directory: artifact
         run: |
-          for file in melondsds_libretro-*-Release; do
+          for file in melondsds_libretro-*-Release melondsds_libretro-*-RelWithDebInfo; do
             zip -r "${file}.zip" "$file"
           done
 
