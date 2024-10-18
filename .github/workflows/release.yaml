@@ -6,6 +6,8 @@ on:
     types: [completed]
     branches:
       - main
+permissions:
+  contents: read
 jobs:
   check-release-version:
     name: Check Release Version
@@ -36,6 +38,8 @@ jobs:
     needs: check-release-version
     if: "${{ needs.check-release-version.outputs.newest-tag != needs.check-release-version.outputs.newest-version }}"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
