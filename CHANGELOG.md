@@ -11,6 +11,8 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+Thanks to **@oddballparty** and a private sponsor for their generosity!
+
 ### Added
 
 - Added `RelWithDebInfo` builds that include Tracy support.
@@ -18,6 +20,9 @@ a design goal is to avoid a 2.x release for as long as possible.
   starting with this release.
 - Added a contributor's guide at `CONTRIBUTING.md`.
   [#107](https://github.com/JesseTG/melonds-ds/issues/107)
+- Added right-handed versions of the hybrid screen layouts.
+  [#38](https://github.com/JesseTG/melonds-ds/issues/38)
+  **Thanks for [#229](https://github.com/JesseTG/melonds-ds/pull/229), @roblar91!**
 
 ### Changed
 
