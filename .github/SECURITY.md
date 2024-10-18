@@ -10,10 +10,12 @@ _security fixes will not be backported to older releases_.
 melonDS DS is only intended to execute code for the hardware it emulates;
 any bug that allows it to execute arbitrary code on the host
 is a vulnerability and should be reported.
+Reports of other kinds of vulnerabilities
+(e.g. build infrastructure) are also welcome.
 
 If you discover such a bug, please submit a private vulnerability report
 (**not** a public bug)
-with a homebrew ROM that demonstrates the issue.
+with a homebrew ROM that demonstrates the issue if applicable.
 
 I will share this information with the maintainers of upstream melonDS,
 as such a vulnerability would most likely affect them as well.

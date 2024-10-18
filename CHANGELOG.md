@@ -20,6 +20,7 @@ Thanks to **@oddballparty** and a private sponsor for their generosity!
   starting with this release.
 - Added a contributor's guide at `CONTRIBUTING.md`.
   [#107](https://github.com/JesseTG/melonds-ds/issues/107)
+- Added guidelines for reporting security vulnerabilities at `SECURITY.md`.
 - Added right-handed versions of the hybrid screen layouts.
   [#38](https://github.com/JesseTG/melonds-ds/issues/38)
   **Thanks for [#229](https://github.com/JesseTG/melonds-ds/pull/229), @roblar91!**
