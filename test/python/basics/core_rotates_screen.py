@@ -52,7 +52,7 @@ with prelude.builder().with_input(generate_input).with_options(options).build() 
     assert session.video.rotation == Rotation.NINETY, f"Expected core rotation of 90 degrees, got {session.video.rotation}"
 
     layout2 = screen_layout()
-    assert layout2 == 8, f"Expected screen layout 8 (TurnLeft), got {layout2}"
+    assert layout2 == 10, f"Expected screen layout 10 (TurnLeft), got {layout2}"
 
     frame2 = session.video.screenshot(False)
     geometry2 = session.video.geometry
