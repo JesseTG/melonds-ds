@@ -202,6 +202,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const ENGLISH = "en";
         static constexpr const char *const EXISTING = "existing";
         static constexpr const char *const FIRMWARE = "firmware";
+        static constexpr const char *const FLIPPED_HYBRID_BOTTOM = "flipped-hybrid-bottom";
+        static constexpr const char *const FLIPPED_HYBRID_TOP = "flipped-hybrid-top";
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GERMAN = "de";
         static constexpr const char *const HOLD = "hold";
