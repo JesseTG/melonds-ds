@@ -91,14 +91,9 @@ jobs:
           body: "${{ needs.check-release-version.outputs.release-notes }}"
           fail_on_unmatched_files: true
           files: |
-            artifact/melondsds_libretro-win32-x86_64-Release.zip
-            artifact/melondsds_libretro-macos-x86_64-Release.zip
-            artifact/melondsds_libretro-macos-arm64-Release.zip
-            artifact/melondsds_libretro-linux-x86_64-Release.zip
-            artifact/melondsds_libretro-linux-arm64-Release.zip
-            artifact/melondsds_libretro-android-Release.zip
-            artifact/melondsds_libretro-ios-Release.zip
-            artifact/melondsds_libretro-tvos-Release.zip
+            artifact/melondsds_libretro-*-Release.zip
+            artifact/melondsds_libretro-*-RelWithDebInfo.zip
+            artifact/melondsds_libretro-*-Debug.zip
 
       - name: Checkout libretro-super
         uses: actions/checkout@v4
