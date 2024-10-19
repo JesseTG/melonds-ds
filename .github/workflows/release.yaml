@@ -60,7 +60,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Token required to download artifacts from other workflows in this run
 
-          run-id: '${{ inputs.run-id && github.run_id }}'
+          run-id: '${{ inputs.run-id || github.event.workflow_run.id }}'
           # Use the run ID from the input if provided, otherwise use the current run ID
 
           path: artifact
