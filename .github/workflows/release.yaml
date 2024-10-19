@@ -8,6 +8,16 @@ on:
       - main
   workflow_dispatch:
     # Allow manual triggering of this workflow
+    inputs:
+      run-id:
+        type: string
+        description: "Workflow run ID to download artifacts from"
+        required: true
+      dry-run:
+        type: boolean
+        description: "If true, skip the steps that would actually create the release"
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -49,8 +59,12 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Token required to download artifacts from other workflows in this run
-          run-id: '${{ github.run_id }}'
+
+          run-id: '${{ inputs.run-id && github.run_id }}'
+          # Use the run ID from the input if provided, otherwise use the current run ID
+
           path: artifact
+          # Download the artifacts to the `artifact` directory
 
       - name: Zip Release Artifacts
         shell: bash
@@ -69,6 +83,7 @@ jobs:
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
+        if: "${{ !inputs.dry-run }}"
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           tag_name: "v${{ needs.check-release-version.outputs.newest-version }}"
@@ -95,6 +110,7 @@ jobs:
 
       - name: Open Pull Request
         uses: peter-evans/create-pull-request@v6
+        if: "${{ !inputs.dry-run }}"
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           path: libretro-super
