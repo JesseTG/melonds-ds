@@ -89,6 +89,7 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           tag_name: "v${{ needs.check-release-version.outputs.newest-version }}"
           body: "${{ needs.check-release-version.outputs.release-notes }}"
+          fail_on_unmatched_files: true
           files: |
             artifact/melondsds_libretro-win32-x86_64-Release.zip
             artifact/melondsds_libretro-macos-x86_64-Release.zip
