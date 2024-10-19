@@ -17,7 +17,7 @@ on:
         type: boolean
         description: "Skip release steps"
         required: false
-        default: false
+        default: true
 
 permissions:
   contents: read
