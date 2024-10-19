@@ -82,10 +82,6 @@ jobs:
           # The .info file doesn't vary by platform, so we only need to upload one
           if-no-files-found: error
 
-      # TODO: Format the changelog lines so that my use of sembr doesn't make it look weird
-      - name: Print Release Notes Body
-        run: echo "${{ needs.check-release-version.outputs.release-notes }}"
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: "${{ !inputs.dry-run }}"
