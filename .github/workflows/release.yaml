@@ -11,11 +11,11 @@ on:
     inputs:
       run-id:
         type: string
-        description: "Workflow run ID to download artifacts from"
+        description: "Workflow run ID"
         required: true
       dry-run:
         type: boolean
-        description: "If true, skip the steps that would actually create the release"
+        description: "Skip release steps"
         required: false
         default: false
 
