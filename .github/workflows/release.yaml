@@ -80,6 +80,7 @@ jobs:
           name: melondsds_libretro.info
           path: artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info
           # The .info file doesn't vary by platform, so we only need to upload one
+          if-no-files-found: error
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
