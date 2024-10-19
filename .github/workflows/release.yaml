@@ -12,7 +12,7 @@ on:
       run-id:
         type: string
         description: "Workflow run ID"
-        required: true
+        required: false
       dry-run:
         type: boolean
         description: "Skip release steps"
