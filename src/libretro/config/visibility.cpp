@@ -93,6 +93,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
         set_option_visible(config::system::SYSFILE_MODE, ShowDsOptions);
         set_option_visible(config::system::FIRMWARE_PATH, ShowDsOptions);
         set_option_visible(config::system::DS_POWER_OK, ShowDsOptions);
+        set_option_visible(system::SLOT2_DEVICE, ShowDsOptions);
         updated = true;
     }
 
