@@ -84,6 +84,7 @@ namespace MelonDsDs::config::definitions {
         AlarmMinute,
 
         ConsoleMode,
+        Slot2Device,
         SysfileMode,
         FirmwarePath,
         DsiFirmwarePath,

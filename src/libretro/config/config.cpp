@@ -147,6 +147,13 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
         config.SetConsoleType(ConsoleType::DS);
     }
 
+    if (optional<MelonDsDs::Slot2Device> type = ParseSlot2Device(get_variable(SLOT2_DEVICE))) {
+        config.SetSlot2Device(*type);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SLOT2_DEVICE, values::AUTO);
+        config.SetSlot2Device(Slot2Device::Auto);
+    }
+
     if (optional<BootMode> value = ParseBootMode(get_variable(BOOT_MODE))) {
         config.SetBootMode(*value);
     } else {

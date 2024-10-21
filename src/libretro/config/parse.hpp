@@ -112,6 +112,13 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
+    constexpr std::optional<MelonDsDs::Slot2Device> ParseSlot2Device(std::string_view value) noexcept {
+        if (value == config::values::AUTO) return MelonDsDs::Slot2Device::Auto;
+        if (value == config::values::RUMBLE_PAK) return MelonDsDs::Slot2Device::RumblePak;
+        if (value == config::values::EXPANSION_PAK) return MelonDsDs::Slot2Device::MemoryExpansionPak;
+        return std::nullopt;
+    }
+
     constexpr std::optional<MelonDsDs::NetworkMode> ParseNetworkMode(std::string_view value) noexcept {
         if (value == config::values::DISABLED) return MelonDsDs::NetworkMode::None;
         if (value == config::values::DIRECT) return MelonDsDs::NetworkMode::Direct;

@@ -128,6 +128,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
         static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
+        static constexpr const char *const SLOT2_DEVICE = "melonds_slot2_device";
         static constexpr const char *const SYSFILE_MODE = "melonds_sysfile_mode";
     }
 
@@ -201,6 +202,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const ENABLED = "enabled";
         static constexpr const char *const ENGLISH = "en";
         static constexpr const char *const EXISTING = "existing";
+        static constexpr const char *const EXPANSION_PAK = "expansion-pak";
         static constexpr const char *const FIRMWARE = "firmware";
         static constexpr const char *const FLIPPED_HYBRID_BOTTOM = "flipped-hybrid-bottom";
         static constexpr const char *const FLIPPED_HYBRID_TOP = "flipped-hybrid-top";
@@ -228,6 +230,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const RIGHT_LEFT = "right-left";
         static constexpr const char *const ROTATE_LEFT = "rotate-left";
         static constexpr const char *const ROTATE_RIGHT = "rotate-right";
+        static constexpr const char *const RUMBLE_PAK = "rumble-pak";
         static constexpr const char *const SHARED = "shared";
         static constexpr const char *const SILENCE = "silence";
         static constexpr const char *const SOFTWARE = "software";

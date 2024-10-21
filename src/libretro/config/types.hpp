@@ -23,6 +23,12 @@ namespace MelonDsDs {
         DSi = 1,
     };
 
+    enum class Slot2Device {
+        Auto,
+        RumblePak,
+        MemoryExpansionPak,
+    };
+
     enum class BiosType {
         Arm7,
         Arm9,

@@ -380,6 +380,8 @@ namespace MelonDsDs {
         [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartTime() const noexcept { return hh_mm_ss(_absoluteStartHour.hours() + _absoluteStartMinute.minutes()); }
         [[nodiscard]] local_seconds AbsoluteStartDateTime() const noexcept { return local_days(AbsoluteStartDate()) + AbsoluteStartTime().to_duration(); }
 
+        [[nodiscard]] Slot2Device Slot2Device() const noexcept { return _slot2; }
+        void SetSlot2Device(MelonDsDs::Slot2Device device) noexcept { _slot2 = device; }
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
@@ -397,6 +399,7 @@ namespace MelonDsDs {
         string _message;
         optional<melonDS::MacAddress> _macAddress;
         optional<melonDS::IpAddress> _dnsServer;
+        MelonDsDs::Slot2Device _slot2 = *ParseSlot2Device(config::definitions::Slot2Device.default_value);
 #ifdef JIT_ENABLED
         bool _jitEnable;
         unsigned _maxBlockSize;

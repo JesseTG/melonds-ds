@@ -332,6 +332,26 @@ namespace MelonDsDs::config::definitions {
         "20"
     };
 
+    constexpr retro_core_option_v2_definition Slot2Device {
+        config::system::SLOT2_DEVICE,
+        "Slot-2 Device",
+        nullptr,
+        "The kind of cartridge or expansion device "
+        "that will be inserted into the emulated console's Slot-2. "
+        "Ignored in DSi mode, or if a GBA ROM is explicitly loaded.\n"
+        "\n"
+        "Changes take effect at next core start.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {values::AUTO, "Auto"},
+            {values::RUMBLE_PAK, "Rumble Pak"},
+            {values::EXPANSION_PAK, "Memory Expansion Pak"},
+            {nullptr, nullptr},
+        },
+        values::AUTO
+    };
+
     constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         ConsoleMode,
         SysfileMode,
@@ -342,6 +362,7 @@ namespace MelonDsDs::config::definitions {
         DsiSdCardSaveMode,
         DsiSdCardReadOnly,
         DsiSdCardSyncToHost,
+        Slot2Device,
         HomebrewSdCard,
         HomebrewSdCardReadOnly,
         HomebrewSdCardSyncToHost,
