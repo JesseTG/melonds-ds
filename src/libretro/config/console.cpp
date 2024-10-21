@@ -262,7 +262,21 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
     }
 
     if (gbaInfo) {
+        // If loading a specific GBA ROM, then ignore the expansion paks
         ndsargs.GBAROM = LoadGbaCart(*gbaInfo, gbaSaveInfo);
+    } else {
+        switch (config.Slot2Device()) {
+            case Slot2Device::MemoryExpansionPak:
+                ndsargs.GBAROM = std::make_unique<melonDS::GBACart::CartRAMExpansion>();
+                retro::debug("Installed built-in GBA Memory Expansion Pak");
+                break;
+            case Slot2Device::RumblePak:
+                ndsargs.GBAROM = std::make_unique<melonDS::GBACart::CartRumblePak>(nullptr);
+                retro::debug("Installed built-in GBA Rumble Pak");
+                break;
+            default:
+                break;
+        }
     }
 
     return ndsargs;
