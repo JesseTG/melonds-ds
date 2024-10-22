@@ -77,6 +77,8 @@ namespace retro {
     static char _sysSubdir[PATH_LENGTH] {};
     static size_t _sysSubdirLength = 0;
 
+    static retro_rumble_interface _rumble {};
+
     static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
     static void NormalizePath(std::span<char> buffer, size_t& pathLength) noexcept;
 }
@@ -667,6 +669,13 @@ optional<string> retro::get_system_path(string_view name) noexcept {
     return string(fullpath);
 }
 
+bool retro::set_rumble_state(unsigned port, retro_rumble_effect effect, uint16_t strength) noexcept {
+    if (!_rumble.set_rumble_state)
+        return false;
+
+    return _rumble.set_rumble_state(port, effect, strength);
+}
+
 void retro::env::init() noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_environment != nullptr);
@@ -712,6 +721,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     bool yes = true;
     environment(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &yes);
+    environment(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &_rumble);
 
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback) && log_callback.log) {
