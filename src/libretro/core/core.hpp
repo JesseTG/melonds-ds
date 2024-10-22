@@ -66,6 +66,10 @@ namespace MelonDsDs {
     public:
         CoreState() noexcept = default;
         ~CoreState() noexcept;
+        CoreState(const CoreState&) = delete;
+        CoreState& operator=(const CoreState&) = delete;
+        CoreState(CoreState&&) noexcept = delete;
+        CoreState& operator=(CoreState&&) noexcept = delete;
 
         [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
