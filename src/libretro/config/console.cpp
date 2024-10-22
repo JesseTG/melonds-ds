@@ -65,7 +65,8 @@ namespace MelonDsDs {
         const CoreConfig& config,
         const retro::GameInfo* ndsInfo,
         const retro::GameInfo* gbaInfo,
-        const retro::GameInfo* gbaSaveInfo
+        const retro::GameInfo* gbaSaveInfo,
+        CoreState& state
     );
     static melonDS::DSiArgs GetDSiArgs(const CoreConfig& config, const retro::GameInfo* ndsInfo);
     static void ApplyCommonArgs(const CoreConfig& config, melonDS::NDSArgs& args) noexcept;
@@ -115,6 +116,7 @@ namespace MelonDsDs {
 }
 
 std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
+    CoreState& state,
     const CoreConfig& config,
     const retro::GameInfo* ndsInfo,
     const retro::GameInfo* gbaInfo,
@@ -139,11 +141,11 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
                 "The DSi does not support GBA connectivity. Not loading the requested GBA ROM or SRAM."
             );
         }
-        return std::make_unique<melonDS::DSi>(GetDSiArgs(config, ndsInfo));
+        return std::make_unique<melonDS::DSi>(GetDSiArgs(config, ndsInfo), &state);
     }
     else {
         // If we're in DS mode...
-        return std::make_unique<melonDS::NDS>(GetNdsArgs(config, ndsInfo, gbaInfo, gbaSaveInfo));
+        return std::make_unique<melonDS::NDS>(GetNdsArgs(config, ndsInfo, gbaInfo, gbaSaveInfo, state), &state);
     }
 }
 
@@ -163,7 +165,8 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
     const CoreConfig& config,
     const retro::GameInfo* ndsInfo,
     const retro::GameInfo* gbaInfo,
-    const retro::GameInfo* gbaSaveInfo
+    const retro::GameInfo* gbaSaveInfo,
+    CoreState& state
 ) {
     ZoneScopedN(TracyFunction);
 
@@ -271,7 +274,7 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
                 retro::debug("Installed built-in GBA Memory Expansion Pak");
                 break;
             case Slot2Device::RumblePak:
-                ndsargs.GBAROM = std::make_unique<melonDS::GBACart::CartRumblePak>(nullptr);
+                ndsargs.GBAROM = std::make_unique<melonDS::GBACart::CartRumblePak>(&state);
                 retro::debug("Installed built-in GBA Rumble Pak");
                 break;
             default:

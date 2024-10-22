@@ -236,6 +236,7 @@ void MelonDsDs::CoreState::Reset() {
     Console = nullptr;
     melonDS::NDS::Current = nullptr;
     Console = CreateConsole(
+        *this,
         Config,
         _ndsInfo ? &*_ndsInfo : nullptr,
         _gbaInfo ? &*_gbaInfo : nullptr,
@@ -499,6 +500,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     retro_assert(Console == nullptr);
     // Instantiates the console with games and save data installed
     Console = CreateConsole(
+        *this,
         Config,
         _ndsInfo ? &*_ndsInfo : nullptr,
         _gbaInfo ? &*_gbaInfo : nullptr,

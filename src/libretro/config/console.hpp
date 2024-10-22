@@ -30,9 +30,11 @@ namespace retro {
 
 namespace MelonDsDs {
     class CoreConfig;
+    class CoreState;
 
     /// Creates a new console instance, for when the player is starting a session.
     std::unique_ptr<melonDS::NDS> CreateConsole(
+        CoreState& state,
         const CoreConfig& config,
         const retro::GameInfo* ndsInfo,
         const retro::GameInfo* gbaInfo,
