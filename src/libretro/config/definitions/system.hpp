@@ -352,52 +352,6 @@ namespace MelonDsDs::config::definitions {
         values::AUTO
     };
 
-    constexpr retro_core_option_v2_definition RumbleMotorType {
-        config::system::RUMBLE_TYPE,
-        "Rumble Motor Hint",
-        nullptr,
-        "The DS Rumble Pak only had a single motor, "
-        "whereas modern game controllers tend to have two. "
-        "Select which motor(s) should be used for rumble effects. "
-        "May not have an effect on all frontends or controllers. "
-        "If unsure, set to Both.",
-        nullptr,
-        config::system::CATEGORY,
-        {
-            {values::BOTH, "Both"},
-            {values::STRONG, "Strong Motor Only"},
-            {values::WEAK, "Weak Motor Only"},
-            {nullptr, nullptr},
-        },
-        values::BOTH
-    };
-
-    constexpr retro_core_option_v2_definition RumbleIntensity {
-        config::system::RUMBLE_INTENSITY,
-        "Rumble Intensity",
-        nullptr,
-        "The relative intensity of rumble effects. "
-        "May not have an effect on all frontends or controllers.",
-        nullptr,
-        config::system::CATEGORY,
-        {
-            // libretro's rumble intensity values are 16-bit unsigned integers ranging from 0 to 65535
-            {"0", "Off"},
-            {"6554", "10%"},
-            {"13107", "20%"},
-            {"19661", "30%"},
-            {"26214", "40%"},
-            {"32768", "50%"},
-            {"39321", "60%"},
-            {"45875", "70%"},
-            {"52428", "80%"},
-            {"58982", "90%"},
-            {"65535", "Max"},
-            {nullptr, nullptr},
-        },
-        "65535"
-    };
-
     constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         ConsoleMode,
         SysfileMode,

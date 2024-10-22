@@ -155,20 +155,6 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
         config.SetSlot2Device(Slot2Device::Auto);
     }
 
-    if (optional<MelonDsDs::RumbleMotorType> type = ParseRumbleMotorType(get_variable(RUMBLE_TYPE))) {
-        config.SetRumbleMotorType(*type);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to Both", RUMBLE_TYPE);
-        config.SetRumbleMotorType(RumbleMotorType::Both);
-    }
-
-    if (optional<uint16_t> value = ParseIntegerInList(get_variable(RUMBLE_INTENSITY), RUMBLE_INTENSITY_VALUES)) {
-        config.SetRumbleIntensity(*value);
-    } else {
-        retro::warn("Failed to get value for {}; defaulting to 100%", RUMBLE_INTENSITY);
-        config.SetRumbleIntensity(0xFFFF);
-    }
-
     if (optional<BootMode> value = ParseBootMode(get_variable(BOOT_MODE))) {
         config.SetBootMode(*value);
     } else {

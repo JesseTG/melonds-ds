@@ -382,12 +382,6 @@ namespace MelonDsDs {
 
         [[nodiscard]] Slot2Device Slot2Device() const noexcept { return _slot2; }
         void SetSlot2Device(MelonDsDs::Slot2Device device) noexcept { _slot2 = device; }
-
-        [[nodiscard]] MelonDsDs::RumbleMotorType RumbleMotorType() const noexcept { return _rumbleMotorType; }
-        void SetRumbleMotorType(MelonDsDs::RumbleMotorType type) noexcept { _rumbleMotorType = type; }
-
-        [[nodiscard]] uint16_t RumbleIntensity() const noexcept { return _rumbleIntensity; }
-        void SetRumbleIntensity(uint16_t intensity) noexcept { _rumbleIntensity = intensity; }
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
@@ -406,8 +400,6 @@ namespace MelonDsDs {
         optional<melonDS::MacAddress> _macAddress;
         optional<melonDS::IpAddress> _dnsServer;
         MelonDsDs::Slot2Device _slot2 = *ParseSlot2Device(config::definitions::Slot2Device.default_value);
-        MelonDsDs::RumbleMotorType _rumbleMotorType = *ParseRumbleMotorType(config::definitions::RumbleMotorType.default_value);
-        uint16_t _rumbleIntensity = 0xFFFF;
 #ifdef JIT_ENABLED
         bool _jitEnable;
         unsigned _maxBlockSize;
