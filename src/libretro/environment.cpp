@@ -682,6 +682,15 @@ bool retro::set_rumble_state(unsigned port, retro_rumble_effect effect, uint16_t
     return _rumble.set_rumble_state(port, effect, strength);
 }
 
+bool retro::set_rumble_state(unsigned port, uint16_t strength) noexcept {
+    if (!_rumble.set_rumble_state)
+        return false;
+
+    return
+        _rumble.set_rumble_state(port, RETRO_RUMBLE_STRONG, strength) &&
+        _rumble.set_rumble_state(port, RETRO_RUMBLE_WEAK, strength);
+}
+
 void retro::env::init() noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_environment != nullptr);
