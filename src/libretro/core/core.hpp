@@ -60,6 +60,8 @@ namespace MelonDsDs {
         class ErrorScreen;
     }
 
+    constexpr double FPS = 32.0f * 1024.0f * 1024.0f / 560190.0f;
+
     class CoreState {
     public:
         CoreState() noexcept = default;
