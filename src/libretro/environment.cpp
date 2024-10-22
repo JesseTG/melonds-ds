@@ -60,7 +60,7 @@ namespace retro {
     static bool _supportsPowerStatus;
     static bool _supportsNoGameMode;
     static bool isShuttingDown = false;
-    std::optional<std::chrono::microseconds> _lastFrameTime = std::nullopt;
+    static std::optional<std::chrono::microseconds> _lastFrameTime = std::nullopt;
 
     static unsigned _message_interface_version = UINT_MAX;
     constexpr size_t PATH_LENGTH = PATH_MAX + 1;
