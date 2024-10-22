@@ -85,6 +85,8 @@ namespace MelonDsDs::config::definitions {
 
         ConsoleMode,
         Slot2Device,
+        RumbleMotorType,
+        RumbleIntensity,
         SysfileMode,
         FirmwarePath,
         DsiFirmwarePath,

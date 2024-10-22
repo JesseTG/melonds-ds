@@ -98,6 +98,7 @@ const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
+const initializer_list<uint16_t> RUMBLE_INTENSITY_VALUES = {0, 6554, 13107, 19661, 26214, 32768, 39321, 45875, 52428, 58982, 65535};
 const initializer_list<int> RELATIVE_DAY_OFFSETS = {
     -364, -180, -150, -120, -90, -60, -30, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 30, 60, 90, 120, 150, 180, 364
@@ -152,6 +153,20 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", SLOT2_DEVICE, values::AUTO);
         config.SetSlot2Device(Slot2Device::Auto);
+    }
+
+    if (optional<MelonDsDs::RumbleMotorType> type = ParseRumbleMotorType(get_variable(RUMBLE_TYPE))) {
+        config.SetRumbleMotorType(*type);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to Both", RUMBLE_TYPE);
+        config.SetRumbleMotorType(RumbleMotorType::Both);
+    }
+
+    if (optional<uint16_t> value = ParseIntegerInList(get_variable(RUMBLE_INTENSITY), RUMBLE_INTENSITY_VALUES)) {
+        config.SetRumbleIntensity(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100%", RUMBLE_INTENSITY);
+        config.SetRumbleIntensity(0xFFFF);
     }
 
     if (optional<BootMode> value = ParseBootMode(get_variable(BOOT_MODE))) {

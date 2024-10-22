@@ -128,6 +128,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
         static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
+        static constexpr const char *const RUMBLE_INTENSITY = "melonds_rumble_intensity";
+        static constexpr const char *const RUMBLE_TYPE = "melonds_rumble_type";
         static constexpr const char *const SLOT2_DEVICE = "melonds_slot2_device";
         static constexpr const char *const SYSFILE_MODE = "melonds_sysfile_mode";
     }
@@ -236,6 +238,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const SOFTWARE = "software";
         static constexpr const char *const SPANISH = "es";
         static constexpr const char *const START = "start";
+        static constexpr const char *const STRONG = "strong";
         static constexpr const char *const SYNC = "sync";
         static constexpr const char *const TIMEOUT = "timeout";
         static constexpr const char *const TOGGLE = "toggle";
@@ -244,6 +247,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const TOUCH = "touch";
         static constexpr const char *const TOUCHING = "touching";
         static constexpr const char *const UPSIDE_DOWN = "rotate-180";
+        static constexpr const char *const WEAK = "weak";
     }
 
     constexpr size_t NOCASH_FOOTER_SIZE = 0x40;

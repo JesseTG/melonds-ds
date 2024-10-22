@@ -29,6 +29,13 @@ namespace MelonDsDs {
         MemoryExpansionPak,
     };
 
+    enum RumbleMotorType {
+        None = 0,
+        Strong = 0b01,
+        Weak = 0b10,
+        Both = Strong | Weak,
+    };
+
     enum class BiosType {
         Arm7,
         Arm9,

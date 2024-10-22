@@ -119,6 +119,13 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
+    constexpr std::optional<MelonDsDs::RumbleMotorType> ParseRumbleMotorType(std::string_view value) noexcept {
+        if (value == config::values::BOTH) return MelonDsDs::RumbleMotorType::Both;
+        if (value == config::values::STRONG) return MelonDsDs::RumbleMotorType::Strong;
+        if (value == config::values::WEAK) return MelonDsDs::RumbleMotorType::Weak;
+        return std::nullopt;
+    }
+
     constexpr std::optional<MelonDsDs::NetworkMode> ParseNetworkMode(std::string_view value) noexcept {
         if (value == config::values::DISABLED) return MelonDsDs::NetworkMode::None;
         if (value == config::values::DIRECT) return MelonDsDs::NetworkMode::Direct;
