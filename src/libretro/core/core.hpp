@@ -98,7 +98,8 @@ namespace MelonDsDs {
         bool UpdateOptionVisibility() noexcept;
 
         const melonDS::NDS* GetConsole() const noexcept { return Console.get(); }
-        const InputState& GetInputState() const noexcept { return _inputState; }
+        [[nodiscard]] const InputState& GetInputState() const noexcept { return _inputState; }
+        [[nodiscard]] InputState& GetInputState() noexcept { return _inputState; }
         std::optional<RenderMode> GetRenderMode() const noexcept { return _renderState.GetRenderMode(); }
         const ScreenLayoutData& GetScreenLayoutData() const noexcept { return _screenLayout; }
     private:
