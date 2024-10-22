@@ -33,6 +33,7 @@
 #include <retro_assert.h>
 #include <string/stdstring.h>
 
+#include "core/core.hpp"
 #include "microphone.hpp"
 #include "info.hpp"
 #include "libretro.hpp"
@@ -59,6 +60,7 @@ namespace retro {
     static bool _supportsPowerStatus;
     static bool _supportsNoGameMode;
     static bool isShuttingDown = false;
+    std::optional<std::chrono::microseconds> _lastFrameTime = std::nullopt;
 
     static unsigned _message_interface_version = UINT_MAX;
     constexpr size_t PATH_LENGTH = PATH_MAX + 1;
@@ -272,6 +274,10 @@ std::optional<retro_throttle_state> retro::get_throttle_state() noexcept {
     retro_throttle_state throttleState {};
     bool ok = environment(RETRO_ENVIRONMENT_GET_THROTTLE_STATE, &throttleState);
     return ok ? std::make_optional(throttleState) : std::nullopt;
+}
+
+std::optional<std::chrono::microseconds> retro::last_frame_time() noexcept {
+    return _lastFrameTime;
 }
 
 bool retro::is_variable_updated() noexcept {
@@ -700,7 +706,13 @@ void retro::env::deinit() noexcept {
     _supports_bitmasks = false;
     _supportsPowerStatus = false;
     _supportsNoGameMode = false;
+    _lastFrameTime = std::nullopt;
     _message_interface_version = UINT_MAX;
+}
+
+[[gnu::hot]] static void FrameTimeCallback(retro_usec_t usec) noexcept {
+    using namespace retro::env;
+    retro::_lastFrameTime = std::chrono::microseconds(usec);
 }
 
 // This function might be called multiple times by the frontend,
@@ -731,6 +743,9 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         // retro_set_environment might be called multiple times with different callbacks
         retro::warn("Failed to get log interface");
     }
+
+    retro_frame_time_callback frame_time {FrameTimeCallback, static_cast<retro_usec_t>(1000000.0 / MelonDsDs::FPS)};
+    environment(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_time);
 
     retro_get_proc_address_interface get_proc_address {MelonDsDs::GetRetroProcAddress};
     environment(RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK, &get_proc_address);
