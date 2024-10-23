@@ -253,6 +253,16 @@ void MelonDsDs::CoreState::Reset() {
     _ndsSramInstalled = false;
     InitFlushFirmwareTask();
 
+    if (std::optional<retro::task::TaskHandle> rumble_task = retro::task::find(RUMBLE_TASK)) {
+        // Stop the existing rumble task, if any
+        rumble_task->Finish();
+    }
+
+    if (dynamic_cast<melonDS::GBACart::CartRumblePak*>(Console->GetGBACart())) {
+        // Start a new rumble task if we have a rumble pak
+        retro::task::push(_inputState.RumbleTask());
+    }
+
     StartConsole();
 }
 
