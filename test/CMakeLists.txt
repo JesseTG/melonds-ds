@@ -277,6 +277,7 @@ FetchContent_MakeAvailable(godmode9i)
 set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 
 set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
+set(PERIPH_SLOT2_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/periph_slot2.nds")
 
 # TODO: Write the following tests:
 
@@ -294,5 +295,6 @@ include(cmake/Errors.cmake)
 include(cmake/Firmware.cmake)
 include(cmake/Reset.cmake)
 include(cmake/Screen.cmake)
+include(cmake/Slot2.cmake)
 include(cmake/TestHomebrewSDCards.cmake)
 include(cmake/Video.cmake)

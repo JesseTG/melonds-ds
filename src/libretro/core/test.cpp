@@ -191,6 +191,19 @@ extern "C" unsigned melondsds_num_cheats() {
     return console->AREngine.Cheats.size();
 }
 
+extern "C" uint32_t melondsds_get_gba_cart_type() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!console)
+        return 0;
+
+    if (!console->GetGBACart())
+        return 0;
+
+    return static_cast<int>(console->GetGBACart()->Type());
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -263,6 +276,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_num_cheats"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_num_cheats);
+
+    if (string_is_equal(sym, "melondsds_get_gba_cart_type"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_get_gba_cart_type);
 
     return nullptr;
 }
