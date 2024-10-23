@@ -742,7 +742,11 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
 
     bool yes = true;
     environment(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &yes);
-    environment(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &_rumble);
+
+    retro_rumble_interface rumble {nullptr};
+    if (environment(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &rumble) && rumble.set_rumble_state) {
+        _rumble = rumble;
+    }
 
     retro_log_callback log_callback = {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_callback) && log_callback.log) {
