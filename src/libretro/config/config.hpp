@@ -380,7 +380,7 @@ namespace MelonDsDs {
         [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartTime() const noexcept { return hh_mm_ss(_absoluteStartHour.hours() + _absoluteStartMinute.minutes()); }
         [[nodiscard]] local_seconds AbsoluteStartDateTime() const noexcept { return local_days(AbsoluteStartDate()) + AbsoluteStartTime().to_duration(); }
 
-        [[nodiscard]] Slot2Device Slot2Device() const noexcept { return _slot2; }
+        [[nodiscard]] Slot2Device GetSlot2Device() const noexcept { return _slot2; }
         void SetSlot2Device(MelonDsDs::Slot2Device device) noexcept { _slot2 = device; }
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);

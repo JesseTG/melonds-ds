@@ -268,7 +268,7 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
         // If loading a specific GBA ROM, then ignore the expansion paks
         ndsargs.GBAROM = LoadGbaCart(*gbaInfo, gbaSaveInfo);
     } else {
-        switch (config.Slot2Device()) {
+        switch (config.GetSlot2Device()) {
             case Slot2Device::MemoryExpansionPak:
                 ndsargs.GBAROM = std::make_unique<melonDS::GBACart::CartRAMExpansion>();
                 retro::debug("Installed built-in GBA Memory Expansion Pak");
