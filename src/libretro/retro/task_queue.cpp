@@ -128,7 +128,7 @@ void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
     retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
 
-    if (functions->handler) {
+    if (functions->handler && !task_get_finished(task)) {
         retro::task::TaskHandle handle(task);
         retro_assert(!handle.IsFinished());
         if (handle.IsCancelled()) {
