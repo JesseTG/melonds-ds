@@ -204,14 +204,9 @@ void MelonDsDs::CoreState::Reset() {
     // Flush all data before resetting
     _timeToFirmwareFlush = 0;
     _timeToGbaFlush = 0;
-    retro::task::find([this](retro::task::TaskHandle& task) {
-        if (task.Identifier() == _flushTaskId) {
-            // If this is the flush task we want to cancel...
-            task.Cancel();
-            return true;
-        }
-        return false; // Keep looking...
-    });
+    if (optional<retro::task::TaskHandle> task = retro::task::find(_flushTaskId)) {
+        task->Cancel();
+    }
     retro::task::check();
     _savestateSize = std::nullopt;
 
@@ -463,8 +458,7 @@ void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept
     retro_assert(Console != nullptr);
     string_view firmwareName = Config.FirmwarePath(static_cast<ConsoleType>(Console->ConsoleType));
     if (retro::task::TaskSpec flushTask = FlushFirmwareTask(firmwareName)) {
-        _flushTaskId = flushTask.Identifier();
-        retro::task::push(std::move(flushTask));
+        _flushTaskId = *retro::task::push(std::move(flushTask));
     }
     else {
         retro::set_error_message("System path not found, changes to firmware settings won't be saved.");

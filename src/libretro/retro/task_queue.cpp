@@ -38,31 +38,69 @@ void retro::task::init(bool threaded, retro_task_queue_msg_t msg_push) noexcept 
 }
 
 
-void retro::task::push(TaskSpec&& task) noexcept {
+std::optional<uint32_t> retro::task::push(TaskSpec&& task) noexcept {
     if (task.Valid()) {
         ZoneScopedN("task_queue_push");
         task_queue_push(task._task);
+        uint32_t ident = task._task->ident;
         task._task = nullptr;
+        return ident;
     }
+
+    return std::nullopt;
 }
 
-bool retro::task::find(const UnaryTaskFinder& finder) noexcept {
+std::optional<retro::task::TaskHandle> retro::task::find(uint32_t ident) noexcept {
+    return find([ident](TaskHandle& task) noexcept {
+        return task.Identifier() == ident;
+    });
+}
+
+std::optional<retro::task::TaskHandle> retro::task::find(std::string_view title) noexcept {
+    return find([title](TaskHandle& task) noexcept {
+        return task.Title() == title;
+    });
+}
+
+std::optional<retro::task::TaskHandle> retro::task::find(const UnaryTaskFinder& finder) noexcept {
     if (finder == nullptr) {
-        return false;
+        return std::nullopt;
     }
+
+    struct FinderDataState {
+        const UnaryTaskFinder& predicate;
+        retro_task_t* result;
+
+        bool operator()(TaskHandle& task) noexcept {
+            bool ok = predicate(task);
+            if (ok) {
+                result = task._task;
+            }
+            return ok;
+        }
+    };
+
+    FinderDataState finderState {
+        .predicate = finder,
+        .result = nullptr,
+    };
 
     task_finder_data_t finder_data {
         .func = [](retro_task_t* task, void* data) noexcept {
-            ZoneScopedN("task_queue_find::func");
-            const UnaryTaskFinder& finder = *(const UnaryTaskFinder*)data;
+            ZoneScopedN(TracyFunction);
+            FinderDataState& state = *reinterpret_cast<FinderDataState*>(data);
             TaskHandle task_handle(task);
-            return finder(task_handle);
+            return state(task_handle);
         },
-        .userdata = (void*) &finder,
+        .userdata = (void*) &finderState,
     };
 
     ZoneScopedN("task_queue_find");
-    return task_queue_find(&finder_data);
+    if (task_queue_find(&finder_data)) {
+        return TaskHandle(finderState.result);
+    }
+
+    return std::nullopt;
 }
 
 void retro::task::wait() noexcept {

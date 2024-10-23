@@ -18,6 +18,7 @@
 #define MELONDS_DS_TASK_QUEUE_HPP
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -35,9 +36,11 @@ namespace retro::task {
 
     void init(bool threaded, retro_task_queue_msg_t msg_push) noexcept;
 
-    /// Ignores invalid tasks.
-    void push(TaskSpec&& task) noexcept;
-    bool find(const UnaryTaskFinder& finder) noexcept;
+    /// Returns the new task's ID, or Ignores invalid tasks.
+    std::optional<uint32_t> push(TaskSpec&& task) noexcept;
+    std::optional<TaskHandle> find(uint32_t ident) noexcept;
+    std::optional<TaskHandle> find(std::string_view title) noexcept;
+    std::optional<TaskHandle> find(const UnaryTaskFinder& finder) noexcept;
 
     void check() noexcept;
     void reset() noexcept;
@@ -74,7 +77,7 @@ namespace retro::task {
         static void TaskHandlerWrapper(retro_task_t* task) noexcept;
         static void TaskCallbackWrapper(retro_task_t *task, void *task_data, void *user_data, const char *error) noexcept;
         static void TaskCleanupWrapper(retro_task_t* task) noexcept;
-        friend void push(TaskSpec&& task) noexcept;
+        friend std::optional<uint32_t> push(TaskSpec&& task) noexcept;
         retro_task_t* _task;
     };
 
@@ -89,8 +92,14 @@ namespace retro::task {
         ~TaskHandle() = default;
         TaskHandle(const TaskHandle& other) = delete;
         TaskHandle& operator=(const TaskHandle& other) = delete;
-        TaskHandle(TaskHandle&& other) = delete;
-        TaskHandle& operator=(TaskHandle&& other) = delete;
+        TaskHandle(TaskHandle&& other) noexcept : _task(other._task) { other._task = nullptr;}
+        TaskHandle& operator=(TaskHandle&& other) noexcept {
+            if (this != &other) {
+                _task = other._task;
+                other._task = nullptr;
+            }
+            return *this;
+        }
         [[nodiscard]] bool Valid() const noexcept { return _task != nullptr; }
         void Finish() noexcept;
         void Cancel() noexcept;
@@ -99,11 +108,14 @@ namespace retro::task {
         void SetError(const std::string_view& error) noexcept;
         [[nodiscard]] std::string_view GetError() const noexcept;
         [[nodiscard]] uint32_t Identifier() const noexcept { return _task->ident; }
+        [[nodiscard]] std::optional<std::string_view> Title() const noexcept {
+            return _task->title ? std::optional<std::string_view>{_task->title} : std::nullopt;
+        }
     private:
         friend class TaskSpec;
-        friend bool find(const UnaryTaskFinder& finder) noexcept;
-        TaskHandle(retro_task_t* task) noexcept;
-        retro_task_t* _task;
+        friend std::optional<TaskHandle> find(const UnaryTaskFinder& finder) noexcept;
+        explicit TaskHandle(retro_task_t* task) noexcept;
+        retro_task_t* _task; // non-owning
     };
 }
 
