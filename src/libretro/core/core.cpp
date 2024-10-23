@@ -527,6 +527,12 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         retro::info("No GBA SRAM was provided.");
     }
 
+    if (dynamic_cast<melonDS::GBACart::CartRumblePak*>(Console->GetGBACart())) {
+        // If the console has a rumble pak...
+        retro::task::push(_inputState.RumbleTask());
+        retro::debug("Initialized Rumble Pak timeout task");
+    }
+
     if (retro::supports_power_status()) {
         retro::task::push(PowerStatusUpdateTask());
     }

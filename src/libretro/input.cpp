@@ -24,6 +24,7 @@
 #include <features/features_cpu.h>
 
 #include "config/config.hpp"
+#include "core/core.hpp"
 #include "environment.hpp"
 #include "format.hpp"
 #include "libretro.hpp"
@@ -353,12 +354,56 @@ ivec2 MelonDsDs::InputState::TouchPosition() const noexcept {
     return pointerUpdateTimestamp > joystickTimestamp ? pointerTouchPosition : joystickCursorPosition;
 }
 
+void MelonDsDs::InputState::RumbleStart(std::chrono::milliseconds len) noexcept {
+    _rumbleTimeout += len;
+    retro::set_rumble_state(0, 0xFFFF);
+}
+
+void MelonDsDs::InputState::RumbleStop() noexcept {
+    _rumbleTimeout = 0us;
+    retro::set_rumble_state(0, 0);
+}
+
 void melonDS::Platform::Addon_RumbleStart(melonDS::u32 len, void* userdata)
 {
-    // TODO: Implement with RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE
+    MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
+    core.GetInputState().RumbleStart(std::chrono::milliseconds(len));
 }
 
 void melonDS::Platform::Addon_RumbleStop(void* userdata)
 {
-    // TODO: Implement with RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE
+    MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
+    core.GetInputState().RumbleStop();
+}
+
+// We add a bit of decay so the rumble doesn't feel too instant.
+// TODO: Make customizable?
+constexpr double RUMBLE_DECAY = 0.5;
+
+// We need a rumble task because the emulated Rumble Pak is edge-triggered
+// (i.e. turned on and off rapidly), and the frontend's rumble API is level-based.
+retro::task::TaskSpec MelonDsDs::InputState::RumbleTask() noexcept {
+    ZoneScopedN(TracyFunction);
+
+    return retro::task::TaskSpec(
+        [this](retro::task::TaskHandle&) noexcept {
+            ZoneScopedN(TracyFunction);
+            std::optional<std::chrono::microseconds> last_frame_time = retro::last_frame_time();
+            if (!last_frame_time) {
+                last_frame_time = US_PER_FRAME;
+            }
+
+            _rumbleTimeout -= std::chrono::microseconds(static_cast<int>(last_frame_time->count() * RUMBLE_DECAY));
+            if (_rumbleTimeout <= 0us) {
+                _rumbleTimeout = 0us;
+                retro::set_rumble_state(0, 0);
+            }
+        },
+        nullptr,
+        [](retro::task::TaskHandle&) noexcept {
+            retro::set_rumble_state(0, 0);
+        },
+        retro::task::ASAP,
+        "RumbleTask"
+    );
 }

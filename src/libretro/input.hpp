@@ -21,6 +21,8 @@
 #include <glm/vec2.hpp>
 
 #include "config/types.hpp"
+#include "retro/task_queue.hpp"
+#include "std/chrono.hpp"
 
 namespace melonDS {
     class NDS;
@@ -72,10 +74,14 @@ namespace MelonDsDs {
             touchMode = mode;
         }
         void Update(const MelonDsDs::ScreenLayoutData& screen_layout_data) noexcept;
-
+        void RumbleStart(std::chrono::milliseconds len) noexcept;
+        void RumbleStop() noexcept;
+        [[nodiscard]] bool RumbleActive() const noexcept { return _rumbleTimeout.count() > 0; }
+        [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept;
     private:
         bool IsCursorInputInBounds() const noexcept;
 
+        std::chrono::microseconds _rumbleTimeout;
         bool cursorSettingsDirty = true;
         bool isPointerTouching;
         bool previousIsPointerTouching;
