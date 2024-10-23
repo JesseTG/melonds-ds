@@ -404,6 +404,6 @@ retro::task::TaskSpec MelonDsDs::InputState::RumbleTask() noexcept {
             retro::set_rumble_state(0, 0);
         },
         retro::task::ASAP,
-        "RumbleTask"
+        RUMBLE_TASK
     );
 }

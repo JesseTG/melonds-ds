@@ -29,6 +29,7 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
+    constexpr const char* const RUMBLE_TASK = "RumbleTask";
     class CoreConfig;
     class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
