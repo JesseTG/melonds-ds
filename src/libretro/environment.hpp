@@ -110,6 +110,8 @@ namespace retro {
     bool shutdown() noexcept;
     bool set_rumble_state(unsigned port, retro_rumble_effect effect, uint16_t strength) noexcept;
     bool set_rumble_state(unsigned port, uint16_t strength) noexcept;
+    bool set_sensor_state(unsigned port, retro_sensor_action action, unsigned rate) noexcept;
+    std::optional<float> sensor_get_input(unsigned port, unsigned id) noexcept;
 
     std::optional<retro_microphone_interface> get_microphone_interface() noexcept;
     std::optional<bool> is_fastforwarding() noexcept;

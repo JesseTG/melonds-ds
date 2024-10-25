@@ -80,6 +80,7 @@ namespace retro {
     static size_t _sysSubdirLength = 0;
 
     static retro_rumble_interface _rumble {};
+    static retro_sensor_interface _sensor {};
 
     static void log(enum retro_log_level level, const char* fmt, va_list va) noexcept;
     static void NormalizePath(std::span<char> buffer, size_t& pathLength) noexcept;
@@ -691,6 +692,20 @@ bool retro::set_rumble_state(unsigned port, uint16_t strength) noexcept {
         _rumble.set_rumble_state(port, RETRO_RUMBLE_WEAK, strength);
 }
 
+bool retro::set_sensor_state(unsigned port, retro_sensor_action action, unsigned rate) noexcept {
+    if (!_sensor.set_sensor_state)
+        return false;
+
+    return _sensor.set_sensor_state(port, action, rate);
+}
+
+std::optional<float> retro::sensor_get_input(unsigned port, unsigned id) noexcept {
+    if (!_sensor.get_sensor_input)
+        return std::nullopt;
+
+    return _sensor.get_sensor_input(port, id);
+}
+
 void retro::env::init() noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_environment != nullptr);
@@ -746,6 +761,10 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     retro_rumble_interface rumble {nullptr};
     if (environment(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &rumble) && rumble.set_rumble_state) {
         _rumble = rumble;
+    }
+
+    if (retro_sensor_interface sensor; environment(RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE, &sensor) && sensor.set_sensor_state) {
+        _sensor = sensor;
     }
 
     retro_log_callback log_callback = {nullptr};
