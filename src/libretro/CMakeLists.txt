@@ -50,6 +50,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     info.hpp
     input/input.cpp
     input/input.hpp
+    input/solar.cpp
+    input/solar.hpp
     libretro.cpp
     libretro.hpp
     math.hpp
