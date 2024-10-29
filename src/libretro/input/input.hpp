@@ -14,8 +14,7 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef MELONDS_DS_INPUT_HPP
-#define MELONDS_DS_INPUT_HPP
+#pragma once
 
 #include <libretro.h>
 #include <glm/vec2.hpp>
@@ -118,4 +117,3 @@ namespace MelonDsDs {
 
     void HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept;
 }
-#endif //MELONDS_DS_INPUT_HPP

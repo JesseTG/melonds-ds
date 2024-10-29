@@ -48,8 +48,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     glsym_private.h
     info.cpp
     info.hpp
-    input.cpp
-    input.hpp
+    input/input.cpp
+    input/input.hpp
     libretro.cpp
     libretro.hpp
     math.hpp

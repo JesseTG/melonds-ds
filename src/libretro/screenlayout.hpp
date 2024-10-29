@@ -32,7 +32,7 @@
 
 #include "config/constants.hpp"
 #include "environment.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 #include "buffer.hpp"
 #include "retro/scaler.hpp"
 

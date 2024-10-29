@@ -59,7 +59,7 @@
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "format.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 #include "libretro.hpp"
 #include "microphone.hpp"
 #include "net/pcap.hpp"

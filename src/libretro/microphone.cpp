@@ -23,7 +23,7 @@
 
 #include "config/config.hpp"
 #include "environment.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 #include "tracy.hpp"
 
 using std::optional;

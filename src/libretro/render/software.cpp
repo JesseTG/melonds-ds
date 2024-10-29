@@ -23,7 +23,7 @@
 
 #include "config/config.hpp"
 #include "config/types.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 #include "message/error.hpp"
 #include "screenlayout.hpp"
 #include "tracy.hpp"
