@@ -105,9 +105,8 @@ static const char *device_name(unsigned device) {
     }
 }
 
-// Not really needed, but libretro requires all retro_* functions to be defined
-PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned device) {
-    retro::debug("retro_set_controller_port_device({}, {})", port, device_name(device));
+void MelonDsDs::InputState::SetControllerPortDevice(unsigned int port, unsigned int device) noexcept {
+    retro::debug("MelonDsDs::InputState::SetControllerPortDevice({}, {})", port, device_name(device));
 }
 
 void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {

@@ -108,6 +108,10 @@ PUBLIC_SYMBOL void retro_get_system_av_info(struct retro_system_av_info *info) {
     retro::debug("retro_get_system_av_info finished");
 }
 
+PUBLIC_SYMBOL void retro_set_controller_port_device(unsigned port, unsigned device) {
+    MelonDsDs::Core.GetInputState().SetControllerPortDevice(port, device);
+}
+
 PUBLIC_SYMBOL [[gnu::hot]] void retro_run(void) {
     {
         ZoneScopedN(TracyFunction);

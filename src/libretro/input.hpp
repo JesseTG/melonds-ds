@@ -77,6 +77,7 @@ namespace MelonDsDs {
         void Update(const MelonDsDs::ScreenLayoutData& screen_layout_data) noexcept;
         void RumbleStart(std::chrono::milliseconds len) noexcept;
         void RumbleStop() noexcept;
+        void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
         [[nodiscard]] bool RumbleActive() const noexcept { return _rumbleTimeout.count() > 0; }
         [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept;
     private:
