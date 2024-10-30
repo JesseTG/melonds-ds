@@ -26,6 +26,7 @@ namespace MelonDsDs {
     constexpr int MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT = 1;
     constexpr int MELONDSDS_GAME_TYPE_SLOT_1_2_BOOT_NO_SRAM = 2;
     constexpr int MELONDSDS_MEMORY_GBA_SAVE_RAM = 0x101;
+    constexpr int MELONDSDS_DEVICE_JOYPAD_WITH_PHOTOSENSOR = RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1);
     extern const struct retro_system_content_info_override content_overrides[];
     extern const struct retro_subsystem_info subsystems[];
     extern const struct retro_controller_description controllers[];
