@@ -33,6 +33,9 @@ namespace MelonDsDs {
     class ScreenLayoutData;
     extern const struct retro_input_descriptor input_descriptors[];
 
+    // TODO: Break this up into smaller classes (TouchState, ButtonState, RumbleState?)
+    // And give each new class an `Apply` method to update an `NDS`,
+    // and an `Update` method to update its own config from `CoreConfig`
     class InputState
     {
     public:
