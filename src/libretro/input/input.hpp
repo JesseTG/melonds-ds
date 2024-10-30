@@ -82,6 +82,7 @@ namespace MelonDsDs {
     private:
         bool IsCursorInputInBounds() const noexcept;
 
+        unsigned _inputDeviceType;
         std::chrono::microseconds _rumbleTimeout;
         bool cursorSettingsDirty = true;
         bool isPointerTouching;

@@ -107,6 +107,8 @@ static const char *device_name(unsigned device) {
 
 void MelonDsDs::InputState::SetControllerPortDevice(unsigned int port, unsigned int device) noexcept {
     retro::debug("MelonDsDs::InputState::SetControllerPortDevice({}, {})", port, device_name(device));
+
+    _inputDeviceType = device;
 }
 
 void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
