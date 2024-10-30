@@ -182,6 +182,9 @@ namespace MelonDsDs {
         [[nodiscard]] bool ShowCurrentLayout() const noexcept { return showCurrentLayout; }
         void SetShowCurrentLayout(bool show) noexcept { showCurrentLayout = show; }
 
+        [[nodiscard]] bool ShowSensorReading() const noexcept { return _showSensorReading; }
+        void SetShowSensorReading(bool show) noexcept { _showSensorReading = show; }
+
         [[nodiscard]] bool ShowLidState() const noexcept { return showLidState; }
         void SetShowLidState(bool show) noexcept { showLidState = show; }
 
