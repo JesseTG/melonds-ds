@@ -116,6 +116,26 @@ namespace MelonDsDs::config::definitions {
         MelonDsDs::config::values::ENABLED
     };
 
+    constexpr retro_core_option_v2_definition ShowSensorReading {
+        config::osd::SENSOR_READING,
+        "Show Sensor Reading",
+        nullptr,
+        // TODO: Clarify this text, ensure it mentions buttons
+        "Enable to show the emulated input of any peripheral sensors "
+        "that aren't already managed by one of the other OSD options, "
+        "e.g. the solar sensor embedded in the Boktai trilogy's carts. "
+        "If no peripherals (including GBA carts) are available, "
+        "this option will have no effect.",
+        nullptr,
+        config::osd::CATEGORY,
+        {
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        MelonDsDs::config::values::ENABLED
+    };
+
 #ifndef NDEBUG
     constexpr retro_core_option_v2_definition ShowPointerCoordinates {
         config::osd::POINTER_COORDINATES,
@@ -142,6 +162,7 @@ namespace MelonDsDs::config::definitions {
         ShowMicState,
         ShowCameraState,
         ShowLidState,
+        ShowSensorReading,
 #ifndef NDEBUG
         ShowPointerCoordinates,
 #endif

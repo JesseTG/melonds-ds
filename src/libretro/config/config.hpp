@@ -428,6 +428,7 @@ namespace MelonDsDs {
         bool showBiosWarnings = true;
         bool showCurrentLayout = true;
         bool showLidState = false;
+        bool _showSensorReading = false;
         bool showBrightnessState = false;
         bool _dldiEnable;
         bool _dldiFolderSync;

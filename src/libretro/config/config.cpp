@@ -329,6 +329,13 @@ void MelonDsDs::config::ParseOsdOptions(CoreConfig& config) noexcept {
         retro::warn("Failed to get value for {}; defaulting to {}", LID_STATE, values::DISABLED);
         config.SetShowLidState(false);
     }
+
+    if (optional<bool> value = ParseBoolean(get_variable(osd::SENSOR_READING))) {
+        config.SetShowSensorReading(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SENSOR_READING, definitions::ShowSensorReading.default_value);
+        config.SetShowSensorReading(true);
+    }
 }
 
 static void MelonDsDs::config::ParseJitOptions(CoreConfig& config) noexcept {

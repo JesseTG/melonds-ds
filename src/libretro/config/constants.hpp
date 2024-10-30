@@ -84,6 +84,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const BIOS_WARNINGS = "melonds_show_bios_warnings";
         static constexpr const char *const CURRENT_LAYOUT = "melonds_show_current_layout";
         static constexpr const char *const LID_STATE = "melonds_show_lid_state";
+        static constexpr const char *const SENSOR_READING = "melonds_show_sensor_reading";
         static constexpr const char *const BRIGHTNESS_STATE = "melonds_show_brightness_state";
     }
 

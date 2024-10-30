@@ -126,6 +126,7 @@ namespace MelonDsDs::config::definitions {
         ShowMicState,
         ShowCameraState,
         ShowLidState,
+        ShowSensorReading,
 #ifndef NDEBUG
         ShowPointerCoordinates,
 #endif
