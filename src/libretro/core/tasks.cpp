@@ -353,6 +353,21 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
                 );
             }
 
+            if (Config.ShowSensorReading()) {
+                // If we want to show the active sensor reading...
+                if (const auto *gbacart = nds.GetGBACart(); gbacart && gbacart->Type() == GBACart::CartType::GameSolarSensor) {
+                    const auto* solarsensor = static_cast<const GBACart::CartGameSolarSensor*>(gbacart);
+
+                    fmt::format_to(
+                        inserter,
+                        "{}☼ {}%",
+                        buf.size() == 0 ? "" : OSD_DELIMITER,
+                        solarsensor->GetLightLevel() * 10
+                    );
+                    // LightLevel is an abstract value from 0 to 10 (inclusive)
+                }
+            }
+
             // fmt::format_to does not append a null terminator
             buf.push_back('\0');
 
