@@ -60,9 +60,6 @@ namespace MelonDsDs {
         class ErrorScreen;
     }
 
-    constexpr double FPS = 32.0f * 1024.0f * 1024.0f / 560190.0f;
-    constexpr std::chrono::microseconds US_PER_FRAME {static_cast<int64_t>(1000000.0 / MelonDsDs::FPS)};
-
     class CoreState {
     public:
         CoreState() noexcept = default;

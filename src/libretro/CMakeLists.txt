@@ -33,6 +33,7 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     config/types.hpp
     config/visibility.hpp
     config/visibility.cpp
+    constants.hpp
     core/core.cpp
     core/core.hpp
     core/tasks.cpp
