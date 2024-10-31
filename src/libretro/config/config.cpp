@@ -169,6 +169,13 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
         config.SetSysfileMode(SysfileMode::BuiltIn);
     }
 
+    if (optional<SolarSensorInputType> value = ParseSolarSensorInputType(get_variable(SOLAR_SENSOR_INPUT_MODE))) {
+        config.SetSolarSensorInputType(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SOLAR_SENSOR_INPUT_MODE, values::SENSOR);
+        config.SetSolarSensorInputType(SolarSensorInputType::Sensor);
+    }
+
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {
         config.SetDsPowerOkayThreshold(*value);
     }

@@ -352,6 +352,31 @@ namespace MelonDsDs::config::definitions {
         values::AUTO
     };
 
+    constexpr retro_core_option_v2_definition SolarSensorMode {
+        config::system::SOLAR_SENSOR_INPUT_MODE,
+        "Solar Sensor Input Mode",
+        nullptr,
+        "The source of input for the solar sensor embedded in the Boktai trilogy's GBA cartridges.\n"
+        "\n"
+        "- Host Sensor: Use your device's ambient light sensor "
+        "if supported by your frontend. "
+        "Falls back to Joystick if not available.\n"
+        "- Joystick: Use your controller to manually adjust the emulated sensor's light level. "
+        "Requires the controller type to be set to \"Nintendo DS (with solar sensor)\"\n"
+        "\n"
+        "Ignored unless a ROM for any game in the Boktai trilogy (any region) "
+        "is inserted in the emulated console's Slot-2.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {values::DISABLED, nullptr},
+            {values::SENSOR, "Host Sensor"},
+            {values::JOYSTICK, "Joystick"},
+            {nullptr, nullptr},
+        },
+        values::SENSOR
+    };
+
     constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
         ConsoleMode,
         SysfileMode,

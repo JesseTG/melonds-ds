@@ -67,6 +67,7 @@ namespace MelonDsDs {
     using std::optional;
     using namespace std::chrono;
 
+    // TODO: Get rid of most of the getters/setters
     class CoreConfig {
     public:
         [[nodiscard]] MelonDsDs::MicButtonMode MicButtonMode() const noexcept { return _micButtonMode; }
@@ -385,6 +386,9 @@ namespace MelonDsDs {
 
         [[nodiscard]] Slot2Device GetSlot2Device() const noexcept { return _slot2; }
         void SetSlot2Device(MelonDsDs::Slot2Device device) noexcept { _slot2 = device; }
+
+        [[nodiscard]] SolarSensorInputType GetSolarSensorInputType() const noexcept { return _solarSensorInputType; }
+        void SetSolarSensorInputType(MelonDsDs::SolarSensorInputType type) noexcept { _solarSensorInputType = type; }
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
@@ -403,6 +407,7 @@ namespace MelonDsDs {
         optional<melonDS::MacAddress> _macAddress;
         optional<melonDS::IpAddress> _dnsServer;
         MelonDsDs::Slot2Device _slot2 = *ParseSlot2Device(config::definitions::Slot2Device.default_value);
+        MelonDsDs::SolarSensorInputType _solarSensorInputType = *ParseSolarSensorInputType(config::definitions::SolarSensorMode.default_value);
 #ifdef JIT_ENABLED
         bool _jitEnable;
         unsigned _maxBlockSize;

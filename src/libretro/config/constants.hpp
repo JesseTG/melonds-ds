@@ -132,6 +132,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const RUMBLE_INTENSITY = "melonds_rumble_intensity";
         static constexpr const char *const RUMBLE_TYPE = "melonds_rumble_type";
         static constexpr const char *const SLOT2_DEVICE = "melonds_slot2_device";
+        static constexpr const char *const SOLAR_SENSOR_INPUT_MODE = "melonds_solar_sensor_input_mode";
         static constexpr const char *const SYSFILE_MODE = "melonds_sysfile_mode";
     }
 
@@ -234,6 +235,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const ROTATE_LEFT = "rotate-left";
         static constexpr const char *const ROTATE_RIGHT = "rotate-right";
         static constexpr const char *const RUMBLE_PAK = "rumble-pak";
+        static constexpr const char *const SENSOR = "sensor";
         static constexpr const char *const SHARED = "shared";
         static constexpr const char *const SILENCE = "silence";
         static constexpr const char *const SOFTWARE = "software";

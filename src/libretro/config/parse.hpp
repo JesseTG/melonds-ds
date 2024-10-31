@@ -72,6 +72,13 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
+    constexpr std::optional<MelonDsDs::SolarSensorInputType> ParseSolarSensorInputType(std::string_view value) noexcept {
+        if (value == config::values::DISABLED) return SolarSensorInputType::None;
+        if (value == config::values::SENSOR) return SolarSensorInputType::Sensor;
+        if (value == config::values::JOYSTICK) return SolarSensorInputType::Joystick;
+        return std::nullopt;
+    }
+
     constexpr std::optional<MelonDsDs::SysfileMode> ParseSysfileMode(std::string_view value) noexcept {
         if (value == config::values::NATIVE) return SysfileMode::Native;
         if (value == config::values::BUILT_IN) return SysfileMode::BuiltIn;

@@ -85,6 +85,7 @@ namespace MelonDsDs::config::definitions {
 
         ConsoleMode,
         Slot2Device,
+        SolarSensorMode,
         SysfileMode,
         FirmwarePath,
         DsiFirmwarePath,

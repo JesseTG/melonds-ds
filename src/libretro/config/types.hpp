@@ -29,6 +29,12 @@ namespace MelonDsDs {
         MemoryExpansionPak,
     };
 
+    enum class SolarSensorInputType {
+        None,
+        Sensor,
+        Joystick,
+    };
+
     enum RumbleMotorType {
         None = 0,
         Strong = 0b01,
