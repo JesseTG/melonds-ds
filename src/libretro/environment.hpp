@@ -21,6 +21,7 @@
 #include <string>
 #include <string_view>
 #include <libretro.h>
+#include <glm/ext/vector_int2_sized.hpp>
 #undef isnan
 #include <fmt/format.h>
 #include "std/chrono.hpp"
@@ -104,6 +105,8 @@ namespace retro {
     bool supports_bitmasks();
     void input_poll();
     int16_t input_state(unsigned port, unsigned device, unsigned index, unsigned id);
+    uint32_t joypad_state(unsigned port) noexcept;
+    glm::i16vec2 analog_state(unsigned port, unsigned index) noexcept;
     size_t audio_sample_batch(const int16_t *data, size_t frames);
     void video_refresh(const void *data, unsigned width, unsigned height, size_t pitch);
 

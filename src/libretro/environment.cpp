@@ -108,6 +108,31 @@ int16_t retro::input_state(unsigned port, unsigned device, unsigned index, unsig
     }
 }
 
+uint32_t retro::joypad_state(unsigned port) noexcept {
+    ZoneScopedN(TracyFunction);
+    uint32_t buttons = 0; // Input bits from libretro
+
+    if (_supports_bitmasks) {
+        buttons = retro::input_state(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+    } else {
+        buttons = 0;
+        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R3 + 1); i++)
+            buttons |= retro::input_state(port, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
+    }
+
+    return buttons;
+}
+
+glm::i16vec2 retro::analog_state(unsigned port, unsigned index) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    glm::i16vec2 direction;
+    direction.x = retro::input_state(port, RETRO_DEVICE_ANALOG, index, RETRO_DEVICE_ID_ANALOG_X);
+    direction.y = retro::input_state(port, RETRO_DEVICE_ANALOG, index, RETRO_DEVICE_ID_ANALOG_Y);
+
+    return direction;
+}
+
 void retro::input_poll() {
     ZoneScopedN(TracyFunction);
     if (_input_poll) {
