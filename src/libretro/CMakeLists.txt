@@ -49,8 +49,16 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     glsym_private.h
     info.cpp
     info.hpp
+    input/cursor.cpp
+    input/cursor.hpp
     input/input.cpp
     input/input.hpp
+    input/joypad.cpp
+    input/joypad.hpp
+    input/pointer.cpp
+    input/pointer.hpp
+    input/rumble.cpp
+    input/rumble.hpp
     input/solar.cpp
     input/solar.hpp
     libretro.cpp
