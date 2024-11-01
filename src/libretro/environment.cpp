@@ -33,6 +33,7 @@
 #include <retro_assert.h>
 #include <string/stdstring.h>
 
+#include "constants.hpp"
 #include "core/core.hpp"
 #include "microphone.hpp"
 #include "info.hpp"
@@ -801,7 +802,7 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
         retro::warn("Failed to get log interface");
     }
 
-    retro_frame_time_callback frame_time {FrameTimeCallback, static_cast<retro_usec_t>(1000000.0 / MelonDsDs::FPS)};
+    retro_frame_time_callback frame_time {FrameTimeCallback, static_cast<retro_usec_t>(MelonDsDs::US_PER_FRAME.count())};
     environment(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_time);
 
     retro_get_proc_address_interface get_proc_address {MelonDsDs::GetRetroProcAddress};
