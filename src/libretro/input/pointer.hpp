@@ -49,10 +49,6 @@ namespace MelonDsDs {
         glm::i16vec2 _rawPosition;
         glm::i16vec2 _previousRawPosition;
         retro_perf_tick_t _lastUpdated;
-
-        /// Touch coordinates of the pointer on the hybrid screen,
-        /// in NDS pixel coordinates.
-        /// Only relevant if a hybrid layout is active
         enum CursorMode _cursorMode;
         enum TouchMode _touchMode;
     };

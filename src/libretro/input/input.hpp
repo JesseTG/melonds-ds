@@ -48,9 +48,6 @@ namespace MelonDsDs {
         retro_perf_tick_t Timestamp;
     };
 
-    // TODO: Break this up into smaller classes (TouchState, ButtonState, RumbleState?)
-    // And give each new class an `Apply` method to update an `NDS`,
-    // and an `Update` method to update its own config from `CoreConfig`
     class InputState
     {
     public:

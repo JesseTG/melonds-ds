@@ -128,7 +128,6 @@ void InputState::Update(const ScreenLayoutData& layout) noexcept {
     _pointer.Update(pollResult);
 
     _cursor.Update(layout, _pointer, _joypad);
-    // TODO: Transform the pointer coordinates using the screen layout and save the result
     // TODO: Instantiate a SolarSensorState or RumbleState based on the contents of Slot-2
 }
 

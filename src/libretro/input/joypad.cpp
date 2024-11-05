@@ -30,21 +30,6 @@
 using glm::vec2;
 using MelonDsDs::JoypadState;
 
-constexpr float GetOrientationAngle(retro::ScreenOrientation orientation) noexcept {
-    switch (orientation) {
-        case retro::ScreenOrientation::Normal:
-            return 0;
-        case retro::ScreenOrientation::RotatedLeft:
-            return glm::radians(90.f);
-        case retro::ScreenOrientation::UpsideDown:
-            return glm::radians(180.f);
-        case retro::ScreenOrientation::RotatedRight:
-            return glm::radians(270.f);
-        default:
-            return 0;
-    }
-}
-
 void JoypadState::SetConfig(const CoreConfig& config) noexcept {
     _touchMode = config.TouchMode();
 }
@@ -99,8 +84,6 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
 
         if (_joystickTouchButton != _previousJoystickTouchButton || _joystickRawDirection != _previousJoystickRawDirection) {
             // If the player moved, pressed, or released the joystick cursor within the past frame...
-            // cursorTimeout = maxCursorTimeout * 60;
-            // TODO: reset cursorTimeout in InputState
             _lastPointerUpdate = poll.Timestamp;
         }
     }

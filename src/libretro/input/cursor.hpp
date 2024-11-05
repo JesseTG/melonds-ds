@@ -69,8 +69,6 @@ namespace MelonDsDs {
         retro_perf_tick_t _joypadCursorLastUpdate;
         retro_perf_tick_t _pointerCursorLastUpdate;
 
-        // ivec2 _previousPointerTouchPosition;
-        // ivec2 _pointerTouchPosition;
         /// Touch coordinates of the pointer on the hybrid screen,
         /// in NDS pixel coordinates.
         /// Only relevant if a hybrid layout is active

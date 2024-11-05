@@ -110,8 +110,6 @@ void CursorState::Update(const ScreenLayoutData& layout, const PointerState& poi
         _cursorTimeout--;
     }
 
-
-
     _cursorSettingsDirty = false;
 }
 
