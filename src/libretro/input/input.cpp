@@ -174,12 +174,14 @@ void InputState::RumbleStop() noexcept {
 
 void melonDS::Platform::Addon_RumbleStart(melonDS::u32 len, void* userdata)
 {
+    ZoneScopedN(TracyFunction);
     MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
     core.GetInputState().RumbleStart(std::chrono::milliseconds(len));
 }
 
 void melonDS::Platform::Addon_RumbleStop(void* userdata)
 {
+    ZoneScopedN(TracyFunction);
     MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
     core.GetInputState().RumbleStop();
 }
