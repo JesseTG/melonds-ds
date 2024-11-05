@@ -18,6 +18,10 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Integrated support for the Rumble Pak.
   [#224](https://github.com/JesseTG/melonds-ds/issues/224)
 
+### Changed
+
+- Updated melonDS to commit [b2ae4c7](https://github.com/melonDS-emu/melonDS/tree/b2ae4c7).
+
 ## [1.1.8] - 2024-10-18
 
 Thanks to **@oddballparty** and a private sponsor for their generosity!
