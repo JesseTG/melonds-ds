@@ -28,6 +28,7 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 
+#include "constants.hpp"
 #include "../config/console.hpp"
 #include "../exceptions.hpp"
 #include "../format.hpp"
@@ -152,8 +153,8 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
-        HandleInput(nds, _inputState, _screenLayout);
-        _micState.SetMicButtonState(_inputState.MicButtonDown());
+        _inputState.Update(_screenLayout);
+        _inputState.Apply(nds, _screenLayout, _micState);
         std::array<int16_t, 735> buffer {};
         _micState.Read(buffer);
         nds.MicInputFrame(buffer.data(), buffer.size());
@@ -536,6 +537,10 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         retro::task::push(_inputState.RumbleTask());
         retro::debug("Initialized Rumble Pak timeout task");
     }
+    else if (dynamic_cast<melonDS::GBACart::CartGameSolarSensor*>(Console->GetGBACart())) {
+        // If the console has a GBA cart with a solar sensor...
+        // TODO: Initialize the solar sensor
+    }
 
     if (retro::supports_power_status()) {
         retro::task::push(PowerStatusUpdateTask());
@@ -647,7 +652,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     std::optional<RenderMode> oldRenderer = _renderState.GetRenderMode();
     _renderState.Apply(config);
     _screenLayout.Apply(config, _renderState);
-    _inputState.Apply(config);
+    _inputState.SetConfig(config);
     _micState.SetConfig(config);
     _netState.Apply(config);
     _screenLayout.SetDirty();

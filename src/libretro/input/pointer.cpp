@@ -23,6 +23,7 @@
 #include "config/config.hpp"
 #include "environment.hpp"
 #include "input.hpp"
+#include "screenlayout.hpp"
 #include "tracy/client.hpp"
 
 using MelonDsDs::PointerState;
@@ -34,27 +35,19 @@ void PointerState::SetConfig(const CoreConfig& config) noexcept {
     _touchMode = config.TouchMode();
 }
 
-void PointerState::Poll(const InputPollResult& poll) noexcept {
+void PointerState::Update(const InputPollResult& poll) noexcept {
     ZoneScopedN(TracyFunction);
 
-    _previousPointerTouchPosition = _pointerTouchPosition;
-    _previousIsPointerTouching = _isPointerTouching;
+    _previousTouching = _touching;
+    _previousRawPosition = _rawPosition;
 
-    ScreenLayout layout = screen_layout_data.Layout();
-
-    // TODO: Move matrix transformations out of PointerState and into InputState
     if (_touchMode == TouchMode::Pointer || _touchMode == TouchMode::Auto) {
-        _isPointerTouching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-        _pointerRawPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-        _pointerRawPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+        _touching = poll.PointerPressed;
+        _rawPosition = poll.PointerPosition;
 
-        // TODO: Can I decouple the screen layout from here?
-        _pointerTouchPosition = screen_layout_data.TransformPointerInput(_pointerRawPosition);
-        _hybridTouchPosition = screen_layout_data.TransformPointerInputToHybridScreen(_pointerRawPosition);
-
-        if (_isPointerTouching != _previousIsPointerTouching || _pointerTouchPosition != _previousPointerTouchPosition) {
+        if ((_touching != _previousTouching) || CursorMoved()) {
             // If the player moved, pressed, or released the pointer within the past frame...
-            _pointerUpdateTimestamp = poll.Timestamp;
+            _lastUpdated = poll.Timestamp;
         }
     }
 }

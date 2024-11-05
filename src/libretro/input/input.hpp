@@ -16,11 +16,17 @@
 
 #pragma once
 
+#include <features/features_cpu.h>
 #include <libretro.h>
 #include <glm/vec2.hpp>
 
 #include "config/types.hpp"
+#include "cursor.hpp"
+#include "joypad.hpp"
+#include "pointer.hpp"
 #include "retro/task_queue.hpp"
+#include "rumble.hpp"
+#include "solar.hpp"
 #include "std/chrono.hpp"
 
 namespace melonDS {
@@ -31,7 +37,16 @@ namespace MelonDsDs {
     constexpr const char* const RUMBLE_TASK = "RumbleTask";
     class CoreConfig;
     class ScreenLayoutData;
+    class MicrophoneState;
     extern const struct retro_input_descriptor input_descriptors[];
+
+    struct InputPollResult {
+        uint32_t JoypadButtons;
+        i16vec2 AnalogCursorDirection;
+        i16vec2 PointerPosition;
+        bool PointerPressed;
+        retro_perf_tick_t Timestamp;
+    };
 
     // TODO: Break this up into smaller classes (TouchState, ButtonState, RumbleState?)
     // And give each new class an `Apply` method to update an `NDS`,
@@ -39,85 +54,39 @@ namespace MelonDsDs {
     class InputState
     {
     public:
-        void Apply(const CoreConfig& config) noexcept;
+        void SetConfig(const CoreConfig& config) noexcept;
+        void Update(const ScreenLayoutData& layout) noexcept;
+        void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept;
         [[nodiscard]] bool CursorVisible() const noexcept;
-        [[nodiscard]] bool IsTouchingScreen() const noexcept;
-        [[nodiscard]] bool ScreenTouched() const noexcept { return isPointerTouching && !previousIsPointerTouching; }
-        [[nodiscard]] bool ScreenReleased() const noexcept {
-            return (!isPointerTouching && previousIsPointerTouching) || (!joystickTouchButton && previousJoystickTouchButton);
+        [[nodiscard]] bool IsTouching() const noexcept { return _cursor.IsTouching(); }
+        [[nodiscard]] bool TouchReleased() const noexcept {
+            return _pointer.CursorReleased() || _joypad.TouchReleased();
         }
-        [[nodiscard]] glm::ivec2 TouchPosition() const noexcept;
-        [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return pointerTouchPosition; }
-        [[nodiscard]] glm::ivec2 JoystickTouchPosition() const noexcept { return joystickCursorPosition; }
-        [[nodiscard]] glm::i16vec2 PointerInput() const noexcept { return pointerRawPosition; }
-        [[nodiscard]] glm::ivec2 HybridTouchPosition() const noexcept { return hybridTouchPosition; }
-        [[nodiscard]] bool CycleLayoutDown() const noexcept { return cycleLayoutButton; }
-        [[nodiscard]] bool CycleLayoutPressed() const noexcept { return cycleLayoutButton && !previousCycleLayoutButton; }
-        [[nodiscard]] bool CycleLayoutReleased() const noexcept { return !cycleLayoutButton && previousCycleLayoutButton; }
-        [[nodiscard]] bool MicButtonDown() const noexcept { return micButton; }
-        [[nodiscard]] bool MicButtonPressed() const noexcept { return micButton && !previousMicButton; }
-        [[nodiscard]] bool MicButtonReleased() const noexcept { return !micButton && previousMicButton; }
-        [[nodiscard]] bool ToggleLidDown() const noexcept { return toggleLidButton; }
-        [[nodiscard]] bool ToggleLidPressed() const noexcept { return toggleLidButton && !previousToggleLidButton; }
-        [[nodiscard]] bool ToggleLidReleased() const noexcept { return !toggleLidButton && previousToggleLidButton; }
-        [[nodiscard]] unsigned MaxCursorTimeout() const noexcept { return maxCursorTimeout;}
-        [[nodiscard]] uint32_t ConsoleButtons() const noexcept { return consoleButtons; }
-        [[nodiscard]] glm::uvec2 ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept;
-        void SetMaxCursorTimeout(unsigned timeout) noexcept {
-            if (timeout != maxCursorTimeout) cursorSettingsDirty = true;
-            maxCursorTimeout = timeout;
-        }
-        [[nodiscard]] enum CursorMode CursorMode() const noexcept { return cursorMode; }
-        void SetCursorMode(MelonDsDs::CursorMode mode) noexcept {
-            if (mode != cursorMode) cursorSettingsDirty = true;
-            cursorMode = mode;
-        }
-        void SetTouchMode(TouchMode mode) noexcept {
-            if (mode != touchMode) cursorSettingsDirty = true;
-            touchMode = mode;
-        }
-        void Update(const MelonDsDs::ScreenLayoutData& screen_layout_data) noexcept;
+        [[nodiscard]] ivec2 TouchPosition() const noexcept { return _cursor.TouchPosition(); };
+        [[nodiscard]] ivec2 PointerTouchPosition() const noexcept;
+        [[nodiscard]] ivec2 JoystickTouchPosition() const noexcept;
+        [[nodiscard]] i16vec2 PointerRawPosition() const noexcept { return _pointer.RawPosition(); }
+
+        void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
+
         void RumbleStart(std::chrono::milliseconds len) noexcept;
         void RumbleStop() noexcept;
-        void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
-        [[nodiscard]] bool RumbleActive() const noexcept { return _rumbleTimeout.count() > 0; }
-        [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept;
+        [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept {
+            return _rumble ? _rumble->RumbleTask() : retro::task::TaskSpec();
+        }
     private:
         bool IsCursorInputInBounds() const noexcept;
 
+        JoypadState _joypad;
+        PointerState _pointer;
+        CursorState _cursor;
+
         unsigned _inputDeviceType;
-        std::chrono::microseconds _rumbleTimeout;
-        bool cursorSettingsDirty = true;
-        bool isPointerTouching;
-        bool previousIsPointerTouching;
-        glm::ivec2 previousPointerTouchPosition;
-        glm::ivec2 pointerTouchPosition;
-        glm::i16vec2 pointerRawPosition;
-        retro_perf_tick_t pointerUpdateTimestamp;
+        enum CursorMode _cursorMode;
+        enum TouchMode _touchMode;
 
-        /// Touch coordinates of the pointer on the hybrid screen,
-        /// in NDS pixel coordinates.
-        /// Only relevant if a hybrid layout is active
-        glm::ivec2 hybridTouchPosition;
-        glm::ivec2 joystickCursorPosition;
-        glm::ivec2 previousJoystickCursorPosition;
-        glm::i16vec2 joystickRawDirection;
-        retro_perf_tick_t joystickTimestamp;
-        enum CursorMode cursorMode;
-        enum TouchMode touchMode;
-
-        unsigned cursorTimeout = 0;
-        unsigned maxCursorTimeout;
-        bool toggleLidButton;
-        bool previousToggleLidButton;
-        bool micButton;
-        bool previousMicButton;
-        bool cycleLayoutButton;
-        bool previousCycleLayoutButton;
-        bool joystickTouchButton;
-        bool previousJoystickTouchButton;
-        uint32_t consoleButtons;
+        // TODO: Consolidate into a std::variant
+        std::optional<SolarSensorState> _solarSensor = std::nullopt;
+        std::optional<RumbleState> _rumble = std::nullopt;
     };
-
-    void HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept;
 }

@@ -59,7 +59,7 @@ void JoypadState::SetConfig(const CoreConfig& config) noexcept {
         }                                      \
     } while (false)
 
-void JoypadState::Poll(const InputPollResult& poll) noexcept {
+void JoypadState::Update(const InputPollResult& poll) noexcept {
     ZoneScopedN(TracyFunction);
     uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
 
@@ -77,6 +77,7 @@ void JoypadState::Poll(const InputPollResult& poll) noexcept {
     ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_X, 10, poll.JoypadButtons);
     ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_Y, 11, poll.JoypadButtons);
 
+    // We'll send these bits to the DS in Apply() later
     _consoleButtons = ndsInputBits;
 
     _previousToggleLidButton = _toggleLidButton;
@@ -89,51 +90,20 @@ void JoypadState::Poll(const InputPollResult& poll) noexcept {
     _cycleLayoutButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R2);
 
     _previousJoystickTouchButton = _joystickTouchButton;
+    _previousJoystickRawDirection = _joystickRawDirection;
 
-
-    ScreenLayout layout = screen_layout_data.Layout();
-//    if (layout == ScreenLayout::TopOnly) {
-//        isPointerTouching = false;
-//        _joystickTouchButton = false;
-//    } else {
-//    if (_touchMode == TouchMode::Pointer || _touchMode == TouchMode::Auto) {
-//        isPointerTouching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-//        pointerRawPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-//        pointerRawPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
-//        pointerTouchPosition = screen_layout_data.TransformPointerInput(pointerRawPosition);
-//        hybridTouchPosition = screen_layout_data.TransformPointerInputToHybridScreen(pointerRawPosition);
-//
-//        if (isPointerTouching != previousIsPointerTouching || pointerTouchPosition != previousPointerTouchPosition) {
-//            // If the player moved, pressed, or released the pointer within the past frame...
-//            cursorTimeout = maxCursorTimeout * 60;
-//            pointerUpdateTimestamp = now;
-//        }
-//    }
-
-    // TODO: Pass the screen layout data into Poll(), or move its use outside
     if (_touchMode == TouchMode::Joystick || _touchMode == TouchMode::Auto) {
-        retro::ScreenOrientation orientation = screen_layout_data.EffectiveOrientation();
+        //retro::ScreenOrientation orientation = screen_layout_data.EffectiveOrientation();
         _joystickTouchButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
-        _joystickRawDirection = retro::analog_state(0, RETRO_DEVICE_INDEX_ANALOG_RIGHT);
-        _joystickRawDirection = glm::rotate(vec2(_joystickRawDirection), GetOrientationAngle(orientation));
+        _joystickRawDirection = poll.AnalogCursorDirection;
 
-        if (_joystickRawDirection != i16vec2(0)) {
-            // If the player moved the joystick this frame...
-//            if (pointerUpdateTimestamp > _lastPointerUpdate) {
-//                _joystickCursorPosition = pointerTouchPosition;
-//            }
-            _joystickCursorPosition += _joystickRawDirection / i16vec2(2048);
-            _joystickCursorPosition = clamp(_joystickCursorPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-        }
-
-        if (_joystickTouchButton != _previousJoystickTouchButton || _joystickCursorPosition != _previousJoystickCursorPosition) {
+        if (_joystickTouchButton != _previousJoystickTouchButton || _joystickRawDirection != _previousJoystickRawDirection) {
             // If the player moved, pressed, or released the joystick cursor within the past frame...
             // cursorTimeout = maxCursorTimeout * 60;
             // TODO: reset cursorTimeout in InputState
             _lastPointerUpdate = poll.Timestamp;
         }
     }
-    //}
 }
 
 

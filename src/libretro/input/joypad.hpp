@@ -39,7 +39,7 @@ namespace MelonDsDs {
     class JoypadState {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
-        void Poll(const InputPollResult& poll) noexcept;
+        void Update(const InputPollResult& poll) noexcept;
         void Apply(melonDS::NDS& nds) const noexcept;
         void Apply(ScreenLayoutData& layout) const noexcept;
         void Apply(MicrophoneState& mic) const noexcept;
@@ -55,9 +55,17 @@ namespace MelonDsDs {
         [[nodiscard]] bool TouchReleased() const noexcept {
             return !_joystickTouchButton && _previousJoystickTouchButton;
         }
-        [[nodiscard]] ivec2 TouchPosition() const noexcept { return _joystickCursorPosition; }
-        [[nodiscard]] bool TouchMoved() const noexcept {
-            return _joystickCursorPosition != _previousJoystickCursorPosition;
+        [[nodiscard]] bool CursorMoved() const noexcept {
+            return _joystickRawDirection != _previousJoystickRawDirection;
+        }
+
+        /// Return true if the joystick cursor was moved, touched, or released
+        [[nodiscard]] bool CursorActive() const noexcept {
+            return CursorMoved() || (_joystickTouchButton != _previousJoystickTouchButton);
+        }
+
+        [[nodiscard]] glm::i16vec2 RawCursorDirection() const noexcept {
+            return _joystickRawDirection;
         }
 
     private:
@@ -73,10 +81,8 @@ namespace MelonDsDs {
         unsigned _device;
         TouchMode _touchMode;
         retro_perf_tick_t _lastPointerUpdate;
-
-        ivec2 _joystickCursorPosition;
-        ivec2 _previousJoystickCursorPosition;
         i16vec2 _joystickRawDirection;
+        i16vec2 _previousJoystickRawDirection;
     };
 
 }

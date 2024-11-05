@@ -25,10 +25,6 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
-    using glm::ivec2;
-    using glm::i16vec2;
-    using glm::uvec2;
-
     class CoreConfig;
     class ScreenLayoutData;
     class MicrophoneState;
@@ -37,31 +33,26 @@ namespace MelonDsDs {
     class PointerState {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
-        void Poll(const InputPollResult& poll) noexcept;
-        void Apply(melonDS::NDS& nds) const noexcept;
-        void Apply(ScreenLayoutData& layout) const noexcept;
+        void Update(const InputPollResult& poll) noexcept;
 
-        [[nodiscard]] retro_perf_tick_t LastPointerUpdate() const noexcept { return _pointerUpdateTimestamp; }
-        [[nodiscard]] uvec2 ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept;
-        [[nodiscard]] ivec2 TouchPosition() const noexcept { return _pointerTouchPosition; }
-        [[nodiscard]] i16vec2 RawPosition() const noexcept { return _pointerRawPosition; }
-        [[nodiscard]] ivec2 HybridTouchPosition() const noexcept { return _hybridTouchPosition; }
-        [[nodiscard]] bool IsTouching() const noexcept { return _isPointerTouching; }
-        [[nodiscard]] bool TouchReleased() const noexcept { return _previousIsPointerTouching && !_isPointerTouching; }
-
+        [[nodiscard]] retro_perf_tick_t LastPointerUpdate() const noexcept { return _lastUpdated; }
+        [[nodiscard]] glm::i16vec2 RawPosition() const noexcept { return _rawPosition; }
+        [[nodiscard]] bool IsTouching() const noexcept { return _touching; }
+        [[nodiscard]] bool CursorReleased() const noexcept { return _previousTouching && !_touching; }
+        [[nodiscard]] bool CursorMoved() const noexcept { return _rawPosition != _previousRawPosition; }
+        [[nodiscard]] bool CursorActive() const noexcept {
+            return CursorMoved() || (_touching != _previousTouching);
+        }
     private:
-        bool _isPointerTouching;
-        bool _previousIsPointerTouching;
-        ivec2 _previousPointerTouchPosition;
-        ivec2 _pointerTouchPosition;
-        i16vec2 _pointerRawPosition;
-        retro_perf_tick_t _pointerUpdateTimestamp;
+        bool _touching;
+        bool _previousTouching;
+        glm::i16vec2 _rawPosition;
+        glm::i16vec2 _previousRawPosition;
+        retro_perf_tick_t _lastUpdated;
 
         /// Touch coordinates of the pointer on the hybrid screen,
         /// in NDS pixel coordinates.
         /// Only relevant if a hybrid layout is active
-        ivec2 _hybridTouchPosition;
-        retro_perf_tick_t _joystickTimestamp;
         enum CursorMode _cursorMode;
         enum TouchMode _touchMode;
     };

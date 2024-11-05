@@ -34,6 +34,7 @@
 #include "tracy.hpp"
 #include "utils.hpp"
 
+using MelonDsDs::InputState;
 using glm::ivec2;
 using glm::ivec3;
 using glm::i16vec2;
@@ -70,20 +71,7 @@ static bool IsInNdsScreenBounds(ivec2 position) noexcept {
     return glm::all(glm::openBounded(position, ivec2(0), NDS_SCREEN_SIZE<int>));
 }
 
-constexpr float GetOrientationAngle(retro::ScreenOrientation orientation) noexcept {
-    switch (orientation) {
-        case retro::ScreenOrientation::Normal:
-            return 0;
-        case retro::ScreenOrientation::RotatedLeft:
-            return glm::radians(90.f);
-        case retro::ScreenOrientation::UpsideDown:
-            return glm::radians(180.f);
-        case retro::ScreenOrientation::RotatedRight:
-            return glm::radians(270.f);
-        default:
-            return 0;
-    }
-}
+
 
 static const char *device_name(unsigned device) {
     switch (device) {
@@ -112,202 +100,100 @@ void MelonDsDs::InputState::SetControllerPortDevice(unsigned int port, unsigned 
     retro::debug("MelonDsDs::InputState::SetControllerPortDevice({}, {})", port, device_name(device));
 
     _inputDeviceType = device;
+    _joypad.SetControllerPortDevice(port, device);
 }
 
-void MelonDsDs::HandleInput(melonDS::NDS& nds, InputState& inputState, ScreenLayoutData& screenLayout) noexcept {
-    ZoneScopedN(TracyFunction);
-    using glm::clamp;
-    using glm::all;
-
-    // Read the input from the frontend
-    inputState.Update(screenLayout);
-
-    nds.SetKeyMask(inputState.ConsoleButtons());
-
-    if (inputState.ToggleLidPressed()) {
-        nds.SetLidClosed(!nds.IsLidClosed());
-        retro::debug("{} the lid", nds.IsLidClosed() ? "Closed" : "Opened");
-    }
-
-    if (inputState.IsTouchingScreen()) {
-        uvec2 touch = inputState.ConsoleTouchCoordinates(screenLayout);
-        nds.TouchScreen(touch.x, touch.y);
-    } else if (inputState.ScreenReleased()) {
-        nds.ReleaseScreen();
-    }
-
-    if (inputState.CycleLayoutPressed()) {
-        // If the user wants to change the active screen layout...
-        screenLayout.NextLayout(); // ...update the screen layout to the next in the sequence.
-        retro::debug("Switched to screen layout {} of {} ({})", screenLayout.LayoutIndex() + 1, screenLayout.NumberOfLayouts(), screenLayout.Layout());
-        // Add 1 to the index because we present the layout index as 1-based to the user.
-    }
-}
-
-#define ADD_KEY_TO_MASK(key, i, bits) \
-    do { \
-        if (bits & (1 << (key))) {               \
-            ndsInputBits &= ~(1 << (i));           \
-        }                                      \
-        else {                                 \
-            ndsInputBits |= (1 << (i));            \
-        }                                      \
-    } while (false)
-
-void MelonDsDs::InputState::Update(const ScreenLayoutData& screen_layout_data) noexcept {
-    ZoneScopedN(TracyFunction);
-    uint32_t retroInputBits; // Input bits from libretro
-    uint32_t ndsInputBits = 0xFFF; // Input bits passed to the emulated DS
-
-    if (cursorSettingsDirty) {
-        cursorTimeout = maxCursorTimeout * 60;
-    }
-
-    retro::input_poll();
-
-    if (retro::supports_bitmasks()) {
-        retroInputBits = retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
-    } else {
-        retroInputBits = 0;
-        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R3 + 1); i++)
-            retroInputBits |= retro::input_state(0, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
-    }
-
-    // Delicate bit manipulation; do not touch!
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_A, 0, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_B, 1, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_SELECT, 2, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_START, 3, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_RIGHT, 4, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_LEFT, 5, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_UP, 6, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_DOWN, 7, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_R, 8, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_L, 9, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_X, 10, retroInputBits);
-    ADD_KEY_TO_MASK(RETRO_DEVICE_ID_JOYPAD_Y, 11, retroInputBits);
-
-    consoleButtons = ndsInputBits;
-
-    previousToggleLidButton = toggleLidButton;
-    toggleLidButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_L3);
-
-    previousMicButton = micButton;
-    micButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
-
-    previousCycleLayoutButton = cycleLayoutButton;
-    cycleLayoutButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R2);
-
-    previousPointerTouchPosition = pointerTouchPosition;
-    previousIsPointerTouching = isPointerTouching;
-
-    previousJoystickTouchButton = joystickTouchButton;
-    previousJoystickCursorPosition = joystickCursorPosition;
-    retro_perf_tick_t now = cpu_features_get_perf_counter();
-
-    ScreenLayout layout = screen_layout_data.Layout();
-    if (layout == ScreenLayout::TopOnly) {
-        isPointerTouching = false;
-        joystickTouchButton = false;
-    } else {
-        if (touchMode == TouchMode::Pointer || touchMode == TouchMode::Auto) {
-            isPointerTouching = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
-            pointerRawPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-            pointerRawPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
-            pointerTouchPosition = screen_layout_data.TransformPointerInput(pointerRawPosition);
-            hybridTouchPosition = screen_layout_data.TransformPointerInputToHybridScreen(pointerRawPosition);
-
-            if (isPointerTouching != previousIsPointerTouching || pointerTouchPosition != previousPointerTouchPosition) {
-                // If the player moved, pressed, or released the pointer within the past frame...
-                cursorTimeout = maxCursorTimeout * 60;
-                pointerUpdateTimestamp = now;
-            }
-        }
-
-        if (touchMode == TouchMode::Joystick || touchMode == TouchMode::Auto) {
-            retro::ScreenOrientation orientation = screen_layout_data.EffectiveOrientation();
-            joystickTouchButton = retroInputBits & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
-            joystickRawDirection.x = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
-            joystickRawDirection.y = retro::input_state(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y);
-            joystickRawDirection = (i16vec2)glm::rotate(vec2(joystickRawDirection), GetOrientationAngle(orientation));
-
-            if (joystickRawDirection != i16vec2(0)) {
-                if (pointerUpdateTimestamp > joystickTimestamp) {
-                    joystickCursorPosition = pointerTouchPosition;
-                }
-                joystickCursorPosition += joystickRawDirection / i16vec2(2048);
-                joystickCursorPosition = clamp(joystickCursorPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-            }
-
-            if (joystickTouchButton != previousJoystickTouchButton || joystickCursorPosition != previousJoystickCursorPosition) {
-                // If the player moved, pressed, or released the joystick within the past frame...
-                cursorTimeout = maxCursorTimeout * 60;
-                joystickTimestamp = now;
-            }
-        }
-    }
-
-    if (cursorMode == CursorMode::Timeout && cursorTimeout > 0) {
-        cursorTimeout--;
-    }
-
-    cursorSettingsDirty = false;
-}
-
-glm::uvec2 MelonDsDs::InputState::ConsoleTouchCoordinates(const ScreenLayoutData& layout) const noexcept {
-    uvec2 clampedTouch;
-
-    switch (layout.Layout()) {
-        case ScreenLayout::HybridBottom:
-        case ScreenLayout::FlippedHybridBottom:
-            if (layout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One) {
-                // If the touch screen is only shown in the hybrid-screen position...
-                clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-                // ...then that's the only transformation we'll use for input.
-                break;
-            } else if (!all(glm::openBounded(TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int>))) {
-                // The touch screen is shown in both the hybrid and secondary positions.
-                // If the touch input is not within the secondary position's bounds...
-                clampedTouch = clamp(hybridTouchPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-                break;
-            }
-            [[fallthrough]];
-        default:
-            clampedTouch = clamp(TouchPosition(), ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-            break;
-
-    }
-
-    return clampedTouch;
-}
-
-bool MelonDsDs::InputState::IsCursorInputInBounds() const noexcept {
-    switch (touchMode) {
+bool InputState::IsCursorInputInBounds() const noexcept {
+    switch (_touchMode) {
         case TouchMode::Pointer:
-            return pointerRawPosition != i16vec2(0);
+            // Finger is touching the screen or the mouse cursor is atop the window
+            return _pointer.RawPosition() != i16vec2(0);
         case TouchMode::Joystick:
+            // Joystick cursor is constrained to always be on the touch screen
             return true;
         case TouchMode::Auto:
-            return (joystickTimestamp > pointerUpdateTimestamp) || (pointerRawPosition != i16vec2(0));
+            // If the joystick cursor was last used, it's an automatic true.
+            // If the pointer was last used, see if the value is zero
+            return (_joypad.LastPointerUpdate() > _pointer.LastPointerUpdate()) || (_pointer.RawPosition() != i16vec2(0));
         default:
             return false;
     }
 
-    // Why are we comparing pointerRawPosition against (0, 0)?
+    // Why are we comparing _pointer.RawPosition() against (0, 0)?
     // libretro's pointer API returns (0, 0) if the pointer is not over the play area, even if it's still over the window.
     // Theoretically means that the cursor will be hidden if the player moves the pointer to the dead center of the screen,
     // but the screen's resolution probably isn't big enough for that to happen in practice.
 }
 
-void MelonDsDs::InputState::Apply(const CoreConfig& config) noexcept {
-    SetCursorMode(config.CursorMode());
-    SetMaxCursorTimeout(config.CursorTimeout());
-    SetTouchMode(config.TouchMode());
+void InputState::Update(const ScreenLayoutData& layout) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    retro::input_poll();
+
+    // First get the raw input from libretro itself
+    InputPollResult pollResult;
+
+    pollResult.JoypadButtons = retro::joypad_state(0);
+    if (_touchMode == TouchMode::Joystick || _touchMode == TouchMode::Auto) {
+        // We don't yet know if the player is using the touch screen with a joypad or a pointer,
+        // so if the touch mode is Auto then we need to check both.
+
+        pollResult.AnalogCursorDirection = retro::analog_state(0, RETRO_DEVICE_INDEX_ANALOG_RIGHT);
+    }
+
+    if (_touchMode == TouchMode::Pointer || _touchMode == TouchMode::Auto) {
+        pollResult.PointerPressed = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+        pollResult.PointerPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+        pollResult.PointerPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+    }
+    pollResult.Timestamp = cpu_features_get_perf_counter();
+
+    // Update each device's internal state
+    _joypad.Update(pollResult);
+    if (_solarSensor) {
+        _solarSensor->Update(_joypad);
+    }
+    _pointer.Update(pollResult);
+
+    _cursor.Update(layout, _pointer, _joypad);
+    // TODO: Transform the pointer coordinates using the screen layout and save the result
+    // TODO: Instantiate a SolarSensorState or RumbleState based on the contents of Slot-2
+}
+
+void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept {
+    ZoneScopedN(TracyFunction);
+
+    // Adjust the screen layout based on the frontend's input
+    _joypad.Apply(layout);
+
+    // Forward the frontend's button input to the emulated DS
+    _joypad.Apply(nds);
+
+    // Update the microphone's state
+    _joypad.Apply(mic);
+    if (_solarSensor) {
+        // TODO: Apply joypad state to solar sensor
+    }
+
+    _cursor.Apply(nds);
+}
+
+void InputState::SetConfig(const CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    _joypad.SetConfig(config);
+    _cursor.SetConfig(config);
+    if (_solarSensor) {
+        _solarSensor->SetConfig(config);
+    }
+
+    if (_rumble) {
+        _rumble->SetConfig(config);
+    }
 }
 
 bool MelonDsDs::InputState::CursorVisible() const noexcept {
     bool modeAllowsCursor = false;
-    switch (cursorMode) {
+    switch (_cursorMode) {
         case CursorMode::Always:
             modeAllowsCursor = true;
             break;
@@ -315,57 +201,26 @@ bool MelonDsDs::InputState::CursorVisible() const noexcept {
             modeAllowsCursor = false;
             break;
         case CursorMode::Touching:
-            modeAllowsCursor = isPointerTouching;
+            modeAllowsCursor = IsTouching();
             break;
         case CursorMode::Timeout:
-            modeAllowsCursor = cursorTimeout > 0;
+            modeAllowsCursor = _cursor.CursorTimeout() > 0;
             break;
     }
 
     return modeAllowsCursor && IsCursorInputInBounds();
 }
 
-bool MelonDsDs::InputState::IsTouchingScreen() const noexcept {
-    switch (touchMode) {
-        case TouchMode::Joystick:
-            return joystickTouchButton;
-        case TouchMode::Pointer:
-            return isPointerTouching;
-        case TouchMode::Auto:
-            return isPointerTouching || joystickTouchButton;
-        default:
-            return false;
+void InputState::RumbleStart(std::chrono::milliseconds len) noexcept {
+    if (_rumble) {
+        _rumble->RumbleStart(len);
     }
 }
 
-ivec2 MelonDsDs::InputState::TouchPosition() const noexcept {
-    if (touchMode == TouchMode::Joystick) {
-        return joystickCursorPosition;
+void InputState::RumbleStop() noexcept {
+    if (_rumble) {
+        _rumble->RumbleStop();
     }
-
-    if (touchMode == TouchMode::Pointer) {
-        return pointerTouchPosition;
-    }
-
-    if (isPointerTouching) {
-        return pointerTouchPosition;
-    }
-
-    if (joystickTouchButton) {
-        return joystickCursorPosition;
-    }
-
-    return pointerUpdateTimestamp > joystickTimestamp ? pointerTouchPosition : joystickCursorPosition;
-}
-
-void MelonDsDs::InputState::RumbleStart(std::chrono::milliseconds len) noexcept {
-    _rumbleTimeout += len;
-    retro::set_rumble_state(0, 0xFFFF);
-}
-
-void MelonDsDs::InputState::RumbleStop() noexcept {
-    _rumbleTimeout = 0us;
-    retro::set_rumble_state(0, 0);
 }
 
 void melonDS::Platform::Addon_RumbleStart(melonDS::u32 len, void* userdata)
@@ -378,36 +233,4 @@ void melonDS::Platform::Addon_RumbleStop(void* userdata)
 {
     MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
     core.GetInputState().RumbleStop();
-}
-
-// We add a bit of decay so the rumble doesn't feel too instant.
-// TODO: Make customizable?
-constexpr double RUMBLE_DECAY = 0.5;
-
-// We need a rumble task because the emulated Rumble Pak is edge-triggered
-// (i.e. turned on and off rapidly), and the frontend's rumble API is level-based.
-retro::task::TaskSpec MelonDsDs::InputState::RumbleTask() noexcept {
-    ZoneScopedN(TracyFunction);
-
-    return retro::task::TaskSpec(
-        [this](retro::task::TaskHandle&) noexcept {
-            ZoneScopedN(TracyFunction);
-            std::optional<std::chrono::microseconds> last_frame_time = retro::last_frame_time();
-            if (!last_frame_time) {
-                last_frame_time = US_PER_FRAME;
-            }
-
-            _rumbleTimeout -= std::chrono::microseconds(static_cast<int>(last_frame_time->count() * RUMBLE_DECAY));
-            if (_rumbleTimeout <= 0us) {
-                _rumbleTimeout = 0us;
-                retro::set_rumble_state(0, 0);
-            }
-        },
-        nullptr,
-        [](retro::task::TaskHandle&) noexcept {
-            retro::set_rumble_state(0, 0);
-        },
-        retro::task::ASAP,
-        RUMBLE_TASK
-    );
 }

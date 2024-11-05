@@ -16,22 +16,58 @@
 
 #pragma once
 
+#include <glm/vec2.hpp>
+#include <libretro.h>
+
 #include "config/types.hpp"
+
+namespace melonDS {
+    class NDS;
+}
 
 namespace MelonDsDs {
     class CoreConfig;
+    class PointerState;
+    class JoypadState;
+    class ScreenLayoutData;
 
     class CursorState {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
-        void Poll() noexcept;
+        void Update(const ScreenLayoutData& layout, const PointerState& pointer, const JoypadState& joypad) noexcept;
+
+        // Gathers the input by the pointer and joystick, and forwards one of them to the NDS
+        void Apply(melonDS::NDS& nds) const noexcept;
 
         [[nodiscard]] unsigned CursorTimeout() const noexcept { return _cursorTimeout; }
+        void ResetCursorTimeout() noexcept;
+
+        [[nodiscard]] glm::ivec2 TouchPosition() const noexcept;
+        [[nodiscard]] bool IsTouching() const noexcept;
+        [[nodiscard]] bool TouchReleased() const noexcept;
     private:
+        [[nodiscard]] glm::uvec2 ConsoleTouchPosition(const ScreenLayoutData& layout) const noexcept;
+
         bool _cursorSettingsDirty = true;
         CursorMode _cursorMode;
         TouchMode _touchMode;
         unsigned _cursorTimeout = 0;
         unsigned _maxCursorTimeout;
+        glm::ivec2 _joystickCursorPosition;
+        glm::ivec2 _pointerCursorPosition;
+        glm::i16vec2 _joystickRawDirection;
+        glm::uvec2 _consoleTouchPosition;
+
+        bool _pointerCursorTouching;
+        bool _joypadCursorTouching;
+        retro_perf_tick_t _joypadCursorLastUpdate;
+        retro_perf_tick_t _pointerCursorLastUpdate;
+
+        // ivec2 _previousPointerTouchPosition;
+        // ivec2 _pointerTouchPosition;
+        /// Touch coordinates of the pointer on the hybrid screen,
+        /// in NDS pixel coordinates.
+        /// Only relevant if a hybrid layout is active
+        glm::ivec2 _hybridTouchPosition;
     };
 }

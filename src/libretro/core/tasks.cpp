@@ -311,7 +311,7 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
             auto inserter = std::back_inserter(buf);
 
             if (Config.ShowPointerCoordinates()) {
-                i16vec2 pointerInput = _inputState.PointerInput();
+                i16vec2 pointerInput = _inputState.PointerRawPosition();
                 ivec2 joystick = _inputState.JoystickTouchPosition();
                 ivec2 touch = _inputState.PointerTouchPosition();
                 fmt::format_to(
