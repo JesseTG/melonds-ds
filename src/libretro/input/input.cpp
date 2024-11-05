@@ -44,6 +44,7 @@ using glm::vec3;
 using glm::uvec2;
 using MelonDsDs::NDS_SCREEN_SIZE;
 using MelonDsDs::NDS_SCREEN_HEIGHT;
+using std::get_if;
 
 const struct retro_input_descriptor MelonDsDs::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
@@ -122,8 +123,8 @@ void InputState::Update(const ScreenLayoutData& layout) noexcept {
 
     // Update each device's internal state
     _joypad.Update(pollResult);
-    if (_solarSensor) {
-        _solarSensor->Update(_joypad);
+    if (auto* solar = get_if<SolarSensorState>(&_slot2)) {
+        solar->Update(_joypad);
     }
     _pointer.Update(pollResult);
 
@@ -142,7 +143,7 @@ void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneSt
 
     // Update the microphone's state
     _joypad.Apply(mic);
-    if (_solarSensor) {
+    if (auto* solar = get_if<SolarSensorState>(&_slot2)) {
         // TODO: Apply joypad state to solar sensor
     }
 
@@ -154,20 +155,20 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
     _joypad.SetConfig(config);
     _cursor.SetConfig(config);
     _pointer.SetConfig(config);
-    if (_solarSensor) {
-        _solarSensor->SetConfig(config);
+    if (auto* solar = std::get_if<SolarSensorState>(&_slot2)) {
+        solar->SetConfig(config);
     }
 }
 
 void InputState::RumbleStart(std::chrono::milliseconds len) noexcept {
-    if (_rumble) {
-        _rumble->RumbleStart(len);
+    if (auto* rumble = get_if<RumbleState>(&_slot2)) {
+        rumble->RumbleStart(len);
     }
 }
 
 void InputState::RumbleStop() noexcept {
-    if (_rumble) {
-        _rumble->RumbleStop();
+    if (auto* rumble = get_if<RumbleState>(&_slot2)) {
+        rumble->RumbleStop();
     }
 }
 

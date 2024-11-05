@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include <features/features_cpu.h>
 #include <libretro.h>
 #include <glm/vec2.hpp>
@@ -48,6 +50,8 @@ namespace MelonDsDs {
         retro_perf_tick_t Timestamp;
     };
 
+    using Slot2State = std::variant<std::monostate, SolarSensorState, RumbleState>;
+
     class InputState
     {
     public:
@@ -69,7 +73,11 @@ namespace MelonDsDs {
         void RumbleStart(std::chrono::milliseconds len) noexcept;
         void RumbleStop() noexcept;
         [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept {
-            return _rumble ? _rumble->RumbleTask() : retro::task::TaskSpec();
+            if (auto* rumble = std::get_if<RumbleState>(&_slot2)) {
+                return rumble->RumbleTask();
+            }
+
+            return retro::task::TaskSpec();
         }
     private:
         JoypadState _joypad;
@@ -79,8 +87,6 @@ namespace MelonDsDs {
         unsigned _inputDeviceType;
         enum TouchMode _touchMode;
 
-        // TODO: Consolidate into a std::variant
-        std::optional<SolarSensorState> _solarSensor = std::nullopt;
-        std::optional<RumbleState> _rumble = std::nullopt;
+        Slot2State _slot2;
     };
 }
