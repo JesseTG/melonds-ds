@@ -16,3 +16,35 @@
 
 #pragma once
 
+#include <cstdint>
+#include <optional>
+
+#include "config/types.hpp"
+
+namespace melonDS {
+    class NDS;
+};
+
+namespace MelonDsDs {
+    class CoreConfig;
+    class JoypadState;
+
+    class SolarSensorState {
+    public:
+        explicit SolarSensorState(unsigned port) noexcept;
+        static std::optional<SolarSensorState> New(unsigned port) noexcept;
+        ~SolarSensorState() noexcept;
+        SolarSensorState(const SolarSensorState&) = delete;
+        SolarSensorState& operator=(const SolarSensorState&) = delete;
+        SolarSensorState(SolarSensorState&&) = delete;
+        SolarSensorState& operator=(SolarSensorState&&) = delete;
+
+        void Update(const JoypadState& joypad) noexcept;
+        void SetConfig(const CoreConfig& config) noexcept;
+        void Apply(melonDS::NDS& nds) noexcept;
+    private:
+        unsigned int _port;
+        SolarSensorInputType _type;
+        bool _valid = true;
+    };
+}
