@@ -18,6 +18,8 @@
 #define MELONDS_DS_UTILS_HPP
 
 #include <cstdint>
+#include <functional>
+#include <optional>
 #include <libretro.h>
 
 #if defined(_WIN32)
@@ -28,6 +30,9 @@
 
 namespace MelonDsDs {
     void GetGameName(const struct retro_game_info& game_info, char* game_name, size_t game_name_size) noexcept;
+
+    template<class T>
+    using optional_ref = std::optional<std::reference_wrapper<T>>;
 }
 
 #endif //MELONDS_DS_UTILS_HPP
