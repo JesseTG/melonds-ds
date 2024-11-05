@@ -534,8 +534,9 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     if (dynamic_cast<melonDS::GBACart::CartRumblePak*>(Console->GetGBACart())) {
         // If the console has a rumble pak...
-        retro::task::push(_inputState.RumbleTask());
-        retro::debug("Initialized Rumble Pak timeout task");
+        if (retro::task::push(_inputState.RumbleTask())) {
+            retro::debug("Initialized Rumble Pak timeout task");
+        }
     }
     else if (dynamic_cast<melonDS::GBACart::CartGameSolarSensor*>(Console->GetGBACart())) {
         // If the console has a GBA cart with a solar sensor...
