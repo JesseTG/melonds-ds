@@ -21,6 +21,8 @@ a design goal is to avoid a 2.x release for as long as possible.
 ### Changed
 
 - Updated melonDS to commit [b2ae4c7](https://github.com/melonDS-emu/melonDS/tree/b2ae4c7).
+- Refactored input handling to enable future improvements
+  to Slot-2 peripherals and screen layouts.
 
 ## [1.1.8] - 2024-10-18
 
