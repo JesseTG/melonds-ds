@@ -97,28 +97,6 @@ void MelonDsDs::InputState::SetControllerPortDevice(unsigned int port, unsigned 
     _joypad.SetControllerPortDevice(port, device);
 }
 
-bool InputState::IsCursorInputInBounds() const noexcept {
-    switch (_touchMode) {
-        case TouchMode::Pointer:
-            // Finger is touching the screen or the mouse cursor is atop the window
-            return _pointer.RawPosition() != i16vec2(0);
-        case TouchMode::Joystick:
-            // Joystick cursor is constrained to always be on the touch screen
-            return true;
-        case TouchMode::Auto:
-            // If the joystick cursor was last used, it's an automatic true.
-            // If the pointer was last used, see if the value is zero
-            return (_joypad.LastPointerUpdate() > _pointer.LastPointerUpdate()) || (_pointer.RawPosition() != i16vec2(0));
-        default:
-            return false;
-    }
-
-    // Why are we comparing _pointer.RawPosition() against (0, 0)?
-    // libretro's pointer API returns (0, 0) if the pointer is not over the play area, even if it's still over the window.
-    // Theoretically means that the cursor will be hidden if the player moves the pointer to the dead center of the screen,
-    // but the screen's resolution probably isn't big enough for that to happen in practice.
-}
-
 void InputState::Update(const ScreenLayoutData& layout) noexcept {
     ZoneScopedN(TracyFunction);
 
@@ -176,29 +154,10 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     _joypad.SetConfig(config);
     _cursor.SetConfig(config);
+    _pointer.SetConfig(config);
     if (_solarSensor) {
         _solarSensor->SetConfig(config);
     }
-}
-
-bool MelonDsDs::InputState::CursorVisible() const noexcept {
-    bool modeAllowsCursor = false;
-    switch (_cursorMode) {
-        case CursorMode::Always:
-            modeAllowsCursor = true;
-            break;
-        case CursorMode::Never:
-            modeAllowsCursor = false;
-            break;
-        case CursorMode::Touching:
-            modeAllowsCursor = IsTouching();
-            break;
-        case CursorMode::Timeout:
-            modeAllowsCursor = _cursor.CursorTimeout() > 0;
-            break;
-    }
-
-    return modeAllowsCursor && IsCursorInputInBounds();
 }
 
 void InputState::RumbleStart(std::chrono::milliseconds len) noexcept {

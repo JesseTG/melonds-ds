@@ -47,7 +47,9 @@ namespace MelonDsDs {
         [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return _pointerCursorPosition; }
         [[nodiscard]] bool IsTouching() const noexcept;
         [[nodiscard]] bool TouchReleased() const noexcept { return _isTouchReleased; }
+        [[nodiscard]] bool CursorVisible() const noexcept;
     private:
+        [[nodiscard]] bool IsCursorInputInBounds() const noexcept;
         [[nodiscard]] glm::uvec2 ConsoleTouchPosition(const ScreenLayoutData& layout) const noexcept;
 
         bool _cursorSettingsDirty = true;
@@ -58,6 +60,7 @@ namespace MelonDsDs {
         glm::ivec2 _joystickCursorPosition;
         glm::ivec2 _pointerCursorPosition;
         glm::i16vec2 _joystickRawDirection;
+        glm::i16vec2 _pointerRawPosition;
         glm::uvec2 _consoleTouchPosition;
 
         bool _isTouchReleased;

@@ -57,7 +57,7 @@ namespace MelonDsDs {
         void SetConfig(const CoreConfig& config) noexcept;
         void Update(const ScreenLayoutData& layout) noexcept;
         void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept;
-        [[nodiscard]] bool CursorVisible() const noexcept;
+        [[nodiscard]] bool CursorVisible() const noexcept { return _cursor.CursorVisible(); }
         [[nodiscard]] bool IsTouching() const noexcept { return _cursor.IsTouching(); }
         [[nodiscard]] bool TouchReleased() const noexcept {
             return _pointer.CursorReleased() || _joypad.TouchReleased();
@@ -75,14 +75,11 @@ namespace MelonDsDs {
             return _rumble ? _rumble->RumbleTask() : retro::task::TaskSpec();
         }
     private:
-        bool IsCursorInputInBounds() const noexcept;
-
         JoypadState _joypad;
         PointerState _pointer;
         CursorState _cursor;
 
         unsigned _inputDeviceType;
-        enum CursorMode _cursorMode;
         enum TouchMode _touchMode;
 
         // TODO: Consolidate into a std::variant
