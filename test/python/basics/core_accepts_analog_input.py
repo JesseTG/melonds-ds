@@ -12,7 +12,7 @@ options = {
 
 def generate_input():
     yield from itertools.repeat(0, 2)
-    yield from itertools.repeat(AnalogState(rstick=(2000, 150)), 25)
+    yield from itertools.repeat(AnalogState(rstick=(3000, 150)), 35)
     yield from itertools.repeat(0)
 
 
