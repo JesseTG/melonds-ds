@@ -63,6 +63,7 @@ void CursorState::Update(const ScreenLayoutData& layout, const PointerState& poi
     _joypadCursorTouching = joypad.IsTouching();
     _joypadCursorLastUpdate = joypad.LastPointerUpdate();
     _pointerCursorLastUpdate = pointer.LastPointerUpdate();
+    _isTouchReleased = pointer.CursorReleased() || joypad.TouchReleased();
 
     if (_touchMode == TouchMode::Pointer || _touchMode == TouchMode::Auto) {
         i16vec2 pointerCoordsRaw = pointer.RawPosition();

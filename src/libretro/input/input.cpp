@@ -185,10 +185,6 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
     if (_solarSensor) {
         _solarSensor->SetConfig(config);
     }
-
-    if (_rumble) {
-        _rumble->SetConfig(config);
-    }
 }
 
 bool MelonDsDs::InputState::CursorVisible() const noexcept {

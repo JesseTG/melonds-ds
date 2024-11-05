@@ -27,8 +27,6 @@ namespace MelonDsDs {
 
     class RumbleState {
     public:
-        void SetConfig(const CoreConfig& config) noexcept;
-
         [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept;
         void RumbleStart(std::chrono::milliseconds len) noexcept;
         void RumbleStop() noexcept;
