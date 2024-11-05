@@ -44,7 +44,7 @@ MelonDsDs::MicrophoneState::MicrophoneState() noexcept :
     }
 }
 
-void MelonDsDs::MicrophoneState::Apply(const CoreConfig& config) noexcept {
+void MelonDsDs::MicrophoneState::SetConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
 
     SetMicInputMode(config.MicInputMode());

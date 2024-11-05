@@ -648,7 +648,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     _renderState.Apply(config);
     _screenLayout.Apply(config, _renderState);
     _inputState.Apply(config);
-    _micState.Apply(config);
+    _micState.SetConfig(config);
     _netState.Apply(config);
     _screenLayout.SetDirty();
 

@@ -33,7 +33,7 @@ namespace MelonDsDs {
     public:
         MicrophoneState() noexcept;
 
-        void Apply(const CoreConfig& config) noexcept;
+        void SetConfig(const CoreConfig& config) noexcept;
         bool IsMicInterfaceAvailable() const noexcept { return _micInterface.has_value(); }
         bool IsHostMicOpen() const noexcept { return _microphone.has_value(); }
         bool IsHostMicActive() const noexcept { return _microphone && _microphone->IsActive(); }
