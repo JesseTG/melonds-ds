@@ -67,12 +67,6 @@ const struct retro_input_descriptor MelonDsDs::input_descriptors[] = {
         {},
 };
 
-static bool IsInNdsScreenBounds(ivec2 position) noexcept {
-    return glm::all(glm::openBounded(position, ivec2(0), NDS_SCREEN_SIZE<int>));
-}
-
-
-
 static const char *device_name(unsigned device) {
     switch (device) {
         case RETRO_DEVICE_NONE:
