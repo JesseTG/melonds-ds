@@ -259,10 +259,16 @@ void MelonDsDs::CoreState::Reset() {
         rumble_task->Finish();
     }
 
-    if (dynamic_cast<melonDS::GBACart::CartRumblePak*>(Console->GetGBACart())) {
-        // Start a new rumble task if we have a rumble pak
-        retro::task::push(_inputState.RumbleTask());
+    if (const auto* gbacart = Console->GetGBACart()) {
+        // If the console has a GBA cart (even if it's not a real ROM)...
+        _inputState.SetSlot2Input(*gbacart); // ...then let the input system know.
+
+        if (gbacart->Type() == melonDS::GBACart::CartType::RumblePak) {
+            // If the console has a rumble pak...
+            retro::task::push(_inputState.RumbleTask());
+        }
     }
+
 
     StartConsole();
 }
@@ -532,15 +538,14 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         retro::info("No GBA SRAM was provided.");
     }
 
-    if (dynamic_cast<melonDS::GBACart::CartRumblePak*>(Console->GetGBACart())) {
-        // If the console has a rumble pak...
-        if (retro::task::push(_inputState.RumbleTask())) {
-            retro::debug("Initialized Rumble Pak timeout task");
+    if (const auto* gbacart = Console->GetGBACart()) {
+        // If the console has a GBA cart (even if it's not a real ROM)...
+        _inputState.SetSlot2Input(*gbacart); // ...then let the input system know.
+
+        if (gbacart->Type() == melonDS::GBACart::CartType::RumblePak) {
+            // If the console has a rumble pak...
+            retro::task::push(_inputState.RumbleTask());
         }
-    }
-    else if (dynamic_cast<melonDS::GBACart::CartGameSolarSensor*>(Console->GetGBACart())) {
-        // If the console has a GBA cart with a solar sensor...
-        // TODO: Initialize the solar sensor
     }
 
     if (retro::supports_power_status()) {

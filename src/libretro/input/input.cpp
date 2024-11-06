@@ -19,6 +19,7 @@
 #include <Platform.h>
 #include "PlatformOGLPrivate.h"
 #include <NDS.h>
+#include <GBACart.h>
 #include <glm/gtx/common.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <features/features_cpu.h>
@@ -30,7 +31,9 @@
 #include "info.hpp"
 #include "libretro.hpp"
 #include "math.hpp"
+#include "rumble.hpp"
 #include "screenlayout.hpp"
+#include "solar.hpp"
 #include "tracy.hpp"
 #include "utils.hpp"
 
@@ -157,6 +160,26 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
     _pointer.SetConfig(config);
     if (auto* solar = std::get_if<SolarSensorState>(&_slot2)) {
         solar->SetConfig(config);
+    }
+
+    // RumbleState doesn't have any internal config right now
+    // (but if it does, do the same as with SolarSensorState)
+}
+
+void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noexcept {
+    switch (gbacart.Type()) {
+        case melonDS::GBACart::CartType::GameSolarSensor:
+            _slot2 = SolarSensorState(0);
+            retro::debug("Enabled SolarSensorState");
+            break;
+        case melonDS::GBACart::CartType::RumblePak:
+            _slot2 = RumbleState();
+            retro::debug("Enabled RumbleState");
+            break;
+        default:
+            // No GBA cart, or it's a plain game, or it's a peripheral unrelated to input
+            _slot2 = std::monostate(); // "no relevant device"
+            break;
     }
 }
 

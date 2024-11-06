@@ -30,9 +30,13 @@
 #include "rumble.hpp"
 #include "solar.hpp"
 #include "std/chrono.hpp"
+#include "utils.hpp"
 
 namespace melonDS {
     class NDS;
+    namespace GBACart {
+        class CartCommon;
+    }
 }
 
 namespace MelonDsDs {
@@ -57,6 +61,7 @@ namespace MelonDsDs {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
         void Update(const ScreenLayoutData& layout) noexcept;
+        void SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noexcept;
         void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept;
         [[nodiscard]] bool CursorVisible() const noexcept { return _cursor.CursorVisible(); }
         [[nodiscard]] bool IsTouching() const noexcept { return _cursor.IsTouching(); }

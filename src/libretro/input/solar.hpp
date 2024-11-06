@@ -36,8 +36,8 @@ namespace MelonDsDs {
         ~SolarSensorState() noexcept;
         SolarSensorState(const SolarSensorState&) = delete;
         SolarSensorState& operator=(const SolarSensorState&) = delete;
-        SolarSensorState(SolarSensorState&&) = delete;
-        SolarSensorState& operator=(SolarSensorState&&) = delete;
+        SolarSensorState(SolarSensorState&&) noexcept;
+        SolarSensorState& operator=(SolarSensorState&&) noexcept;
 
         void Update(const JoypadState& joypad) noexcept;
         void SetConfig(const CoreConfig& config) noexcept;

@@ -35,10 +35,34 @@ std::optional<SolarSensorState> SolarSensorState::New(unsigned port) noexcept {
 }
 
 SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
+    retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0.0f);
 }
 
 SolarSensorState::~SolarSensorState() noexcept {
-    retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+    if (_valid) {
+        retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+    }
+}
+
+SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept {
+    if (this != &other) {
+        if (_port != other._port) {
+            // If we're assigning a new port to this state...
+            retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+        }
+        _port = other._port;
+        _type = other._type;
+        _valid = other._valid;
+        other._valid = false;
+    }
+
+    return *this;
+}
+
+SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept: _port(other._port), _type(other._type), _valid(other._valid) {
+    // Solar sensor activation state is managed RAII-like
+    // (but there's no actual resource here)
+    other._valid = false;
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
