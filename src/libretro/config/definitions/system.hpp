@@ -347,6 +347,9 @@ namespace MelonDsDs::config::definitions {
             {values::AUTO, "Auto"},
             {values::RUMBLE_PAK, "Rumble Pak"},
             {values::EXPANSION_PAK, "Memory Expansion Pak"},
+            {values::system::SOLAR_SENSOR_1, "Solar Sensor (Boktai 1)"},
+            {values::system::SOLAR_SENSOR_2, "Solar Sensor (Boktai 2)"},
+            {values::system::SOLAR_SENSOR_3, "Solar Sensor (Boktai 3)"},
             {nullptr, nullptr},
         },
         values::AUTO

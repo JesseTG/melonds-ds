@@ -123,6 +123,9 @@ namespace MelonDsDs {
         if (value == config::values::AUTO) return MelonDsDs::Slot2Device::Auto;
         if (value == config::values::RUMBLE_PAK) return MelonDsDs::Slot2Device::RumblePak;
         if (value == config::values::EXPANSION_PAK) return MelonDsDs::Slot2Device::MemoryExpansionPak;
+        if (value == config::values::system::SOLAR_SENSOR_1) return MelonDsDs::Slot2Device::SolarSensorBoktai1;
+        if (value == config::values::system::SOLAR_SENSOR_2) return MelonDsDs::Slot2Device::SolarSensorBoktai2;
+        if (value == config::values::system::SOLAR_SENSOR_3) return MelonDsDs::Slot2Device::SolarSensorBoktai3;
         return std::nullopt;
     }
 

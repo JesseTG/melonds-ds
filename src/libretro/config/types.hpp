@@ -29,6 +29,9 @@ namespace MelonDsDs {
         Auto,
         RumblePak,
         MemoryExpansionPak,
+        SolarSensorBoktai1,
+        SolarSensorBoktai2,
+        SolarSensorBoktai3,
     };
 
     enum class SolarSensorInputType {

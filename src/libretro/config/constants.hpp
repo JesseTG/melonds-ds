@@ -179,6 +179,11 @@ namespace MelonDsDs::config {
             static constexpr const char *const GUESS_USERNAME = "guess_username";
             static constexpr const char *const DEFAULT_USERNAME = "melonDS DS";
         }
+        namespace system {
+            static constexpr const char *const SOLAR_SENSOR_1 = "solar1";
+            static constexpr const char *const SOLAR_SENSOR_2 = "solar2";
+            static constexpr const char *const SOLAR_SENSOR_3 = "solar3";
+        }
         namespace wfc {
             static constexpr const char *const DEFAULT = "0.0.0.0";
             static constexpr const char *const ALTWFC = "172.104.88.237";
