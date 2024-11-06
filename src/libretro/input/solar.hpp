@@ -41,10 +41,12 @@ namespace MelonDsDs {
 
         void Update(const JoypadState& joypad) noexcept;
         void SetConfig(const CoreConfig& config) noexcept;
-        void Apply(melonDS::NDS& nds) noexcept;
+        void Apply(melonDS::NDS& nds) const noexcept;
     private:
         unsigned int _port;
         SolarSensorInputType _type;
+        bool _buttonUp = false;
+        bool _buttonDown = false;
         bool _valid = true;
     };
 }

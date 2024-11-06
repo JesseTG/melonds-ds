@@ -66,6 +66,9 @@ SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept: _port(oth
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
+    _buttonUp = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP);
+    _buttonDown = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN);
+
     // TODO: Fetch the solar sensor reading
     // TODO: Check if the solar sensor buttons are pressed
 }
@@ -75,18 +78,22 @@ void SolarSensorState::SetConfig(const CoreConfig& config) noexcept {
     // TODO: Configure where the solar sensor input will come from
 }
 
-void SolarSensorState::Apply(melonDS::NDS& nds) noexcept {
+void SolarSensorState::Apply(melonDS::NDS& nds) const noexcept {
     auto* gbacart = nds.GetGBACart();
     if (!gbacart || gbacart->Type() != melonDS::GBACart::CartType::GameSolarSensor)
         return;
-
-    // TODO: Am I using the sensor, the buttons, or a fixed value?
 
     if (std::optional<float> lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE); lux) {
         TracyPlot("Solar Sensor Reading", *lux);
         if (auto* gbacart = nds.GetGBACart(); gbacart && gbacart->Type() == melonDS::GBACart::CartType::GameSolarSensor) {
             // If a photosensor-enabled game is inserted in the GBA slot...
             auto* solarcart = static_cast<melonDS::GBACart::CartGameSolarSensor*>(gbacart);
+            if (_buttonUp) {
+                solarcart->SetInput(melonDS::GBACart::Input_SolarSensorUp, true);
+            }
+            if (_buttonDown) {
+                solarcart->SetInput(melonDS::GBACart::Input_SolarSensorDown, true);
+            }
         }
     }
 }

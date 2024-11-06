@@ -146,8 +146,8 @@ void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneSt
 
     // Update the microphone's state
     _joypad.Apply(mic);
-    if (auto* solar = get_if<SolarSensorState>(&_slot2)) {
-        // TODO: Apply joypad state to solar sensor
+    if (const auto* solar = get_if<SolarSensorState>(&_slot2)) {
+        solar->Apply(nds);
     }
 
     _cursor.Apply(nds);
