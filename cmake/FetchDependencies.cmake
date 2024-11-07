@@ -26,7 +26,11 @@ endmacro()
 function(fetch_dependency name default_url default_tag)
     define_git_dependency_vars(${name} ${default_url} ${default_tag})
 
-    message(STATUS "Using ${name}: ${${VAR_NAME}_REPOSITORY_URL} (ref ${${VAR_NAME}_REPOSITORY_TAG})")
+    if (FETCHCONTENT_SOURCE_DIR_${VAR_NAME})
+        message(STATUS "Using ${name}: ${FETCHCONTENT_SOURCE_DIR_${VAR_NAME}} (local)")
+    else()
+        message(STATUS "Using ${name}: ${${VAR_NAME}_REPOSITORY_URL} (ref ${${VAR_NAME}_REPOSITORY_TAG})")
+    endif()
 
     FetchContent_Declare(
         ${name}
