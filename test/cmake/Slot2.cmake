@@ -39,12 +39,12 @@ add_python_test(
 
 add_python_test(
     NAME "Memory Expansion Pak is removed after reset when disabling it"
-    TEST_MODULE "slot2.inserts_memory_pak_after_reset"
+    TEST_MODULE "slot2.removes_memory_pak_after_reset"
     CONTENT "${PERIPH_SLOT2_NDS}"
 )
 
 add_python_test(
     NAME "Memory Expansion Pak is added after reset when enabling it"
-    TEST_MODULE "slot2.removes_memory_pak_after_reset"
+    TEST_MODULE "slot2.inserts_memory_pak_after_reset"
     CONTENT "${PERIPH_SLOT2_NDS}"
 )
