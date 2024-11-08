@@ -204,6 +204,20 @@ extern "C" uint32_t melondsds_get_gba_cart_type() {
     return static_cast<int>(console->GetGBACart()->Type());
 }
 
+extern "C" int32_t melondsds_get_solar_sensor_level() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!console)
+        return -1;
+
+    const auto* solar = dynamic_cast<const melonDS::GBACart::CartGameSolarSensor*>(console->GetGBACart());
+    if (!solar)
+        return -1;
+
+    return solar->GetLightLevel();
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -279,6 +293,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_gba_cart_type"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_gba_cart_type);
+
+    if (string_is_equal(sym, "melondsds_get_solar_sensor_level"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_get_solar_sensor_level);
 
     return nullptr;
 }

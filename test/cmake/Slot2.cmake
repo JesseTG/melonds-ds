@@ -48,3 +48,46 @@ add_python_test(
     TEST_MODULE "slot2.inserts_memory_pak_after_reset"
     CONTENT "${PERIPH_SLOT2_NDS}"
 )
+
+add_python_test(
+    NAME "Memory Expansion Pak not inserted if GBA ROM is explicitly loaded"
+    TEST_MODULE slot2.doesnt_insert_accessory_with_gba_rom
+    SUBSYSTEM gbanosav
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CONTENT "${GBA_ROM}"
+    CORE_OPTION "melonds_slot2_device=expansion-pak"
+)
+
+add_python_test(
+    NAME "Rumble Pak not inserted if GBA ROM is explicitly loaded"
+    TEST_MODULE slot2.doesnt_insert_accessory_with_gba_rom
+    SUBSYSTEM gbanosav
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CONTENT "${GBA_ROM}"
+    CORE_OPTION "melonds_slot2_device=rumble-pak"
+)
+
+add_python_test(
+    NAME "Core detects Solar Sensor with fake Boktai ROM"
+    TEST_MODULE slot2.supports_solar_sensor_from_stub_rom
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CORE_OPTION "melonds_slot2_device=solar1"
+)
+
+add_python_test(
+    NAME "Solar Sensor is inserted after reset when enabled"
+    TEST_MODULE slot2.inserts_solar_sensor_after_reset
+    CONTENT "${PERIPH_SLOT2_NDS}"
+)
+
+add_python_test(
+    NAME "Solar Sensor is removed after reset when disabled"
+    TEST_MODULE slot2.removes_solar_sensor_after_reset
+    CONTENT "${PERIPH_SLOT2_NDS}"
+)
+
+add_python_test(
+    NAME "Core gets Solar Sensor input from mouse wheel"
+    TEST_MODULE slot2.solar_sensor_mouse_wheel
+    CONTENT "${PERIPH_SLOT2_NDS}"
+)
