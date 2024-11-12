@@ -25,15 +25,6 @@
 
 using MelonDsDs::SolarSensorState;
 
-std::optional<SolarSensorState> SolarSensorState::New(unsigned port) noexcept {
-    if (retro::set_sensor_state(port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0.0f)) {
-        // Initialize the device's solar sensor. If that happened successfully...
-        return std::make_optional<SolarSensorState>(port);
-    }
-
-    return std::nullopt;
-}
-
 SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
     retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0.0f);
 }

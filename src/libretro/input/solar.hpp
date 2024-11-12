@@ -32,7 +32,6 @@ namespace MelonDsDs {
     class SolarSensorState {
     public:
         explicit SolarSensorState(unsigned port) noexcept;
-        static std::optional<SolarSensorState> New(unsigned port) noexcept;
         ~SolarSensorState() noexcept;
         SolarSensorState(const SolarSensorState&) = delete;
         SolarSensorState& operator=(const SolarSensorState&) = delete;
