@@ -66,11 +66,15 @@ SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept: _port(oth
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
+    // TODO: Check if the joypad is in the "solar sensor hotkeys" mode and the hotkeys are pressed
     _buttonUp = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP);
     _buttonDown = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN);
 
-    // TODO: Fetch the solar sensor reading
-    // TODO: Check if the solar sensor buttons are pressed
+    // TODO: Don't read the sensor if the player opts out of it
+    _lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE);
+    if (_lux) {
+        TracyPlot("Illuminance Reading", *lux);
+    }
 }
 
 
@@ -81,19 +85,26 @@ void SolarSensorState::SetConfig(const CoreConfig& config) noexcept {
 void SolarSensorState::Apply(melonDS::NDS& nds) const noexcept {
     auto* gbacart = nds.GetGBACart();
     if (!gbacart || gbacart->Type() != melonDS::GBACart::CartType::GameSolarSensor)
+        // If a photosensor-enabled GBA game isn't inserted...
         return;
 
-    if (std::optional<float> lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE); lux) {
-        TracyPlot("Solar Sensor Reading", *lux);
-        if (auto* gbacart = nds.GetGBACart(); gbacart && gbacart->Type() == melonDS::GBACart::CartType::GameSolarSensor) {
-            // If a photosensor-enabled game is inserted in the GBA slot...
-            auto* solarcart = static_cast<melonDS::GBACart::CartGameSolarSensor*>(gbacart);
-            if (_buttonUp) {
-                solarcart->SetInput(melonDS::GBACart::Input_SolarSensorUp, true);
-            }
-            if (_buttonDown) {
-                solarcart->SetInput(melonDS::GBACart::Input_SolarSensorDown, true);
-            }
+    auto* solarcart = static_cast<melonDS::GBACart::CartGameSolarSensor*>(gbacart);
+
+    if (_lux) {
+        // If we could read the illuminance sensor...
+        // Taken from the mgba core's use of the light sensor
+        // (I don't actually know how this math works)
+        uint8_t lightLevel = static_cast<uint8_t>(cbrtf(*_lux) * 8);
+        TracyPlot("Solar Sensor Light Level", lightLevel);
+        solarcart->SetLightLevel(lightLevel);
+    }
+    else {
+
+        if (_buttonUp) {
+            solarcart->SetInput(melonDS::GBACart::Input_SolarSensorUp, true);
+        }
+        if (_buttonDown) {
+            solarcart->SetInput(melonDS::GBACart::Input_SolarSensorDown, true);
         }
     }
 }

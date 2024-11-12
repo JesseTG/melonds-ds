@@ -17,6 +17,10 @@ a design goal is to avoid a 2.x release for as long as possible.
   [#44](https://github.com/JesseTG/melonds-ds/issues/44)
 - Integrated support for the Rumble Pak.
   [#224](https://github.com/JesseTG/melonds-ds/issues/224)
+- Integrated support for the Solar Sensor.
+  It can be enabled in the core options menu,
+  even without using a real Boktai trilogy ROM.
+  [#43](https://github.com/JesseTG/melonds-ds/issues/43)
 
 ### Changed
 

@@ -91,3 +91,10 @@ add_python_test(
     TEST_MODULE slot2.solar_sensor_mouse_wheel
     CONTENT "${PERIPH_SLOT2_NDS}"
 )
+
+add_python_test(
+    NAME "Core gets Solar Sensor input from sensor interface"
+    TEST_MODULE slot2.solar_sensor_interface
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CORE_OPTION "melonds_slot2_device=solar1"
+)

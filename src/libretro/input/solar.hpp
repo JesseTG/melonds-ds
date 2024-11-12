@@ -45,6 +45,7 @@ namespace MelonDsDs {
     private:
         unsigned int _port;
         SolarSensorInputType _type;
+        std::optional<float> _lux;
         bool _buttonUp = false;
         bool _buttonDown = false;
         bool _valid = true;
