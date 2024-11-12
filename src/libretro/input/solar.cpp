@@ -58,19 +58,25 @@ SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept: _port(oth
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
     // TODO: Check if the joypad is in the "solar sensor hotkeys" mode and the hotkeys are pressed
-    _buttonUp = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP);
-    _buttonDown = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN);
+    _buttonUp = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP) != 0;
+    _buttonDown = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN) != 0;
 
-    // TODO: Don't read the sensor if the player opts out of it
-    _lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE);
-    if (_lux) {
-        TracyPlot("Illuminance Reading", *lux);
+    if (_type == SolarSensorInputType::Sensor) {
+        _lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE);
+#ifdef HAVE_TRACY
+        if (_lux) {
+            TracyPlot("Illuminance Reading", *lux);
+        }
+#endif
+    }
+    else {
+        _lux = std::nullopt;
     }
 }
 
 
 void SolarSensorState::SetConfig(const CoreConfig& config) noexcept {
-    // TODO: Configure where the solar sensor input will come from
+    _type = config.GetSolarSensorInputType();
 }
 
 void SolarSensorState::Apply(melonDS::NDS& nds) const noexcept {
@@ -90,7 +96,6 @@ void SolarSensorState::Apply(melonDS::NDS& nds) const noexcept {
         solarcart->SetLightLevel(lightLevel);
     }
     else {
-
         if (_buttonUp) {
             solarcart->SetInput(melonDS::GBACart::Input_SolarSensorUp, true);
         }
