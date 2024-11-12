@@ -37,7 +37,7 @@ namespace MelonDsDs {
     enum class SolarSensorInputType {
         None,
         Sensor,
-        Joystick,
+        Buttons,
     };
 
     enum RumbleMotorType {

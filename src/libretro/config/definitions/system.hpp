@@ -336,9 +336,11 @@ namespace MelonDsDs::config::definitions {
         config::system::SLOT2_DEVICE,
         "Slot-2 Device",
         nullptr,
-        "The kind of cartridge or expansion device "
-        "that will be inserted into the emulated console's Slot-2. "
-        "Ignored in DSi mode, or if a GBA ROM is explicitly loaded.\n"
+        "The peripheral that will be inserted into the emulated console's Slot-2. "
+        "Ignored in DSi mode, or if a GBA ROM is explicitly loaded. "
+        "If a GBA ROM for any game in the Boktai trilogy is inserted, "
+        "the corresponding Solar Sensor setting will be forced. "
+        "In supported NDS games, each Boktai cart will have different effects. "
         "\n"
         "Changes take effect at next core start.",
         nullptr,
@@ -359,22 +361,25 @@ namespace MelonDsDs::config::definitions {
         config::system::SOLAR_SENSOR_INPUT_MODE,
         "Solar Sensor Input Mode",
         nullptr,
-        "The source of input for the solar sensor embedded in the Boktai trilogy's GBA cartridges.\n"
+        "The input source for the solar sensor "
+        "embedded in the Boktai trilogy's GBA cartridges.\n"
         "\n"
         "- Host Sensor: Use your device's ambient light sensor "
         "if supported by your frontend. "
         "Falls back to Joystick if not available.\n"
-        "- Joystick: Use your controller to manually adjust the emulated sensor's light level. "
+        "- Buttons: Use either your joypad or your mouse wheel "
+        "to manually adjust the reported light level. "
         "Requires the controller type to be set to \"Nintendo DS (with solar sensor)\"\n"
         "\n"
-        "Ignored unless a ROM for any game in the Boktai trilogy (any region) "
+        "Ignored unless \"Slot-2 Device\" is set to Solar Sensor, "
+        "or if a ROM for any game in the Boktai trilogy (any region) "
         "is inserted in the emulated console's Slot-2.",
         nullptr,
         config::system::CATEGORY,
         {
             {values::DISABLED, nullptr},
             {values::SENSOR, "Host Sensor"},
-            {values::JOYSTICK, "Joystick"},
+            {values::BUTTONS, "Buttons"},
             {nullptr, nullptr},
         },
         values::SENSOR

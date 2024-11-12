@@ -200,6 +200,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const BOTH = "both";
         static constexpr const char *const BOTTOM = "bottom";
         static constexpr const char *const BUILT_IN = "builtin";
+        static constexpr const char *const BUTTONS = "buttons";
         static constexpr const char *const COSINE = "cosine";
         static constexpr const char *const CUBIC = "cubic";
         static constexpr const char *const DEDICATED = "dedicated";
