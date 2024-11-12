@@ -26,12 +26,16 @@
 using MelonDsDs::SolarSensorState;
 
 SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
-    retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0.0f);
+    _sensorInitialized = retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0.0f);
+    if (_sensorInitialized) {
+        retro::debug("Enabled host illuminance sensor at port {}", _port);
+    }
 }
 
 SolarSensorState::~SolarSensorState() noexcept {
-    if (_valid) {
+    if (_sensorInitialized) {
         retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+        retro::debug("Disabled host illuminance sensor at port {}", _port);
     }
 }
 
@@ -40,20 +44,32 @@ SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept
         if (_port != other._port) {
             // If we're assigning a new port to this state...
             retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+            retro::debug("Disabled host illuminance sensor at port {}", _port);
         }
         _port = other._port;
         _type = other._type;
-        _valid = other._valid;
-        other._valid = false;
+        _lux = other._lux;
+        _buttonUp = other._buttonUp;
+        _buttonDown = other._buttonDown;
+        _sensorInitialized = other._sensorInitialized;
+        other._sensorInitialized = false;
+        other._lux = std::nullopt;
     }
 
     return *this;
 }
 
-SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept: _port(other._port), _type(other._type), _valid(other._valid) {
+SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept :
+    _port(other._port),
+    _type(other._type),
+    _lux(other._lux),
+    _buttonUp(other._buttonUp),
+    _buttonDown(other._buttonDown),
+    _sensorInitialized(other._sensorInitialized) {
     // Solar sensor activation state is managed RAII-like
     // (but there's no actual resource here)
-    other._valid = false;
+    other._sensorInitialized = false;
+    other._lux = std::nullopt;
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
