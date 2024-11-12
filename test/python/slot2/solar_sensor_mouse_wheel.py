@@ -28,9 +28,13 @@ with prelude.builder().with_options(options).with_input(generate_input).build() 
     for i in range(10):
         session.run()
 
+    light_level = get_solar_sensor_level()
+
     assert light_level == 10, f"Expected a light level of 10, got {light_level}"
 
     for i in range(5):
         session.run()
+
+    light_level = get_solar_sensor_level()
 
     assert light_level == 5, f"Expected a light level of 5, got {light_level}"
