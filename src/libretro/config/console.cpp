@@ -277,6 +277,35 @@ static melonDS::NDSArgs MelonDsDs::GetNdsArgs(
                 ndsargs.GBAROM = std::make_unique<melonDS::GBACart::CartRumblePak>(&state);
                 retro::debug("Installed built-in GBA Rumble Pak");
                 break;
+            case Slot2Device::SolarSensorBoktai1:
+                if (ndsargs.NDSROM) {
+                    ndsargs.GBAROM = melonDS::GBACart::CreateFakeSolarSensorROM("U3IE", *ndsargs.NDSROM);
+                    // Add the Nintendo logo data from the NDS cart;
+                    // GBA ROMs need this same data, or else the console will ignore them
+                }
+                else {
+                    ndsargs.GBAROM = melonDS::GBACart::CreateFakeSolarSensorROM("U3IE", nullptr);
+                }
+                retro::debug("Installed built-in Boktai 1 stub for the solar sensor");
+                break;
+            case Slot2Device::SolarSensorBoktai2:
+                if (ndsargs.NDSROM) {
+                    ndsargs.GBAROM = melonDS::GBACart::CreateFakeSolarSensorROM("U32E", *ndsargs.NDSROM);
+                }
+                else {
+                    ndsargs.GBAROM = melonDS::GBACart::CreateFakeSolarSensorROM("U32E", nullptr);
+                }
+                retro::debug("Installed built-in Boktai 2 stub for the solar sensor");
+                break;
+            case Slot2Device::SolarSensorBoktai3:
+                if (ndsargs.NDSROM) {
+                    ndsargs.GBAROM = melonDS::GBACart::CreateFakeSolarSensorROM("U33J", *ndsargs.NDSROM);
+                }
+                else {
+                    ndsargs.GBAROM = melonDS::GBACart::CreateFakeSolarSensorROM("U33J", nullptr);
+                }
+                retro::debug("Installed built-in Boktai 3 stub for the solar sensor");
+                break;
             default:
                 break;
         }
