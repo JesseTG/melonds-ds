@@ -262,6 +262,7 @@ void MelonDsDs::CoreState::Reset() {
     if (const auto* gbacart = Console->GetGBACart()) {
         // If the console has a GBA cart (even if it's not a real ROM)...
         _inputState.SetSlot2Input(*gbacart); // ...then let the input system know.
+        _inputState.SetConfig(Config);
 
         if (gbacart->Type() == melonDS::GBACart::CartType::RumblePak) {
             // If the console has a rumble pak...
@@ -541,6 +542,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     if (const auto* gbacart = Console->GetGBACart()) {
         // If the console has a GBA cart (even if it's not a real ROM)...
         _inputState.SetSlot2Input(*gbacart); // ...then let the input system know.
+        _inputState.SetConfig(Config);
 
         if (gbacart->Type() == melonDS::GBACart::CartType::RumblePak) {
             // If the console has a rumble pak...

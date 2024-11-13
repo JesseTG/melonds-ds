@@ -7,7 +7,8 @@ from libretro import IterableSensorDriver
 import prelude
 
 options = {
-    b"melonds_slot2_device": b"solar1"
+    b"melonds_slot2_device": b"solar1",
+    b"melonds_solar_sensor_input_mode": b"sensor",
 }
 
 def generate_sensor_readings():
@@ -20,7 +21,7 @@ with prelude.builder().with_options(options).with_sensor(generate_sensor_reading
     sensor = cast(IterableSensorDriver, session.sensor)
     assert sensor is not None, "Sensor interface not found"
 
-    assert sensor.sensor_state[0].illuminance.enabled, "Illuminance sensor should be enabled after loading the game"
+    assert sensor.sensor_state[0].illuminance_enabled, "Illuminance sensor should be enabled after loading the game"
 
     session.run()
 
