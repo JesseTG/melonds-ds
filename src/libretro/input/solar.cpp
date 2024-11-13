@@ -26,7 +26,7 @@
 using MelonDsDs::SolarSensorState;
 
 SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
-    _sensorInitialized = retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0.0f);
+    _sensorInitialized = retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0);
     if (_sensorInitialized) {
         retro::debug("Enabled host illuminance sensor at port {}", _port);
     }
@@ -34,7 +34,7 @@ SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
 
 SolarSensorState::~SolarSensorState() noexcept {
     if (_sensorInitialized) {
-        retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+        retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0);
         retro::debug("Disabled host illuminance sensor at port {}", _port);
     }
 }
@@ -43,7 +43,7 @@ SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept
     if (this != &other) {
         if (_port != other._port) {
             // If we're assigning a new port to this state...
-            retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0.0f);
+            retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0);
             retro::debug("Disabled host illuminance sensor at port {}", _port);
         }
         _port = other._port;
