@@ -6,7 +6,8 @@ from libretro import MouseState
 import prelude
 
 options = {
-    b"melonds_slot2_device": b"solar1"
+    b"melonds_slot2_device": b"solar1",
+    b"melonds_solar_sensor_input_mode": b"buttons",
 }
 
 def generate_input():
