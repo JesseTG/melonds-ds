@@ -40,6 +40,9 @@ namespace MelonDsDs {
     extern "C" void HardwareContextReset() noexcept;
     extern "C" void HardwareContextDestroyed() noexcept;
     extern "C" bool UpdateOptionVisibility() noexcept;
+    extern "C" void MpStarted(uint16_t client_id, retro_netpacket_send_t send_fn, retro_netpacket_poll_receive_t poll_receive_fn);
+    extern "C" void MpReceived(const void* buf, size_t len, uint16_t client_id);
+    extern "C" void MpStopped();
 }
 
 #endif //MELONDS_DS_LIBRETRO_HPP

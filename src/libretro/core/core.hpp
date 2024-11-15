@@ -18,6 +18,7 @@
 #define MELONDSDS_CORE_HPP
 
 #include <cstddef>
+#include <libretro.h>
 #include <memory>
 #include <regex>
 
@@ -33,6 +34,7 @@
 #include "../PlatformOGLPrivate.h"
 #include "../sram.hpp"
 #include "net/net.hpp"
+#include "net/mp.hpp"
 #include "std/span.hpp"
 
 struct retro_game_info;
@@ -91,6 +93,13 @@ namespace MelonDsDs {
         void DestroyRenderState();
         int LanSendPacket(std::span<std::byte> data) noexcept;
         int LanRecvPacket(uint8_t* data) noexcept;
+        
+        void MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive);
+        void MpPacketReceived(const void *buf, size_t len);
+        void MpStopped();
+        void MpSendPacket(Packet p);
+        std::optional<Packet> MpNextPacket();
+        std::optional<Packet> MpNextPacketBlock();
 
         void WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
         void WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
@@ -142,6 +151,7 @@ namespace MelonDsDs {
         InputState _inputState {};
         MicrophoneState _micState {};
         RenderStateWrapper _renderState {};
+        MpState _mpState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaInfo = std::nullopt;
         std::optional<retro::GameInfo> _gbaSaveInfo = std::nullopt;

@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <fmt/base.h>
 #include <memory>
 #include <span>
 
@@ -56,7 +57,6 @@ using std::string_view;
 using std::unique_ptr;
 using std::make_unique;
 using retro::task::TaskSpec;
-
 
 namespace MelonDsDs {
     // Aligned with CoreState to prevent undefined behavior
@@ -325,4 +325,77 @@ void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writ
     ZoneScopedN(TracyFunction);
 
     MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
+}
+
+extern "C" void MelonDsDs::MpStarted(uint16_t client_id, retro_netpacket_send_t send_fn, retro_netpacket_poll_receive_t poll_receive_fn) {
+    MelonDsDs::Core.MpStarted(send_fn, poll_receive_fn);
+}
+
+extern "C" void MelonDsDs::MpReceived(const void* buf, size_t len, uint16_t client_id) {
+    MelonDsDs::Core.MpPacketReceived(buf, len);
+}
+
+extern "C" void MelonDsDs::MpStopped() {
+    MelonDsDs::Core.MpStopped();
+}
+
+int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
+    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false));
+    return len;
+}
+
+int DeconstructPacket(u8 *data, u64 *timestamp, std::optional<MelonDsDs::Packet> o_p) {
+    if (!o_p.has_value()) {
+        return 0;
+    }
+    MelonDsDs::Packet p = o_p.value();
+    memcpy(data, p.ToBuf(), p.Length());
+    *timestamp = p.Timestamp();
+    return p.Length();
+}
+
+int Platform::MP_RecvPacket(u8* data, u64* timestamp, void*) {
+    std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacket();
+    return DeconstructPacket(data, timestamp, o_p);
+}
+
+int Platform::MP_SendCmd(u8* data, int len, u64 timestamp, void*) {
+    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false));
+    return len;
+}
+
+int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
+    retro_assert(aid < 16);
+    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, true));
+    return len;
+}
+
+int Platform::MP_SendAck(u8* data, int len, u64 timestamp, void*) {
+    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false));
+    return len;
+}
+
+int Platform::MP_RecvHostPacket(u8* data, u64 * timestamp, void*) {
+    std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
+    return DeconstructPacket(data, timestamp, o_p);
+}
+
+u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
+    retro::info("RecvReplies called with mask {}", ((int)aidmask));
+    u16 ret = 0;
+    int loops = 0;
+    while(ret != aidmask) {
+        std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
+        if(!o_p.has_value()) {
+            return ret;
+        }
+        MelonDsDs::Packet p = o_p.value();
+        if(!p.IsReply()) {
+            continue;
+        }
+        ret |= 1<<p.Aid();
+        memcpy(&packets[(p.Aid()-1)*1024], p.ToBuf(), p.Length());
+        loops++;
+    }
+    return ret;
 }

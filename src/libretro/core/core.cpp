@@ -21,7 +21,6 @@
 #include <GPU3D_OpenGL.h>
 #include <GPU3D_Soft.h>
 
-#include <libretro.h>
 #include <retro_assert.h>
 
 #include <NDS.h>

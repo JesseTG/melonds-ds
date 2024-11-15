@@ -15,41 +15,49 @@
 */
 
 #include <Platform.h>
-
-//! Local multiplayer is not implemented in melonDS DS.
+#include "core/core.hpp"
+#include "environment.hpp"
+#include <fmt/base.h>
+#include <retro_assert.h>
 
 using namespace melonDS;
 
+void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) {
+    _mpState.SetSendFn(send);
+    _mpState.SetPollFn(poll_receive);
+    retro::info("Starting multiplayer on libretro side");
+}
+
+void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) {
+    retro_assert(_mpState.IsReady());
+    _mpState.PacketReceived(buf, len);
+    retro::debug("Got packet of size {}", len);
+}
+
+void MelonDsDs::CoreState::MpStopped() {
+    _mpState.SetSendFn(nullptr);
+    _mpState.SetPollFn(nullptr);
+    retro::info("Stopping multiplayer on libretro side");
+}
+
+void MelonDsDs::CoreState::MpSendPacket(MelonDsDs::Packet p) {
+    _mpState.SendPacket(p);
+}
+
+std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() {
+    return _mpState.NextPacket();
+}
+
+std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacketBlock() {
+    return _mpState.NextPacketBlock();
+}
+
+// Not much we can do in Begin and End
 void Platform::MP_Begin(void*) {
+    retro::info("Starting multiplayer on DS side");
 }
 
 void Platform::MP_End(void*) {
+    retro::info("Ending multiplayer on DS side");
 }
 
-int Platform::MP_SendPacket(u8*, int, u64, void*) {
-    return 0;
-}
-
-int Platform::MP_RecvPacket(u8*, u64*, void*) {
-    return 0;
-}
-
-int Platform::MP_SendCmd(u8*, int, u64, void*) {
-    return 0;
-}
-
-int Platform::MP_SendReply(u8*, int, u64, u16, void*) {
-    return 0;
-}
-
-int Platform::MP_SendAck(u8*, int, u64, void*) {
-    return 0;
-}
-
-int Platform::MP_RecvHostPacket(u8*, u64 *, void*) {
-    return 0;
-}
-
-u16 Platform::MP_RecvReplies(u8*, u64, u16, void*) {
-    return 0;
-}

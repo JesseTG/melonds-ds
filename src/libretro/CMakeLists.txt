@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.20)
+# 3.20 required for detecting endianness
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -60,6 +62,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     net/pcap.hpp
     net/net.cpp
     net/net.hpp
+    net/mp.cpp
+    net/mp.hpp
     platform/file.cpp
     platform/lan.cpp
     platform/mp.cpp
@@ -272,6 +276,10 @@ if (HAVE_NETWORKING)
     if (WIN32)
         target_link_libraries(melondsds_libretro PRIVATE ws2_32 iphlpapi)
     endif()
+endif()
+
+if (CMAKE_CXX_BYTE_ORDER STREQUAL "BIG_ENDIAN")
+    target_compile_definitions(melondsds_libretro PRIVATE BIG_ENDIAN)
 endif()
 
 if (TRACY_ENABLE)
