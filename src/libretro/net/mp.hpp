@@ -12,13 +12,13 @@ class Packet {
 public:
     static Packet parsePk(const void *buf, uint64_t len);
     explicit Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, bool isReply);
-    
+
     uint64_t Timestamp();
     uint8_t Aid();
     bool IsReply();
     const void *Data();
     uint64_t Length();
-    
+
     const void *ToBuf();
 private:
     std::vector<uint8_t> _buf;

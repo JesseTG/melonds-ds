@@ -24,7 +24,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <fmt/base.h>
 #include <memory>
 #include <span>
 

@@ -93,7 +93,7 @@ namespace MelonDsDs {
         void DestroyRenderState();
         int LanSendPacket(std::span<std::byte> data) noexcept;
         int LanRecvPacket(uint8_t* data) noexcept;
-        
+
         void MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive);
         void MpPacketReceived(const void *buf, size_t len);
         void MpStopped();
