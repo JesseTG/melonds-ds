@@ -1,7 +1,8 @@
 #include "mp.hpp"
+#include "environment.hpp"
 #include <libretro.h>
 #include <retro_assert.h>
-#define TIMEOUT_FOR_POLL 16
+#define TIMEOUT_FOR_POLL 8192
 using namespace MelonDsDs;
 
 uint64_t swapToNetwork(uint64_t n) {
@@ -30,45 +31,48 @@ Packet Packet::parsePk(const void *buf, uint64_t len) {
     retro_assert(len > HeaderSize);
     size_t dataLen = len - HeaderSize;
     uint64_t timestamp = swapToNetwork(*(const uint64_t*)(indexableBuf));
-    uint8_t aid = *(const uint8_t*)(indexableBuf + 4);
-    uint8_t isReply = *(const uint8_t*)(indexableBuf + 5);
+    uint8_t aid = *(const uint8_t*)(indexableBuf + 8);
+    uint8_t isReply = *(const uint8_t*)(indexableBuf + 9);
     retro_assert(isReply == 1 || isReply == 0);
     return Packet(data, dataLen, timestamp, aid, isReply == 1);
 }
 
-Packet::Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, bool isReply) {
-    // Necessary because arithmetic on void* is forbidden
-    const char *indexableData = (const char *)data;
-    _buf.reserve(HeaderSize + len);
-    // We use network byte order (big endian)
-    _buf.push_back(swapToNetwork(timestamp));
-    _buf.push_back(aid);
-    _buf.push_back(isReply ? 1 : 0);
-    _buf.insert(_buf.end(), indexableData, indexableData + len);
+Packet::Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, bool isReply) :
+    _data((unsigned char*)data, (unsigned char*)data + len),
+    _timestamp(timestamp),
+    _aid(aid),
+    _isReply(isReply){
 }
 
 uint64_t Packet::Timestamp() {
-    return swapToNetwork(*(const uint64_t*)(_buf.data()));
+    return _timestamp;
 }
 
 uint8_t Packet::Aid() {
-    return *(const uint8_t*)(_buf.data() + 4);
+    return _aid;
 }
 
 bool Packet::IsReply() {
-    return *(const uint8_t*)(_buf.data() + 5) == 1;
+    return _isReply;
 }
 
 const void *Packet::Data() {
-    return _buf.data() + HeaderSize;
+    return _data.data();
 }
 
 uint64_t Packet::Length() {
-    return _buf.size() - HeaderSize;
+    return _data.size();
 }
 
-const void *Packet::ToBuf() {
-    return _buf.data();
+std::vector<uint8_t> Packet::ToBuf() {
+    std::vector<uint8_t> ret;
+    ret.reserve(HeaderSize + Length());
+    uint64_t netTimestamp = swapToNetwork(_timestamp);
+    ret.insert(ret.end(), (const char *)&netTimestamp, ((const char *)&netTimestamp) + sizeof(uint64_t));
+    ret.push_back(_aid);
+    ret.push_back(_isReply);
+    ret.insert(ret.end(), _data.begin(), _data.end());
+    return ret;
 }
 
 bool MpState::IsReady() {
@@ -84,20 +88,29 @@ void MpState::SetPollFn(retro_netpacket_poll_receive_t pollFn) {
 }
 
 void MpState::PacketReceived(const void *buf, size_t len) {
+    retro_assert(IsReady());
     receivedPackets.push(Packet::parsePk(buf, len));
 }
 
 std::optional<Packet> MpState::NextPacket() {
+    retro_assert(IsReady());
+    _pollFn();
     if(receivedPackets.empty()) {
         return std::nullopt;
     } else {
         Packet p = receivedPackets.front();
         receivedPackets.pop();
+        retro::debug("Delivering packet of size {}", p.Length());
+        if (p.Length() > 11) {
+            retro::debug("tenth byte is {}", (int)(((const char *)p.Data())[10]));
+            retro::debug("eleventh byte is {}", (int)(((const char *)p.Data())[11]));
+        }
         return p;
     }
 }
 
 std::optional<Packet> MpState::NextPacketBlock() {
+    retro_assert(IsReady());
     if (receivedPackets.empty()) {
         int i;
         for(i = 0; i < TIMEOUT_FOR_POLL; i++) {
@@ -107,6 +120,7 @@ std::optional<Packet> MpState::NextPacketBlock() {
             }
         }
         if(i == TIMEOUT_FOR_POLL) {
+            retro::info("timeout while blocking");
             return std::nullopt;
         }
     }
@@ -116,7 +130,11 @@ std::optional<Packet> MpState::NextPacketBlock() {
 }
 
 void MpState::SendPacket(Packet p) {
-    _sendFn(RETRO_NETPACKET_UNRELIABLE | RETRO_NETPACKET_UNSEQUENCED, p.ToBuf(), p.Length() + HeaderSize, RETRO_NETPACKET_BROADCAST);
+    retro_assert(IsReady());
+    retro::debug("sending packet of size {}, frame of size {}", p.Length(), p.Length() + HeaderSize);
+    retro::debug("sending, tenth byte is {}", (int)(((const char *)p.Data())[10]));
+    retro::debug("sending, eleventh byte is {}", (int)(((const char *)p.Data())[11]));
+    _sendFn(RETRO_NETPACKET_RELIABLE, p.ToBuf().data(), p.Length() + HeaderSize, RETRO_NETPACKET_BROADCAST);
 }
 
 

@@ -79,6 +79,8 @@ namespace retro {
 
     static char _sysSubdir[PATH_LENGTH] {};
     static size_t _sysSubdirLength = 0;
+    
+    static int64_t _usTime = 0;
 
     static retro_rumble_interface _rumble {};
 
@@ -692,6 +694,14 @@ bool retro::set_rumble_state(unsigned port, uint16_t strength) noexcept {
         _rumble.set_rumble_state(port, RETRO_RUMBLE_WEAK, strength);
 }
 
+int64_t retro::get_us_time() {
+    return _usTime;
+}
+
+PUBLIC_SYMBOL void us_time_callback(retro_usec_t deltaTime) {
+    retro::_usTime += deltaTime;
+}
+
 void retro::env::init() noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_environment != nullptr);
@@ -711,6 +721,7 @@ void retro::env::deinit() noexcept {
     _saveSubdirLength = 0;
     _sysDirLength = 0;
     _sysSubdirLength = 0;
+    _usTime = 0;
     _environment = nullptr;
     _log = nullptr;
     _supports_bitmasks = false;
@@ -718,6 +729,7 @@ void retro::env::deinit() noexcept {
     _supportsNoGameMode = false;
     _lastFrameTime = std::nullopt;
     _message_interface_version = UINT_MAX;
+    MelonDsDs::MpStopped();
 }
 
 [[gnu::hot]] static void FrameTimeCallback(retro_usec_t usec) noexcept {
@@ -737,6 +749,12 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     // TODO: Handle potential errors with each environment call below
     retro_core_options_update_display_callback update_display_cb {MelonDsDs::UpdateOptionVisibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
+
+    /*struct retro_frame_time_callback frame_time_cb = {
+        .callback = &us_time_callback,
+        .reference = 16667,
+    };
+    bool hasTime = environment(RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK, &frame_time_cb);*/
 
     retro_netpacket_callback netpacket_callback {
         .start = &MelonDsDs::MpStarted,

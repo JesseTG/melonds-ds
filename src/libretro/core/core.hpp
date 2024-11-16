@@ -97,9 +97,10 @@ namespace MelonDsDs {
         void MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive);
         void MpPacketReceived(const void *buf, size_t len);
         void MpStopped();
-        void MpSendPacket(Packet p);
+        bool MpSendPacket(Packet p);
         std::optional<Packet> MpNextPacket();
         std::optional<Packet> MpNextPacketBlock();
+        bool MpActive();
 
         void WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
         void WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;

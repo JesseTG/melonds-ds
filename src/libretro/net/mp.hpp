@@ -19,9 +19,12 @@ public:
     const void *Data();
     uint64_t Length();
 
-    const void *ToBuf();
+    std::vector<uint8_t> ToBuf();
 private:
-    std::vector<uint8_t> _buf;
+    uint64_t _timestamp;
+    uint8_t _aid;
+    bool _isReply;
+    std::vector<uint8_t> _data;
 };
 
 class MpState {

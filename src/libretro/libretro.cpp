@@ -30,7 +30,9 @@
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <libretro.h>
+#define RARCH_INTERNAL
 #include <retro_assert.h>
+#undef RARCH_INTERNAL
 #include <retro_miscellaneous.h>
 
 #undef isnan
@@ -63,6 +65,41 @@ namespace MelonDsDs {
     CoreState& Core = *reinterpret_cast<CoreState*>(CoreStateBuffer.data());
 }
 
+void testEqual(const char *mensagem, uint8_t a, uint8_t b) {
+    if (a != b) {
+        retro::error("valores de {} divergem: {} nao e igual a {}", mensagem, a, b);
+    }
+}
+
+void printBuf(const char *buf, size_t len) {
+    const uint8_t *bufa = (const uint8_t *)buf;
+    printf("{ ");
+    for(int i = 0; i < len; i++) {
+        printf("%02X, ", bufa[i]);
+    }
+    printf(" }\n");
+}
+
+void testPacket() {
+    const char *teste = "olá, tudo bem?";
+    MelonDsDs::Packet p{teste, strlen(teste) + 1, 50, 2, true};
+    std::vector<uint8_t> bufBytes = p.ToBuf();
+    const char *buf = (const char *)bufBytes.data();
+    MelonDsDs::Packet np = MelonDsDs::Packet::parsePk(buf, p.Length() + MelonDsDs::HeaderSize);
+
+    retro_assert(np.Length() == p.Length() && p.Length() == strlen(teste) + 1);
+    testEqual("aid dos pacotes", p.Aid(), np.Aid());
+    testEqual("aid esperada", p.Aid(), 2);
+    retro_assert(p.Aid() == np.Aid() && p.Aid() == 2);
+    retro_assert(p.IsReply() == np.IsReply() && p.IsReply());
+    retro_assert(p.Timestamp() == np.Timestamp() && p.Timestamp() == 50);
+    retro_assert(strcmp((const char *)p.Data(), (const char *)np.Data()) == 0 && strcmp((const char *)p.Data(), teste) == 0);
+    std::vector<uint8_t> npBytes = np.ToBuf();
+    printBuf(buf, p.Length() + MelonDsDs::HeaderSize);
+    printBuf((const char *)npBytes.data(), np.Length() + MelonDsDs::HeaderSize);
+    retro_assert(memcmp(buf, (const char *)npBytes.data(), p.Length() + MelonDsDs::HeaderSize) == 0);
+}
+
 PUBLIC_SYMBOL void retro_init(void) {
 #ifdef HAVE_TRACY
     tracy::StartupProfiler();
@@ -79,6 +116,7 @@ PUBLIC_SYMBOL void retro_init(void) {
     memset(MelonDsDs::CoreStateBuffer.data(), 0, MelonDsDs::CoreStateBuffer.size());
     new(&MelonDsDs::CoreStateBuffer) MelonDsDs::CoreState(); // placement-new the CoreState
     retro_assert(MelonDsDs::Core.IsInitialized());
+    testPacket();
 }
 
 PUBLIC_SYMBOL bool retro_load_game(const struct retro_game_info *info) {
@@ -338,49 +376,54 @@ extern "C" void MelonDsDs::MpStopped() {
     MelonDsDs::Core.MpStopped();
 }
 
-int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
-    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false));
-    return len;
-}
-
 int DeconstructPacket(u8 *data, u64 *timestamp, std::optional<MelonDsDs::Packet> o_p) {
     if (!o_p.has_value()) {
         return 0;
     }
     MelonDsDs::Packet p = o_p.value();
-    memcpy(data, p.ToBuf(), p.Length());
+    memcpy(data, p.Data(), p.Length());
     *timestamp = p.Timestamp();
     return p.Length();
 }
 
+int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
+    retro::debug("sending command with timestamp {}", timestamp);
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
+}
+
 int Platform::MP_RecvPacket(u8* data, u64* timestamp, void*) {
+    //retro::debug("receiving packet");
     std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacket();
     return DeconstructPacket(data, timestamp, o_p);
 }
 
 int Platform::MP_SendCmd(u8* data, int len, u64 timestamp, void*) {
-    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false));
-    return len;
+    retro::debug("sending command with timestamp {}", timestamp);
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
 }
 
 int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
     retro_assert(aid < 16);
-    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, true));
-    return len;
+    retro::debug("sending reply to aid {} with timestamp {}", timestamp, aid);
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, true)) ? len : 0;
 }
 
 int Platform::MP_SendAck(u8* data, int len, u64 timestamp, void*) {
-    MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false));
-    return len;
+    retro::debug("sending ack with timestamp {}", timestamp);
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
 }
 
 int Platform::MP_RecvHostPacket(u8* data, u64 * timestamp, void*) {
+    retro::debug("receiving host packet");
     std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
     return DeconstructPacket(data, timestamp, o_p);
 }
 
 u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
-    retro::info("RecvReplies called with mask {}", ((int)aidmask));
+    retro::debug("RecvReplies called with mask {}", ((int)aidmask));
+    if(!MelonDsDs::Core.MpActive()) {
+        return 0;
+    }
     u16 ret = 0;
     int loops = 0;
     while(ret != aidmask) {
@@ -393,7 +436,7 @@ u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
             continue;
         }
         ret |= 1<<p.Aid();
-        memcpy(&packets[(p.Aid()-1)*1024], p.ToBuf(), p.Length());
+        memcpy(&packets[(p.Aid()-1)*1024], p.Data(), p.Length());
         loops++;
     }
     return ret;

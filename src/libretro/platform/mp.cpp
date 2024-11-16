@@ -29,9 +29,8 @@ void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacke
 }
 
 void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) {
-    retro_assert(_mpState.IsReady());
     _mpState.PacketReceived(buf, len);
-    retro::debug("Got packet of size {}", len);
+    retro::debug("Got packet from libretro of size {}", len);
 }
 
 void MelonDsDs::CoreState::MpStopped() {
@@ -40,16 +39,30 @@ void MelonDsDs::CoreState::MpStopped() {
     retro::info("Stopping multiplayer on libretro side");
 }
 
-void MelonDsDs::CoreState::MpSendPacket(MelonDsDs::Packet p) {
+bool MelonDsDs::CoreState::MpSendPacket(MelonDsDs::Packet p) {
+    if(!_mpState.IsReady()) {
+        return false;
+    }
     _mpState.SendPacket(p);
+    return true;
 }
 
 std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() {
+    if(!_mpState.IsReady()) {
+        return std::nullopt;
+    }
     return _mpState.NextPacket();
 }
 
 std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacketBlock() {
+    if(!_mpState.IsReady()) {
+        return std::nullopt;
+    }
     return _mpState.NextPacketBlock();
+}
+
+bool MelonDsDs::CoreState::MpActive() {
+    return _mpState.IsReady();
 }
 
 // Not much we can do in Begin and End
@@ -60,4 +73,5 @@ void Platform::MP_Begin(void*) {
 void Platform::MP_End(void*) {
     retro::info("Ending multiplayer on DS side");
 }
+
 

@@ -125,6 +125,8 @@ namespace retro {
     std::optional<std::string_view> get_system_subdirectory() noexcept;
     std::optional<std::string> get_system_path(std::string_view name) noexcept;
     std::optional<std::string> get_system_subdir_path(std::string_view name) noexcept;
+    
+    int64_t get_us_time();
 
     namespace env {
         void init() noexcept;
