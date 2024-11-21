@@ -105,3 +105,17 @@ add_python_test(
     CONTENT "${PERIPH_SLOT2_NDS}"
     CORE_OPTION "melonds_slot2_device=solar1"
 )
+
+add_python_test(
+    NAME "Core doesn't enable light sensor if disabled"
+    TEST_MODULE slot2.disabling_host_sensor_doesnt_enable_it
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CORE_OPTION "melonds_slot2_device=solar1"
+)
+
+add_python_test(
+    NAME "Core falls back to button input for the Solar Sensor if no light sensor is available"
+    TEST_MODULE slot2.solar_sensor_falls_back_to_buttons
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CORE_OPTION "melonds_slot2_device=solar1"
+)
