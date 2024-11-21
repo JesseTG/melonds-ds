@@ -34,12 +34,6 @@ namespace MelonDsDs {
         SolarSensorBoktai3,
     };
 
-    enum class SolarSensorInputType {
-        None,
-        Sensor,
-        Buttons,
-    };
-
     enum RumbleMotorType {
         None = 0,
         Strong = 0b01,

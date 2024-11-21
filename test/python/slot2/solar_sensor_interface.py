@@ -8,7 +8,7 @@ import prelude
 
 options = {
     b"melonds_slot2_device": b"solar1",
-    b"melonds_solar_sensor_input_mode": b"sensor",
+    b"melonds_solar_sensor_host_sensor": b"enabled",
 }
 
 def generate_sensor_readings():

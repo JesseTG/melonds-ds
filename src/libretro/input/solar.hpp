@@ -43,7 +43,7 @@ namespace MelonDsDs {
         void Apply(melonDS::NDS& nds) const noexcept;
     private:
         unsigned int _port;
-        SolarSensorInputType _type;
+        bool _useRealSensor = true;
         std::optional<float> _lux;
         bool _buttonUp = false;
         bool _buttonDown = false;

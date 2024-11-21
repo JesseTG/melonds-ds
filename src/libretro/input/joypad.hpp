@@ -45,6 +45,14 @@ namespace MelonDsDs {
         void Apply(MicrophoneState& mic) const noexcept;
         void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
 
+        [[nodiscard]] bool LightLevelUpPressed() const noexcept {
+            return _lightLevelUpCombo && !_previousLightLevelUpCombo;
+        }
+
+        [[nodiscard]] bool LightLevelDownPressed() const noexcept {
+            return _lightLevelDownCombo && !_previousLightLevelDownCombo;
+        }
+
         [[nodiscard]] retro_perf_tick_t LastPointerUpdate() const noexcept { return _lastPointerUpdate; }
         [[nodiscard]] bool CycleLayoutPressed() const noexcept { return _cycleLayoutButton && !_previousCycleLayoutButton; }
         [[nodiscard]] bool MicButtonDown() const noexcept { return _micButton; }
@@ -77,6 +85,10 @@ namespace MelonDsDs {
         bool _previousCycleLayoutButton;
         bool _joystickTouchButton;
         bool _previousJoystickTouchButton;
+        bool _lightLevelUpCombo;
+        bool _previousLightLevelUpCombo;
+        bool _lightLevelDownCombo;
+        bool _previousLightLevelDownCombo;
         uint32_t _consoleButtons;
         unsigned _device;
         TouchMode _touchMode;

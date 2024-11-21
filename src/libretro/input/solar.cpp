@@ -17,6 +17,7 @@
 #include "solar.hpp"
 
 #include <NDS.h>
+#include <retro_assert.h>
 
 #include "config/config.hpp"
 #include "environment.hpp"
@@ -26,10 +27,6 @@
 using MelonDsDs::SolarSensorState;
 
 SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
-    _sensorInitialized = retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0);
-    if (_sensorInitialized) {
-        retro::debug("Enabled host illuminance sensor at port {}", _port);
-    }
 }
 
 SolarSensorState::~SolarSensorState() noexcept {
@@ -47,7 +44,7 @@ SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept
             retro::debug("Disabled host illuminance sensor at port {}", _port);
         }
         _port = other._port;
-        _type = other._type;
+        _useRealSensor = other._useRealSensor;
         _lux = other._lux;
         _buttonUp = other._buttonUp;
         _buttonDown = other._buttonDown;
@@ -61,7 +58,7 @@ SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept
 
 SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept :
     _port(other._port),
-    _type(other._type),
+    _useRealSensor(other._useRealSensor),
     _lux(other._lux),
     _buttonUp(other._buttonUp),
     _buttonDown(other._buttonDown),
@@ -73,11 +70,17 @@ SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept :
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
-    // TODO: Check if the joypad is in the "solar sensor hotkeys" mode and the hotkeys are pressed
-    _buttonUp = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP) != 0;
-    _buttonDown = retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN) != 0;
+    if (!_useRealSensor) {
+        _buttonUp = joypad.LightLevelUpPressed() || (retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP) != 0);
+        _buttonDown = joypad.LightLevelDownPressed() || retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN) != 0;
+    }
+    else {
+        _buttonUp = false;
+        _buttonDown = false;
+    }
 
-    if (_type == SolarSensorInputType::Sensor) {
+    if (_sensorInitialized && _useRealSensor) {
+        // If we're using the illuminance sensor...
         _lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE);
 #ifdef HAVE_TRACY
         if (_lux) {
@@ -92,7 +95,31 @@ void SolarSensorState::Update(const JoypadState& joypad) noexcept {
 
 
 void SolarSensorState::SetConfig(const CoreConfig& config) noexcept {
-    _type = config.GetSolarSensorInputType();
+    _useRealSensor = config.UseRealLightSensor();
+    if (_useRealSensor) {
+        // If we're using the host's luminance sensor...
+        _sensorInitialized = retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0);
+        if (_sensorInitialized) {
+            retro::debug("Enabled host illuminance sensor at port {}", _port);
+        }
+        else {
+            retro::warn("Failed to enable host illuminance sensor at port {}", _port);
+            retro::set_warn_message("Can't find this device's luminance sensor. See the core options for more info.");
+            _useRealSensor = false;
+        }
+    }
+    else {
+        if (_sensorInitialized) {
+            if (retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0)) {
+                // If we disabled the illuminance sensor...
+                retro::debug("Disabled host illuminance sensor at port {}", _port);
+            }
+            else {
+                retro::warn("Failed to disable host illuminance sensor at port {}", _port);
+            }
+        }
+        _sensorInitialized = false;
+    }
 }
 
 void SolarSensorState::Apply(melonDS::NDS& nds) const noexcept {

@@ -54,12 +54,11 @@ const struct retro_subsystem_info MelonDsDs::subsystems[] = {
 
 const struct retro_controller_description MelonDsDs::controllers[] = {
     {"Nintendo DS", RETRO_DEVICE_JOYPAD},
-    {"Nintendo DS (with solar sensor)", MELONDSDS_DEVICE_JOYPAD_WITH_PHOTOSENSOR},
     {},
 };
 
 const struct retro_controller_info MelonDsDs::ports[] = {
-    {controllers, 2},
+    {controllers, 1},
     {},
 };
 

@@ -30,6 +30,23 @@
 using glm::vec2;
 using MelonDsDs::JoypadState;
 
+// There are patches for Boktai and Lunar Knights that
+// allow the reported light level to be controlled with a button combo,
+// as solar sensor emulation hadn't been implemented yet.
+// These button combos come from those patches.
+constexpr uint32_t LIGHT_LEVEL_UP_COMBO =
+    (1 << RETRO_DEVICE_ID_JOYPAD_L) |
+    (1 << RETRO_DEVICE_ID_JOYPAD_A) |
+    (1 << RETRO_DEVICE_ID_JOYPAD_UP);
+
+constexpr uint32_t LIGHT_LEVEL_DOWN_COMBO =
+    (1 << RETRO_DEVICE_ID_JOYPAD_L) |
+    (1 << RETRO_DEVICE_ID_JOYPAD_A) |
+    (1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+
+constexpr uint32_t LIGHT_LEVEL_UP_COMBO_ALT = (1 << RETRO_DEVICE_ID_JOYPAD_SELECT) | (1 << RETRO_DEVICE_ID_JOYPAD_UP);
+constexpr uint32_t LIGHT_LEVEL_DOWN_COMBO_ALT = (1 << RETRO_DEVICE_ID_JOYPAD_SELECT) | (1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+
 void JoypadState::SetConfig(const CoreConfig& config) noexcept {
     _touchMode = config.TouchMode();
 }
@@ -76,6 +93,14 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
 
     _previousJoystickTouchButton = _joystickTouchButton;
     _previousJoystickRawDirection = _joystickRawDirection;
+
+    _previousLightLevelUpCombo = _lightLevelUpCombo;
+    _lightLevelUpCombo = ((poll.JoypadButtons & LIGHT_LEVEL_UP_COMBO) == LIGHT_LEVEL_UP_COMBO) ||
+                        ((poll.JoypadButtons & LIGHT_LEVEL_UP_COMBO_ALT) == LIGHT_LEVEL_UP_COMBO_ALT);
+
+    _previousLightLevelDownCombo = _lightLevelDownCombo;
+    _lightLevelDownCombo = ((poll.JoypadButtons & LIGHT_LEVEL_DOWN_COMBO) == LIGHT_LEVEL_DOWN_COMBO) ||
+                          ((poll.JoypadButtons & LIGHT_LEVEL_DOWN_COMBO_ALT) == LIGHT_LEVEL_DOWN_COMBO_ALT);
 
     if (_touchMode == TouchMode::Joystick || _touchMode == TouchMode::Auto) {
         _joystickTouchButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3);

@@ -87,8 +87,6 @@ static const char *device_name(unsigned device) {
             return "RETRO_DEVICE_ANALOG";
         case RETRO_DEVICE_POINTER:
             return "RETRO_DEVICE_POINTER";
-        case MelonDsDs::MELONDSDS_DEVICE_JOYPAD_WITH_PHOTOSENSOR:
-            return "MELONDSDS_DEVICE_JOYPAD_WITH_PHOTOSENSOR";
         default:
             return "<unknown>";
     }
