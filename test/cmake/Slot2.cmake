@@ -107,6 +107,13 @@ add_python_test(
 )
 
 add_python_test(
+    NAME "Core sends an on-screen notice if no light sensor is available"
+    TEST_MODULE slot2.display_message_if_solar_sensor_unavailable
+    CONTENT "${PERIPH_SLOT2_NDS}"
+    CORE_OPTION "melonds_slot2_device=solar1"
+)
+
+add_python_test(
     NAME "Core doesn't enable light sensor if disabled"
     TEST_MODULE slot2.disabling_host_sensor_doesnt_enable_it
     CONTENT "${PERIPH_SLOT2_NDS}"
