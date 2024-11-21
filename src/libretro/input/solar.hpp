@@ -47,6 +47,6 @@ namespace MelonDsDs {
         std::optional<float> _lux;
         bool _buttonUp = false;
         bool _buttonDown = false;
-        bool _sensorInitialized = true;
+        bool _sensorInitialized;
     };
 }
