@@ -78,7 +78,6 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
     _previousJoystickRawDirection = _joystickRawDirection;
 
     if (_touchMode == TouchMode::Joystick || _touchMode == TouchMode::Auto) {
-        //retro::ScreenOrientation orientation = screen_layout_data.EffectiveOrientation();
         _joystickTouchButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
         _joystickRawDirection = poll.AnalogCursorDirection;
 
