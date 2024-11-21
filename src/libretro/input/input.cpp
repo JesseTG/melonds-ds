@@ -132,7 +132,6 @@ void InputState::Update(const ScreenLayoutData& layout) noexcept {
     _pointer.Update(pollResult);
 
     _cursor.Update(layout, _pointer, _joypad);
-    // TODO: Instantiate a SolarSensorState or RumbleState based on the contents of Slot-2
 }
 
 void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept {
