@@ -74,6 +74,10 @@ namespace MelonDsDs {
         [[nodiscard]] i16vec2 PointerRawPosition() const noexcept { return _pointer.RawPosition(); }
 
         void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
+        [[nodiscard]] unsigned GetControllerPortDevice(unsigned port) const noexcept {
+            // We may use port at some point, but not now
+            return _inputDeviceType;
+        }
 
         void RumbleStart(std::chrono::milliseconds len) noexcept;
         void RumbleStop() noexcept;

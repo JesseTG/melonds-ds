@@ -218,6 +218,12 @@ extern "C" int32_t melondsds_get_solar_sensor_level() {
     return solar->GetLightLevel();
 }
 
+extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept {
+    using namespace MelonDsDs;
+
+    return Core.GetInputState().GetControllerPortDevice(port);
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -296,6 +302,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_solar_sensor_level"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_solar_sensor_level);
+
+    if (string_is_equal(sym, "melondsds_get_controller_port_device"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);
 
     return nullptr;
 }
