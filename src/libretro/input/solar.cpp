@@ -70,6 +70,7 @@ SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept :
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
+    ZoneScopedN(TracyFunction);
     if (!_useRealSensor) {
         _buttonUp = joypad.LightLevelUpPressed() || (retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP) != 0);
         _buttonDown = joypad.LightLevelDownPressed() || retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN) != 0;
@@ -95,6 +96,7 @@ void SolarSensorState::Update(const JoypadState& joypad) noexcept {
 
 
 void SolarSensorState::SetConfig(const CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
     _useRealSensor = config.UseRealLightSensor();
     if (_useRealSensor) {
         // If we're using the host's luminance sensor...
