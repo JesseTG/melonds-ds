@@ -30,7 +30,7 @@ SolarSensorState::SolarSensorState(unsigned port) noexcept : _port(port) {
 }
 
 SolarSensorState::~SolarSensorState() noexcept {
-    if (_sensorInitialized) {
+    if (_state == InterfaceState::On) {
         retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0);
         retro::debug("Disabled host illuminance sensor at port {}", _port);
     }
@@ -44,12 +44,11 @@ SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept
             retro::debug("Disabled host illuminance sensor at port {}", _port);
         }
         _port = other._port;
-        _useRealSensor = other._useRealSensor;
         _lux = other._lux;
         _buttonUp = other._buttonUp;
         _buttonDown = other._buttonDown;
-        _sensorInitialized = other._sensorInitialized;
-        other._sensorInitialized = false;
+        _state = other._state;
+        other._state = InterfaceState::Off;
         other._lux = std::nullopt;
     }
 
@@ -58,29 +57,42 @@ SolarSensorState& SolarSensorState::operator=(SolarSensorState&& other) noexcept
 
 SolarSensorState::SolarSensorState(SolarSensorState&& other) noexcept :
     _port(other._port),
-    _useRealSensor(other._useRealSensor),
     _lux(other._lux),
     _buttonUp(other._buttonUp),
     _buttonDown(other._buttonDown),
-    _sensorInitialized(other._sensorInitialized) {
+    _state(other._state) {
     // Solar sensor activation state is managed RAII-like
     // (but there's no actual resource here)
-    other._sensorInitialized = false;
+    other._state = InterfaceState::Off;
     other._lux = std::nullopt;
 }
 
 void SolarSensorState::Update(const JoypadState& joypad) noexcept {
     ZoneScopedN(TracyFunction);
-    if (!_useRealSensor) {
+    if (_state != InterfaceState::On) {
+        // If we're not using the real light sensor...
         _buttonUp = joypad.LightLevelUpPressed() || (retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP) != 0);
-        _buttonDown = joypad.LightLevelDownPressed() || retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN) != 0;
+        _buttonDown = joypad.LightLevelDownPressed() || (retro::input_state(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN) != 0);
     }
     else {
         _buttonUp = false;
         _buttonDown = false;
     }
 
-    if (_sensorInitialized && _useRealSensor) {
+    if (_state == InterfaceState::Deferred) [[unlikely]] {
+        // If the sensor interface wasn't ready in retro_load_game...
+      if (retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0)) {
+          retro::debug("Initialized sensor interface in port {} after deferral", _port);
+          _state = InterfaceState::On;
+      }
+      else {
+          retro::warn("Failed to enable host illuminance sensor at port {}", _port);
+          retro::set_warn_message("Can't find this device's luminance sensor. See the core options for more info.");
+          _state = InterfaceState::Unavailable;
+      }
+    }
+
+    if (_state == InterfaceState::On) {
         // If we're using the illuminance sensor...
         _lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE);
 #ifdef HAVE_TRACY
@@ -97,30 +109,27 @@ void SolarSensorState::Update(const JoypadState& joypad) noexcept {
 
 void SolarSensorState::SetConfig(const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
-    _useRealSensor = config.UseRealLightSensor();
-    if (_useRealSensor) {
+    bool useRealSensor = config.UseRealLightSensor();
+    if (useRealSensor) {
         // If we're using the host's luminance sensor...
-        _sensorInitialized = retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0);
-        if (_sensorInitialized) {
+        if (retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_ENABLE, 0)) {
             retro::debug("Enabled host illuminance sensor at port {}", _port);
+            _state = InterfaceState::On;
         }
         else {
-            retro::warn("Failed to enable host illuminance sensor at port {}", _port);
-            retro::set_warn_message("Can't find this device's luminance sensor. See the core options for more info.");
-            _useRealSensor = false;
+            retro::warn("Failed to enable host illuminance sensor at port {}; deferring once", _port);
+            _state = InterfaceState::Deferred;
         }
     }
     else {
-        if (_sensorInitialized) {
-            if (retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0)) {
-                // If we disabled the illuminance sensor...
-                retro::debug("Disabled host illuminance sensor at port {}", _port);
-            }
-            else {
-                retro::warn("Failed to disable host illuminance sensor at port {}", _port);
-            }
+        if (retro::set_sensor_state(_port, RETRO_SENSOR_ILLUMINANCE_DISABLE, 0)) {
+            // If we disabled the illuminance sensor...
+            retro::debug("Disabled host illuminance sensor at port {}", _port);
         }
-        _sensorInitialized = false;
+        else {
+            retro::warn("Failed to disable host illuminance sensor at port {}", _port);
+        }
+        _state = InterfaceState::Off;
     }
 }
 

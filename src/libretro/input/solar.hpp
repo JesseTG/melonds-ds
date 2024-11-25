@@ -41,12 +41,19 @@ namespace MelonDsDs {
         void Update(const JoypadState& joypad) noexcept;
         void SetConfig(const CoreConfig& config) noexcept;
         void Apply(melonDS::NDS& nds) const noexcept;
+
+        [[nodiscard]] std::optional<float> LuxReading() const noexcept { return _lux; }
     private:
+        enum class InterfaceState : uint8_t {
+            Off,
+            Unavailable,
+            Deferred,
+            On,
+        };
         unsigned int _port;
-        bool _useRealSensor = true;
         std::optional<float> _lux;
         bool _buttonUp = false;
         bool _buttonDown = false;
-        bool _sensorInitialized;
+        InterfaceState _state = InterfaceState::Off;
     };
 }
