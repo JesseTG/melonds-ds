@@ -79,6 +79,14 @@ namespace MelonDsDs {
             return _inputDeviceType;
         }
 
+        [[nodiscard]] std::optional<float> LuxReading() const noexcept {
+            if (const auto* solar = std::get_if<SolarSensorState>(&_slot2)) {
+                return solar->LuxReading();
+            }
+
+            return std::nullopt;
+        }
+
         void RumbleStart(std::chrono::milliseconds len) noexcept;
         void RumbleStop() noexcept;
         [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept {
