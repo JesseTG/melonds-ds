@@ -296,6 +296,8 @@ retro::task::TaskSpec MelonDsDs::CoreState::FlushFirmwareTask(string_view firmwa
     );
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-function-cognitive-complexity"
 retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
     ZoneScopedN(TracyFunction);
     return retro::task::TaskSpec(
@@ -365,6 +367,16 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
                         solarsensor->GetLightLevel() * 10
                     );
                     // LightLevel is an abstract value from 0 to 10 (inclusive)
+
+                    // TODO: Add an option for showing the lux reading
+                    if (auto lux = _inputState.LuxReading()) {
+                        fmt::format_to(
+                            inserter,
+                            "{} {:.1f} lux",
+                            buf.size() == 0 ? "" : OSD_DELIMITER,
+                            *lux
+                        );
+                    }
                 }
             }
 
@@ -391,3 +403,4 @@ retro::task::TaskSpec MelonDsDs::CoreState::OnScreenDisplayTask() noexcept {
         "OnScreenDisplayTask"
     );
 }
+#pragma clang diagnostic pop
