@@ -11,6 +11,8 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+With thanks to **@parkerlreed** for his donation this month!
+
 ### Added
 
 - Integrated support for the GBA Memory Expansion Pak.
