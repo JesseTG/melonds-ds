@@ -184,6 +184,9 @@ But melonDS DS streamlines this process!
   You don't need to hard-code a specific name for your firmware or NAND images!
   Just place them in `system/melonDS DS` (or local equivalent)
   and pick them from the core options.
+- **Slot-2 Accessories:**
+  melonDS DS currently supports the
+  [solar sensor][solar-sensor], [Memory Expansion Pak][memory-pak], and [Rumble Pak][rumble-pak].
 
 # Missing Features
 
@@ -212,10 +215,6 @@ If you want to see them, ask how you can get involved!
   but it cannot actually emulate the GBA.
   GBA emulation is not within the scope of melonDS;
   use a GBA emulator instead.
-- **Slot-2 Accessories:**
-  melonDS currently supports the
-  [solar sensor][solar-sensor], [Memory Expansion Pak][memory-pak], and [Rumble Pak][rumble-pak].
-  melonDS DS has not yet integrated support for these accessories.
 - **GDB Stub Support:**
   melonDS recently gained support
   for debugging emulated DS games with GDB.
