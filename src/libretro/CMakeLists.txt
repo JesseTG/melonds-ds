@@ -278,10 +278,6 @@ if (HAVE_NETWORKING)
     endif()
 endif()
 
-if (CMAKE_CXX_BYTE_ORDER STREQUAL "BIG_ENDIAN")
-    target_compile_definitions(melondsds_libretro PRIVATE BIG_ENDIAN)
-endif()
-
 if (TRACY_ENABLE)
     target_link_libraries(melondsds_libretro PUBLIC TracyClient)
     target_include_directories(melondsds_libretro SYSTEM PUBLIC TracyClient)
