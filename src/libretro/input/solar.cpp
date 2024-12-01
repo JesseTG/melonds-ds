@@ -146,7 +146,7 @@ void SolarSensorState::Apply(melonDS::NDS& nds) const noexcept {
         // Taken from the mgba core's use of the light sensor
         // (I don't actually know how this math works)
         uint8_t lightLevel = static_cast<uint8_t>(cbrtf(*_lux) * 8);
-        TracyPlot("Solar Sensor Light Level", lightLevel);
+        TracyPlot("Solar Sensor Light Level", static_cast<int64_t>(lightLevel));
         solarcart->SetLightLevel(lightLevel);
     }
     else {
