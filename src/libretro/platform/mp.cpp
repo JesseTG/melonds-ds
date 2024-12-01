@@ -73,5 +73,3 @@ void Platform::MP_Begin(void*) {
 void Platform::MP_End(void*) {
     retro::info("Ending multiplayer on DS side");
 }
-
-

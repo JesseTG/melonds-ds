@@ -1,27 +1,19 @@
 #include "mp.hpp"
 #include "environment.hpp"
+#include <ctime>
 #include <libretro.h>
 #include <retro_assert.h>
-#define TIMEOUT_FOR_POLL 8192
+#include <retro_endianness.h>
 using namespace MelonDsDs;
 
+constexpr long RECV_TIMEOUT_MS = 25;
+
 uint64_t swapToNetwork(uint64_t n) {
-#ifdef BIG_ENDIAN
-    return n;
-#else
-    char *d = (char*)&n;
-    uint64_t ret;
-    char *r = (char*)&ret;
-    r[7] = d[0];
-    r[6] = d[1];
-    r[5] = d[2];
-    r[4] = d[3];
-    r[3] = d[4];
-    r[2] = d[5];
-    r[1] = d[6];
-    r[0] = d[7];
-    return ret;
-#endif
+    return swap_if_little64(n);
+}
+
+uint64_t getTimeUs() {
+    return 0;
 }
 
 Packet Packet::parsePk(const void *buf, uint64_t len) {
@@ -94,7 +86,10 @@ void MpState::PacketReceived(const void *buf, size_t len) {
 
 std::optional<Packet> MpState::NextPacket() {
     retro_assert(IsReady());
-    _pollFn();
+    if(receivedPackets.empty()) {
+        _sendFn(RETRO_NETPACKET_FLUSH_HINT, NULL, 0, RETRO_NETPACKET_BROADCAST);
+        _pollFn();
+    }
     if(receivedPackets.empty()) {
         return std::nullopt;
     } else {
@@ -112,29 +107,21 @@ std::optional<Packet> MpState::NextPacket() {
 std::optional<Packet> MpState::NextPacketBlock() {
     retro_assert(IsReady());
     if (receivedPackets.empty()) {
-        int i;
-        for(i = 0; i < TIMEOUT_FOR_POLL; i++) {
+        for(std::clock_t start = std::clock(); std::clock() < (start + (RECV_TIMEOUT_MS * CLOCKS_PER_SEC / 1000));) {
+            _sendFn(RETRO_NETPACKET_FLUSH_HINT, NULL, 0, RETRO_NETPACKET_BROADCAST);
             _pollFn();
             if(!receivedPackets.empty()) {
-                break;
+                return NextPacket();
             }
         }
-        if(i == TIMEOUT_FOR_POLL) {
-            retro::info("timeout while blocking");
-            return std::nullopt;
-        }
     }
-    Packet p = receivedPackets.front();
-    receivedPackets.pop();
-    return p;
+    retro::debug("Timeout while waiting for packet");
+    return std::nullopt;
 }
 
 void MpState::SendPacket(Packet p) {
     retro_assert(IsReady());
-    retro::debug("sending packet of size {}, frame of size {}", p.Length(), p.Length() + HeaderSize);
-    retro::debug("sending, tenth byte is {}", (int)(((const char *)p.Data())[10]));
-    retro::debug("sending, eleventh byte is {}", (int)(((const char *)p.Data())[11]));
-    _sendFn(RETRO_NETPACKET_RELIABLE, p.ToBuf().data(), p.Length() + HeaderSize, RETRO_NETPACKET_BROADCAST);
+    _sendFn(RETRO_NETPACKET_UNSEQUENCED | RETRO_NETPACKET_UNRELIABLE | RETRO_NETPACKET_FLUSH_HINT, p.ToBuf().data(), p.Length() + HeaderSize, RETRO_NETPACKET_BROADCAST);
 }
 
 
