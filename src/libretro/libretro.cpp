@@ -432,6 +432,9 @@ u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
             return ret;
         }
         MelonDsDs::Packet p = o_p.value();
+        if(p.Timestamp() < (timestamp - 32)) {
+            continue;
+        }
         if(!p.IsReply()) {
             continue;
         }
