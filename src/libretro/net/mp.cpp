@@ -95,11 +95,6 @@ std::optional<Packet> MpState::NextPacket() {
     } else {
         Packet p = receivedPackets.front();
         receivedPackets.pop();
-        retro::debug("Delivering packet of size {}", p.Length());
-        if (p.Length() > 11) {
-            retro::debug("tenth byte is {}", (int)(((const char *)p.Data())[10]));
-            retro::debug("eleventh byte is {}", (int)(((const char *)p.Data())[11]));
-        }
         return p;
     }
 }

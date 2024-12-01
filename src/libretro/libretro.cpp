@@ -387,40 +387,33 @@ int DeconstructPacket(u8 *data, u64 *timestamp, std::optional<MelonDsDs::Packet>
 }
 
 int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
-    retro::debug("sending command with timestamp {}", timestamp);
     return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
 }
 
 int Platform::MP_RecvPacket(u8* data, u64* timestamp, void*) {
-    //retro::debug("receiving packet");
     std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacket();
     return DeconstructPacket(data, timestamp, o_p);
 }
 
 int Platform::MP_SendCmd(u8* data, int len, u64 timestamp, void*) {
-    retro::debug("sending command with timestamp {}", timestamp);
     return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
 }
 
 int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
     retro_assert(aid < 16);
-    retro::debug("sending reply to aid {} with timestamp {}", timestamp, aid);
     return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, true)) ? len : 0;
 }
 
 int Platform::MP_SendAck(u8* data, int len, u64 timestamp, void*) {
-    retro::debug("sending ack with timestamp {}", timestamp);
     return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
 }
 
 int Platform::MP_RecvHostPacket(u8* data, u64 * timestamp, void*) {
-    retro::debug("receiving host packet");
     std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
     return DeconstructPacket(data, timestamp, o_p);
 }
 
 u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
-    retro::debug("RecvReplies called with mask {}", ((int)aidmask));
     if(!MelonDsDs::Core.MpActive()) {
         return 0;
     }

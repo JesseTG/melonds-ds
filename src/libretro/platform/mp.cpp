@@ -30,7 +30,6 @@ void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacke
 
 void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) {
     _mpState.PacketReceived(buf, len);
-    retro::debug("Got packet from libretro of size {}", len);
 }
 
 void MelonDsDs::CoreState::MpStopped() {
