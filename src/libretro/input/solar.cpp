@@ -97,7 +97,7 @@ void SolarSensorState::Update(const JoypadState& joypad) noexcept {
         _lux = retro::sensor_get_input(0, RETRO_SENSOR_ILLUMINANCE);
 #ifdef HAVE_TRACY
         if (_lux) {
-            TracyPlot("Illuminance Reading", *lux);
+            TracyPlot("Illuminance Reading", *_lux);
         }
 #endif
     }
