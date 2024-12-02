@@ -15,6 +15,7 @@
 */
 
 #include <Platform.h>
+#include "tracy.hpp"
 #include "core/core.hpp"
 #include "environment.hpp"
 #include <fmt/base.h>
@@ -23,22 +24,26 @@
 using namespace melonDS;
 
 void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) noexcept {
+    ZoneScopedN(TracyFunction);
     _mpState.SetSendFn(send);
     _mpState.SetPollFn(poll_receive);
     retro::info("Starting multiplayer on libretro side");
 }
 
 void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) noexcept {
+    ZoneScopedN(TracyFunction);
     _mpState.PacketReceived(buf, len);
 }
 
 void MelonDsDs::CoreState::MpStopped() noexcept {
+    ZoneScopedN(TracyFunction);
     _mpState.SetSendFn(nullptr);
     _mpState.SetPollFn(nullptr);
     retro::info("Stopping multiplayer on libretro side");
 }
 
 bool MelonDsDs::CoreState::MpSendPacket(const MelonDsDs::Packet &p) const noexcept {
+    ZoneScopedN(TracyFunction);
     if(!_mpState.IsReady()) {
         return false;
     }
@@ -47,6 +52,7 @@ bool MelonDsDs::CoreState::MpSendPacket(const MelonDsDs::Packet &p) const noexce
 }
 
 std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() noexcept {
+    ZoneScopedN(TracyFunction);
     if(!_mpState.IsReady()) {
         return std::nullopt;
     }
@@ -54,6 +60,7 @@ std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() noexcept {
 }
 
 std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacketBlock() noexcept {
+    ZoneScopedN(TracyFunction);
     if(!_mpState.IsReady()) {
         return std::nullopt;
     }
@@ -66,9 +73,11 @@ bool MelonDsDs::CoreState::MpActive() const noexcept {
 
 // Not much we can do in Begin and End
 void Platform::MP_Begin(void*) {
+    ZoneScopedN(TracyFunction);
     retro::info("Starting multiplayer on DS side");
 }
 
 void Platform::MP_End(void*) {
+    ZoneScopedN(TracyFunction);
     retro::info("Ending multiplayer on DS side");
 }
