@@ -36,27 +36,7 @@ Packet::Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, 
     _isReply(isReply){
 }
 
-uint64_t Packet::Timestamp() {
-    return _timestamp;
-}
-
-uint8_t Packet::Aid() {
-    return _aid;
-}
-
-bool Packet::IsReply() {
-    return _isReply;
-}
-
-const void *Packet::Data() {
-    return _data.data();
-}
-
-uint64_t Packet::Length() {
-    return _data.size();
-}
-
-std::vector<uint8_t> Packet::ToBuf() {
+std::vector<uint8_t> Packet::ToBuf() const {
     std::vector<uint8_t> ret;
     ret.reserve(HeaderSize + Length());
     uint64_t netTimestamp = swapToNetwork(_timestamp);
@@ -67,24 +47,24 @@ std::vector<uint8_t> Packet::ToBuf() {
     return ret;
 }
 
-bool MpState::IsReady() {
+bool MpState::IsReady() const noexcept {
     return _sendFn != nullptr && _pollFn != nullptr;
 }
 
-void MpState::SetSendFn(retro_netpacket_send_t sendFn) {
+void MpState::SetSendFn(retro_netpacket_send_t sendFn) noexcept {
     _sendFn = sendFn;
 }
 
-void MpState::SetPollFn(retro_netpacket_poll_receive_t pollFn) {
+void MpState::SetPollFn(retro_netpacket_poll_receive_t pollFn) noexcept {
     _pollFn = pollFn;
 }
 
-void MpState::PacketReceived(const void *buf, size_t len) {
+void MpState::PacketReceived(const void *buf, size_t len) noexcept {
     retro_assert(IsReady());
     receivedPackets.push(Packet::parsePk(buf, len));
 }
 
-std::optional<Packet> MpState::NextPacket() {
+std::optional<Packet> MpState::NextPacket() noexcept {
     retro_assert(IsReady());
     if(receivedPackets.empty()) {
         _sendFn(RETRO_NETPACKET_FLUSH_HINT, NULL, 0, RETRO_NETPACKET_BROADCAST);
@@ -99,7 +79,7 @@ std::optional<Packet> MpState::NextPacket() {
     }
 }
 
-std::optional<Packet> MpState::NextPacketBlock() {
+std::optional<Packet> MpState::NextPacketBlock() noexcept {
     retro_assert(IsReady());
     if (receivedPackets.empty()) {
         for(std::clock_t start = std::clock(); std::clock() < (start + (RECV_TIMEOUT_MS * CLOCKS_PER_SEC / 1000));) {
@@ -114,7 +94,7 @@ std::optional<Packet> MpState::NextPacketBlock() {
     return std::nullopt;
 }
 
-void MpState::SendPacket(Packet p) {
+void MpState::SendPacket(const Packet &p) const noexcept {
     retro_assert(IsReady());
     _sendFn(RETRO_NETPACKET_UNSEQUENCED | RETRO_NETPACKET_UNRELIABLE | RETRO_NETPACKET_FLUSH_HINT, p.ToBuf().data(), p.Length() + HeaderSize, RETRO_NETPACKET_BROADCAST);
 }

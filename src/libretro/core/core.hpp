@@ -94,13 +94,13 @@ namespace MelonDsDs {
         int LanSendPacket(std::span<std::byte> data) noexcept;
         int LanRecvPacket(uint8_t* data) noexcept;
 
-        void MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive);
-        void MpPacketReceived(const void *buf, size_t len);
-        void MpStopped();
-        bool MpSendPacket(Packet p);
-        std::optional<Packet> MpNextPacket();
-        std::optional<Packet> MpNextPacketBlock();
-        bool MpActive();
+        void MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) noexcept;
+        void MpPacketReceived(const void *buf, size_t len) noexcept;
+        void MpStopped() noexcept;
+        bool MpSendPacket(const Packet &p) const noexcept;
+        std::optional<Packet> MpNextPacket() noexcept;
+        std::optional<Packet> MpNextPacketBlock() noexcept;
+        bool MpActive() const noexcept;
 
         void WriteNdsSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;
         void WriteGbaSave(std::span<const std::byte> savedata, uint32_t writeoffset, uint32_t writelen) noexcept;

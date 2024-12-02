@@ -14,13 +14,23 @@ public:
     static Packet parsePk(const void *buf, uint64_t len);
     explicit Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, bool isReply);
 
-    uint64_t Timestamp();
-    uint8_t Aid();
-    bool IsReply();
-    const void *Data();
-    uint64_t Length();
+    [[nodiscard]] uint64_t Timestamp() const noexcept {
+        return _timestamp;
+    };
+    [[nodiscard]] uint8_t Aid() const noexcept {
+        return _aid;
+    };
+    [[nodiscard]] bool IsReply() const noexcept {
+        return _isReply;
+    };
+    [[nodiscard]] const void *Data() const noexcept {
+        return _data.data();
+    };
+    [[nodiscard]] uint64_t Length() const noexcept {
+        return _data.size();
+    };
 
-    std::vector<uint8_t> ToBuf();
+    std::vector<uint8_t> ToBuf() const;
 private:
     uint64_t _timestamp;
     uint8_t _aid;
@@ -30,13 +40,13 @@ private:
 
 class MpState {
 public:
-    void PacketReceived(const void *buf, size_t len);
-    void SetSendFn(retro_netpacket_send_t sendFn);
-    void SetPollFn(retro_netpacket_poll_receive_t pollFn);
-    bool IsReady();
-    void SendPacket(Packet p);
-    std::optional<Packet> NextPacket();
-    std::optional<Packet> NextPacketBlock();
+    void PacketReceived(const void *buf, size_t len) noexcept;
+    void SetSendFn(retro_netpacket_send_t sendFn) noexcept;
+    void SetPollFn(retro_netpacket_poll_receive_t pollFn) noexcept;
+    bool IsReady() const noexcept;
+    void SendPacket(const Packet &p) const noexcept;
+    std::optional<Packet> NextPacket() noexcept;
+    std::optional<Packet> NextPacketBlock() noexcept;
 private:
     retro_netpacket_send_t _sendFn;
     retro_netpacket_poll_receive_t _pollFn;

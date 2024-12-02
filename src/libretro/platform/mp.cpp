@@ -22,23 +22,23 @@
 
 using namespace melonDS;
 
-void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) {
+void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) noexcept {
     _mpState.SetSendFn(send);
     _mpState.SetPollFn(poll_receive);
     retro::info("Starting multiplayer on libretro side");
 }
 
-void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) {
+void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) noexcept {
     _mpState.PacketReceived(buf, len);
 }
 
-void MelonDsDs::CoreState::MpStopped() {
+void MelonDsDs::CoreState::MpStopped() noexcept {
     _mpState.SetSendFn(nullptr);
     _mpState.SetPollFn(nullptr);
     retro::info("Stopping multiplayer on libretro side");
 }
 
-bool MelonDsDs::CoreState::MpSendPacket(MelonDsDs::Packet p) {
+bool MelonDsDs::CoreState::MpSendPacket(const MelonDsDs::Packet &p) const noexcept {
     if(!_mpState.IsReady()) {
         return false;
     }
@@ -46,21 +46,21 @@ bool MelonDsDs::CoreState::MpSendPacket(MelonDsDs::Packet p) {
     return true;
 }
 
-std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() {
+std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() noexcept {
     if(!_mpState.IsReady()) {
         return std::nullopt;
     }
     return _mpState.NextPacket();
 }
 
-std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacketBlock() {
+std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacketBlock() noexcept {
     if(!_mpState.IsReady()) {
         return std::nullopt;
     }
     return _mpState.NextPacketBlock();
 }
 
-bool MelonDsDs::CoreState::MpActive() {
+bool MelonDsDs::CoreState::MpActive() const noexcept {
     return _mpState.IsReady();
 }
 
