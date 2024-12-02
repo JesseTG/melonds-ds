@@ -326,15 +326,15 @@ void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writ
     MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
 }
 
-extern "C" void MelonDsDs::MpStarted(uint16_t client_id, retro_netpacket_send_t send_fn, retro_netpacket_poll_receive_t poll_receive_fn) {
+extern "C" void MelonDsDs::MpStarted(uint16_t client_id, retro_netpacket_send_t send_fn, retro_netpacket_poll_receive_t poll_receive_fn) noexcept {
     MelonDsDs::Core.MpStarted(send_fn, poll_receive_fn);
 }
 
-extern "C" void MelonDsDs::MpReceived(const void* buf, size_t len, uint16_t client_id) {
+extern "C" void MelonDsDs::MpReceived(const void* buf, size_t len, uint16_t client_id) noexcept {
     MelonDsDs::Core.MpPacketReceived(buf, len);
 }
 
-extern "C" void MelonDsDs::MpStopped() {
+extern "C" void MelonDsDs::MpStopped() noexcept {
     MelonDsDs::Core.MpStopped();
 }
 
