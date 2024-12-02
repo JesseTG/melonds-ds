@@ -718,7 +718,6 @@ void retro::env::deinit() noexcept {
     _supportsNoGameMode = false;
     _lastFrameTime = std::nullopt;
     _message_interface_version = UINT_MAX;
-    MelonDsDs::MpStopped();
 }
 
 [[gnu::hot]] static void FrameTimeCallback(retro_usec_t usec) noexcept {
