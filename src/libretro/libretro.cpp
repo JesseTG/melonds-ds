@@ -338,14 +338,13 @@ extern "C" void MelonDsDs::MpStopped() {
     MelonDsDs::Core.MpStopped();
 }
 
-int DeconstructPacket(u8 *data, u64 *timestamp, std::optional<MelonDsDs::Packet> o_p) {
+int DeconstructPacket(u8 *data, u64 *timestamp, const std::optional<MelonDsDs::Packet> &o_p) {
     if (!o_p.has_value()) {
         return 0;
     }
-    MelonDsDs::Packet p = o_p.value();
-    memcpy(data, p.Data(), p.Length());
-    *timestamp = p.Timestamp();
-    return p.Length();
+    memcpy(data, o_p->Data(), o_p->Length());
+    *timestamp = o_p->Timestamp();
+    return o_p->Length();
 }
 
 int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
@@ -386,7 +385,7 @@ u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
         if(!o_p.has_value()) {
             return ret;
         }
-        MelonDsDs::Packet p = o_p.value();
+        MelonDsDs::Packet p = std::move(o_p).value();
         if(p.Timestamp() < (timestamp - 32)) {
             continue;
         }
