@@ -85,6 +85,8 @@ std::optional<Packet> MpState::NextPacketBlock() noexcept {
                 return NextPacket();
             }
         }
+    } else {
+        return NextPacket();
     }
     retro::debug("Timeout while waiting for packet");
     return std::nullopt;
