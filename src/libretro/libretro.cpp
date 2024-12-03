@@ -361,6 +361,10 @@ int Platform::MP_SendCmd(u8* data, int len, u64 timestamp, void*) {
 }
 
 int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
+    // aid is always less than 16,
+    // otherwise sending a 16-bit wide aidmask in RecvReplies wouldn't make sense,
+    // and neither would this line[1] from melonDS itself.
+    // [1] https://github.com/melonDS-emu/melonDS/blob/817b409ec893fb0b2b745ee18feced08706419de/src/net/LAN.cpp#L1074
     retro_assert(aid < 16);
     return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, true)) ? len : 0;
 }
