@@ -12,10 +12,6 @@ uint64_t swapToNetwork(uint64_t n) {
     return swap_if_little64(n);
 }
 
-uint64_t getTimeUs() {
-    return 0;
-}
-
 Packet Packet::parsePk(const void *buf, uint64_t len) {
     // Necessary because arithmetic on void* is forbidden
     const char *indexableBuf = (const char *)buf;
