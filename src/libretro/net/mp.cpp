@@ -16,7 +16,7 @@ Packet Packet::parsePk(const void *buf, uint64_t len) {
     // Necessary because arithmetic on void* is forbidden
     const char *indexableBuf = (const char *)buf;
     const char *data = indexableBuf + HeaderSize;
-    retro_assert(len > HeaderSize);
+    retro_assert(len >= HeaderSize);
     size_t dataLen = len - HeaderSize;
     uint64_t timestamp = swapToNetwork(*(const uint64_t*)(indexableBuf));
     uint8_t aid = *(const uint8_t*)(indexableBuf + 8);
