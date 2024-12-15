@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 #include <libretro.h>
+#include <ctime>
 
 namespace MelonDsDs {
 // timestamp, aid, and isReply, respectively.
@@ -29,6 +30,7 @@ public:
     [[nodiscard]] uint64_t Length() const noexcept {
         return _data.size();
     };
+    [[nodiscard]] uint64_t TimeDeltaUs() const noexcept;
 
     std::vector<uint8_t> ToBuf() const;
 private:
@@ -36,6 +38,7 @@ private:
     uint8_t _aid;
     bool _isReply;
     std::vector<uint8_t> _data;
+    std::clock_t _recvTime;
 };
 
 class MpState {
