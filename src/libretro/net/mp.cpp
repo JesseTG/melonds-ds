@@ -7,7 +7,6 @@
 using namespace MelonDsDs;
 
 constexpr long RECV_TIMEOUT_MS = 25;
-constexpr long STALE_PACKET_TIMEOUT_US = 16'000;
 
 uint64_t swapToNetwork(uint64_t n) {
     return swap_if_little64(n);
@@ -30,8 +29,7 @@ Packet::Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, 
     _data((unsigned char*)data, (unsigned char*)data + len),
     _timestamp(timestamp),
     _aid(aid),
-    _isReply(isReply),
-    _recvTime(std::clock()){
+    _isReply(isReply){
 }
 
 std::vector<uint8_t> Packet::ToBuf() const {
@@ -43,10 +41,6 @@ std::vector<uint8_t> Packet::ToBuf() const {
     ret.push_back(_isReply);
     ret.insert(ret.end(), _data.begin(), _data.end());
     return ret;
-}
-
-uint64_t Packet::TimeDeltaUs() const noexcept {
-    return (std::clock() - _recvTime) * 1'000'000 / CLOCKS_PER_SEC;
 }
 
 bool MpState::IsReady() const noexcept {
@@ -75,16 +69,9 @@ std::optional<Packet> MpState::NextPacket() noexcept {
     if(receivedPackets.empty()) {
         return std::nullopt;
     } else {
-        while(!receivedPackets.empty()) {
-            Packet p = receivedPackets.front();
-            receivedPackets.pop();
-            if(STALE_PACKET_TIMEOUT_US != 0 && p.TimeDeltaUs() > STALE_PACKET_TIMEOUT_US) {
-                retro::info("Dropping stale packet, delta is {}", p.TimeDeltaUs());
-                continue;
-            }
-            return p;
-        }
-        return std::nullopt;
+        Packet p = receivedPackets.front();
+        receivedPackets.pop();
+        return p;
     }
 }
 
