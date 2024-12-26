@@ -331,7 +331,7 @@ extern "C" void MelonDsDs::MpStarted(uint16_t client_id, retro_netpacket_send_t 
 }
 
 extern "C" void MelonDsDs::MpReceived(const void* buf, size_t len, uint16_t client_id) noexcept {
-    MelonDsDs::Core.MpPacketReceived(buf, len);
+    MelonDsDs::Core.MpPacketReceived(buf, len, client_id);
 }
 
 extern "C" void MelonDsDs::MpStopped() noexcept {
@@ -348,7 +348,7 @@ int DeconstructPacket(u8 *data, u64 *timestamp, const std::optional<MelonDsDs::P
 }
 
 int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
-    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, MelonDsDs::Packet::Type::Other)) ? len : 0;
 }
 
 int Platform::MP_RecvPacket(u8* data, u64* timestamp, void*) {
@@ -357,7 +357,7 @@ int Platform::MP_RecvPacket(u8* data, u64* timestamp, void*) {
 }
 
 int Platform::MP_SendCmd(u8* data, int len, u64 timestamp, void*) {
-    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, MelonDsDs::Packet::Type::Cmd)) ? len : 0;
 }
 
 int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
@@ -369,11 +369,11 @@ int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
     // [1] https://github.com/melonDS-emu/melonDS/blob/817b409ec893fb0b2b745ee18feced08706419de/src/net/LAN.cpp#L1074
     // [2] https://melonds.kuribo64.net/comments.php?id=25
     retro_assert(aid < 16);
-    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, true)) ? len : 0;
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, MelonDsDs::Packet::Type::Reply)) ? len : 0;
 }
 
 int Platform::MP_SendAck(u8* data, int len, u64 timestamp, void*) {
-    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, false)) ? len : 0;
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, MelonDsDs::Packet::Type::Cmd)) ? len : 0;
 }
 
 int Platform::MP_RecvHostPacket(u8* data, u64 * timestamp, void*) {
@@ -387,7 +387,7 @@ u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
     }
     u16 ret = 0;
     int loops = 0;
-    while(ret != aidmask) {
+    while((ret & aidmask) != aidmask) {
         std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
         if(!o_p.has_value()) {
             return ret;
@@ -396,11 +396,11 @@ u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
         if(p.Timestamp() < (timestamp - 32)) {
             continue;
         }
-        if(!p.IsReply()) {
+        if(p.PacketType() != MelonDsDs::Packet::Type::Reply) {
             continue;
         }
         ret |= 1<<p.Aid();
-        memcpy(&packets[(p.Aid()-1)*1024], p.Data(), p.Length());
+        memcpy(&packets[(p.Aid()-1)*1024], p.Data(), std::min(p.Length(), (uint64_t)1024));
         loops++;
     }
     return ret;

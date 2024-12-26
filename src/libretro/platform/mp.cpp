@@ -30,9 +30,9 @@ void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacke
     retro::info("Starting multiplayer on libretro side");
 }
 
-void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len) noexcept {
+void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len, uint16_t client_id) noexcept {
     ZoneScopedN(TracyFunction);
-    _mpState.PacketReceived(buf, len);
+    _mpState.PacketReceived(buf, len, client_id);
 }
 
 void MelonDsDs::CoreState::MpStopped() noexcept {
@@ -42,7 +42,7 @@ void MelonDsDs::CoreState::MpStopped() noexcept {
     retro::info("Stopping multiplayer on libretro side");
 }
 
-bool MelonDsDs::CoreState::MpSendPacket(const MelonDsDs::Packet &p) const noexcept {
+bool MelonDsDs::CoreState::MpSendPacket(const MelonDsDs::Packet &p) noexcept {
     ZoneScopedN(TracyFunction);
     if(!_mpState.IsReady()) {
         return false;

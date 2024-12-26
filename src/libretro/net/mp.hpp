@@ -11,8 +11,12 @@ constexpr size_t HeaderSize = sizeof(uint64_t) + sizeof(uint8_t) + sizeof(uint8_
 
 class Packet {
 public:
+    enum Type {
+        Reply, Cmd, Other
+    };
+
     static Packet parsePk(const void *buf, uint64_t len);
-    explicit Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, bool isReply);
+    explicit Packet(const void *data, uint64_t len, uint64_t timestamp, uint8_t aid, Packet::Type type);
 
     [[nodiscard]] uint64_t Timestamp() const noexcept {
         return _timestamp;
@@ -20,9 +24,9 @@ public:
     [[nodiscard]] uint8_t Aid() const noexcept {
         return _aid;
     };
-    [[nodiscard]] bool IsReply() const noexcept {
-        return _isReply;
-    };
+    [[nodiscard]] Packet::Type PacketType() const noexcept {
+        return _type;
+    }
     [[nodiscard]] const void *Data() const noexcept {
         return _data.data();
     };
@@ -34,22 +38,23 @@ public:
 private:
     uint64_t _timestamp;
     uint8_t _aid;
-    bool _isReply;
+    Packet::Type _type;
     std::vector<uint8_t> _data;
 };
 
 class MpState {
 public:
-    void PacketReceived(const void *buf, size_t len) noexcept;
+    void PacketReceived(const void *buf, size_t len, uint16_t client_id) noexcept;
     void SetSendFn(retro_netpacket_send_t sendFn) noexcept;
     void SetPollFn(retro_netpacket_poll_receive_t pollFn) noexcept;
     bool IsReady() const noexcept;
-    void SendPacket(const Packet &p) const noexcept;
+    void SendPacket(const Packet &p) noexcept;
     std::optional<Packet> NextPacket() noexcept;
     std::optional<Packet> NextPacketBlock() noexcept;
 private:
     retro_netpacket_send_t _sendFn;
     retro_netpacket_poll_receive_t _pollFn;
+    std::optional<uint16_t> _hostId;
     std::queue<Packet> receivedPackets;
 };
 }
