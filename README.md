@@ -115,9 +115,9 @@ you can set its DNS address
 from within the emulated console's Wi-Fi settings menu.
 
 > [!NOTE]
-> Do not confuse this with local multiplayer.
-> melonDS DS does not support emulating local wireless
-> at this time.
+> Do not confuse this with local multiplayer,
+> which does not require access to the Internet
+> and is implemented using libretro's netplay API.
 
 ## Homebrew Save Data
 
@@ -194,11 +194,6 @@ These features have not yet been implemented in standalone [melonDS][melonds],
 or they haven't been integrated into melonDS DS.
 If you want to see them, ask how you can get involved!
 
-- **Local Wireless:**
-  Upstream melonDS supports emulating local wireless multiplayer
-  (e.g. Multi-Card Play, Download Play) with multiple instances of melonDS on the same computer
-  or on the same network.
-  This feature is not yet integrated into melonDS DS.
 - **Homebrew Savestates:**
   melonDS has limited support for taking savestates of homebrew games,
   as the virtual SD card is not included in savestate data.

@@ -57,7 +57,6 @@ using std::unique_ptr;
 using std::make_unique;
 using retro::task::TaskSpec;
 
-
 namespace MelonDsDs {
     // Aligned with CoreState to prevent undefined behavior
     alignas(CoreState) static std::array<std::byte, sizeof(CoreState)> CoreStateBuffer;
@@ -329,4 +328,84 @@ void Platform::WriteFirmware(const Firmware& firmware, u32 writeoffset, u32 writ
     ZoneScopedN(TracyFunction);
 
     MelonDsDs::Core.WriteFirmware(firmware, writeoffset, writelen);
+}
+
+extern "C" void MelonDsDs::MpStarted(uint16_t client_id, retro_netpacket_send_t send_fn, retro_netpacket_poll_receive_t poll_receive_fn) noexcept {
+    MelonDsDs::Core.MpStarted(send_fn, poll_receive_fn);
+}
+
+extern "C" void MelonDsDs::MpReceived(const void* buf, size_t len, uint16_t client_id) noexcept {
+    MelonDsDs::Core.MpPacketReceived(buf, len, client_id);
+}
+
+extern "C" void MelonDsDs::MpStopped() noexcept {
+    MelonDsDs::Core.MpStopped();
+}
+
+int DeconstructPacket(u8 *data, u64 *timestamp, const std::optional<MelonDsDs::Packet> &o_p) {
+    if (!o_p.has_value()) {
+        return 0;
+    }
+    memcpy(data, o_p->Data(), o_p->Length());
+    *timestamp = o_p->Timestamp();
+    return o_p->Length();
+}
+
+int Platform::MP_SendPacket(u8* data, int len, u64 timestamp, void*) {
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, MelonDsDs::Packet::Type::Other)) ? len : 0;
+}
+
+int Platform::MP_RecvPacket(u8* data, u64* timestamp, void*) {
+    std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacket();
+    return DeconstructPacket(data, timestamp, o_p);
+}
+
+int Platform::MP_SendCmd(u8* data, int len, u64 timestamp, void*) {
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, MelonDsDs::Packet::Type::Cmd)) ? len : 0;
+}
+
+int Platform::MP_SendReply(u8 *data, int len, u64 timestamp, u16 aid, void*) {
+    // aid is always less than 16,
+    // otherwise sending a 16-bit wide aidmask in RecvReplies wouldn't make sense,
+    // and neither would this line[1] from melonDS itself.
+    // A blog post from melonDS[2] from 2017 also confirms that
+    // "each client is given an ID from 1 to 15"
+    // [1] https://github.com/melonDS-emu/melonDS/blob/817b409ec893fb0b2b745ee18feced08706419de/src/net/LAN.cpp#L1074
+    // [2] https://melonds.kuribo64.net/comments.php?id=25
+    retro_assert(aid < 16);
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, aid, MelonDsDs::Packet::Type::Reply)) ? len : 0;
+}
+
+int Platform::MP_SendAck(u8* data, int len, u64 timestamp, void*) {
+    return MelonDsDs::Core.MpSendPacket(MelonDsDs::Packet(data, len, timestamp, 0, MelonDsDs::Packet::Type::Cmd)) ? len : 0;
+}
+
+int Platform::MP_RecvHostPacket(u8* data, u64 * timestamp, void*) {
+    std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
+    return DeconstructPacket(data, timestamp, o_p);
+}
+
+u16 Platform::MP_RecvReplies(u8* packets, u64 timestamp, u16 aidmask, void*) {
+    if(!MelonDsDs::Core.MpActive()) {
+        return 0;
+    }
+    u16 ret = 0;
+    int loops = 0;
+    while((ret & aidmask) != aidmask) {
+        std::optional<MelonDsDs::Packet> o_p = MelonDsDs::Core.MpNextPacketBlock();
+        if(!o_p.has_value()) {
+            return ret;
+        }
+        MelonDsDs::Packet p = std::move(o_p).value();
+        if(p.Timestamp() < (timestamp - 32)) {
+            continue;
+        }
+        if(p.PacketType() != MelonDsDs::Packet::Type::Reply) {
+            continue;
+        }
+        ret |= 1<<p.Aid();
+        memcpy(&packets[(p.Aid()-1)*1024], p.Data(), std::min(p.Length(), (uint64_t)1024));
+        loops++;
+    }
+    return ret;
 }

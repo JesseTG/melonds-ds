@@ -71,6 +71,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     net/pcap.hpp
     net/net.cpp
     net/net.hpp
+    net/mp.cpp
+    net/mp.hpp
     platform/file.cpp
     platform/lan.cpp
     platform/mp.cpp

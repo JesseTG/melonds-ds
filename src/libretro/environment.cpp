@@ -40,6 +40,7 @@
 #include "libretro.hpp"
 #include "config/config.hpp"
 #include "core/test.hpp"
+#include "net/mp.hpp"
 #include "tracy.hpp"
 #include "version.hpp"
 
@@ -777,6 +778,13 @@ PUBLIC_SYMBOL void retro_set_environment(retro_environment_t cb) {
     // TODO: Handle potential errors with each environment call below
     retro_core_options_update_display_callback update_display_cb {MelonDsDs::UpdateOptionVisibility};
     environment(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK, &update_display_cb);
+
+    retro_netpacket_callback netpacket_callback {
+        .start = &MelonDsDs::MpStarted,
+        .receive = &MelonDsDs::MpReceived,
+        .stop = &MelonDsDs::MpStopped,
+    };
+    environment(RETRO_ENVIRONMENT_SET_NETPACKET_INTERFACE, &netpacket_callback);
 
     environment(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE, (void*) MelonDsDs::content_overrides);
     environment(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*) MelonDsDs::ports);

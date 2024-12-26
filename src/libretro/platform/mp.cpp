@@ -15,41 +15,69 @@
 */
 
 #include <Platform.h>
-
-//! Local multiplayer is not implemented in melonDS DS.
+#include "tracy.hpp"
+#include "core/core.hpp"
+#include "environment.hpp"
+#include <fmt/base.h>
+#include <retro_assert.h>
 
 using namespace melonDS;
 
+void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) noexcept {
+    ZoneScopedN(TracyFunction);
+    _mpState.SetSendFn(send);
+    _mpState.SetPollFn(poll_receive);
+    retro::info("Starting multiplayer on libretro side");
+}
+
+void MelonDsDs::CoreState::MpPacketReceived(const void *buf, size_t len, uint16_t client_id) noexcept {
+    ZoneScopedN(TracyFunction);
+    _mpState.PacketReceived(buf, len, client_id);
+}
+
+void MelonDsDs::CoreState::MpStopped() noexcept {
+    ZoneScopedN(TracyFunction);
+    _mpState.SetSendFn(nullptr);
+    _mpState.SetPollFn(nullptr);
+    retro::info("Stopping multiplayer on libretro side");
+}
+
+bool MelonDsDs::CoreState::MpSendPacket(const MelonDsDs::Packet &p) noexcept {
+    ZoneScopedN(TracyFunction);
+    if(!_mpState.IsReady()) {
+        return false;
+    }
+    _mpState.SendPacket(p);
+    return true;
+}
+
+std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacket() noexcept {
+    ZoneScopedN(TracyFunction);
+    if(!_mpState.IsReady()) {
+        return std::nullopt;
+    }
+    return _mpState.NextPacket();
+}
+
+std::optional<MelonDsDs::Packet> MelonDsDs::CoreState::MpNextPacketBlock() noexcept {
+    ZoneScopedN(TracyFunction);
+    if(!_mpState.IsReady()) {
+        return std::nullopt;
+    }
+    return _mpState.NextPacketBlock();
+}
+
+bool MelonDsDs::CoreState::MpActive() const noexcept {
+    return _mpState.IsReady();
+}
+
+// Not much we can do in Begin and End
 void Platform::MP_Begin(void*) {
+    ZoneScopedN(TracyFunction);
+    retro::info("Starting multiplayer on DS side");
 }
 
 void Platform::MP_End(void*) {
-}
-
-int Platform::MP_SendPacket(u8*, int, u64, void*) {
-    return 0;
-}
-
-int Platform::MP_RecvPacket(u8*, u64*, void*) {
-    return 0;
-}
-
-int Platform::MP_SendCmd(u8*, int, u64, void*) {
-    return 0;
-}
-
-int Platform::MP_SendReply(u8*, int, u64, u16, void*) {
-    return 0;
-}
-
-int Platform::MP_SendAck(u8*, int, u64, void*) {
-    return 0;
-}
-
-int Platform::MP_RecvHostPacket(u8*, u64 *, void*) {
-    return 0;
-}
-
-u16 Platform::MP_RecvReplies(u8*, u64, u16, void*) {
-    return 0;
+    ZoneScopedN(TracyFunction);
+    retro::info("Ending multiplayer on DS side");
 }
