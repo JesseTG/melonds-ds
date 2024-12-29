@@ -67,6 +67,8 @@ public:
     std::optional<Packet> NextPacket() noexcept;
     std::optional<Packet> NextPacketBlock() noexcept;
 private:
+    bool _warnedHighLatency = false;
+    int _timeoutCount = 0;
     retro_netpacket_send_t _sendFn;
     retro_netpacket_poll_receive_t _pollFn;
     std::optional<uint16_t> _hostId;
