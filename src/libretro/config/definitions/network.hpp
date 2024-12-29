@@ -71,6 +71,24 @@ namespace MelonDsDs::config::definitions {
         MelonDsDs::config::values::AUTO
     };
 #endif
+    constexpr retro_core_option_v2_definition LanMacAddressMode {
+        config::network::MAC_ADDRESS_MODE,
+        "Network MAC Address Mode",
+        "MAC Address Mode",
+        "Configures how the emulated console's MAC address is set. "
+        "Changing this option might make local multiplayer impossible or block access to save files "
+        "in games that use the MAC address to prevent tampering of save files (i.e. Pokémon).\n"
+        "No relation to the direct mode interface. Changes take effect at next restart.\n"
+        "See https://github.com/jessetg/melonds-ds/blob/main/LanMultiplayer.md for more information.",
+        nullptr,
+        config::network::CATEGORY,
+        {
+            {MelonDsDs::config::values::FIRMWARE, "Set from firmware"},
+            {MelonDsDs::config::values::FROM_USERNAME, "Derive from libretro username"},
+            {nullptr, nullptr}
+        },
+        MelonDsDs::config::values::FIRMWARE
+    };
 
     constexpr std::initializer_list<retro_core_option_v2_definition> NetworkOptionDefinitions {
 #ifdef HAVE_NETWORKING
@@ -79,6 +97,7 @@ namespace MelonDsDs::config::definitions {
         NetworkInterface,
 #   endif
 #endif
+        LanMacAddressMode,
     };
 }
 

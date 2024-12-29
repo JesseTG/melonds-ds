@@ -21,6 +21,7 @@
 #include <array>
 #include <charconv>
 #include <cstring>
+#include <optional>
 #include <system_error>
 #include <SPI_Firmware.h>
 
@@ -73,6 +74,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const CATEGORY = "network";
         static constexpr const char *const NETWORK_MODE = "melonds_network_mode";
         static constexpr const char *const DIRECT_NETWORK_INTERFACE = "melonds_direct_network_interface";
+        static constexpr const char *const MAC_ADDRESS_MODE = "melonds_mac_address_mode";
     }
 
     namespace osd {
@@ -257,6 +259,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const TOUCHING = "touching";
         static constexpr const char *const UPSIDE_DOWN = "rotate-180";
         static constexpr const char *const WEAK = "weak";
+        static constexpr const char *const FROM_USERNAME = "from-username";
     }
 
     constexpr size_t NOCASH_FOOTER_SIZE = 0x40;
@@ -268,6 +271,9 @@ namespace MelonDsDs::config {
 
     bool IsDsiNandImage(const retro::dirent &file) noexcept;
     bool IsFirmwareImage(const retro::dirent &file, melonDS::Firmware::FirmwareHeader& header) noexcept;
+    std::optional<melonDS::MacAddress> ParseMacAddressFile(const retro::dirent &file) noexcept;
+    std::optional<melonDS::MacAddress> ParseMacAddress(std::string_view s) noexcept;
+    std::string PrintMacAddress(const melonDS::MacAddress &address) noexcept;
 
     // Source: https://github.com/DS-Homebrew/TWiLightMenu/blob/a836b7d30b3582d57af848dde2277ded9dfe3a50/romsel_r4theme/arm9/source/graphics/uvcoord_small_font.h#L451-L461
     static constexpr char16_t NdsCharacterSet[] = {

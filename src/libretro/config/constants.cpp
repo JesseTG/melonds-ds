@@ -16,7 +16,9 @@
 
 #include "constants.hpp"
 
+#include <SPI_Firmware.h>
 #include <algorithm>
+#include <fmt/format.h>
 #include <string>
 #include <fmt/ranges.h>
 #include <net/net_compat.h>
@@ -169,4 +171,88 @@ bool MelonDsDs::config::IsFirmwareImage(const retro::dirent& file, Firmware::Fir
 
     memcpy(&header, &buffer, sizeof(buffer));
     return true;
+}
+
+// A MAC address has 6 bytes, each with two hexadecimal characters,
+// and 5 colons (:) for separators
+constexpr int MacAddressStringSize = 2*6 + 5;
+
+std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddressFile(const retro::dirent &file) noexcept {
+    ZoneScopedN(TracyFunction);
+    ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
+    retro::debug("Reading file {}", file.path);
+
+    if(!file.is_regular_file()) {
+        retro::debug("{} is not a regular file, it's not a mac address file", file.path);
+        return std::nullopt;
+    }
+
+    if(!string_ends_with(file.path, ".txt")) {
+        retro::debug("{} is not a mac address file, it does not end with .txt", file.path);
+        return std::nullopt;
+    }
+    if (file.size < MacAddressStringSize) {
+        retro::debug("{} is not a mac address file, it is too small", file.path);
+        return std::nullopt;
+    }
+
+    char buffer[MacAddressStringSize];
+    RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+    int64_t bytesRead = filestream_read(stream, &buffer, sizeof(buffer));
+    if (bytesRead < MacAddressStringSize) {
+        if (bytesRead < 0) {
+            retro::warn("Failed to read {}", file.path);
+        } else {
+            retro::warn("Tried to read {} bytes, ended up reading {} bytes instead", MacAddressStringSize, bytesRead);
+        }
+        return std::nullopt;
+    }
+
+    std::optional<melonDS::MacAddress> ret =  MelonDsDs::config::ParseMacAddress(std::string_view{buffer, sizeof(buffer)});
+    if (!ret.has_value()) {
+        retro::debug("Could not read the mac address from \"{}\"", std::string_view{buffer, sizeof(buffer)});
+    }
+    return ret;
+}
+
+std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddress(std::string_view s) noexcept {
+    // This would be 5 lines if scanf worked on string_view
+    melonDS::MacAddress ret;
+    int i = 0;
+    int readOctets = 0;
+    const char *data = s.data();
+    if (s.size() < MacAddressStringSize) {
+        return std::nullopt;
+    }
+    do {
+        char octet[3];
+        octet[0] = data[i++];
+        octet[1] = data[i++];
+        octet[2] = '\0';
+        char *end = nullptr;
+        unsigned long octetValue = std::strtoul(octet, &end, 16);
+        if (end != octet + 2) {
+            return std::nullopt;
+        }
+        if (octetValue > 255) {
+            // Not sure how this would be possible
+            return std::nullopt;
+        }
+        ret[readOctets++] = octetValue;
+        if (i >= MacAddressStringSize) {
+            break;
+        }
+        if (readOctets != 6 && data[i] != ':') {
+            return std::nullopt;
+        }
+    } while (++i < MacAddressStringSize - 1 && readOctets < 6);
+    if (readOctets != 6) {
+        return std::nullopt;
+    }
+    return ret;
+}
+
+std::string MelonDsDs::config::PrintMacAddress(const melonDS::MacAddress &address) noexcept {
+    return fmt::format("{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", address[0], address[1], address[2], address[3], address[4], address[5]);
 }
