@@ -27,6 +27,7 @@
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 
+#include "retro/file.hpp"
 #include "types.hpp"
 #include "environment.hpp"
 #include "retro/dirent.hpp"
@@ -197,9 +198,9 @@ std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddressFile(const 
     }
 
     char buffer[MacAddressStringSize];
-    RFILE* stream = filestream_open(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    retro::rfile_ptr stream = retro::make_rfile(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
-    int64_t bytesRead = filestream_read(stream, &buffer, sizeof(buffer));
+    int64_t bytesRead = filestream_read(stream.get(), &buffer, sizeof(buffer));
     if (bytesRead < MacAddressStringSize) {
         if (bytesRead < 0) {
             retro::warn("Failed to read {}", file.path);
