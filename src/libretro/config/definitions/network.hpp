@@ -76,9 +76,10 @@ namespace MelonDsDs::config::definitions {
         "Network MAC Address Mode",
         "MAC Address Mode",
         "Configures how the emulated console's MAC address is set. "
-        "Changing this option might make local multiplayer impossible or block access to save files "
-        "in games that use the MAC address to prevent tampering of save files (i.e. Pokémon).\n"
-        "No relation to the direct mode interface. Changes take effect at next restart.\n"
+        "Changing this option might make local multiplayer impossible or block access to save files in games "
+        "that use the MAC address to prevent tampering of save files (i.e. Pokémon).\n"
+        "No relation to the direct mode interface. "
+        "Changes take effect at next restart.\n"
         "See https://github.com/jessetg/melonds-ds/blob/main/LanMultiplayer.md for more information.",
         nullptr,
         config::network::CATEGORY,
