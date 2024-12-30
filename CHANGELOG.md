@@ -15,7 +15,8 @@ With thanks to **@parkerlreed** for his donation this month!
 
 ### Added
 
-- Added support for emulated LAN multiplayer. Only works on an actual LAN.
+- Added support for emulated LAN multiplayer.
+  Only works on an actual LAN.
   [#225](https://github.com/JesseTG/melonds-ds/issues/225)
 - Integrated support for the GBA Memory Expansion Pak.
   [#44](https://github.com/JesseTG/melonds-ds/issues/44)
