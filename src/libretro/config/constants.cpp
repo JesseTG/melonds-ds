@@ -18,6 +18,7 @@
 
 #include <SPI_Firmware.h>
 #include <algorithm>
+#include <regex>
 #include <fmt/format.h>
 #include <string>
 #include <fmt/ranges.h>
@@ -220,38 +221,47 @@ std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddressFile(const 
 std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddress(std::string_view s) noexcept {
     // This would be 5 lines if scanf worked on string_view
     melonDS::MacAddress ret;
-    int i = 0;
-    int readOctets = 0;
-    const char *data = s.data();
-    if (s.size() < MacAddressStringSize) {
+    std::regex pattern{"^([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})$", std::regex_constants::extended};
+    std::match_results<std::string_view::const_iterator> results;
+    if (!std::regex_match(s.cbegin(), s.cend(), results, pattern)) {
         return std::nullopt;
+    } else {
+        int readOctets = 0;
+        bool firstMatch = true;
+        for (const std::sub_match<std::string_view::const_iterator> &octetMatch : results) {
+            if (firstMatch) {
+                // The first match is always the whole string
+                firstMatch = false;
+                continue;
+            }
+            if (readOctets == 6) {
+                break;
+            }
+            char octetNullString[3];
+            if (octetMatch.length() != 2) {
+                return std::nullopt;
+            }
+            std::string_view::const_iterator matchIter = octetMatch.first;
+            octetNullString[0] = *matchIter;
+            matchIter++;
+            octetNullString[1] = *matchIter;
+            octetNullString[2] = '\0';
+            char *end = nullptr;
+            unsigned long octetValue = std::strtoul(octetNullString, &end, 16);
+            if (end != octetNullString + 2) {
+                return std::nullopt;
+            }
+            if (octetValue > 255) {
+                // Not sure how this would be possible
+                return std::nullopt;
+            }
+            ret[readOctets++] = octetValue;
+        }
+        if (readOctets != 6) {
+            return std::nullopt;
+        }
+        return ret;
     }
-    do {
-        char octet[3];
-        octet[0] = data[i++];
-        octet[1] = data[i++];
-        octet[2] = '\0';
-        char *end = nullptr;
-        unsigned long octetValue = std::strtoul(octet, &end, 16);
-        if (end != octet + 2) {
-            return std::nullopt;
-        }
-        if (octetValue > 255) {
-            // Not sure how this would be possible
-            return std::nullopt;
-        }
-        ret[readOctets++] = octetValue;
-        if (i >= MacAddressStringSize) {
-            break;
-        }
-        if (readOctets != 6 && data[i] != ':') {
-            return std::nullopt;
-        }
-    } while (++i < MacAddressStringSize - 1 && readOctets < 6);
-    if (readOctets != 6) {
-        return std::nullopt;
-    }
-    return ret;
 }
 
 std::string MelonDsDs::config::PrintMacAddress(const melonDS::MacAddress &address) noexcept {
