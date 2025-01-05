@@ -221,7 +221,7 @@ std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddressFile(const 
 std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddress(std::string_view s) noexcept {
     // This would be 5 lines if scanf worked on string_view
     melonDS::MacAddress ret;
-    std::regex pattern{"^([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})$", std::regex_constants::extended};
+    const static std::regex pattern{"^([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})$", std::regex_constants::extended};
     std::match_results<std::string_view::const_iterator> results;
     if (!std::regex_match(s.cbegin(), s.cend(), results, pattern)) {
         return std::nullopt;
