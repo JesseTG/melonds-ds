@@ -80,7 +80,7 @@ namespace MelonDsDs::config::definitions {
         "that use the MAC address to prevent tampering of save files (i.e. Pokémon).\n"
         "No relation to the direct mode interface. "
         "Changes take effect at next restart.\n"
-        "See https://github.com/jessetg/melonds-ds/blob/main/LanMultiplayer.md for more information.",
+        "See https://bit.ly/4fJtWKN for more information.",
         nullptr,
         config::network::CATEGORY,
         {
