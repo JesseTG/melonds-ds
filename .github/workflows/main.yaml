@@ -141,7 +141,7 @@ jobs:
       target: android
       core-name: melondsds_libretro_android
       archive-name: melondsds_libretro-android
-      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake"
+      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" -Wno-deprecated
       runs-on: ubuntu-latest
       # Disabled OpenGL on Android due to https://github.com/JesseTG/melonds-ds/issues/23
 
@@ -154,7 +154,7 @@ jobs:
       archive-name: melondsds_libretro-ios
       info-dir: info
       lib-ext: dylib
-      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14 -Wno-deprecated
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   tvos:
@@ -166,5 +166,5 @@ jobs:
       archive-name: melondsds_libretro-tvos
       info-dir: info
       lib-ext: dylib
-      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14
+      cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14 -Wno-deprecated
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
