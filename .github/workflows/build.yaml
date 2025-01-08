@@ -202,6 +202,7 @@ jobs:
         if: ${{ ! inputs.test-suite }}
         run: |
           cmake "${{ github.workspace }}" \
+            -Wno-deprecated \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             -DTRACY_ENABLE="${{ matrix.build-type == 'RelWithDebInfo' && 'ON' || 'OFF' }}" \
             ${{ inputs.cmake-args }}
@@ -211,6 +212,7 @@ jobs:
         if: ${{ inputs.test-suite }}
         run: |
           cmake "${{ github.workspace }}" \
+            -Wno-deprecated \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
             -DTRACY_ENABLE="${{ matrix.build-type == 'RelWithDebInfo' && 'ON' || 'OFF' }}" \
             -DBUILD_TESTING=ON \

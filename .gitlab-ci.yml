@@ -62,6 +62,8 @@ libretro-build-windows-x64:
   extends:
     - .libretro-windows-cmake-x86_64
     - .core-defs
+  variables:
+    CORE_ARGS: -Wno-deprecated
 
 # Linux 64-bit
 libretro-build-linux-x64:
@@ -82,6 +84,7 @@ libretro-build-linux-x64:
     CC: /usr/bin/gcc-12
     CXX: /usr/bin/g++-12
     CXXFLAGS: -Wno-deprecated-declarations # Deprecation warnings aren't helpful on the libretro Gitlab
+    CORE_ARGS: -Wno-deprecated
 
 # MacOS 64-bit
 libretro-build-osx-x64:
@@ -89,6 +92,7 @@ libretro-build-osx-x64:
     - .libretro-osx-cmake-x86_64
     - .core-defs
   variables:
+    CORE_ARGS: -Wno-deprecated
     MACOSX_DEPLOYMENT_TARGET: "10.15"
 
 # MacOS ARM 64-bit
@@ -96,6 +100,8 @@ libretro-build-osx-arm64:
   extends:
     - .libretro-osx-cmake-arm64
     - .core-defs
+  variables:
+    CORE_ARGS: -Wno-deprecated
 
 ################################### CELLULAR #################################
 
@@ -110,6 +116,7 @@ android-arm64-v8a:
     - apt-get update -qy
     - apt-get install -qy cmake/bullseye-backports
   variables:
+    CORE_ARGS: -Wno-deprecated
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
     API_LEVEL: 24
   # The Android runners are based on Debian, not Ubuntu
@@ -125,6 +132,7 @@ android-x86_64:
     - apt-get update -qy
     - apt-get install -qy cmake/bullseye-backports
   variables:
+    CORE_ARGS: -Wno-deprecated
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
     API_LEVEL: 24
 # Not supported; if this doesn't work the first time around, I'm cutting it
@@ -135,7 +143,7 @@ libretro-build-ios-arm64:
     - .libretro-ios-cmake-arm64
     - .core-defs
   variables:
-    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=13 -DBUILD_AS_SHARED_LIBRARY=ON
+    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=13 -DBUILD_AS_SHARED_LIBRARY=ON -Wno-deprecated
     IOS_MINVER: "13.0"
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
 
@@ -145,6 +153,6 @@ libretro-build-tvos-arm64:
     - .libretro-tvos-cmake-arm64
     - .core-defs
   variables:
-    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=13 -DBUILD_AS_SHARED_LIBRARY=ON
+    CORE_ARGS: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=13 -DBUILD_AS_SHARED_LIBRARY=ON -Wno-deprecated
     IOS_MINVER: "13.0"
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
