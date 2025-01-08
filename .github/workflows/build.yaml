@@ -103,6 +103,8 @@ jobs:
     steps:
       - name: Check Out Source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request && github.event.pull_request.head.sha || github.sha }}
 
       - name: Install GCC Problem Matcher
         uses: root-project/gcc-problem-matcher-improved@c45ac8b7c1589268fdef2f7f5772375aa96ab210
