@@ -142,7 +142,7 @@ jobs:
 
       - name: Install Cross-Compile Support (Linux aarch64)
         if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
-        uses: cyberjunk/gha-ubuntu-cross@v4
+        uses: cyberjunk/gha-ubuntu-cross@v5
         with:
           arch: arm64
 
