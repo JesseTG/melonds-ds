@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   push:
     paths-ignore:
-      - "*.gitlab-ci.yml"
+      #- "*.gitlab-ci.yml"
       - "*.gitignore"
       - "*.github/ISSUE_TEMPLATE/**"
       - "*.github/FUNDING.yml"
-      - "*.github/workflows/**"
+      #- "*.github/workflows/**"
   pull_request_target:
     branches:
       - dev
