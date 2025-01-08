@@ -105,7 +105,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install GCC Problem Matcher
-        uses: root-project/gcc-problem-matcher-improved@f570674bcaf59d17ec0e6ae3ee0d03f8d68c1989
+        uses: root-project/gcc-problem-matcher-improved@c45ac8b7c1589268fdef2f7f5772375aa96ab210
         if: ${{ runner.os != 'Windows' }} # See https://github.com/root-project/gcc-problem-matcher-improved/issues/3
         with:
           build-directory: ${{ env.BUILD_DIR }}
@@ -152,7 +152,7 @@ jobs:
         run: sudo apt-get update -qy && sudo apt-get install -qy cmake ninja-build libepoxy-dev:arm64 libopengl0:arm64 libopengl-dev:arm64 ccache
 
       - name: Install CCache
-        uses: hendrikmuhs/ccache-action@v1.2.14
+        uses: hendrikmuhs/ccache-action@e7a0524ab2c2f3d668e20aced36205fa717e29b9
         with:
           key: ${{ inputs.target }}-${{ matrix.build-type }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
