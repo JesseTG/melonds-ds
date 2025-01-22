@@ -92,6 +92,8 @@ jobs:
     defaults:
       run:
         shell: ${{ inputs.shell }}
+    env:
+      TRACY_ENABLE: "${{ matrix.build-type == 'RelWithDebInfo' && 'ON' || 'OFF' }}"
     steps:
       - name: Check Out Source
         uses: actions/checkout@v4
@@ -187,7 +189,7 @@ jobs:
           cmake "${{ github.workspace }}" \
             -Wno-deprecated \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
-            -DTRACY_ENABLE="${{ matrix.build-type == 'RelWithDebInfo' && 'ON' || 'OFF' }}" \
+            -DTRACY_ENABLE="${{ env.TRACY_ENABLE }}" \
             ${{ inputs.cmake-args }}
 
       - name: Configure (With Test Suite)
@@ -197,7 +199,7 @@ jobs:
           cmake "${{ github.workspace }}" \
             -Wno-deprecated \
             -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
-            -DTRACY_ENABLE="${{ matrix.build-type == 'RelWithDebInfo' && 'ON' || 'OFF' }}" \
+            -DTRACY_ENABLE="${{ env.TRACY_ENABLE }}" \
             -DBUILD_TESTING=ON \
             -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
             -DARM9_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM9_BIOS }}" \
