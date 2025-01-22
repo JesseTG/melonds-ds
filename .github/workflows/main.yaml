@@ -1,4 +1,4 @@
-name: Build Artifacts
+name: Main Workflow
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ on:
 jobs:
   windows:
     name: Windows (x86_64)
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
@@ -49,7 +49,7 @@ jobs:
 
   macos-x86_64:
     name: macOS (x86_64)
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-13
@@ -75,7 +75,7 @@ jobs:
 
   macos-arm64:
     name: macOS (arm64)
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-macos-arm64
       runs-on: macos-latest
@@ -101,7 +101,7 @@ jobs:
 
   linux-x86_64:
     name: Linux (x86_64)
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-linux-x86_64
       target: linux-x86_64
@@ -125,7 +125,7 @@ jobs:
 
   linux-aarch64:
     name: Linux (arm64)
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-linux-arm64
       target: linux-aarch64
@@ -135,7 +135,7 @@ jobs:
 
   android:
     name: Android
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       lib-ext: so
       target: android
@@ -147,7 +147,7 @@ jobs:
 
   ios:
     name: iOS
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       runs-on: macos-latest
       target: ios
@@ -159,7 +159,7 @@ jobs:
 
   tvos:
     name: tvOS
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/pipeline.yaml
     with:
       runs-on: macos-latest
       target: tvos
