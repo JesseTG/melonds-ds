@@ -111,6 +111,8 @@ option(BUILD_AS_SHARED_LIBRARY "Allow for both linking and loading" OFF)
 add_subdirectory(src/libretro)
 include(cmake/GenerateAttributions.cmake)
 
+set(MELONDSDS_LIBRARY_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}" CACHE INTERNAL "Suffix for the melonDS DS library, intended to be queried by the build workflow.")
+
 if (BUILD_TESTING)
     message(STATUS "Enabling test suite.")
     enable_testing()

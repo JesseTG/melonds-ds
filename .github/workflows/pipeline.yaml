@@ -67,10 +67,6 @@ on:
         type: string
         required: false
         default: "build/dist"
-      lib-ext:
-        description: The extension of the library to build.
-        type: string
-        required: true
       archive-name:
         description: The name of the archive to upload.
         type: string
@@ -225,8 +221,11 @@ jobs:
           CORES_PATH: "${{ env.DIST_DIR }}/${{ inputs.cores-dir }}"
           INFO_PATH: "${{ env.DIST_DIR }}/${{ inputs.info-dir }}"
         run: |
+          LIB_EXT=$(grep '^MELONDSDS_LIBRARY_SUFFIX:INTERNAL=' "${{ env.BUILD_DIR }}/CMakeCache.txt" | cut -d'=' -f2- | sed 's/^\.//')
+          # Find the cache variable I saved and extract it; I did so exactly for this build workflow
+
           mkdir -vp "$CORES_PATH" "$INFO_PATH"
-          cp -f "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.core-name }}.${{ inputs.lib-ext }}" "$CORES_PATH"
+          cp -f "${{ env.BUILD_DIR }}/src/libretro/${{ inputs.core-name }}.$LIB_EXT" "$CORES_PATH"
           cp -f "${{ env.BUILD_DIR }}/melondsds_libretro.info" "$INFO_PATH/${{ inputs.core-name }}.info"
           cp -f "${{ env.BUILD_DIR }}/melondsds-LICENSE.txt" "$CORES_PATH"
 

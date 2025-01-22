@@ -27,7 +27,6 @@ jobs:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
       info-dir: info
-      lib-ext: dll
       shell: msys2 {0}
       test-suite: true
       cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
@@ -52,7 +51,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-13
-      lib-ext: dylib
       test-suite: true
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
@@ -77,7 +75,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-macos-arm64
       runs-on: macos-latest
-      lib-ext: dylib
       test-suite: true
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
@@ -102,7 +99,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-linux-x86_64
       runs-on: ubuntu-latest
-      lib-ext: so
       test-suite: true
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
@@ -125,7 +121,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-linux-arm64
       runs-on: ubuntu-22.04-arm
-      lib-ext: so
       test-suite: true
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
@@ -146,7 +141,6 @@ jobs:
     name: Android
     uses: ./.github/workflows/pipeline.yaml
     with:
-      lib-ext: so
       core-name: melondsds_libretro_android
       archive-name: melondsds_libretro-android
       cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake"
@@ -160,7 +154,6 @@ jobs:
       runs-on: macos-latest
       archive-name: melondsds_libretro-ios
       info-dir: info
-      lib-ext: dylib
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
@@ -171,6 +164,5 @@ jobs:
       runs-on: macos-latest
       archive-name: melondsds_libretro-tvos
       info-dir: info
-      lib-ext: dylib
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
