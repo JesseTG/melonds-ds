@@ -75,10 +75,6 @@ on:
         description: The name of the archive to upload.
         type: string
         required: true
-      target:
-        description: The platform target.
-        type: string
-        required: true
       test-suite:
         description: Whether there will be a test suite based on this run's output
         type: boolean
@@ -130,33 +126,22 @@ jobs:
         run: brew install pkg-config cmake ninja ccache
 
         # Skip this step on act due to https://github.com/nektos/act/issues/1849
-      - name: Install Dependencies (Linux x86_64/Android)
-        if: ${{ !env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+      - name: Install Dependencies (Linux)
+        if: ${{ !env.ACT && runner.os == 'Linux' }}
         uses: awalsh128/cache-apt-pkgs-action@v1.4.2
         with:
           packages: ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
           version: 1.2
 
-      - name: Install Dependencies (Linux x86_64/Android + act)
-        if: ${{ env.ACT && runner.os == 'Linux' && !contains(inputs.target, 'aarch64') }}
+      - name: Install Dependencies (Linux + act)
+        if: ${{ env.ACT && runner.os == 'Linux' }}
         shell: bash
         run: sudo apt-get update -qy && sudo apt-get install -qy ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
 
-      - name: Install Cross-Compile Support (Linux aarch64)
-        if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
-        uses: cyberjunk/gha-ubuntu-cross@v5
-        with:
-          arch: arm64
-
-      - name: Install Dependencies (Linux aarch64)
-        if: ${{ runner.os == 'Linux' && contains(inputs.target, 'aarch64') }}
-        shell: bash
-        run: sudo apt-get update -qy && sudo apt-get install -qy cmake ninja-build libepoxy-dev:arm64 libopengl0:arm64 libopengl-dev:arm64 ccache
-
       - name: Install CCache
-        uses: hendrikmuhs/ccache-action@e7a0524ab2c2f3d668e20aced36205fa717e29b9
+        uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875
         with:
-          key: ${{ inputs.target }}-${{ matrix.build-type }}
+          key: ${{ inputs.runs-on }}-${{ matrix.build-type }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
           # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
 

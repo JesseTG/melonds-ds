@@ -26,7 +26,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
-      target: win32
       info-dir: info
       lib-ext: dll
       shell: msys2 {0}
@@ -53,7 +52,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-13
-      target: macos-x86_64
       lib-ext: dylib
       test-suite: true
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
@@ -79,7 +77,6 @@ jobs:
     with:
       archive-name: melondsds_libretro-macos-arm64
       runs-on: macos-latest
-      target: macos-arm64
       lib-ext: dylib
       test-suite: true
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
@@ -104,7 +101,6 @@ jobs:
     uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-linux-x86_64
-      target: linux-x86_64
       runs-on: ubuntu-latest
       lib-ext: so
       test-suite: true
@@ -128,7 +124,6 @@ jobs:
     uses: ./.github/workflows/pipeline.yaml
     with:
       archive-name: melondsds_libretro-linux-arm64
-      target: linux-aarch64
       runs-on: ubuntu-22.04-arm
       lib-ext: so
       test-suite: true
@@ -152,7 +147,6 @@ jobs:
     uses: ./.github/workflows/pipeline.yaml
     with:
       lib-ext: so
-      target: android
       core-name: melondsds_libretro_android
       archive-name: melondsds_libretro-android
       cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake"
@@ -164,7 +158,6 @@ jobs:
     uses: ./.github/workflows/pipeline.yaml
     with:
       runs-on: macos-latest
-      target: ios
       archive-name: melondsds_libretro-ios
       info-dir: info
       lib-ext: dylib
@@ -176,7 +169,6 @@ jobs:
     uses: ./.github/workflows/pipeline.yaml
     with:
       runs-on: macos-latest
-      target: tvos
       archive-name: melondsds_libretro-tvos
       info-dir: info
       lib-ext: dylib
