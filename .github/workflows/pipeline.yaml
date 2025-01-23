@@ -127,7 +127,7 @@ jobs:
         # Skip this step on act due to https://github.com/nektos/act/issues/1849
       - name: Install Dependencies (Linux)
         if: ${{ !env.ACT && runner.os == 'Linux' }}
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
         with:
           packages: ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
           version: 1.2
