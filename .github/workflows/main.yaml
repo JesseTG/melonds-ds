@@ -24,6 +24,8 @@ jobs:
   fetch-testfiles:
     name: Fetch Test Files
     runs-on: ubuntu-22.04-arm
+    permissions:
+      actions: write
     steps:
       - name: Clone Test File Repository
         uses: actions/checkout@v4
