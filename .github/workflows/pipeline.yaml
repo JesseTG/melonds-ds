@@ -79,24 +79,22 @@ on:
       testfiles-cache-key:
         type: string
         required: false
+      cmake-config:
+        description: The CMake configuration to use.
+        type: string
+        required: true
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
   TESTFILE_DIR: "${{ github.workspace }}/testfiles"
 jobs:
   build:
-    strategy:
-      matrix:
-        build-type:
-          - Debug
-          - Release
-          - RelWithDebInfo
     runs-on: ${{ inputs.runs-on }}
     defaults:
       run:
         shell: ${{ inputs.shell }}
     env:
-      TRACY_ENABLE: "${{ matrix.build-type == 'RelWithDebInfo' && 'ON' || 'OFF' }}"
+      TRACY_ENABLE: "${{ inputs.cmake-config == 'RelWithDebInfo' && 'ON' || 'OFF' }}"
     steps:
       - name: Check Out Source
         uses: actions/checkout@v4
@@ -143,7 +141,7 @@ jobs:
       - name: Install CCache
         uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875
         with:
-          key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
+          key: ${{ inputs.archive-name }}-${{ inputs.cmake-config }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
           # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
           verbose: 1
@@ -201,7 +199,7 @@ jobs:
         run: |
           cmake "${{ github.workspace }}" \
             -Wno-deprecated \
-            -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DCMAKE_BUILD_TYPE="${{ inputs.cmake-config }}" \
             -DTRACY_ENABLE="${{ env.TRACY_ENABLE }}" \
             ${{ inputs.cmake-args }}
 
@@ -211,7 +209,7 @@ jobs:
         run: |
           cmake "${{ github.workspace }}" \
             -Wno-deprecated \
-            -DCMAKE_BUILD_TYPE="${{ matrix.build-type }}" \
+            -DCMAKE_BUILD_TYPE="${{ inputs.cmake-config }}" \
             -DTRACY_ENABLE="${{ env.TRACY_ENABLE }}" \
             -DBUILD_TESTING=ON \
             -DARM7_BIOS="${{ env.TESTFILE_DIR }}/${{ secrets.ARM7_BIOS }}" \
@@ -247,7 +245,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ inputs.archive-name }}-${{ matrix.build-type }}"
+          name: "${{ inputs.archive-name }}-${{ inputs.cmake-config }}"
           if-no-files-found: error
           path: "${{ env.DIST_DIR }}"
 

@@ -74,6 +74,9 @@ jobs:
     name: Windows (x86_64)
     uses: ./.github/workflows/pipeline.yaml
     needs: fetch-testfiles
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
@@ -82,6 +85,7 @@ jobs:
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
+      cmake-config: "${{ matrix.config }}"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
@@ -101,11 +105,15 @@ jobs:
     name: macOS (x86_64)
     uses: ./.github/workflows/pipeline.yaml
     needs: fetch-testfiles
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-13
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
+      cmake-config: "${{ matrix.config }}"
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
@@ -127,11 +135,15 @@ jobs:
     name: macOS (arm64)
     uses: ./.github/workflows/pipeline.yaml
     needs: fetch-testfiles
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       archive-name: melondsds_libretro-macos-arm64
       runs-on: macos-latest
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
+      cmake-config: "${{ matrix.config }}"
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
@@ -153,11 +165,15 @@ jobs:
     name: Linux (x86_64)
     uses: ./.github/workflows/pipeline.yaml
     needs: fetch-testfiles
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       archive-name: melondsds_libretro-linux-x86_64
       runs-on: ubuntu-latest
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
+      cmake-config: "${{ matrix.config }}"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
@@ -177,11 +193,15 @@ jobs:
     name: Linux (arm64)
     uses: ./.github/workflows/pipeline.yaml
     needs: fetch-testfiles
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       archive-name: melondsds_libretro-linux-arm64
       runs-on: ubuntu-22.04-arm
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
+      cmake-config: "${{ matrix.config }}"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
@@ -200,9 +220,13 @@ jobs:
   android:
     name: Android
     uses: ./.github/workflows/pipeline.yaml
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       core-name: melondsds_libretro_android
       archive-name: melondsds_libretro-android
+      cmake-config: "${{ matrix.config }}"
       cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake"
       runs-on: ubuntu-latest
       # Disabled OpenGL on Android due to https://github.com/JesseTG/melonds-ds/issues/23
@@ -210,19 +234,27 @@ jobs:
   ios:
     name: iOS
     uses: ./.github/workflows/pipeline.yaml
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       runs-on: macos-latest
       archive-name: melondsds_libretro-ios
       info-dir: info
+      cmake-config: "${{ matrix.config }}"
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=OS64 -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on iOS due to https://github.com/JesseTG/melonds-ds/issues/23
 
   tvos:
     name: tvOS
     uses: ./.github/workflows/pipeline.yaml
+    strategy:
+      matrix:
+        config: [ Debug, Release, RelWithDebInfo ]
     with:
       runs-on: macos-latest
       archive-name: melondsds_libretro-tvos
       info-dir: info
+      cmake-config: "${{ matrix.config }}"
       cmake-args: --toolchain ./cmake/toolchain/ios.toolchain.cmake -DPLATFORM=TVOS -DDEPLOYMENT_TARGET=14
       # Disabled OpenGL on tvOS due to https://github.com/JesseTG/melonds-ds/issues/23
