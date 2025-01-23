@@ -144,7 +144,7 @@ jobs:
           key: ${{ inputs.archive-name }}-${{ inputs.cmake-config }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
           # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
-          verbose: 1
+          verbose: 2
           evict-old-files: job
 
       - name: Install Python
