@@ -41,9 +41,9 @@ jobs:
         id: check-existing-cache
         with:
           path: |
-            ${{ github.workspace }}/testfiles
-            !${{ github.workspace }}/testfiles/.git
-            !${{ github.workspace }}/testfiles/*.7z
+            testfiles
+            !testfiles/.git
+            !testfiles/*.7z
           restore-keys: |
             testfiles
           key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
@@ -61,9 +61,9 @@ jobs:
         if: steps.check-existing-cache.outputs.cache-hit != 'true'
         with:
           path: |
-            ${{ github.workspace }}/testfiles
-            !${{ github.workspace }}/testfiles/.git
-            !${{ github.workspace }}/testfiles/*.7z
+            testfiles
+            !testfiles/.git
+            !testfiles/*.7z
           key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
           enableCrossOsArchive: true
 

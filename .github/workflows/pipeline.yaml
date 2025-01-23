@@ -169,9 +169,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{ github.workspace }}/testfiles
-            !${{ github.workspace }}/testfiles/.git
-            !${{ github.workspace }}/testfiles/*.7z
+            testfiles
+            !testfiles/.git
+            !testfiles/*.7z
           restore-keys: |
             testfiles
           key: ${{ inputs.testfiles-cache-key }}
