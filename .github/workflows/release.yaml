@@ -2,7 +2,7 @@ name: Release New Version
 on:
   workflow_run:
     # Run this workflow right after the build succeeds and test pass on the main branch
-    workflows: ["Build Artifacts"]
+    workflows: ["Main Workflow"]
     types: [completed]
     branches:
       - main
