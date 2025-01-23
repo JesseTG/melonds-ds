@@ -140,7 +140,7 @@ jobs:
       - name: Install CCache
         uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875
         with:
-          key: ${{ inputs.runs-on }}-${{ matrix.build-type }}
+          key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
           # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
 
