@@ -6,12 +6,25 @@ on:
     types: [completed]
     branches:
       - main
+  workflow_dispatch:
+    # Allow manual triggering of this workflow
+    inputs:
+      run-id:
+        type: string
+        description: "Workflow run ID"
+        required: false
+      dry-run:
+        type: boolean
+        description: "Skip release steps"
+        required: false
+        default: true
+
 permissions:
   contents: read
 jobs:
   check-release-version:
     name: Check Release Version
-    if: github.ref == 'refs/heads/main' && github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/main' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Source
@@ -44,13 +57,20 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Token required to download artifacts from other workflows in this run
+
+          run-id: '${{ inputs.run-id || github.event.workflow_run.id }}'
+          # Use the run ID from the input if provided, otherwise use the current run ID
+
           path: artifact
+          # Download the artifacts to the `artifact` directory
 
       - name: Zip Release Artifacts
         shell: bash
         working-directory: artifact
         run: |
-          for file in melondsds_libretro-*-Release melondsds_libretro-*-RelWithDebInfo; do
+          for file in melondsds_libretro-*-{Debug,Release,RelWithDebInfo}; do
             zip -r "${file}.zip" "$file"
           done
 
@@ -60,22 +80,20 @@ jobs:
           name: melondsds_libretro.info
           path: artifact/melondsds_libretro-linux-x86_64-Release/cores/melondsds_libretro.info
           # The .info file doesn't vary by platform, so we only need to upload one
+          if-no-files-found: error
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
+        if: "${{ !inputs.dry-run }}"
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           tag_name: "v${{ needs.check-release-version.outputs.newest-version }}"
           body: "${{ needs.check-release-version.outputs.release-notes }}"
+          fail_on_unmatched_files: true
           files: |
-            artifact/melondsds_libretro-win32-x86_64-Release.zip
-            artifact/melondsds_libretro-macos-x86_64-Release.zip
-            artifact/melondsds_libretro-macos-arm64-Release.zip
-            artifact/melondsds_libretro-linux-x86_64-Release.zip
-            artifact/melondsds_libretro-linux-arm64-Release.zip
-            artifact/melondsds_libretro-android-Release.zip
-            artifact/melondsds_libretro-ios-Release.zip
-            artifact/melondsds_libretro-tvos-Release.zip
+            artifact/melondsds_libretro-*-Release.zip
+            artifact/melondsds_libretro-*-RelWithDebInfo.zip
+            artifact/melondsds_libretro-*-Debug.zip
 
       - name: Checkout libretro-super
         uses: actions/checkout@v4
@@ -89,6 +107,7 @@ jobs:
 
       - name: Open Pull Request
         uses: peter-evans/create-pull-request@v7
+        if: "${{ !inputs.dry-run }}"
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
           path: libretro-super

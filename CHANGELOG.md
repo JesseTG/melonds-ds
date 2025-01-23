@@ -39,6 +39,9 @@ Thanks to **@oddballparty** and a private sponsor for their generosity!
 - Added `RelWithDebInfo` builds that include Tracy support.
   These will be distributed on GitHub for all supported platforms,
   starting with this release.
+- Added `Debug` builds that include debugging information and limited optimizations.
+  Useful for debugging crashes and other issues,
+  not recommended for general gameplay.
 - Added a contributor's guide at `CONTRIBUTING.md`.
   [#107](https://github.com/JesseTG/melonds-ds/issues/107)
 - Added guidelines for reporting security vulnerabilities at `SECURITY.md`.
