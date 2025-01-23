@@ -240,19 +240,6 @@ jobs:
           if-no-files-found: error
           path: "${{ env.DIST_DIR }}"
 
-      # This artifact is intended to pass the build directory
-      # to the test suite, not for distributing early builds to testers;
-      # therefore, it's only retained for a day.
-      - name: Upload Build Directory for Test Suite
-        if: ${{ inputs.test-suite }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: "zzz-not-for-players-${{ inputs.archive-name }}-${{ matrix.build-type }}"
-          if-no-files-found: error
-          path: "${{ env.BUILD_DIR }}"
-          retention-days: 1
-          include-hidden-files: true
-
       - name: Run Test Suite (macOS)
         if: ${{ inputs.test-suite && runner.os == 'macOS' }}
         working-directory: "${{ env.BUILD_DIR }}"
