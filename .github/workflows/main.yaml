@@ -44,8 +44,12 @@ jobs:
       - name: Cache Test Files
         uses: actions/cache/save@v4
         with:
-          path: "${{ github.workspace }}/testfiles"
+          path: |
+            ${{ github.workspace }}/testfiles
+            !${{ github.workspace }}/testfiles/.git
+            !${{ github.workspace }}/testfiles/*.7z
           key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
+          enableCrossOsArchive: true
 
     outputs:
       testfiles-cache-key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
