@@ -36,13 +36,29 @@ jobs:
           path: "testfiles"
           persist-credentials: false
 
+      - name: Check For Existing Cache
+        uses: actions/cache/restore@v4
+        id: check-existing-cache
+        with:
+          path: |
+            ${{ github.workspace }}/testfiles
+            !${{ github.workspace }}/testfiles/.git
+            !${{ github.workspace }}/testfiles/*.7z
+          restore-keys: |
+            testfiles
+          key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
+          enableCrossOsArchive: true
+          lookup-only: true
+
       - name: Prepare Test Files
+        if: steps.check-existing-cache.outputs.cache-hit != 'true'
         working-directory: "${{ github.workspace }}/testfiles"
         shell: bash
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
 
       - name: Cache Test Files
         uses: actions/cache/save@v4
+        if: steps.check-existing-cache.outputs.cache-hit != 'true'
         with:
           path: |
             ${{ github.workspace }}/testfiles
