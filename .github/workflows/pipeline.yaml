@@ -66,7 +66,7 @@ on:
         description: The directory in which to place the built artifacts.
         type: string
         required: false
-        default: "build/dist"
+        default: "dist"
       archive-name:
         description: The name of the archive to upload.
         type: string
