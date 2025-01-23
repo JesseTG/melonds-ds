@@ -76,6 +76,9 @@ on:
         type: boolean
         required: false
         default: false
+      testfiles-cache-key:
+        type: string
+        required: false
 env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
@@ -158,16 +161,17 @@ jobs:
         run: |
           pip install -v -r "${{ github.workspace }}/test/requirements.txt"
 
-      - name: Use Cached Test Files
-        if: ${{ inputs.test-suite }}
-        id: cache-test-files
-        uses: actions/cache@v4
+      - name: Restore Cached Test Files
+        if: ${{ inputs.test-suite && inputs.testfiles-cache-key }}
+        id: restore-test-files
+        uses: actions/cache/restore@v4
         with:
           path: "${{ github.workspace }}/testfiles"
-          key: "testfiles"
+          key: ${{ inputs.testfiles-cache-key }}
+          enableCrossOsArchive: true
 
       - name: Download Test Files
-        if: ${{ inputs.test-suite && steps.cache-test-files.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.test-suite && steps.restore-test-files.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
@@ -176,7 +180,7 @@ jobs:
           persist-credentials: false
 
       - name: Prepare Test Files
-        if: ${{ inputs.test-suite && steps.cache-test-files.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.test-suite && steps.restore-test-files.outputs.cache-hit != 'true' }}
         working-directory: "${{ github.workspace }}/testfiles"
         shell: bash
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"

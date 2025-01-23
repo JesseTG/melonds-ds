@@ -21,15 +21,44 @@ on:
       - "*.github/FUNDING.yml"
       - "*.github/workflows/**"
 jobs:
+  fetch-testfiles:
+    name: Fetch Test Files
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Clone Test File Repository
+        uses: actions/checkout@v4
+        id: clone-test-file-repo
+        with:
+          repository: "${{ secrets.TESTFILE_REPO }}"
+          token: "${{ secrets.TESTFILE_REPO_TOKEN }}"
+          path: "testfiles"
+          persist-credentials: false
+
+      - name: Prepare Test Files
+        working-directory: "${{ github.workspace }}/testfiles"
+        shell: bash
+        run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
+
+      - name: Cache Test Files
+        uses: actions/cache/save@v4
+        with:
+          path: "${{ github.workspace }}/testfiles"
+          key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
+
+    outputs:
+      testfiles-cache-key: "testfiles-${{ steps.clone-test-file-repo.outputs.commit }}"
+
   windows:
     name: Windows (x86_64)
     uses: ./.github/workflows/pipeline.yaml
+    needs: fetch-testfiles
     with:
       archive-name: melondsds_libretro-win32-x86_64
       runs-on: windows-latest
       info-dir: info
       shell: msys2 {0}
       test-suite: true
+      testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
@@ -49,10 +78,12 @@ jobs:
   macos-x86_64:
     name: macOS (x86_64)
     uses: ./.github/workflows/pipeline.yaml
+    needs: fetch-testfiles
     with:
       archive-name: melondsds_libretro-macos-x86_64
       runs-on: macos-13
       test-suite: true
+      testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
@@ -73,10 +104,12 @@ jobs:
   macos-arm64:
     name: macOS (arm64)
     uses: ./.github/workflows/pipeline.yaml
+    needs: fetch-testfiles
     with:
       archive-name: melondsds_libretro-macos-arm64
       runs-on: macos-latest
       test-suite: true
+      testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
@@ -97,10 +130,12 @@ jobs:
   linux-x86_64:
     name: Linux (x86_64)
     uses: ./.github/workflows/pipeline.yaml
+    needs: fetch-testfiles
     with:
       archive-name: melondsds_libretro-linux-x86_64
       runs-on: ubuntu-latest
       test-suite: true
+      testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
@@ -119,10 +154,12 @@ jobs:
   linux-aarch64:
     name: Linux (arm64)
     uses: ./.github/workflows/pipeline.yaml
+    needs: fetch-testfiles
     with:
       archive-name: melondsds_libretro-linux-arm64
       runs-on: ubuntu-22.04-arm
       test-suite: true
+      testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
