@@ -146,6 +146,8 @@ jobs:
           key: ${{ inputs.archive-name }}-${{ matrix.build-type }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
           # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
+          verbose: 1
+          evict-old-files: job
 
       - name: Install Python
         if: ${{ inputs.test-suite }}
