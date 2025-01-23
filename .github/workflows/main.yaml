@@ -1,5 +1,6 @@
 name: Main Workflow
-
+permissions:
+  contents: read
 on:
   workflow_dispatch:
   push:
