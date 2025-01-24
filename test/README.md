@@ -24,7 +24,8 @@ Once you do that, you'll need to obtain the following dependencies:
 
 ### Optional: Configuring the Python Environment
 
-By default, CMake finds Python and configures its own internal Python environment in the build directory.
+By default, the test suite will find Python
+and configure its own internal virtual environment in the build directory.
 You can use your own virtual environment or the system Python installation with the following steps:
 
 ```bash
@@ -48,15 +49,16 @@ with the following variables defined on the command line:
 - `DSI_FIRMWARE`: Set to the location of your DSi firmware image.
 - `DSI_NAND`: Set to the location of your DSi NAND image.
 - `NDS_ROM`: Set to the location of your NDS ROM image.
+- `GBA_ROM`: Set to the location of your GBA ROM image.
+- `GBA_SRAM`: Set to the location of a save data image for `GBA_ROM`.
 
 > [!NOTE]
-> The test suite will not modify these files;
-> they will be copied into a temporary directory before each test.
+> The test suite will not modify these files.
+> They will be copied into a temporary directory before each test.
 
 Here's an example:
 
 ```bash
-
 cmake -B build \
     -DBUILD_TESTING=ON \
     -DARM7_BIOS="$SYSTEM_PATH/bios7.bin" \
