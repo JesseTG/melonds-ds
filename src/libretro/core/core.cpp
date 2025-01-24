@@ -77,7 +77,7 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo(RenderMode renderer) 
         .geometry = _screenLayout.Geometry(renderer),
         .timing {
             .fps = FPS,
-            .sample_rate = 32.0f * 1024.0f,
+            .sample_rate = SAMPLE_RATE,
         },
     };
 }

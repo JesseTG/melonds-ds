@@ -22,6 +22,7 @@
 
 namespace MelonDsDs {
 
-    constexpr double FPS = 32.0f * 1024.0f * 1024.0f / 560190.0f;
+    constexpr double FPS = 33513982.0 / 560190.0; // In frames per second
+    constexpr double SAMPLE_RATE =  33513982.0 / 1024.0; // In Hz
     constexpr std::chrono::microseconds US_PER_FRAME {static_cast<int64_t>(1000000.0 / FPS)};
 }

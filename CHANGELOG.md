@@ -33,6 +33,11 @@ With thanks to **@parkerlreed** for his donation this month!
 - Refactored input handling to enable future improvements
   to Slot-2 peripherals and screen layouts.
 
+### Fixed
+
+- Adjusted the core's framerate and sample rate
+  to match that of the actual hardware.
+
 ## [1.1.8] - 2024-10-18
 
 Thanks to **@oddballparty** and a private sponsor for their generosity!
