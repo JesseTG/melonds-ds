@@ -33,6 +33,7 @@ With thanks to **@parkerlreed** for his donation this month!
 - Updated melonDS to commit [d8f1d10](https://github.com/melonDS-emu/melonDS/tree/d8f1d10).
 - Refactored input handling to enable future improvements
   to Slot-2 peripherals and screen layouts.
+- Disabled fast-forwarding while a LAN multiplayer session is active.
 
 ### Fixed
 

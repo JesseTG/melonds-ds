@@ -23,10 +23,23 @@
 
 using namespace melonDS;
 
+constexpr retro_fastforwarding_override FASTFORWARD_OVERRIDE_FORBIDDEN = {
+    1.0f,
+    false,
+    false,
+    true,
+};
+
 void MelonDsDs::CoreState::MpStarted(retro_netpacket_send_t send, retro_netpacket_poll_receive_t poll_receive) noexcept {
     ZoneScopedN(TracyFunction);
     _mpState.SetSendFn(send);
     _mpState.SetPollFn(poll_receive);
+    if (retro::set_fastforwarding_override(FASTFORWARD_OVERRIDE_FORBIDDEN)) {
+        retro::info("Disabled fastforwarding for multiplayer");
+    }
+    else {
+        retro::warn("Failed to disable fastforwarding for multiplayer");
+    }
     retro::info("Starting multiplayer on libretro side");
 }
 
@@ -39,6 +52,7 @@ void MelonDsDs::CoreState::MpStopped() noexcept {
     ZoneScopedN(TracyFunction);
     _mpState.SetSendFn(nullptr);
     _mpState.SetPollFn(nullptr);
+    retro::clear_fastforwarding_override();
     retro::info("Stopping multiplayer on libretro side");
 }
 

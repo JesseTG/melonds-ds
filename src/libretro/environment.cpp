@@ -733,6 +733,18 @@ std::optional<float> retro::sensor_get_input(unsigned port, unsigned id) noexcep
     return _sensor.get_sensor_input(port, id);
 }
 
+bool retro::set_fastforwarding_override(const retro_fastforwarding_override& override) noexcept {
+    return environment(RETRO_ENVIRONMENT_SET_FASTFORWARDING_OVERRIDE, (void*) &override);
+}
+
+bool retro::clear_fastforwarding_override() noexcept {
+    retro_fastforwarding_override override {};
+    override.inhibit_toggle = false;
+    override.ratio = 1.0f;
+
+    return set_fastforwarding_override(override);
+}
+
 void retro::env::init() noexcept {
     ZoneScopedN(TracyFunction);
     retro_assert(_environment != nullptr);

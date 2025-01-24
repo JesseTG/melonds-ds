@@ -116,6 +116,9 @@ namespace retro {
     bool set_sensor_state(unsigned port, retro_sensor_action action, unsigned rate) noexcept;
     std::optional<float> sensor_get_input(unsigned port, unsigned id) noexcept;
 
+    bool set_fastforwarding_override(const retro_fastforwarding_override& override) noexcept;
+    bool clear_fastforwarding_override() noexcept;
+
     std::optional<retro_microphone_interface> get_microphone_interface() noexcept;
     std::optional<bool> is_fastforwarding() noexcept;
     std::optional<retro_throttle_state> get_throttle_state() noexcept;
