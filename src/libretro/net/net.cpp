@@ -107,8 +107,7 @@ MelonDsDs::NetState::NetState()
 #endif
 {
     _net.RegisterInstance(0);
-    // TODO: Handle registration properly when it comes time to actually integrate LAN support
-    // (not yet sure what that'll entail)
+    // TODO: Handle registration properly (not yet sure what that'll entail)
 }
 
 MelonDsDs::NetState::~NetState() noexcept
