@@ -74,10 +74,8 @@ bool MelonDsDs::CoreState::MpActive() const noexcept {
 // Not much we can do in Begin and End
 void Platform::MP_Begin(void*) {
     ZoneScopedN(TracyFunction);
-    retro::info("Starting multiplayer on DS side");
 }
 
 void Platform::MP_End(void*) {
     ZoneScopedN(TracyFunction);
-    retro::info("Ending multiplayer on DS side");
 }
