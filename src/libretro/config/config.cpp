@@ -26,6 +26,7 @@
 #include <initializer_list>
 #include <memory>
 #include <span>
+#include <random>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -588,8 +589,6 @@ static void MelonDsDs::config::ParseFirmwareOptions(CoreConfig& config) noexcept
         retro::warn("Failed to get value for {}; defaulting to existing firmware value", firmware::WFC_DNS);
         config.SetDnsServer(nullopt);
     }
-
-    // TODO: Make MAC address configurable with a file at runtime
 }
 
 static void MelonDsDs::config::ParseAudioOptions(CoreConfig& config) noexcept {
@@ -627,10 +626,10 @@ static void MelonDsDs::config::ParseAudioOptions(CoreConfig& config) noexcept {
 }
 
 static void MelonDsDs::config::ParseNetworkOptions(CoreConfig& config) noexcept {
-#ifdef HAVE_NETWORKING
     ZoneScopedN(TracyFunction);
     using retro::get_variable;
 
+#ifdef HAVE_NETWORKING
     if (optional<NetworkMode> value = ParseNetworkMode(get_variable(network::NETWORK_MODE))) {
         config.SetNetworkMode(*value);
     } else {
@@ -647,6 +646,62 @@ static void MelonDsDs::config::ParseNetworkOptions(CoreConfig& config) noexcept 
     }
 #endif
 #endif
+
+    if (string_view macAddrModeText = get_variable(network::MAC_ADDRESS_MODE); macAddrModeText == values::FROM_USERNAME) {
+        optional<string_view> retro_username = retro::username();
+        if (retro_username) {
+            // The first 3 bytes of a MAC address are special:
+            // they identify the manufacturer
+            // 00:09:BF is the manufacturer of the default firmware.
+            // We use 00:08:BF to differentiate and because
+            // it is not assigned to anyone else.
+            // (Not that this MAC address will be used outside the emulated network)
+            melonDS::MacAddress addr{0x00, 0x08, 0xBF, 0, 0, 0};
+            std::uint32_t seed = 0;
+            // We use our own hashing algorithm to guarantee same output with different compilers
+            // Our hash does not need to be very good because we already have an rng engine.
+            for (char c : *retro_username) {
+                // Protect against signed char/unsigned char differences
+                if (c < 0) {
+                    c *= -1;
+                }
+                std::uint32_t thisCharSeed = c;
+                // 1419857 = 17^5
+                // Shift left 4 bits (multiply by 16), then add the previous value 5 times,
+                // but done in a quick multiplications instead of a loop.
+                // (a * 17) = (a * 16) + a = (a << 4) + a
+                // Why 5 times? Because UINT32_MAX/(17^5) > CHAR_MAX, assuming char is <= 8 bits,
+                // which means there is no risk of overflow, which is implementation-defined.
+                thisCharSeed *= 1419857;
+                seed ^= thisCharSeed;
+            }
+            // We use a specific engine here to guarantee same output with different devices and compilers
+            // This is the same as std::mt19937 but with the fixed uint32_t
+            // instead of the implementation-defined uint_fast32_t
+            std::mersenne_twister_engine<std::uint32_t,
+                             32, 624, 397, 31,
+                             0x9908b0df, 11,
+                             0xffffffff, 7,
+                             0x9d2c5680, 15,
+                             0xefc60000, 18, 1812433253> rng_engine{seed};
+            for (int i = 3; i <= 5; i++) {
+                // Usually using modulo is a bad way to narrow a random distribution
+                // However because UINT32_MAX + 1 % 256 = 0, it is actually ok.
+                // Another way to think is that we are taking the eight lowest bits
+                addr[i] = rng_engine() % 256;
+            }
+            config.SetMacAddress(addr);
+        } else {
+            config.SetMacAddress(nullopt);
+        }
+    } else if (macAddrModeText == values::FIRMWARE) {
+        config.SetMacAddress(nullopt);
+    } else if (optional<melonDS::MacAddress> fileAddress = ParseMacAddress(macAddrModeText)) {
+        config.SetMacAddress(fileAddress);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to existing firmware value", network::MAC_ADDRESS_MODE);
+        config.SetMacAddress(nullopt);
+    }
 }
 
 static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
@@ -767,6 +822,11 @@ struct FirmwareEntry {
     struct stat stat;
 };
 
+struct MacAddressEntry {
+    std::string description;
+    std::string printedAddress;
+};
+
 static time_t NewestTimestamp(const struct stat& statbuf) noexcept {
     return std::max({statbuf.st_atime, statbuf.st_mtime, statbuf.st_ctime});
 }
@@ -832,6 +892,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 
     vector<string> dsiNandPaths;
     vector<FirmwareEntry> firmware;
+    vector<MacAddressEntry> macAddresses;
     optional<string_view> sysdir = retro::get_system_directory();
 
     if (subdir) {
@@ -845,6 +906,13 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
             ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths");
             for (const retro::dirent& d : retro::readdir(string(path), true)) {
                 ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths::dirent");
+                if (optional<melonDS::MacAddress> address = ParseMacAddressFile(d)) {
+                    string_view prettyPath{d.path};
+                    prettyPath.remove_prefix(sysdir->size() + 1);
+                    std::string description = fmt::format("Read from file \"{}\" ({})", prettyPath, PrintMacAddress(*address));
+                    macAddresses.emplace_back(MacAddressEntry{std::move(description), PrintMacAddress(*address)});
+                }
+
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
                 } else if (IsFirmwareImage(d, header)) {
@@ -912,7 +980,24 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
         retro_assert(firmwarePathOption->default_value != nullptr);
         retro_assert(firmwarePathDsiOption->default_value != nullptr);
     }
-
+    if(!macAddresses.empty()) {
+        ZoneScopedN("MelonDsDs::config::set_core_options::init_mac_address_options");
+        retro_core_option_v2_definition* macAddressOption = find_if(definitions.begin(), definitions.end(), [](const auto& def) {
+            return string_is_equal(def.key, MelonDsDs::config::network::MAC_ADDRESS_MODE);
+        });
+        retro_assert(macAddressOption != definitions.end());
+        int existingOptions = 0;
+        while (macAddressOption->values[existingOptions++].value != nullptr && existingOptions != RETRO_NUM_CORE_OPTION_VALUES_MAX) {
+        }
+        existingOptions--;
+        int length = std::min((int)macAddresses.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - existingOptions);
+        for (int i = 0; i < length; ++i) {
+            macAddressOption->values[i + existingOptions] = { macAddresses[i].printedAddress.data(), macAddresses[i].description.data() };
+        }
+        if(length + existingOptions < RETRO_NUM_CORE_OPTION_VALUES_MAX) {
+            macAddressOption->values[length + existingOptions] = { nullptr, nullptr };
+        }
+    }
 
     // TODO: Pass in the LibPCap instance created by NetState
     // TODO: Create a DynamicOption class, pass in instances of that

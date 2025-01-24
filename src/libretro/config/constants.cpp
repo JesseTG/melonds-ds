@@ -16,7 +16,10 @@
 
 #include "constants.hpp"
 
+#include <SPI_Firmware.h>
 #include <algorithm>
+#include <regex>
+#include <fmt/format.h>
 #include <string>
 #include <fmt/ranges.h>
 #include <net/net_compat.h>
@@ -25,6 +28,7 @@
 #include <file/file_path.h>
 #include <streams/file_stream.h>
 
+#include "retro/file.hpp"
 #include "types.hpp"
 #include "environment.hpp"
 #include "retro/dirent.hpp"
@@ -169,4 +173,97 @@ bool MelonDsDs::config::IsFirmwareImage(const retro::dirent& file, Firmware::Fir
 
     memcpy(&header, &buffer, sizeof(buffer));
     return true;
+}
+
+// A MAC address has 6 bytes, each with two hexadecimal characters,
+// and 5 colons (:) for separators
+constexpr int MacAddressStringSize = 2*6 + 5;
+
+std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddressFile(const retro::dirent &file) noexcept {
+    ZoneScopedN(TracyFunction);
+    ZoneText(file.path, strnlen(file.path, sizeof(file.path)));
+    retro::debug("Reading file {}", file.path);
+
+    if(!file.is_regular_file()) {
+        retro::debug("{} is not a regular file, it's not a mac address file", file.path);
+        return std::nullopt;
+    }
+
+    if(!string_ends_with(file.path, ".txt")) {
+        retro::debug("{} is not a mac address file, it does not end with .txt", file.path);
+        return std::nullopt;
+    }
+    if (file.size < MacAddressStringSize) {
+        retro::debug("{} is not a mac address file, it is too small", file.path);
+        return std::nullopt;
+    }
+
+    char buffer[MacAddressStringSize];
+    retro::rfile_ptr stream = retro::make_rfile(file.path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+    int64_t bytesRead = filestream_read(stream.get(), &buffer, sizeof(buffer));
+    if (bytesRead < MacAddressStringSize) {
+        if (bytesRead < 0) {
+            retro::warn("Failed to read {}", file.path);
+        } else {
+            retro::warn("Tried to read {} bytes, ended up reading {} bytes instead", MacAddressStringSize, bytesRead);
+        }
+        return std::nullopt;
+    }
+
+    std::optional<melonDS::MacAddress> ret =  MelonDsDs::config::ParseMacAddress(std::string_view{buffer, sizeof(buffer)});
+    if (!ret.has_value()) {
+        retro::debug("Could not read the mac address from \"{}\"", std::string_view{buffer, sizeof(buffer)});
+    }
+    return ret;
+}
+
+std::optional<melonDS::MacAddress> MelonDsDs::config::ParseMacAddress(std::string_view s) noexcept {
+    // This would be 5 lines if scanf worked on string_view
+    melonDS::MacAddress ret;
+    const static std::regex pattern{"^([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})[:-]([[:xdigit:]]{2})$", std::regex_constants::extended};
+    std::match_results<std::string_view::const_iterator> results;
+    if (!std::regex_match(s.cbegin(), s.cend(), results, pattern)) {
+        return std::nullopt;
+    } else {
+        int readOctets = 0;
+        bool firstMatch = true;
+        for (const std::sub_match<std::string_view::const_iterator> &octetMatch : results) {
+            if (firstMatch) {
+                // The first match is always the whole string
+                firstMatch = false;
+                continue;
+            }
+            if (readOctets == 6) {
+                break;
+            }
+            char octetNullString[3];
+            if (octetMatch.length() != 2) {
+                return std::nullopt;
+            }
+            std::string_view::const_iterator matchIter = octetMatch.first;
+            octetNullString[0] = *matchIter;
+            matchIter++;
+            octetNullString[1] = *matchIter;
+            octetNullString[2] = '\0';
+            char *end = nullptr;
+            unsigned long octetValue = std::strtoul(octetNullString, &end, 16);
+            if (end != octetNullString + 2) {
+                return std::nullopt;
+            }
+            if (octetValue > 255) {
+                // Not sure how this would be possible
+                return std::nullopt;
+            }
+            ret[readOctets++] = octetValue;
+        }
+        if (readOctets != 6) {
+            return std::nullopt;
+        }
+        return ret;
+    }
+}
+
+std::string MelonDsDs::config::PrintMacAddress(const melonDS::MacAddress &address) noexcept {
+    return fmt::format("{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", address[0], address[1], address[2], address[3], address[4], address[5]);
 }

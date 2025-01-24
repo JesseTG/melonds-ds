@@ -50,6 +50,7 @@ namespace MelonDsDs::config::definitions {
 #   endif
 #endif
 
+        LanMacAddressMode,
 #ifdef HAVE_NETWORKING
         NetworkMode,
 #   ifdef HAVE_NETWORKING_DIRECT_MODE

@@ -1,3 +1,18 @@
+/*
+    Copyright 2024 Bernardo Gomes Negri
+
+    melonDS DS is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
+
+    melonDS DS is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with melonDS DS. If not, see http://www.gnu.org/licenses/.
+*/
 #include "mp.hpp"
 #include "environment.hpp"
 #include <ctime>
@@ -6,6 +21,9 @@
 #include <retro_endianness.h>
 using namespace MelonDsDs;
 
+// How many successive timeouts before
+// the player gets notified they are not supposed to use a VPN.
+constexpr int SUCCESSIVE_TIMEOUTS_WARNING = 6;
 constexpr long RECV_TIMEOUT_MS = 25;
 
 uint64_t swapToNetwork(uint64_t n) {
@@ -75,6 +93,9 @@ bool MpState::IsReady() const noexcept {
 }
 
 void MpState::SetSendFn(retro_netpacket_send_t sendFn) noexcept {
+    if (sendFn != nullptr) {
+        retro::set_warn_message("LAN Multiplayer will NOT work using VPNs or tunnels such as Hamachi!");
+    }
     _sendFn = sendFn;
 }
 
@@ -101,6 +122,7 @@ std::optional<Packet> MpState::NextPacket() noexcept {
     if(receivedPackets.empty()) {
         return std::nullopt;
     } else {
+        _timeoutCount = 0;
         Packet p = receivedPackets.front();
         receivedPackets.pop();
         return p;
@@ -119,6 +141,11 @@ std::optional<Packet> MpState::NextPacketBlock() noexcept {
         }
     } else {
         return NextPacket();
+    }
+    _timeoutCount++;
+    if (_timeoutCount >= SUCCESSIVE_TIMEOUTS_WARNING && !_warnedHighLatency) {
+        retro::set_warn_message("LAN Multiplayer will NOT work using VPNs or tunnels such as Hamachi!");
+        _warnedHighLatency = true;
     }
     retro::debug("Timeout while waiting for packet");
     return std::nullopt;
