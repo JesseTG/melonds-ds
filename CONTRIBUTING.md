@@ -146,7 +146,7 @@ Most other dependencies are fetched automatically by CMake.
 2. Install dependencies like so:
 
    ```sh
-   brew install cmake git pkg-config cmake
+   brew install cmake git pkg-config
    ```
 3. Install Xcode and the Xcode command-line tools.
 4. Proceed to [Compilation](#compilation).
