@@ -35,6 +35,7 @@ body:
       options:
         - I don't know.
         - Yes, in the latest stable release (0.9.5).
+        - Yes, in the release candidate (1.0-RC).
         - Yes, in the latest commit on master.
         - No, it's a bug specific to melonDS DS.
       default: 0
