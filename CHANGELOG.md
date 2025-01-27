@@ -27,6 +27,8 @@ With thanks to **@parkerlreed** for his donation this month!
   It can be enabled in the core options menu,
   even without using a real Boktai trilogy ROM.
   [#43](https://github.com/JesseTG/melonds-ds/issues/43)
+- Integrated support for Gaussian audio interpolation.
+  [#234](https://github.com/JesseTG/melonds-ds/issues/234)
 
 ### Changed
 

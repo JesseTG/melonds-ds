@@ -219,6 +219,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const FLIPPED_HYBRID_BOTTOM = "flipped-hybrid-bottom";
         static constexpr const char *const FLIPPED_HYBRID_TOP = "flipped-hybrid-top";
         static constexpr const char *const FRENCH = "fr";
+        static constexpr const char *const GAUSSIAN = "gaussian";
         static constexpr const char *const GERMAN = "de";
         static constexpr const char *const HOLD = "hold";
         static constexpr const char *const HYBRID_BOTTOM = "hybrid-bottom";

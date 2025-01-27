@@ -101,6 +101,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::LINEAR, "Linear"},
             {MelonDsDs::config::values::COSINE, "Cosine"},
             {MelonDsDs::config::values::CUBIC, "Cubic"},
+            {MelonDsDs::config::values::GAUSSIAN, "Gaussian"},
             {nullptr, nullptr},
         },
         MelonDsDs::config::values::DISABLED

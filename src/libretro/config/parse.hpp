@@ -213,6 +213,7 @@ namespace MelonDsDs {
         if (value == config::values::CUBIC) return melonDS::AudioInterpolation::Cubic;
         if (value == config::values::COSINE) return melonDS::AudioInterpolation::Cosine;
         if (value == config::values::LINEAR) return melonDS::AudioInterpolation::Linear;
+        if (value == config::values::GAUSSIAN) return melonDS::AudioInterpolation::SNESGaussian;
         if (value == config::values::DISABLED) return melonDS::AudioInterpolation::None;
 
         return std::nullopt;
