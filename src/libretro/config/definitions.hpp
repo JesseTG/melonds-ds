@@ -134,26 +134,5 @@ namespace MelonDsDs::config::definitions {
 #endif
         retro_core_option_v2_definition {},
     };
-
-    constexpr bool AreOptionKeysUnique() {
-        for (size_t i = 0; i < CoreOptionDefinitions.size(); ++i) {
-            for (size_t j = i + 1; j < CoreOptionDefinitions.size(); ++j) {
-                if (CoreOptionDefinitions[i].key == CoreOptionDefinitions[j].key) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    static_assert(
-        CoreOptionDefinitions[CoreOptionDefinitions.size() - 1].key == nullptr,
-        "CoreOptionDefinitions must end with a null key"
-    );
-
-#ifndef __clang__
-    // Work around a clang bug (can't compare pointers for some reason)
-    static_assert(AreOptionKeysUnique());
-#endif
 }
 #endif //MELONDS_DS_DEFINITIONS_HPP

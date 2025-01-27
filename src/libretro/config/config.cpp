@@ -120,6 +120,31 @@ namespace MelonDsDs::config {
 
 }
 
+namespace MelonDsDs::config::definitions {
+    // If I mess up an option definition,
+    // the following static_asserts should catch it.
+    constexpr static bool AreOptionKeysUnique() {
+        for (size_t i = 0; i < CoreOptionDefinitions.size(); ++i) {
+            for (size_t j = i + 1; j < CoreOptionDefinitions.size(); ++j) {
+                if (CoreOptionDefinitions[i].key == CoreOptionDefinitions[j].key) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    static_assert(
+        CoreOptionDefinitions[CoreOptionDefinitions.size() - 1].key == nullptr,
+        "CoreOptionDefinitions must end with a null key"
+    );
+
+#ifndef __clang__
+    // Work around a clang bug (can't compare pointers for some reason)
+    static_assert(AreOptionKeysUnique());
+#endif
+}
+
 void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     config::ParseSystemOptions(config);
