@@ -94,7 +94,10 @@ retro::Scaler::Scaler(Scaler&& other) noexcept {
     ZoneScopedN("scaler_ctx_gen_reset");
     scaler_ctx_gen_reset(&scaler);
     scaler = other.scaler;
+    _dirty = other._dirty;
+
     other.scaler = {};
+    other._dirty = false;
 }
 
 retro::Scaler& retro::Scaler::operator=(Scaler&& other) noexcept {
@@ -102,26 +105,41 @@ retro::Scaler& retro::Scaler::operator=(Scaler&& other) noexcept {
         ZoneScopedN("scaler_ctx_gen_reset");
         scaler_ctx_gen_reset(&scaler);
         scaler = other.scaler;
+        _dirty = other._dirty;
         other.scaler = {};
+        other._dirty = false;
     }
     return *this;
 }
 
 void retro::Scaler::SetOutSize(unsigned width, unsigned height) noexcept {
-    if (scaler.out_width == width && scaler.out_height == height)
-        return;
+    if (scaler.out_width != width || scaler.out_height != height) {
+        _dirty = true;
+    }
 
     scaler.out_width = width;
     scaler.out_height = height;
     scaler.out_stride = width * PixelSize(scaler.out_fmt);
-    ZoneScopedN("scaler_ctx_gen_filter");
-    scaler_ctx_gen_filter(&scaler);
 }
 
 void retro::Scaler::Scale(void *output, const void *input) noexcept {
     if (output == nullptr || input == nullptr)
         return;
 
+    if (_dirty) {
+        Update();
+    }
+
     ZoneScopedN("scaler_ctx_scale");
     scaler_ctx_scale(&scaler, output, input);
+}
+
+void retro::Scaler::Update() noexcept {
+    if (!_dirty)
+        return;
+
+    ZoneScopedN("scaler_ctx_gen_filter");
+    scaler_ctx_gen_filter(&scaler);
+
+    _dirty = false;
 }

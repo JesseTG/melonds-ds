@@ -31,18 +31,26 @@ namespace retro {
         Scaler& operator=(Scaler&&) noexcept;
 
         [[nodiscard]] scaler_type GetScalerType() const noexcept { return scaler.scaler_type; }
-        void SetScalerType(scaler_type type) noexcept { scaler.scaler_type = type; }
+        void SetScalerType(scaler_type type) noexcept {
+            if (scaler.scaler_type != type) {
+                _dirty = true;
+            }
+            scaler.scaler_type = type;
+        }
         void Scale(void *output, const void *input) noexcept;
-        unsigned InWidth() const noexcept { return scaler.in_width; }
-        unsigned InHeight() const noexcept { return scaler.in_height; }
-        unsigned InStride() const noexcept { return scaler.in_stride; }
+        [[nodiscard]] unsigned InWidth() const noexcept { return scaler.in_width; }
+        [[nodiscard]] unsigned InHeight() const noexcept { return scaler.in_height; }
+        [[nodiscard]] unsigned InStride() const noexcept { return scaler.in_stride; }
 
         void SetOutSize(unsigned width, unsigned height) noexcept;
-        unsigned OutWidth() const noexcept { return scaler.out_width; }
-        unsigned OutHeight() const noexcept { return scaler.out_height; }
-        unsigned OutStride() const noexcept { return scaler.out_stride; }
+        [[nodiscard]] unsigned OutWidth() const noexcept { return scaler.out_width; }
+        [[nodiscard]] unsigned OutHeight() const noexcept { return scaler.out_height; }
+        [[nodiscard]] unsigned OutStride() const noexcept { return scaler.out_stride; }
     private:
+        void Update() noexcept;
+
         scaler_ctx scaler {};
+        bool _dirty = false;
     };
 }
 
