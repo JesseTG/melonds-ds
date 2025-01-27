@@ -53,7 +53,6 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     ShowSoftwareRenderOptions = !ShowOpenGlOptions;
     if (!VisibilityInitialized || ShowOpenGlOptions != oldShowOpenGlOptions) {
         set_option_visible(video::OPENGL_RESOLUTION, ShowOpenGlOptions);
-        set_option_visible(video::OPENGL_FILTERING, ShowOpenGlOptions);
         set_option_visible(video::OPENGL_BETTER_POLYGONS, ShowOpenGlOptions);
         updated = true;
     }
@@ -140,6 +139,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     if (!VisibilityInitialized || ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(screen::HYBRID_SMALL_SCREEN, ShowHybridOptions);
         set_option_visible(screen::HYBRID_RATIO, ShowHybridOptions);
+        set_option_visible(screen::HYBRID_SCREEN_FILTERING, ShowHybridOptions);
         updated = true;
     }
 

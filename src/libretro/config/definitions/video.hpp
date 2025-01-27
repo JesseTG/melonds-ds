@@ -83,26 +83,6 @@ namespace MelonDsDs::config::definitions {
         },
         MelonDsDs::config::values::DISABLED
     };
-
-    constexpr retro_core_option_v2_definition OpenGlFiltering {
-        config::video::OPENGL_FILTERING,
-        "Screen Filtering",
-        nullptr,
-        "Affects how the emulated screens are scaled to fit the real screen. "
-        "Performance impact is minimal. "
-        "OpenGL renderer only.\n"
-        "\n"
-        "Nearest: No filtering. Graphics look blocky.\n"
-        "Linear: Smooth scaling.\n",
-        nullptr,
-        config::video::CATEGORY,
-        {
-            {MelonDsDs::config::values::NEAREST, "Nearest"},
-            {MelonDsDs::config::values::LINEAR, "Linear"},
-            {nullptr, nullptr},
-        },
-        MelonDsDs::config::values::NEAREST
-    };
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
     constexpr retro_core_option_v2_definition ThreadedSoftwareRenderer {
@@ -128,7 +108,6 @@ namespace MelonDsDs::config::definitions {
         RenderMode,
         OpenGlScaleFactor,
         OpenGlBetterPolygons,
-        OpenGlFiltering,
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
         ThreadedSoftwareRenderer,

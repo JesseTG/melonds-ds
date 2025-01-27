@@ -123,6 +123,24 @@ namespace MelonDsDs::config::definitions {
         MelonDsDs::config::values::BOTH
     };
 
+    constexpr retro_core_option_v2_definition HybridScreenFiltering {
+        config::screen::HYBRID_SCREEN_FILTERING,
+        "Hybrid Screen Filtering",
+        nullptr,
+        "Affects how the hybrid screen is scaled up.\n"
+        "\n"
+        "Nearest: No filtering. Graphics look blocky.\n"
+        "Linear: Smooth scaling.\n",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {MelonDsDs::config::values::NEAREST, "Nearest"},
+            {MelonDsDs::config::values::LINEAR, "Linear"},
+            {nullptr, nullptr},
+        },
+        MelonDsDs::config::values::NEAREST
+    };
+
     constexpr retro_core_option_v2_definition ScreenGap {
         config::screen::SCREEN_GAP,
         "Screen Gap",
@@ -509,6 +527,7 @@ namespace MelonDsDs::config::definitions {
         ScreenLayout8,
         HybridRatio,
         HybridSmallScreen,
+        HybridScreenFiltering,
         ScreenGap,
     };
 }

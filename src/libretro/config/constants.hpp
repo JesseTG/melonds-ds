@@ -97,6 +97,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const CATEGORY = "screen";
         static constexpr const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
         static constexpr const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
+        // HYBRID_SCREEN_FILTERING is no longer OpenGL-exclusive but the name is kept for compatibility
+        static constexpr const char *const HYBRID_SCREEN_FILTERING = "melonds_opengl_filtering";
         static constexpr const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
         static constexpr const char *const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
         static constexpr const char *const SCREEN_GAP = "melonds_screen_gap";

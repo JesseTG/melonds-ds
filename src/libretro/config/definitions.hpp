@@ -72,6 +72,7 @@ namespace MelonDsDs::config::definitions {
         ScreenLayout8,
         HybridRatio,
         HybridSmallScreen,
+        HybridScreenFiltering,
         ScreenGap,
 
         DnsOverride,
@@ -116,7 +117,6 @@ namespace MelonDsDs::config::definitions {
         RenderMode,
         OpenGlScaleFactor,
         OpenGlBetterPolygons,
-        OpenGlFiltering,
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
         ThreadedSoftwareRenderer,
