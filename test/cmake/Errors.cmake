@@ -36,3 +36,10 @@ add_python_test(
     CONTENT "$<TARGET_FILE:melondsds_libretro>"
     WILL_FAIL
 )
+
+add_python_test(
+    NAME "Loading save data as a ROM does not cause a crash"
+    TEST_MODULE basics.core_loads_unloads_with_content
+    CONTENT "${GBA_SRAM}"
+    WILL_FAIL
+)

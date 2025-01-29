@@ -47,6 +47,9 @@ With thanks to **@parkerlreed** for his donation this month!
   to match that of the actual hardware.
 - Show the screen filtering option even when the software renderer is enabled.
   [#250](https://github.com/JesseTG/melonds-ds/issues/250)
+- Fixed a crash that would occur when inadvertently loading
+  NDS or GBA save data as a ROM.
+  The core now exits with an error message instead.
 
 ## [1.1.8] - 2024-10-18
 

@@ -26,6 +26,7 @@
 #include <NDS.h>
 #include <compat/strl.h>
 #include <file/file_path.h>
+#include <string/stdstring.h>
 
 #include "constants.hpp"
 #include "../config/console.hpp"
@@ -578,6 +579,12 @@ catch (const config_exception& e) {
 
     return InitErrorScreen(e);
 }
+catch (const content_exception& e) {
+    // Thrown for invalid ROMs
+    retro::error("{}", e.what());
+    retro::set_error_message(e.what());
+    return false;
+}
 catch (const emulator_exception& e) {
     // Thrown for invalid ROMs
     retro::error("{}", e.what());
@@ -719,7 +726,23 @@ void MelonDsDs::CoreState::InitContent(unsigned type, std::span<const retro_game
             [[fallthrough]];
         case MELONDSDS_GAME_TYPE_NDS:
             if (!game.empty()) {
-                retro_assert(game[0].data != nullptr);
+                // Not an error if no content was provided,
+                // it means we're loading the DS or DSi menu
+
+                const char* extension = path_get_extension(game[0].path);
+
+                if (string_is_equal("sav", extension) || string_is_equal("srm", extension)) {
+                    throw content_exception("Loaded a save file instead of a ROM, ensure that you opened the right file.");
+                }
+
+                if (game[0].size == 0) {
+                    throw content_exception("Loaded an empty file as content, please load a valid Nintendo DS ROM.");
+                }
+
+                if (game[0].data == nullptr) {
+                    throw content_exception("Failed to load the content data, the frontend may have a bug.");
+                }
+
                 _ndsInfo = game[0];
             }
             break;

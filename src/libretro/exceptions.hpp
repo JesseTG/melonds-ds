@@ -43,6 +43,12 @@ namespace MelonDsDs
         std::string _user_message;
     };
 
+    /// Thrown when a loaded content file is problematic.
+    class content_exception : public std::runtime_error {
+    public:
+       using std::runtime_error::runtime_error;
+    };
+
     /// An environment call failed, and there's no way to recover.
     class environment_exception : public emulator_exception {
     public:
