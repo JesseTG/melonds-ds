@@ -98,6 +98,7 @@ jobs:
       NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
       DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
       NDS_ROM: ${{ secrets.NDS_ROM }}
+      DSIWARE_ROM: ${{ secrets.DSIWARE_ROM }}
       GBA_ROM: ${{ secrets.GBA_ROM }}
       GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
@@ -128,6 +129,7 @@ jobs:
       NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
       DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
       NDS_ROM: ${{ secrets.NDS_ROM }}
+      DSIWARE_ROM: ${{ secrets.DSIWARE_ROM }}
       GBA_ROM: ${{ secrets.GBA_ROM }}
       GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
@@ -158,6 +160,7 @@ jobs:
       NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
       DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
       NDS_ROM: ${{ secrets.NDS_ROM }}
+      DSIWARE_ROM: ${{ secrets.DSIWARE_ROM }}
       GBA_ROM: ${{ secrets.GBA_ROM }}
       GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
@@ -186,6 +189,7 @@ jobs:
       NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
       DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
       NDS_ROM: ${{ secrets.NDS_ROM }}
+      DSIWARE_ROM: ${{ secrets.DSIWARE_ROM }}
       GBA_ROM: ${{ secrets.GBA_ROM }}
       GBA_SRAM: ${{ secrets.GBA_SRAM }}
 
@@ -214,6 +218,7 @@ jobs:
       NDS_FIRMWARE: ${{ secrets.NDS_FIRMWARE }}
       DSI_FIRMWARE: ${{ secrets.DSI_FIRMWARE }}
       NDS_ROM: ${{ secrets.NDS_ROM }}
+      DSIWARE_ROM: ${{ secrets.DSIWARE_ROM }}
       GBA_ROM: ${{ secrets.GBA_ROM }}
       GBA_SRAM: ${{ secrets.GBA_SRAM }}
 

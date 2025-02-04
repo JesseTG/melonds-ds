@@ -31,6 +31,13 @@ else()
     message(DEBUG "NDS_ROM: ${NDS_ROM}")
 endif()
 
+if (NOT DSIWARE_ROM)
+    message(WARNING "DSIWARE_ROM must be set to the path of a DSiWare ROM (not a DSi-enabled cartridge)")
+    set(DSIWARE_ROM "DSIWARE_ROM-NOTFOUND" CACHE FILEPATH "Path to a DSiWare ROM" FORCE)
+else()
+    message(DEBUG "DSIWARE_ROM: ${DSIWARE_ROM}")
+endif()
+
 if (NOT GBA_ROM)
     message(WARNING "GBA_ROM must be set to the path of a GBA ROM")
     set(GBA_ROM "GBA_ROM-NOTFOUND" CACHE FILEPATH "Path to a GBA ROM" FORCE)

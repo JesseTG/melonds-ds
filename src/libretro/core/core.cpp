@@ -28,6 +28,7 @@
 #include <file/file_path.h>
 #include <string/stdstring.h>
 
+#include "console/dsi.hpp"
 #include "constants.hpp"
 #include "../config/console.hpp"
 #include "../exceptions.hpp"
@@ -443,32 +444,38 @@ void MelonDsDs::CoreState::StartConsole() {
 
     SetConsoleTime(*Console);
 
-    if (_ndsInfo && Console->GetNDSCart() && !Console->GetNDSCart()->GetHeader().IsDSiWare()) {
-        SetUpDirectBoot(*Console, *_ndsInfo);
+    if (_ndsInfo) {
+        // If we just loaded a game...
+        const auto& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
+        bool isDsiMode = Console->ConsoleType == static_cast<int>(ConsoleType::DSi);
+        bool isDirectBootConfigured = Config.BootMode() == BootMode::Direct;
+        if (isDirectBootConfigured && isDsiMode && header.IsDSiWare()) {
+            // If we're in DSi mode and this is a DSiWare game...
+            SetUpDSiWareDirectBoot(*static_cast<melonDS::DSi*>(Console.get()), header);
+            // upstream melonDS doesn't support direct boot for DSiWare,
+            // but this core does thanks to discoveries by CasualPokePlayer
+        }
+        else if (Console->GetNDSCart() && !header.IsDSiWare() && (isDirectBootConfigured || Console->NeedsDirectBoot())) {
+            // Else if a regular NDS cart is inserted (even in DSi mode)...
+
+            if (const char* ptr = path_basename(_ndsInfo->GetPath().data()); ptr) {
+                // If we know the name of the loaded ROM...
+                Console->SetupDirectBoot(ptr);
+                retro::debug("Initialized direct boot for \"{}\"", ptr);
+            }
+            else {
+                Console->SetupDirectBoot("unknown.nds");
+                retro::warn("Initialized direct boot for a ROM with unknown basename, using \"unknown.nds\"");
+            }
+        }
+
+        // TODO: Handle case where the DSi game exits to the DSi menu
+        // (Some can do this, e.g. Flipnote Studio)
     }
 
     Console->Start();
 
     retro::info("Started emulated console");
-}
-
-// Decrypts the ROM's secure area
-void MelonDsDs::CoreState::SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept {
-    ZoneScopedN(TracyFunction);
-    if (Config.BootMode() == BootMode::Direct || nds.NeedsDirectBoot()) {
-        char game_name[256];
-
-        if (const char* ptr = path_basename(game.GetPath().data()); ptr)
-            strlcpy(game_name, ptr, sizeof(game_name));
-        else
-            strlcpy(game_name, game.GetPath().data(), sizeof(game_name));
-
-        {
-            ZoneScopedN("NDS::SetupDirectBoot");
-            nds.SetupDirectBoot(game_name);
-        }
-        retro::debug("Initialized direct boot for \"{}\"", game_name);
-    }
 }
 
 void MelonDsDs::CoreState::InitFlushFirmwareTask() noexcept

@@ -157,10 +157,10 @@ namespace MelonDsDs::config::definitions {
         "Native: Load games through the system menu, "
         "similar to the real DS/DSi boot process. "
         "Requires native BIOS and firmware files in the system directory.\n"
-        "Direct: Skip the system menu and go straight to the game.\n"
+        "Direct: Skip the system menu and go straight to the game. "
+        "Supported for DSiWare if native DSi system files are available.\n"
         "\n"
-        "Ignored if loaded without a game (Native is forced), "
-        "the loaded game is DSiWare (Native is forced), "
+        "Ignored if loaded without a game (Native is forced) "
         "or if using Built-In BIOS/Firmware (Direct is forced). "
         "Changes take effect at next restart.",
         nullptr,

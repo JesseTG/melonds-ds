@@ -117,7 +117,6 @@ namespace MelonDsDs {
         [[gnu::cold]] void StartConsole();
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds, local_seconds time) noexcept;
-        [[gnu::cold]] void SetUpDirectBoot(melonDS::NDS& nds, const retro::GameInfo& game) noexcept;
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::cold]] static void ExportDsiwareSaveData(
             melonDS::DSi_NAND::NANDMount& nand,

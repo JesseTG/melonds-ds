@@ -166,9 +166,40 @@ add_python_test(
 )
 
 add_python_test(
+    NAME "Direct DSi boot to DSiWare game with no NAND image fails"
+    TEST_MODULE basics.core_run_frames
+    CONTENT "${DSIWARE_ROM}"
+    CORE_OPTION "melonds_console_mode=dsi"
+    CORE_OPTION "melonds_boot_mode=direct"
+    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION "melonds_dsi_nand_path=/notfound"
+    ARM7_BIOS
+    ARM9_BIOS
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    DSI_FIRMWARE
+    WILL_FAIL
+)
+
+add_python_test(
     NAME "Direct DSi boot to NDS game with no NDS BIOS image fails"
     TEST_MODULE basics.core_run_frames
     CONTENT "${NDS_ROM}"
+    CORE_OPTION "melonds_console_mode=dsi"
+    CORE_OPTION "melonds_boot_mode=direct"
+    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
+    ARM7_DSI_BIOS
+    ARM9_DSI_BIOS
+    DSI_FIRMWARE
+    DSI_NAND
+    WILL_FAIL
+)
+
+add_python_test(
+    NAME "Direct DSi boot to DSiWare game with no NDS BIOS image fails"
+    TEST_MODULE basics.core_run_frames
+    CONTENT "${DSIWARE_ROM}"
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_boot_mode=direct"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
@@ -196,9 +227,34 @@ add_python_test(
 )
 
 add_python_test(
+    NAME "Direct DSi boot to DSiWare game with no DSi BIOS image fails"
+    TEST_MODULE basics.core_run_frames
+    CONTENT "${DSIWARE_ROM}"
+    CORE_OPTION "melonds_console_mode=dsi"
+    CORE_OPTION "melonds_boot_mode=direct"
+    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
+    ARM7_BIOS
+    ARM9_BIOS
+    DSI_FIRMWARE
+    DSI_NAND
+    WILL_FAIL
+)
+
+add_python_test(
     NAME "Direct DSi boot to NDS game with all system files succeeds"
     TEST_MODULE basics.core_run_frames
     CONTENT "${NDS_ROM}"
+    CORE_OPTION "melonds_console_mode=dsi"
+    CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
+    CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"
+    DSI_SYSFILES
+)
+
+add_python_test(
+    NAME "Direct DSi boot to DSiWare game with all system files succeeds"
+    TEST_MODULE basics.core_run_frames
+    CONTENT "${DSIWARE_ROM}"
     CORE_OPTION "melonds_console_mode=dsi"
     CORE_OPTION "melonds_firmware_dsi_path=melonDS DS/${DSI_FIRMWARE_NAME}"
     CORE_OPTION "melonds_dsi_nand_path=melonDS DS/${DSI_NAND_NAME}"

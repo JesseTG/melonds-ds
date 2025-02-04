@@ -49,6 +49,8 @@ with the following variables defined on the command line:
 - `DSI_FIRMWARE`: Set to the location of your DSi firmware image.
 - `DSI_NAND`: Set to the location of your DSi NAND image.
 - `NDS_ROM`: Set to the location of your NDS ROM image.
+- `DSIWARE_ROM`: Set to the location of your DSiWare ROM image
+   (_not_ a DSi-enhanced cart ROM).
 - `GBA_ROM`: Set to the location of your GBA ROM image.
 - `GBA_SRAM`: Set to the location of a save data image for `GBA_ROM`.
 

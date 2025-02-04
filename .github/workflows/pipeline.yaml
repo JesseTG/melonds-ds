@@ -20,6 +20,8 @@ on:
         required: false
       NDS_ROM:
         required: false
+      DSIWARE_ROM:
+        required: false
       GBA_ROM:
         required: false
       GBA_SRAM:
@@ -220,6 +222,7 @@ jobs:
             -DDSI_FIRMWARE="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_FIRMWARE }}" \
             -DDSI_NAND="${{ env.TESTFILE_DIR }}/${{ secrets.DSI_NAND }}" \
             -DNDS_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.NDS_ROM }}" \
+            -DDSIWARE_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.DSIWARE_ROM }}" \
             -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
             -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
             -DMELONDSDS_INTERNAL_VENV=OFF \

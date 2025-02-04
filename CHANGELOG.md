@@ -29,6 +29,10 @@ With thanks to **@parkerlreed** for his donation this month!
   [#43](https://github.com/JesseTG/melonds-ds/issues/43)
 - Integrated support for Gaussian audio interpolation.
   [#234](https://github.com/JesseTG/melonds-ds/issues/234)
+- Added support for direct-booting DSiWare games.
+  DSi system files are still required.
+  [#148](https://github.com/JesseTG/melonds-ds/issues/148)
+  **Thanks for the technical information, @CasualPokePlayer!**
 
 ### Changed
 
