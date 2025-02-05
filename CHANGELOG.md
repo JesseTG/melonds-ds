@@ -11,7 +11,8 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
-With thanks to **@parkerlreed** for his donation this month!
+With thanks to **@parkerlreed**, **@romatthe**, and **@scarrillo**
+for their donations this month!
 
 ### Added
 
