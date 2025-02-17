@@ -41,7 +41,7 @@ for their donations this month!
 - Refactored input handling to enable future improvements
   to Slot-2 peripherals and screen layouts.
 - Disabled fast-forwarding while a LAN multiplayer session is active.
-- Moved the <kbd>Screen Filtering</kbd> option to the <kbd>Screen Filtering</kbd> category,
+- Moved the <kbd>Screen Filtering</kbd> option to the <kbd>Screen</kbd> category,
   renamed it to <kbd>Hybrid Screen Filtering</kbd>,
   and hide it if none of the configured layouts is a hybrid layout.
   [#250](https://github.com/JesseTG/melonds-ds/issues/250)
