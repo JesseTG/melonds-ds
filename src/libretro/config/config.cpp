@@ -931,12 +931,7 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
             ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths");
             for (const retro::dirent& d : retro::readdir(string(path), true)) {
                 ZoneScopedN("MelonDsDs::config::set_core_options::find_system_files::paths::dirent");
-                if (optional<melonDS::MacAddress> address = ParseMacAddressFile(d)) {
-                    string_view prettyPath{d.path};
-                    prettyPath.remove_prefix(sysdir->size() + 1);
-                    std::string description = fmt::format("Read from file \"{}\" ({})", prettyPath, PrintMacAddress(*address));
-                    macAddresses.emplace_back(MacAddressEntry{std::move(description), PrintMacAddress(*address)});
-                }
+                // TODO: Pick a particular file name and load MAC addresses from it (one per line)
 
                 if (IsDsiNandImage(d)) {
                     dsiNandPaths.emplace_back(d.path);
