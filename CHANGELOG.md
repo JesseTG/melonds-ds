@@ -9,9 +9,9 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
-## [Unreleased]
+## [1.2.0] - 2025-02-19
 
-With thanks to **@parkerlreed**, **@romatthe**, and **@scarrillo**
+With thanks to **@theooophile**, **@parkerlreed**, **@romatthe**, and **@scarrillo**
 for their donations this month!
 
 ### Added
