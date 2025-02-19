@@ -159,11 +159,9 @@ at the push of a button!
 
 ## Streamlined DSiWare Installation
 
-melonDS does not support direct-booting DSiWare at this time;
-you need to install DSiWare games to a NAND image,
-then start them from the DSi menu when you want to play.
-
-But melonDS DS streamlines this process!
+melonDS DS streamlines the installation of DSiWare games on your NAND
+by automating the process for you,
+even when booting directly!
 
 - When you select a DSiWare ROM,
   it's temporarily installed on the NAND
@@ -200,10 +198,6 @@ If you want to see them, ask how you can get involved!
 - **DSi Savestates:**
   Nintendo DSi mode does not support savestates.
   This implies that rewinding and runahead are not supported in DSi mode.
-- **DSi Direct Boot:**
-  Direct Boot does not support DSiWare games at this time.
-  They must be installed on a NAND image,
-  and they must be started from the DSi menu.
 - **Game Boy Advance Emulation:**
   melonDS can load Game Boy Advance ROMs and save data
   for use by compatible Nintendo DS games,
