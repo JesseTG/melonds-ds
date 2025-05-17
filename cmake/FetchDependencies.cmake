@@ -68,6 +68,14 @@ set(ENABLE_GDBSTUB OFF)
 set(GLM_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
 set(GLM_ENABLE_CXX_17 ON CACHE BOOL "" FORCE)
 option(ENABLE_TESTING "Enable unit testing." OFF)
+if (${CMAKE_MAJOR_VERSION} VERSION_GREATER_EQUAL 4)
+    # Needed for https://github.com/JesseTG/melonds-ds/issues/265
+    # yamc's stated minimum CMake version is 3.2,
+    # but it configures and builds fine with CMake 4.
+    # Setting the policy version to 3.5
+    # lets us fix this without having to fork yamc.
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif ()
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date)
 
 if (TRACY_ENABLE)
