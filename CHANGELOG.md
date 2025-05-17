@@ -26,7 +26,7 @@ for their donations this month!
 - Added support for emulated LAN multiplayer.
   Only works on an actual LAN.
   [#225](https://github.com/JesseTG/melonds-ds/issues/225)
-  **Thanks for [#229](https://github.com/JesseTG/melonds-ds/pull/242), @BernardoGomesNegri!**
+  **Thanks for [#242](https://github.com/JesseTG/melonds-ds/pull/242), @BernardoGomesNegri!**
 - Integrated support for the GBA Memory Expansion Pak.
   [#44](https://github.com/JesseTG/melonds-ds/issues/44)
 - Integrated support for the Rumble Pak.
