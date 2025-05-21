@@ -11,6 +11,10 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+### Changed
+
+- Updated melonDS to commit [7baeb26](https://github.com/melonDS-emu/melonDS/tree/7baeb26).
+
 ### Fixed
 
 - Fixed a configure error when building with CMake 4 or later.
