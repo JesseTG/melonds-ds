@@ -218,9 +218,9 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     const char *rendererName = (const char*)glGetString(GL_RENDERER);
     const char *version  = (const char*)glGetString(GL_VERSION);
 
-    retro::info("OpenGL version: {}", version);
-    retro::info("OpenGL vendor: {}", vendor);
-    retro::info("OpenGL renderer: {}", rendererName);
+    retro::info("OpenGL version: {}", version ? version : "<null>");
+    retro::info("OpenGL vendor: {}", vendor ? vendor : "<null>");
+    retro::info("OpenGL renderer: {}", rendererName ? rendererName : "<null>");
 
     uintptr_t fbo = glsm_get_current_framebuffer();
     retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
