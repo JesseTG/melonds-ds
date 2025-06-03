@@ -13,7 +13,7 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ### Changed
 
-- Updated melonDS to commit [528f249](https://github.com/melonDS-emu/melonDS/tree/528f249).
+- Updated melonDS to commit [7117178](https://github.com/melonDS-emu/melonDS/tree/7117178).
 
 ### Fixed
 
