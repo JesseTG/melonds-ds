@@ -98,6 +98,7 @@ endif ()
 
 function(filter_path original_path exclude_paths result_var)
     # Split the original PATH into a list
+    # TODO: Remove both backslash and forward-slash variants of the path
     if(WIN32)
         string(REPLACE ";" ";" _path_list "${original_path}")
     else()
