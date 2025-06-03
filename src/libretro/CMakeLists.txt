@@ -127,7 +127,7 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${yamc_SOURCE_DIR}/include"
     "${span-lite_SOURCE_DIR}/include"
     "${date_SOURCE_DIR}/include"
-    "${rhea_SOURCE_DIR}/include"
+    "${rhea_SOURCE_DIR}"
     )
 
 target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
