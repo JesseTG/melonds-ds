@@ -251,6 +251,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ${PNTR_LICENSE}
 
+# rhea (A constraint solver based on Cassowary) ########################################################################
+
+${RHEA_LICENSE}
+
 # SHA-1 in C ###########################################################################################################
 
 By Steve Reid <steve@edmweb.com>
