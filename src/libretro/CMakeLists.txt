@@ -103,6 +103,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     retro/task_queue.hpp
     retro/threads.cpp
     retro/threads.hpp
+    screen/layout.cpp
+    screen/layout.hpp
     screenlayout.cpp
     screenlayout.hpp
     std/chrono.hpp
