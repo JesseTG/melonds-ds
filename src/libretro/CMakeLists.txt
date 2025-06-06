@@ -105,6 +105,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     retro/threads.hpp
     screen/layout.cpp
     screen/layout.hpp
+    screen/parser.cpp
+    screen/parser.hpp
     screenlayout.cpp
     screenlayout.hpp
     std/chrono.hpp
