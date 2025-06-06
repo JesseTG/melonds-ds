@@ -52,6 +52,7 @@ fetch_dependency(yamc "https://github.com/yohhoy/yamc" "4e015a7")
 fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "00afc28")
 fetch_dependency(date "https://github.com/HowardHinnant/date" "1ead671")
 fetch_dependency(rhea "https://github.com/Nocte-/rhea" "0f868a8")
+fetch_dependency(pegtl "https://github.com/taocpp/PEGTL" "54a2e32")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
@@ -77,7 +78,7 @@ if (${CMAKE_MAJOR_VERSION} VERSION_GREATER_EQUAL 4)
     # lets us fix this without having to fork yamc.
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 endif ()
-FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date rhea)
+FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date rhea pegtl)
 
 if (TRACY_ENABLE)
     set(BUILD_SHARED_LIBS OFF)
