@@ -284,7 +284,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
 target_compile_definitions(melondsds_libretro PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 target_compile_definitions(core PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 
-target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date rhea pegtl)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date rhea-s pegtl)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)
