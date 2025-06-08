@@ -20,6 +20,7 @@
 
 #include "core.hpp"
 #include "environment.hpp"
+#include "screen/parser.hpp"
 
 namespace MelonDsDs
 {
@@ -224,6 +225,20 @@ extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept
     return Core.GetInputState().GetControllerPortDevice(port);
 }
 
+extern "C" bool melondsds_is_valid_vfl(const char* vfl) noexcept {
+    using namespace MelonDsDs;
+
+    if (!vfl || !*vfl)
+        return false;
+
+    // TODO: Implement
+    return false;
+}
+
+extern "C" size_t melondsds_analyze_vfl_issues() noexcept {
+    return MelonDsDs::Vfl::AnalyzeGrammarIssues();
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -305,6 +320,12 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);
+
+    if (string_is_equal(sym, "melondsds_is_valid_vfl"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_is_valid_vfl);
+
+    if (string_is_equal(sym, "melondsds_analyze_vfl_issues"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_analyze_vfl_issues);
 
     return nullptr;
 }
