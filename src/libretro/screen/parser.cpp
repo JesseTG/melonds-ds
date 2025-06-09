@@ -168,21 +168,34 @@ namespace MelonDsDs::Vfl {
         > {
     };
 
-    struct visual_format_string : seq<
+    struct grammar : seq<
             visual_format_constraint,
             star<seq<one<';'>, visual_format_constraint>>
         > {
     };
 
-    // Main grammar rule
-    struct grammar : must<visual_format_string, eof> {
-    };
-
-    // This template specialization declares that nodes will be created
-    // for the `grammar` rule
+    // This template specialization lists the rules that will be stored in the parse tree.
+    // They'll all still be recognized, but we don't need to look closely at all of them
+    // (like the whitespace rules or the parentheses)
     template<typename Rule>
     using selector = parse_tree::selector<Rule,
-        parse_tree::store_content::on<grammar>
+        parse_tree::store_content::on<
+            visual_format_constraint,
+            view,
+            view_name,
+            connection,
+            orientation,
+            predicate,
+            relation,
+            number,
+            priority,
+            constant,
+            simple_predicate
+        >,
+
+        parse_tree::fold_one::on<
+            grammar
+        >
     >;
 }
 
