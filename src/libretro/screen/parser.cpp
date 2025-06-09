@@ -147,11 +147,11 @@ namespace MelonDsDs::Vfl {
         > {
     };
 
-    struct connection : sor<seq<>, connection_with_predicate, one<'-'>> {
+    struct connection : sor<connection_with_predicate, one<'-'>> {
     };
 
     struct view_connection : seq<
-            connection,
+            opt<connection>,
             view
         > {
     };
@@ -160,10 +160,10 @@ namespace MelonDsDs::Vfl {
             ws,
             opt<orientation_prefix>,
             ws,
-            opt<seq<superview, connection>>,
+            opt<seq<superview, opt<connection>>>,
             view,
             star<view_connection>,
-            opt<seq<connection, superview>>,
+            opt<seq<opt<connection>, superview>>,
             ws
         > {
     };
