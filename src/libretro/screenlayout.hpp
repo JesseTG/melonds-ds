@@ -30,6 +30,10 @@
 #include <glm/mat3x3.hpp>
 #include <glm/trigonometric.hpp>
 
+#include <rhea/simplex_solver.hpp>
+#include <rhea/variable.hpp>
+#include <rhea/constraint.hpp>
+
 #include "config/constants.hpp"
 #include "environment.hpp"
 #include "input/input.hpp"
@@ -219,6 +223,12 @@ namespace MelonDsDs {
         glm::mat3 GetTopScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetBottomScreenMatrix(unsigned scale) const noexcept;
         glm::mat3 GetHybridScreenMatrix(unsigned scale) const noexcept;
+
+        // Computes screen matrices using the rhea constraint solver
+        void ComputeScreenMatricesWithConstraints() noexcept;
+
+        // Configure the solver with constraints for the current layout
+        void SetupLayoutConstraints() noexcept;
 
         bool _dirty;
         unsigned resolutionScale;

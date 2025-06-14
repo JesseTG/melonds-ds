@@ -16,10 +16,29 @@
 
 #pragma once
 
-#include <rhea/simplex_solver.hpp>
+#include <optional>
+#include <string_view>
+
+#include <glm/mat3x3.hpp>
+#include <glm/vec2.hpp>
 
 namespace MelonDsDs {
-    class ScreenLayoutState {
+    using std::make_optional;
+    using std::nullopt;
+    using std::optional;
+    using std::string_view;
+    using std::unordered_map;
+
+    using glm::mat3;
+
+    class ParsedLayout {
+
+    public:
+        ParsedLayout(string_view vfl, const unordered_map<string_view, float>& metrics);
+    private:
+        optional<mat3> topScreenMatrix = mat3(1.0f); // Identity matrix
+        optional<mat3> bottomScreenMatrix = mat3(1.0f); // Identity matrix
+        optional<mat3> hybridScreenMatrix = nullopt;
 
     };
 }

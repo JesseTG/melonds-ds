@@ -231,8 +231,9 @@ extern "C" bool melondsds_is_valid_vfl(const char* vfl) noexcept {
     if (!vfl || !*vfl)
         return false;
 
-    // TODO: Implement
-    return false;
+    auto result = Vfl::Parse(vfl);
+
+    return true; //return result.has_value() && !result->empty();
 }
 
 extern "C" size_t melondsds_analyze_vfl_issues() noexcept {

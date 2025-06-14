@@ -42,6 +42,15 @@ using glm::vec2;
 using glm::vec3;
 using glm::mat3;
 
+// Extract the transformation matrix from rhea variables
+namespace MelonDsDs {
+    static mat3 CreateMatrixFromSolverVariables(
+        const rhea::variable& x,
+        const rhea::variable& y,
+        const rhea::variable& scale
+    ) noexcept;
+}
+
 MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
     _dirty(true), // Uninitialized
     orientation(retro::ScreenOrientation::Normal),
@@ -50,6 +59,7 @@ MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
     bottomScreenMatrix(1),
     bottomScreenMatrixInverse(1),
     hybridScreenMatrix(1),
+    hybridScreenMatrixInverse(1),
     pointerMatrix(1),
     hybridRatio(2),
     _numberOfLayouts(1) {
@@ -223,11 +233,10 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
         vec2(0, NDS_SCREEN_HEIGHT) // southwest
     };
 
-    // Get the matrices we'll be using
-    // (except the pointer matrix, we need to compute the buffer size first)
-    topScreenMatrix = GetTopScreenMatrix(resolutionScale);
-    bottomScreenMatrix = GetBottomScreenMatrix(resolutionScale);
-    hybridScreenMatrix = GetHybridScreenMatrix(resolutionScale);
+    // Compute the screen matrices using the constraint solver
+    ComputeScreenMatricesWithConstraints();
+
+    // Compute inverse matrices for touch input handling
     hybridScreenMatrixInverse = inverse(hybridScreenMatrix);
     bottomScreenMatrixInverse = inverse(bottomScreenMatrix);
 
@@ -257,6 +266,8 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
     topScreenTranslation = transformedScreenPoints[0];
     bottomScreenTranslation = transformedScreenPoints[4];
     hybridScreenTranslation = transformedScreenPoints[8];
+
+    // Create a matrix to transform pointer input coordinates
     pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
 
     ScreenLayout layout = Layout();
@@ -299,4 +310,392 @@ retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(RenderMode renderer) c
     retro_assert(std::isfinite(geometry.aspect_ratio));
 
     return geometry;
+}
+
+mat3 MelonDsDs::CreateMatrixFromSolverVariables(
+    const rhea::variable& x,
+    const rhea::variable& y,
+    const rhea::variable& scale
+) noexcept {
+    // Create a transformation matrix that applies scaling followed by translation
+    return math::ts<float>(
+        vec2(x.value(), y.value()), // translation vector
+        vec2(static_cast<float>(scale.value())) // uniform scale vector
+    );
+}
+
+void MelonDsDs::ScreenLayoutData::SetupLayoutConstraints() noexcept {
+    // Constraint solver and its variables
+    rhea::simplex_solver solver;
+
+    // Top screen variables
+    rhea::variable topX;
+    rhea::variable topY;
+    rhea::variable topScale;
+
+    // Bottom screen variables
+    rhea::variable bottomX;
+    rhea::variable bottomY;
+    rhea::variable bottomScale;
+
+    // Hybrid screen variables
+    rhea::variable hybridX;
+    rhea::variable hybridY;
+    rhea::variable hybridScale;
+
+    // Set scale based on resolution scale
+    const double scale = resolutionScale;
+
+    // Define the constraint strengths we'll use
+    // Required constraints must be satisfied
+    const auto required = rhea::strength::required();
+    // Strong constraints should be satisfied if possible
+    const auto strong = rhea::strength::strong();
+    // Medium constraints are used for preferred layouts
+    const auto medium = rhea::strength::medium();
+    // Weak constraints are used as suggestions
+    const auto weak = rhea::strength::weak();
+
+    // Common constraints for all layouts
+
+    // All scales must be positive and match the resolution scale
+    solver.add_constraint(topScale == scale, required);
+    solver.add_constraint(bottomScale == scale, required);
+
+    // For hybrid layouts, set the hybrid screen scale
+    if (IsHybridLayout(Layout())) {
+        solver.add_constraint(hybridScale == scale * hybridRatio, required);
+    }
+
+    // Define the screen positions based on the layout
+    switch (Layout()) {
+        case ScreenLayout::TopBottom: {
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen below top screen with gap
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == topY + NDS_SCREEN_HEIGHT * scale + screenGap, required);
+            break;
+        }
+
+        case ScreenLayout::BottomTop: {
+            // Bottom screen at top left (0,0)
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == 0, required);
+
+            // Top screen below bottom screen with gap
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == bottomY + NDS_SCREEN_HEIGHT * scale + screenGap, required);
+            break;
+        }
+
+        case ScreenLayout::LeftRight: {
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen to the right of top screen
+            solver.add_constraint(bottomX == NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(bottomY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::RightLeft: {
+            // Bottom screen at top left (0,0)
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == 0, required);
+
+            // Top screen to the right of bottom screen
+            solver.add_constraint(topX == NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(topY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::TopOnly: {
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen positioned offscreen (not visible)
+            solver.add_constraint(bottomX == -NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(bottomY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::BottomOnly: {
+            // Bottom screen at top left (0,0)
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == 0, required);
+
+            // Top screen positioned offscreen (not visible)
+            solver.add_constraint(topX == -NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(topY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::HybridTop:
+        case ScreenLayout::HybridBottom: {
+            // Hybrid screen at left (0,0) with larger scale
+            solver.add_constraint(hybridX == 0, required);
+            solver.add_constraint(hybridY == 0, required);
+
+            // Top screen at right side
+            solver.add_constraint(topX == NDS_SCREEN_WIDTH * scale * hybridRatio, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen at right side below top screen
+            solver.add_constraint(bottomX == NDS_SCREEN_WIDTH * scale * hybridRatio, required);
+            solver.add_constraint(bottomY == NDS_SCREEN_HEIGHT * scale * (hybridRatio - 1), required);
+            break;
+        }
+
+        case ScreenLayout::FlippedHybridTop:
+        case ScreenLayout::FlippedHybridBottom: {
+            // Top screen at left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen at left below top screen
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == NDS_SCREEN_HEIGHT * scale * (hybridRatio - 1), required);
+
+            // Hybrid screen at right with larger scale
+            solver.add_constraint(hybridX == NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(hybridY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::TurnLeft:
+        case ScreenLayout::TurnRight:
+        case ScreenLayout::UpsideDown: {
+            // For rotated layouts, we still define positions as if not rotated
+            // (rotation is handled separately by the libretro frontend)
+
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen below top screen with gap
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == topY + NDS_SCREEN_HEIGHT * scale + screenGap, required);
+            break;
+        }
+    }
+
+    // Solve the constraint system
+    solver.solve();
+}
+
+void MelonDsDs::ScreenLayoutData::ComputeScreenMatricesWithConstraints() noexcept {
+    ZoneScopedN(TracyFunction);
+
+    // Constraint solver and its variables
+    rhea::simplex_solver solver;
+
+    // We'll solve manually once all the constraints are added
+    solver.set_autosolve(false);
+
+    // Top screen variables
+    rhea::variable topX;
+    rhea::variable topY;
+    rhea::variable topScale = 1;
+
+    // Bottom screen variables
+    rhea::variable bottomX;
+    rhea::variable bottomY;
+    rhea::variable bottomScale = 1;
+
+    // Hybrid screen variables
+    rhea::variable hybridX;
+    rhea::variable hybridY;
+    rhea::variable hybridScale = 1;
+
+    // Set scale based on resolution scale
+    const double scale = resolutionScale;
+
+    // Define the constraint strengths we'll use
+    // Required constraints must be satisfied
+    const auto required = rhea::strength::required();
+    // Strong constraints should be satisfied if possible
+    const auto strong = rhea::strength::strong();
+    // Medium constraints are used for preferred layouts
+    const auto medium = rhea::strength::medium();
+    // Weak constraints are used as suggestions
+    const auto weak = rhea::strength::weak();
+
+    // Common constraints for all layouts
+
+    // All scales must be positive and match the resolution scale
+    solver.add_constraint(topScale == scale, required);
+    solver.add_constraint(bottomScale == scale, required);
+
+    // For hybrid layouts, set the hybrid screen scale
+    if (IsHybridLayout(Layout())) {
+        solver.add_constraint(hybridScale == scale * hybridRatio, required);
+    }
+
+    // Define the screen positions based on the layout
+    switch (Layout()) {
+        case ScreenLayout::TopBottom: {
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen below top screen with gap
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == topY + NDS_SCREEN_HEIGHT * scale + screenGap, required);
+            break;
+        }
+
+        case ScreenLayout::BottomTop: {
+            // Bottom screen at top left (0,0)
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == 0, required);
+
+            // Top screen below bottom screen with gap
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == bottomY + NDS_SCREEN_HEIGHT * scale + screenGap, required);
+            break;
+        }
+
+        case ScreenLayout::LeftRight: {
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen to the right of top screen
+            solver.add_constraint(bottomX == NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(bottomY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::RightLeft: {
+            // Bottom screen at top left (0,0)
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == 0, required);
+
+            // Top screen to the right of bottom screen
+            solver.add_constraint(topX == NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(topY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::TopOnly: {
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen positioned offscreen (not visible)
+            solver.add_constraint(bottomX == -NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(bottomY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::BottomOnly: {
+            // Bottom screen at top left (0,0)
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == 0, required);
+
+            // Top screen positioned offscreen (not visible)
+            solver.add_constraint(topX == -NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(topY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::HybridTop:
+        case ScreenLayout::HybridBottom: {
+            // Hybrid screen at left (0,0) with larger scale
+            solver.add_constraint(hybridX == 0, required);
+            solver.add_constraint(hybridY == 0, required);
+
+            // Top screen at right side
+            solver.add_constraint(topX == NDS_SCREEN_WIDTH * scale * hybridRatio, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen at right side below top screen
+            solver.add_constraint(bottomX == NDS_SCREEN_WIDTH * scale * hybridRatio, required);
+            solver.add_constraint(bottomY == NDS_SCREEN_HEIGHT * scale * (hybridRatio - 1), required);
+            break;
+        }
+
+        case ScreenLayout::FlippedHybridTop:
+        case ScreenLayout::FlippedHybridBottom: {
+            // Top screen at left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen at left below top screen
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == NDS_SCREEN_HEIGHT * scale * (hybridRatio - 1), required);
+
+            // Hybrid screen at right with larger scale
+            solver.add_constraint(hybridX == NDS_SCREEN_WIDTH * scale, required);
+            solver.add_constraint(hybridY == 0, required);
+            break;
+        }
+
+        case ScreenLayout::TurnLeft:
+        case ScreenLayout::TurnRight:
+        case ScreenLayout::UpsideDown: {
+            // For rotated layouts, we still define positions as if not rotated
+            // (rotation is handled separately by the libretro frontend)
+
+            // Top screen at top left (0,0)
+            solver.add_constraint(topX == 0, required);
+            solver.add_constraint(topY == 0, required);
+
+            // Bottom screen below top screen with gap
+            solver.add_constraint(bottomX == 0, required);
+            solver.add_constraint(bottomY == topY + NDS_SCREEN_HEIGHT * scale + screenGap, required);
+            break;
+        }
+    }
+
+    // Solve the constraint system
+    solver.solve();
+
+    // After solving, extract the transformation matrices from the constraint variables
+    topScreenMatrix = CreateMatrixFromSolverVariables(topX, topY, topScale);
+    bottomScreenMatrix = CreateMatrixFromSolverVariables(bottomX, bottomY, bottomScale);
+
+    // Only create a hybrid screen matrix for hybrid layouts
+    if (IsHybridLayout(Layout())) {
+        hybridScreenMatrix = CreateMatrixFromSolverVariables(hybridX, hybridY, hybridScale);
+    } else {
+        // For non-hybrid layouts, use an identity matrix
+        hybridScreenMatrix = mat3(1);
+    }
+
+    // Transform the base screen points to calculate the buffer size
+    constexpr array<vec2, 4> baseScreenPoints = {
+        vec2(0, 0), // northwest
+        vec2(NDS_SCREEN_WIDTH, 0), // northeast
+        vec2(NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT), // southeast
+        vec2(0, NDS_SCREEN_HEIGHT) // southwest
+    };
+
+    // Calculate temporary transformed points for buffer size calculation
+    std::array<vec2, 12> tempPoints = {
+        topScreenMatrix * vec3(baseScreenPoints[0], 1),
+        topScreenMatrix * vec3(baseScreenPoints[1], 1),
+        topScreenMatrix * vec3(baseScreenPoints[2], 1),
+        topScreenMatrix * vec3(baseScreenPoints[3], 1),
+        bottomScreenMatrix * vec3(baseScreenPoints[0], 1),
+        bottomScreenMatrix * vec3(baseScreenPoints[1], 1),
+        bottomScreenMatrix * vec3(baseScreenPoints[2], 1),
+        bottomScreenMatrix * vec3(baseScreenPoints[3], 1),
+        hybridScreenMatrix * vec3(baseScreenPoints[0], 1),
+        hybridScreenMatrix * vec3(baseScreenPoints[1], 1),
+        hybridScreenMatrix * vec3(baseScreenPoints[2], 1),
+        hybridScreenMatrix * vec3(baseScreenPoints[3], 1)
+    };
+
+    // Compute the buffer size from the transformed points
+    bufferSize = uvec2(0);
+    for (const vec2& p : tempPoints) {
+        bufferSize.x = max<unsigned>(bufferSize.x, p.x);
+        bufferSize.y = max<unsigned>(bufferSize.y, p.y);
+    }
 }

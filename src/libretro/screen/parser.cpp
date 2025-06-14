@@ -300,7 +300,7 @@ namespace {
 
     [[nodiscard]] Predicate ParsePredicate(const node& node) {
         ZoneScopedN(TracyFunction);
-        retro_assert(node.is_type<predicate>());
+        retro_assert(node.is_type<predicate>() || node.is_type<simple_predicate>());
 
         Predicate predicate;
 
@@ -354,11 +354,14 @@ namespace {
             if (child->is_type<simple_connection>()) {
                 // Simple connection, no predicates
                 // This is just a '-' character
-            } else if (child->is_type<connection_with_predicate>()) {
+            } else if (child->is_type<predicate>()) {
                 // Connection with predicates
                 for (const auto& predicate_node: child->children) {
                     connection.predicates.emplace_back(ParsePredicate(*predicate_node));
                 }
+            }
+            else if (child->is_type<simple_predicate>()) {
+
             }
             else {
                 throw invalid_node(*child);
