@@ -12,6 +12,7 @@ file(READ "${libslirp_SOURCE_DIR}/COPYRIGHT" SLIRP_LICENSE)
 file(READ "${span-lite_SOURCE_DIR}/LICENSE.txt" SPAN_LITE_LICENSE)
 file(READ "${melonDS_SOURCE_DIR}/src/tiny-AES-c/unlicense.txt" TINY_AES_LICENSE)
 file(READ "${zlib_SOURCE_DIR}/LICENSE" ZLIB_LICENSE)
+file(READ "${toml11_SOURCE_DIR}/LICENSE" TOML11_LICENSE)
 
 configure_file("${CMAKE_SOURCE_DIR}/cmake/melondsds-LICENSE.txt.in" "${CMAKE_CURRENT_BINARY_DIR}/melondsds-LICENSE.txt")
 

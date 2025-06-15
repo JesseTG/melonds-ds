@@ -13,7 +13,7 @@ list(SORT CHANGELOG COMPARE NATURAL ORDER DESCENDING)
 list(GET CHANGELOG 0 VERSION)
 message(STATUS "Project version is ${VERSION}")
 
-project("melonDS DS"
+project("melonDSDS"
     VERSION "${VERSION}"
     DESCRIPTION "A remake of the libretro melonDS core that prioritizes standalone parity, reliability, and usability. This core closely follows the feature set of standalone melonDS; it features OpenGL-accelerated upscaling, multiple screen layouts, and Wi-Fi emulation."
     HOMEPAGE_URL "https://melonds.kuribo64.net"
@@ -84,7 +84,7 @@ include(cmake/FetchDependencies.cmake)
 include(cmake/ConfigureFeatures.cmake)
 include(cmake/ConfigureDependencies.cmake)
 
-set(MELONDSDS_NAME "${CMAKE_PROJECT_NAME}")
+set(MELONDSDS_NAME "melonDS DS")
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(MELONDSDS_VERSION "${CMAKE_PROJECT_VERSION}")
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
