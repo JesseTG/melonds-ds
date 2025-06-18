@@ -160,7 +160,7 @@ embed_binaries(libretro-assets
     ASSET
         NAME "melondsds_error_body_font"
         PATH "assets/OpenSans_Condensed-SemiBold.ttf"
-    ASSERT
+    ASSET
         NAME "melondsds_screens_config"
         PATH "assets/screens.toml"
         BYTE_TYPE char
