@@ -276,6 +276,10 @@ ${TINY_AES_LICENSE}
 
 ${TOML11_LICENSE}
 
+# TinyExpr++: Tiny recursive descent parser and evaluation engine in C++ ###############################################
+
+${TINYEXPR_PLUS_PLUS_LICENSE}
+
 # xxhash ###############################################################################################################
 
 xxHash - Extremely Fast Hash algorithm

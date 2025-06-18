@@ -1,5 +1,6 @@
 include(cmake/libretro-common.cmake)
 include(cmake/libslirp.cmake)
+include(cmake/tinyexpr-plusplus.cmake)
 
 if (HAVE_OPENGL OR HAVE_OPENGLES)
     # Ensure that melonDS can find libretro's headers...

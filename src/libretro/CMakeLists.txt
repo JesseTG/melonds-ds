@@ -128,6 +128,7 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     "${span-lite_SOURCE_DIR}/include"
     "${date_SOURCE_DIR}/include"
     "${toml11_SOURCE_DIR}/include"
+    "${tinyexpr-plusplus_SOURCE_DIR}"
     )
 
 target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
@@ -284,7 +285,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
 target_compile_definitions(melondsds_libretro PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 target_compile_definitions(core PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 
-target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date toml11::toml11)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date toml11::toml11 tinyexpr-plusplus)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)
