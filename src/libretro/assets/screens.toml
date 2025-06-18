@@ -1,0 +1,265 @@
+# Layouts are defined in melonDS DS as TOML files.
+#
+#### Expressions ##############################################################
+# Most numeric values in the layouts can be given as mathematical expressions.
+# For information about the available operators and functions, see:
+# - https://blake-madden.github.io/tinyexpr-plusplus/operators
+# - https://blake-madden.github.io/tinyexpr-plusplus/functions
+#
+#### Variables ################################################################
+# The following variables and constants are available for use in mathematical expressions.
+#
+# - `screenWidth`: The width of the Nintendo DS screen, in pixels. Always equals 256.
+# - `screenHeight`: The height of the Nintendo DS screen, in pixels. Always equals 192.
+# - `screenGap`: The gap between the screens, in pixels.
+#   Set by the "Screen Gap" core option.
+# - `hybridScale`: The scale factor for the hybrid mode screen.
+#   Set by the "Hybrid Ratio Scale" core option.
+# - `showBothHybridScreens`: Set to 1 if the "Hybrid Small Screen Mode" core option
+#   is set to "Show Both Screens".
+
+#### Object Structure #########################################################
+# Each top-level table represents a layout,
+# the name of which is used to identify it in the libretro core options.
+# A config file can contain arbitrarily many layouts,
+# but libretro only allows up to 128 choices per option;
+# once this limit is reached (including built-in layouts),
+# no further layouts will be parsed.
+[top-bottom]
+# "name" is the user-facing name of the layout.
+# It will be used as the label in the libretro core options.
+# Defaults to the name of the table if not given.
+name = "Top/Bottom"
+
+# Rotation of the screens in this layout.
+# Can be "none", "left", "right", or "upsidedown".
+# Defaults to "none" if not given.
+rotation = "none"
+
+# Whether the layout should be shown in the libretro core options.
+# Used to hide layouts from the options menu
+# if they're only meant to be used as examples.
+# Defaults to true if not given.
+enabled = true
+
+# TODO: resolution scale for opengl
+
+# A screen within a layout is represented
+# as a subtable in the `screens` array.
+# The order is significant if the layouts overlap,
+# as the screens will be rendered in the order they're defined.
+# At least one screen must be defined, or else the layout is erroneous.
+[[top-bottom.screens]]
+# Position of the screen, relative to the top-left corner of the layout (before rotation).
+# So if `rotation` is "left", the coordinates will be relative to the bottom-left corner.
+# Required, or else the layout is invalid.
+position = {x = 0, y = 0}
+
+# Denotes the screen that will be displayed.
+# Must be equal to one of the following:
+#   - "top", to show the top screen.
+#   - "touch", to show the touch screen.
+#   - "3d", to show whichever screen most recently used the emulated 3D engine.
+#
+# Required, or else the layout is invalid.
+type = "top"
+
+# Scale factor of the screen, along the X and Y axes.
+# Can be a number (including decimals), a math expression,
+# or a table with `x` and `y` keys.
+#
+# If a number or math expression is given, the value will be used for both axes.
+# If a table is given, the `x` and `y` keys can have numbers or math expressions
+# and will be applied to their respective axes.
+# The scale factor must be between 0 (exclusive) and 4 (inclusive);
+# if any axis is outside this range, the layout is invalid.
+# Defaults to 1 on both axes if not given.
+scale = 1
+
+# The filter to use when scaling this screen.
+# Can be "nearest" or "linear".
+# Not used if scale is 1 on both axes.
+# Defaults to the value of the "Scale Filter" core option if not set.
+filter = "nearest"
+
+# TOML allows multiple ways of writing the same thing.
+[[top-bottom.screens]]
+type = "touch"
+
+# Coordinates can have decimal points, but they'll be truncated to integers
+# (e.g. 1.7 becomes 1).
+position.x = 0.0
+
+# Coordinates can also be given as strings that resolve to mathematical expressions,
+# possibly using some predefined variables or functions.
+# They'll still be truncated to integers.
+position.y = "screenHeight + screenGap"
+
+# Alternative syntax for the scale.
+scale = {x = 1.0, y = 1}
+
+# The rest of these examples show how the built-in layouts are defined,
+# usually a bit more tersely.
+[bottom-top]
+name = "Bottom/Top"
+rotation = "none"
+enabled = true
+
+[[bottom-top.screens]]
+position = {x = 0, y = 0}
+type = "touch"
+scale = 1
+
+[[bottom-top.screens]]
+position = {x = 0, y = "screenHeight + screenGap"}
+type = "top"
+scale = 1
+
+## This one omits most of the defaults.
+[left-right]
+name = "Left/Right"
+
+[[left-right.screens]]
+position = {x = 0, y = 0}
+type = "top"
+
+[[left-right.screens]]
+position = {x = "256 + gap", y = 0}
+type = "touch"
+
+[right-left]
+name = "Right/Left"
+
+[[right-left.screens]]
+position = {x = 0, y = 0}
+type = "touch"
+
+[[right-left.screens]]
+position = {x = "256 + gap", y = 0}
+type = "top"
+
+# This one just shows the top screen.
+[top]
+name = "Top Only"
+screens = [{position = {x = 0, y = 0}, type = "top", scale = 1}]
+
+# This one just shows the touch screen.
+[bottom]
+name = "Bottom Only"
+screens = [{position.x = 0, position.y = 0, type = "touch", scale = 1}]
+
+[hybrid-top]
+name = "Hybrid (Focus Top)"
+
+# Hybrid focus screen.
+[[hybrid-top.screens]]
+position = {x = 0, y = 0}
+scale = "hybridScale"
+type = "top"
+
+# Side-view top screen.
+[[hybrid-top.screens]]
+position = {x = "screenWidth * hybridScale", y = 0}
+type = "top"
+
+# A condition that's evaluated to decide the screen's visibility.
+# The screen will be shown if the expression evaluates to a non-zero value,
+# or if it's a hardcoded boolean `true` or non-zero number.
+# Otherwise, the screen will not be shown.
+if = "showBothHybridScreens"
+
+# Side-view bottom screen.
+[[hybrid-top.screens]]
+position = {x = "screenWidth * hybridScale", y = "screenHeight * (hybridScale - 1)"}
+type = "touch"
+
+[hybrid-bottom]
+name = "Hybrid (Focus Bottom)"
+
+# Hybrid focus screen.
+[[hybrid-bottom.screens]]
+position = {x = 0, y = 0}
+scale = "hybridScale"
+type = "touch"
+
+# Side-view top screen.
+[[hybrid-bottom.screens]]
+position = {x = "screenWidth * hybridScale", y = 0}
+type = "top"
+
+# Side-view bottom screen.
+[[hybrid-bottom.screens]]
+position = {x = "screenWidth * hybridScale", y = "screenHeight * (hybridScale - 1)"}
+type = "touch"
+if = "showBothHybridScreens"
+
+[flipped-hybrid-top]
+name = "Flipped Hybrid (Focus Top)"
+
+# Flipped side-view top screen.
+[[flipped-hybrid-top.screens]]
+position = {x = 0, y = 0}
+type = "top"
+if = "showBothHybridScreens"
+
+# Flipped side-view bottom screen.
+[[flipped-hybrid-top.screens]]
+position = {x = 0, y = "screenHeight * (hybridScale - 1)"}
+type = "touch"
+
+# Flipped hybrid focus screen.
+[[flipped-hybrid-top.screens]]
+position = {x = "screenWidth", y = 0}
+type = "top"
+scale = "hybridScale"
+
+[flipped-hybrid-bottom]
+name = "Flipped Hybrid (Focus Bottom)"
+
+# Flipped side-view top screen.
+[[flipped-hybrid-bottom.screens]]
+position = {x = 0, y = 0}
+type = "top"
+
+# Flipped side-view bottom screen.
+[[flipped-hybrid-bottom.screens]]
+position = {x = 0, y = "screenHeight * (hybridScale - 1)"}
+type = "touch"
+if = "showBothHybridScreens"
+
+# Flipped hybrid focus screen.
+[[flipped-hybrid-bottom.screens]]
+position = {x = "screenWidth", y = 0}
+scale = "hybridScale"
+type = "touch"
+
+
+[rotate-left]
+name = "Turn Left"
+rotation = "left"
+
+[[rotate-left.screens]]
+position = {x = 0, y = 0}
+
+[[rotate-left.screens]]
+position = {x = 0, y = "256 + gap"}
+
+[rotate-right]
+name = "Turn Right"
+rotation = "right"
+
+[[rotate-right.screens]]
+position = {x = 0, y = 0}
+
+[[rotate-right.screens]]
+position = {x = 0, y = "256 + gap"}
+
+[rotate-180]
+name = "Upside Down"
+rotation = "upsidedown"
+
+[[rotate-180.screens]]
+position = {x = 0, y = 0}
+
+[[rotate-180.screens]]
+position = {x = 0, y = "256 + gap"}
