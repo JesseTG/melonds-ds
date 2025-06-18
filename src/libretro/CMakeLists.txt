@@ -28,6 +28,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     config/definitions/screen.hpp
     config/definitions/system.hpp
     config/definitions/video.hpp
+    config/layout.cpp
+    config/layout.hpp
     config/parse.cpp
     config/parse.hpp
     config/types.hpp
