@@ -34,6 +34,7 @@
 #include <Platform.h>
 #include <libretro.h>
 #include <gfx/scaler/scaler.h>
+#include <toml11/fwd/value_t_fwd.hpp>
 
 #include "config/config.hpp"
 #include "config/types.hpp"
@@ -107,6 +108,11 @@ namespace fmt {
     template<>
     struct formatter<MelonDsDs::RenderMode> : formatter<std::string_view> {
         auto format(MelonDsDs::RenderMode mode, format_context& ctx) const -> decltype(ctx.out());
+    };
+
+    template<>
+    struct formatter<toml::value_t> : formatter<std::string_view> {
+        auto format(toml::value_t type, format_context& ctx) const -> decltype(ctx.out());
     };
 }
 

@@ -513,3 +513,49 @@ auto fmt::formatter<MelonDsDs::RenderMode>::format(MelonDsDs::RenderMode mode, f
 
     return formatter<string_view>::format(name, ctx);
 }
+
+auto fmt::formatter<toml::value_t>::format(toml::value_t type, format_context& ctx) const -> decltype(ctx.out()) {
+    string_view name;
+
+    switch (type)
+    {
+        case toml::value_t::boolean:
+            name = "boolean";
+            break;
+        case toml::value_t::integer:
+            name = "integer";
+            break;
+        case toml::value_t::floating:
+            name = "floating";
+            break;
+        case toml::value_t::string:
+            name = "string";
+            break;
+        case toml::value_t::offset_datetime:
+            name = "offset_datetime";
+            break;
+        case toml::value_t::local_datetime:
+            name = "local_datetime";
+            break;
+        case toml::value_t::local_date:
+            name = "local_date";
+            break;
+        case toml::value_t::local_time:
+            name = "local_time";
+            break;
+        case toml::value_t::array:
+            name = "array";
+            break;
+        case toml::value_t::table:
+            name = "table";
+            break;
+        case toml::value_t::empty:
+            name = "empty";
+            break;
+        default:
+            name = "unknown";
+            break;
+    }
+
+    return formatter<string_view>::format(name, ctx);
+}
