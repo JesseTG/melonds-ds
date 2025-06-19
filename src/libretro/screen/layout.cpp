@@ -14,7 +14,7 @@
     with melonDS DS. If not, see http://www.gnu.org/licenses/.
 */
 
-#include "config/layout.hpp"
+#include "layout.hpp"
 
 #include <variant>
 
