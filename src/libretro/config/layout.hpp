@@ -19,39 +19,65 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <optional>
+#include <variant>
 
 #include <glm/vec2.hpp>
 #include <glm/mat3x3.hpp>
+#include <toml11/fwd/error_info_fwd.hpp>
+#include <toml11/ordered_map.hpp>
 
-
+#include "config/types.hpp"
 #include "environment.hpp"
 
-namespace MelonDsDs {
+namespace MelonDsDs::Layout {
     enum class ScreenType {
         Top,
         Touch,
         ThreeD, // Whichever screen most recently displayed 3D content
     };
 
+    using ParsedExpression = std::variant<int64_t, double, std::string>;
+
     struct Screen {
         glm::ivec2 position;
         glm::vec2 scale {1.0f, 1.0f};
         ScreenType type;
+        bool visible = true;
+        std::optional<ScreenFilter> filter = std::nullopt;
     };
 
-    struct ScreenLayoutSpec {
-        std::vector<Screen> screens;
-        std::string name;
-        retro::ScreenOrientation orientation = retro::ScreenOrientation::Normal;
-
+    struct ParsedVector {
+        ParsedExpression x;
+        ParsedExpression y;
     };
 
-    /**
-     * Parses a TOML-formatted string to extract screen layout specifications.
-     *
-     * @param toml TOML-formatted string containing the screen layout configuration.
-     * @return A vector of ScreenLayoutSpec objects parsed from the TOML,
-     * with invalid entries filtered out.
-     */
-    std::vector<ScreenLayoutSpec> Parse(std::string_view toml) noexcept;
+    struct ParsedScreen {
+        ParsedVector position;
+        ParsedVector scale { 1.0, 1.0 };
+        ScreenType type;
+        std::optional<ParsedExpression> visible = std::nullopt; // If not specified, defaults to true
+        std::optional<ScreenFilter> filter = std::nullopt;
+    };
+
+    struct ParsedLayout {
+        std::vector<ParsedScreen> screens;
+        std::optional<std::string> name;
+        std::optional<retro::ScreenOrientation> orientation = retro::ScreenOrientation::Normal;
+    };
+
+    struct ParsedLayoutConfig {
+        // The constructor won't throw any exceptions because
+        // I want to be able to exclude invalid layouts
+        // without affecting valid ones.
+        // Errors are exposed because I _do_ want to log them.
+        explicit ParsedLayoutConfig(const std::string& toml) noexcept;
+        explicit ParsedLayoutConfig(std::string&& toml) noexcept;
+
+        toml::ordered_map<std::string, ParsedLayout> layouts;
+        std::vector<toml::error_info> errors;
+
+        /// Return true if at least one layout was parsed successfully
+        [[nodiscard]] explicit operator bool() const noexcept;
+    };
 }
