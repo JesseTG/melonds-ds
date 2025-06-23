@@ -31,6 +31,7 @@
 #include <glm/trigonometric.hpp>
 
 #include "config/constants.hpp"
+#include "screen/constants.hpp"
 #include "environment.hpp"
 #include "input/input.hpp"
 #include "buffer.hpp"
@@ -43,24 +44,6 @@ namespace melonDS {
 namespace MelonDsDs {
     class RenderState;
     class RenderStateWrapper;
-
-    /// The native width of a single Nintendo DS screen, in pixels
-    constexpr int NDS_SCREEN_WIDTH = 256;
-
-    /// The native height of a single Nintendo DS screen, in pixels
-    constexpr int NDS_SCREEN_HEIGHT = 192;
-
-    template<typename T>
-    constexpr glm::tvec2<T> NDS_SCREEN_SIZE(NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT);
-
-    template<typename T>
-    constexpr T NDS_SCREEN_AREA = NDS_SCREEN_WIDTH * NDS_SCREEN_HEIGHT;
-
-    // We require a pixel format of RETRO_PIXEL_FORMAT_XRGB8888, so we can assume 4 bytes here
-    constexpr int PIXEL_SIZE = 4;
-
-    template<typename T>
-    constexpr T RETRO_MAX_POINTER_COORDINATE = 32767;
 
     enum class HybridScreenId {
         Top,
