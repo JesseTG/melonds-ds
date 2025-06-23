@@ -20,6 +20,7 @@
 
 #include "core.hpp"
 #include "environment.hpp"
+#include "screen/parse.hpp"
 
 namespace MelonDsDs
 {
@@ -224,6 +225,13 @@ extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept
     return Core.GetInputState().GetControllerPortDevice(port);
 }
 
+extern "C" bool melondsds_layout_toml_parses(const char* toml) noexcept {
+    using namespace MelonDsDs::Layout;
+
+    ParsedLayoutConfig config(toml);
+    return static_cast<bool>(config);
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -305,6 +313,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);
+
+    if (string_is_equal(sym, "melondsds_layout_toml_parses"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_layout_toml_parses);
 
     return nullptr;
 }
