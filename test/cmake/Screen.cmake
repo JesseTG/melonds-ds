@@ -5,3 +5,8 @@ add_python_test(
     CORE_OPTION melonds_hybrid_ratio=3
     CORE_OPTION melonds_screen_layout1=hybrid-top
 )
+
+add_python_test(
+    NAME "Built-in layout config parses"
+    TEST_MODULE layout.builtin_parses
+)
