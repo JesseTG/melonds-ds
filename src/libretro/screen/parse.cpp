@@ -123,8 +123,12 @@ struct toml::from<ParsedLayout> {
 
         ParsedLayout layout;
         layout.name = toml::find<optional<string>, TC>(val, "name");
-        layout.orientation = toml::find<optional<retro::ScreenOrientation>, TC>(val, "orientation");
+        layout.orientation = toml::find<optional<retro::ScreenOrientation>, TC>(val, "rotation");
         layout.screens = toml::find<vector<ParsedScreen>, TC>(val, "screens");
+
+        if (layout.screens.empty())
+            throw std::out_of_range("Screen layout cannot be empty");
+
         return layout;
     }
 };
