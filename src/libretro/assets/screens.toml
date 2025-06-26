@@ -16,7 +16,7 @@
 # - `hybridScale`: The scale factor for the hybrid mode screen.
 #   Set by the "Hybrid Ratio Scale" core option.
 # - `showBothHybridScreens`: Set to 1 if the "Hybrid Small Screen Mode" core option
-#   is set to "Show Both Screens".
+#   is set to "Show Both Screens", or 0 if not.
 
 #### Object Structure #########################################################
 # Each top-level table represents a layout,
