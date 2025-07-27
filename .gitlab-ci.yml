@@ -112,9 +112,9 @@ android-arm64-v8a:
     - .core-defs
   before_script:
     - export NUMPROC=$(($(nproc)/5))
-    - echo "deb http://deb.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-    - apt-get update -qy
-    - apt-get install -qy cmake/stable-backports
+#    - echo "deb http://deb.debian.org/debian stable-backports main" >> /etc/apt/sources.list
+#    - apt-get update -qy
+#    - apt-get install -qy cmake/stable-backports
   variables:
     CORE_ARGS: -Wno-deprecated
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
@@ -128,9 +128,9 @@ android-x86_64:
     - .core-defs
   before_script:
     - export NUMPROC=$(($(nproc)/5))
-    - echo "deb http://deb.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-    - apt-get update -qy
-    - apt-get install -qy cmake/stable-backports
+#    - echo "deb http://deb.debian.org/debian stable-backports main" >> /etc/apt/sources.list
+#    - apt-get update -qy
+#    - apt-get install -qy cmake/stable-backports
   variables:
     CORE_ARGS: -Wno-deprecated
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
