@@ -113,7 +113,8 @@ android-arm64-v8a:
   before_script:
     - export NUMPROC=$(($(nproc)/5))
 #    - echo "deb http://deb.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-#    - apt-get update -qy
+    - apt-get update -qy
+    - apt-get upgrade -qy cmake
 #    - apt-get install -qy cmake/stable-backports
   variables:
     CORE_ARGS: -Wno-deprecated
@@ -129,7 +130,8 @@ android-x86_64:
   before_script:
     - export NUMPROC=$(($(nproc)/5))
 #    - echo "deb http://deb.debian.org/debian stable-backports main" >> /etc/apt/sources.list
-#    - apt-get update -qy
+    - apt-get update -qy
+    - apt-get upgrade -qy cmake
 #    - apt-get install -qy cmake/stable-backports
   variables:
     CORE_ARGS: -Wno-deprecated
