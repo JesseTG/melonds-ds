@@ -97,6 +97,11 @@ const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
+const initializer_list<int> JOYSTICK_CURSOR_DEADZONES = {0, 5, 10, 15, 20, 25, 30, 35};
+const initializer_list<int> JOYSTICK_CURSOR_MAXSPEEDS = {0,1,2,3,4,5,6,7,8,9,10};
+const initializer_list<int> JOYSTICK_CURSOR_RESPONSES = {100,150,200};
+const initializer_list<int> JOYSTICK_CURSOR_EDGEDEADZONES = {0,90,95,99};
+const initializer_list<int> JOYSTICK_CURSOR_PREBOOSTS = {30,40,50,60,70};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<uint16_t> RUMBLE_INTENSITY_VALUES = {0, 6554, 13107, 19661, 26214, 32768, 39321, 45875, 52428, 58982, 65535};
@@ -753,6 +758,41 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", TOUCH_MODE, values::AUTO);
         config.SetTouchMode(TouchMode::Auto);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_DEADZONE), JOYSTICK_CURSOR_DEADZONES)) {
+        config.SetJoystickCursorDeadzone(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_DEADZONE, 0.1);
+        config.SetJoystickCursorDeadzone(10);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_MAXSPEED), JOYSTICK_CURSOR_MAXSPEEDS)) {
+        config.SetJoystickCursorMaxSpeed(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_MAXSPEED, 5);
+        config.SetJoystickCursorMaxSpeed(5);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_RESPONSE), JOYSTICK_CURSOR_RESPONSES)) {
+        config.SetJoystickCursorResponse(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_RESPONSE, 1.5);
+        config.SetJoystickCursorResponse(150);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_EDGEDEADZONE), JOYSTICK_CURSOR_EDGEDEADZONES)) {
+        config.SetJoystickCursorEdgeDeadzone(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_EDGEDEADZONE, 0.99);
+        config.SetJoystickCursorEdgeDeadzone(99);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_PREBOOST), JOYSTICK_CURSOR_PREBOOSTS)) {
+        config.SetJoystickCursorPreBoost(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_PREBOOST, 0.5);
+        config.SetJoystickCursorPreBoost(50);
     }
 
     if (optional<MelonDsDs::CursorMode> value = ParseCursorMode(get_variable(SHOW_CURSOR))) {

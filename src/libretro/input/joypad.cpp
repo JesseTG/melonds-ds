@@ -89,7 +89,7 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
     _micButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
 
     _previousCycleLayoutButton = _cycleLayoutButton;
-    _cycleLayoutButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R2);
+    _cycleLayoutButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3); //Change to R3
 
     _previousJoystickTouchButton = _joystickTouchButton;
     _previousJoystickRawDirection = _joystickRawDirection;
@@ -103,7 +103,7 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
                           ((poll.JoypadButtons & LIGHT_LEVEL_DOWN_COMBO_ALT) == LIGHT_LEVEL_DOWN_COMBO_ALT);
 
     if (_touchMode == TouchMode::Joystick || _touchMode == TouchMode::Auto) {
-        _joystickTouchButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
+        _joystickTouchButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R2); //Change to R2
         _joystickRawDirection = poll.AnalogCursorDirection;
 
         if (_joystickTouchButton != _previousJoystickTouchButton || _joystickRawDirection != _previousJoystickRawDirection) {

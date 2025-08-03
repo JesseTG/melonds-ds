@@ -282,6 +282,21 @@ namespace MelonDsDs {
         [[nodiscard]] MelonDsDs::TouchMode TouchMode() const noexcept { return _touchMode; }
         void SetTouchMode(MelonDsDs::TouchMode touchMode) noexcept { _touchMode = touchMode; }
 
+        [[nodiscard]] int JoystickCursorDeadzone() const noexcept { return _joystickCursorDeadzone; }
+        void SetJoystickCursorDeadzone(int joystickCursorDeadzone) noexcept { _joystickCursorDeadzone = joystickCursorDeadzone; }
+
+        [[nodiscard]] int JoystickCursorMaxSpeed() const noexcept { return _joystickCursorMaxSpeed; }
+        void SetJoystickCursorMaxSpeed(int joystickCursorMaxSpeed) noexcept { _joystickCursorMaxSpeed = joystickCursorMaxSpeed; }        
+
+        [[nodiscard]] int JoystickCursorResponse() const noexcept { return _joystickCursorResponse; }
+        void SetJoystickCursorResponse(int joystickCursorResponse) noexcept { _joystickCursorResponse = joystickCursorResponse; }        
+        
+        [[nodiscard]] int JoystickCursorEdgeDeadzone() const noexcept { return _joystickCursorEdgeDeadzone; }
+        void SetJoystickCursorEdgeDeadzone(int joystickCursorEdgeDeadzone) noexcept { _joystickCursorEdgeDeadzone = joystickCursorEdgeDeadzone; }        
+
+        [[nodiscard]] int JoystickCursorPreBoost() const noexcept { return _joystickCursorPreBoost; }
+        void SetJoystickCursorPreBoost(int joystickCursorPreBoost) noexcept { _joystickCursorPreBoost = joystickCursorPreBoost; }        
+
         [[nodiscard]] MelonDsDs::ConsoleType ConsoleType() const noexcept { return _consoleType; }
         void SetConsoleType(MelonDsDs::ConsoleType consoleType) noexcept { _consoleType = consoleType; }
 
@@ -459,6 +474,11 @@ namespace MelonDsDs {
         unsigned _cursorSize = 2.0f;
         MelonDsDs::CursorMode _cursorMode = CursorMode::Always;
         unsigned _cursorTimeout = 3;
+        int _joystickCursorDeadzone = 10;
+        int _joystickCursorMaxSpeed = 5;
+        int _joystickCursorResponse = 150;
+        int _joystickCursorEdgeDeadzone = 99;
+        int _joystickCursorPreBoost = 50;
         MelonDsDs::TouchMode _touchMode;
         MelonDsDs::ConsoleType _consoleType;
         MelonDsDs::BootMode _bootMode;

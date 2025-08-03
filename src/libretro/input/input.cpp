@@ -63,9 +63,9 @@ const struct retro_input_descriptor MelonDsDs::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_X,      "X"},
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_Y,      "Y"},
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_L2,     "Microphone"},
-        {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_R2,     "Next Screen Layout"},
+        {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_R2,     "Touch Joystick"},
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_L3,     "Close Lid"},
-        {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_R3,     "Touch Joystick"},
+        {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_R3,     "Next Screen Layout"},
         {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,      "Touch Joystick Horizontal"},
         {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,      "Touch Joystick Vertical"},
         {},
@@ -99,7 +99,7 @@ void MelonDsDs::InputState::SetControllerPortDevice(unsigned int port, unsigned 
     _joypad.SetControllerPortDevice(port, device);
 }
 
-void InputState::Update(const ScreenLayoutData& layout) noexcept {
+void InputState::Update(const CoreConfig& config, const ScreenLayoutData& layout) noexcept {
     ZoneScopedN(TracyFunction);
 
     retro::input_poll();
@@ -129,7 +129,7 @@ void InputState::Update(const ScreenLayoutData& layout) noexcept {
     }
     _pointer.Update(pollResult);
 
-    _cursor.Update(layout, _pointer, _joypad);
+    _cursor.Update(config, layout, _pointer, _joypad);
 }
 
 void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept {

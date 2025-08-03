@@ -57,7 +57,7 @@ namespace retro {
     static retro_audio_sample_batch_t _audio_sample_batch;
     static retro_input_poll_t _input_poll;
     static retro_input_state_t _input_state;
-    static retro_log_printf_t _log;
+    retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _supportsPowerStatus;
     static bool _supportsNoGameMode;
@@ -118,7 +118,7 @@ uint32_t retro::joypad_state(unsigned port) noexcept {
         buttons = retro::input_state(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
     } else {
         buttons = 0;
-        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R3 + 1); i++)
+        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R2 + 1); i++) //Change to R2
             buttons |= retro::input_state(port, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
     }
 

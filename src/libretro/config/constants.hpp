@@ -112,6 +112,12 @@ namespace MelonDsDs::config {
         static constexpr const char *const SCREEN_LAYOUT8 = "melonds_screen_layout8";
         static constexpr const char *const SHOW_CURSOR = "melonds_show_cursor";
         static constexpr const char *const TOUCH_MODE = "melonds_touch_mode";
+        static constexpr const char *const JOYSTICK_CURSOR_DEADZONE = "melonds_joystick_cursor_deadzone";
+        static constexpr const char *const JOYSTICK_CURSOR_MAXSPEED = "melonds_joystick_cursor_maxspeed";
+        static constexpr const char *const JOYSTICK_CURSOR_RESPONSE = "melonds_joystick_cursor_response";
+        static constexpr const char *const JOYSTICK_CURSOR_EDGEDEADZONE = "melonds_joystick_cursor_edgedeadzone";
+        static constexpr const char *const JOYSTICK_CURSOR_PREBOOST = "melonds_joystick_cursor_preboost";
+
         static constexpr std::array SCREEN_LAYOUTS = {
                 SCREEN_LAYOUT1,
                 SCREEN_LAYOUT2,

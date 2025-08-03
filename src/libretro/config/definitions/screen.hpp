@@ -93,6 +93,106 @@ namespace MelonDsDs::config::definitions {
         },
     };
 
+    constexpr retro_core_option_v2_definition JoystickCursorDeadzone {
+        config::screen::JOYSTICK_CURSOR_DEADZONE,
+        "Joystick Cursor Deadzone",
+        nullptr,
+        "If the joystick is within this deadzone the cursor will not move.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"0", "0%"},
+            {"5", "5%"},
+            {"10", "10%"},
+            {"15", "15%"},
+            {"20", "20%"},
+            {"25", "25%"},
+            {"30", "30%"},
+            {"35", "35%"},
+            {nullptr, nullptr},
+        },
+        "10"
+    };
+
+    constexpr retro_core_option_v2_definition JoystickCursorMaxSpeed {
+        config::screen::JOYSTICK_CURSOR_MAXSPEED,
+        "Joystick Cursor Max Speed",
+        nullptr,
+        "Changes the maximum speed of the joystick cursor.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"0", "0"},
+            {"1", "1"},
+            {"2", "2"},
+            {"3", "3"},
+            {"4", "4"},
+            {"5", "5"},
+            {"6", "6"},
+            {"7", "7"},
+            {"8", "8"},
+            {"9", "9"},
+            {"10", "10"},
+            {nullptr, nullptr},
+        },
+        "5"
+    };
+    constexpr retro_core_option_v2_definition JoystickCursorResponse {
+        config::screen::JOYSTICK_CURSOR_RESPONSE,
+        "Joystick Cursor Response",
+        nullptr,
+        "The response curve of the joystick cursor. "
+        "1 is a linear response curve where the cursor speed is 1:1 with the joystick input. "
+        "1.5 and 2 are exponential curves that reduce sensitivity near the joystick center for finer control but gradually ramps up near the edges",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"100", "1"},
+            {"150", "1.5"},
+            {"200", "2"},
+            {nullptr, nullptr},
+        },
+        "150"
+    };
+
+    constexpr retro_core_option_v2_definition JoystickCursorEdgeDeadzone {
+        config::screen::JOYSTICK_CURSOR_EDGEDEADZONE,
+        "Joystick Cursor Boost Deadzone",
+        nullptr,
+        "When the joystick is within this deadzone, the cursor speed is reduced to the preboost ratio. "
+        "When the joystick exceeds this deadzone, the cursor will \"spike\" up to full speed. "
+        "Set this to OFF to disable the sensitivity spike",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"0", "OFF"},
+            {"90", "90%"},
+            {"95", "95%"},
+            {"99", "99%"},
+            {nullptr, nullptr},
+        },
+        "99"
+    };
+
+    constexpr retro_core_option_v2_definition JoystickCursorPreBoost {
+        config::screen::JOYSTICK_CURSOR_PREBOOST,
+        "Joystick Cursor Pre-Boost Ratio",
+        nullptr,
+        "This is the maximum speed of the cursor when the joystick is moved within the boost deadzone. "
+        "This setting has no effect if the boost deadzone is set to OFF.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"30", "30%"},
+            {"40", "40%"},
+            {"50", "50%"},
+            {"60", "60%"},
+            {"70", "70%"},
+            {nullptr, nullptr},
+        },
+        "50"
+    };    
+    
     constexpr retro_core_option_v2_definition HybridRatio {
         config::screen::HYBRID_RATIO,
         "Hybrid Ratio",
@@ -516,6 +616,11 @@ namespace MelonDsDs::config::definitions {
         ShowCursor,
         CursorTimeout,
         TouchMode,
+        JoystickCursorDeadzone,
+        JoystickCursorMaxSpeed,
+        JoystickCursorResponse,
+        JoystickCursorEdgeDeadzone,
+        JoystickCursorPreBoost,
         NumberOfScreenLayouts,
         ScreenLayout1,
         ScreenLayout2,

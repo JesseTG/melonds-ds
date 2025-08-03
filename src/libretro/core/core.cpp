@@ -154,7 +154,7 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
-        _inputState.Update(_screenLayout);
+        _inputState.Update(Config, _screenLayout);
         _inputState.Apply(nds, _screenLayout, _micState);
         std::array<int16_t, 735> buffer {};
         _micState.Read(buffer);
