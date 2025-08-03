@@ -117,7 +117,6 @@ namespace MelonDsDs::config {
         static constexpr const char *const JOYSTICK_CURSOR_RESPONSE = "melonds_joystick_cursor_response";
         static constexpr const char *const JOYSTICK_CURSOR_EDGEDEADZONE = "melonds_joystick_cursor_edgedeadzone";
         static constexpr const char *const JOYSTICK_CURSOR_PREBOOST = "melonds_joystick_cursor_preboost";
-
         static constexpr std::array SCREEN_LAYOUTS = {
                 SCREEN_LAYOUT1,
                 SCREEN_LAYOUT2,
