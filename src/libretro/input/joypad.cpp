@@ -89,11 +89,11 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
     //_micButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
 
 
-    _joystickSpeedupCursorButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2); //Change to R3
+    _joystickSpeedupCursorButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
 
 
     _previousCycleLayoutButton = _cycleLayoutButton;
-    _cycleLayoutButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3); //Change to R3
+    _cycleLayoutButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3);
 
     _previousJoystickTouchButton = _joystickTouchButton;
     _previousJoystickRawDirection = _joystickRawDirection;
@@ -119,8 +119,6 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
 
 void JoypadState::Apply(CoreConfig& config) const noexcept {
     config.SetJoystickSpeedupEnabled(_joystickSpeedupCursorButton);
-    if (retro::_log)
-    retro::_log(RETRO_LOG_INFO, "Speedup Enabled: %s\n", config.JoystickSpeedupEnabled() ? "true" : "false");
 }
 
 

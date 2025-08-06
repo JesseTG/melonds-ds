@@ -86,17 +86,14 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
 
         if (_joystickRawDirection != i16vec2(0)) {
             // If the player moved the joypad's cursor this frame...
-
             if (_pointerCursorLastUpdate > _joypadCursorLastUpdate) {
                 // If the pointer was used more recently than the joypad cursor...
                 // Then continue using the cursor from where the pointer last left it
                 _joystickCursorPosition = _pointerCursorPosition;
             }
             // Rotate the joypad cursor to match the screen layout (if necessary),
-            // then clamp it to the touch screen's coordinates
-            // TODO: Allow speed to be customized
+            // then clamp it to the touch screen's coordinates.
 
-            //Normalize the joystick direction to a range of -1 to 1
             int maxSpeed = config.JoystickCursorMaxSpeed();
             float realSpeed;
             switch (maxSpeed) {
@@ -128,32 +125,26 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
                     realSpeed = 2.0f;
                     break;
                 default:
-                    realSpeed = 1.0f; // Default to max speed
+                    realSpeed = 1.0f;
             }            
-            //float widthSpeed = (NDS_SCREEN_WIDTH / 20.0) * realSpeed;
+            //float widthSpeed = (NDS_SCREEN_WIDTH / 20.0) * realSpeed; //Currently unused
             float heightSpeed = (NDS_SCREEN_HEIGHT / 20.0) * realSpeed;
             float joystickNormX = _joystickRawDirection.x/32767.0;
             float joystickNormY = _joystickRawDirection.y/32767.0;
-
             float deadzone = config.JoystickCursorDeadzone() / 100.0f;
             bool speedup_enabled = config.JoystickSpeedupEnabled();
             float responsecurve = config.JoystickCursorResponse() / 100.0f;
             float speedupratio = config.JoystickCursorSpeedup() / 100.0f;
-
             float radialLength = std::sqrt((joystickNormX * joystickNormX) + (joystickNormY * joystickNormY));
-
             float joystickScaledX = 0.0f;
             float joystickScaledY = 0.0f;
-
             if (radialLength > deadzone) {
                 // Get X and Y as a relation to the radial length
                 float dirX = joystickNormX / radialLength;
                 float dirY = joystickNormY / radialLength;
-
-                // Apply deadzone and curve
+                // Apply deadzone and response curve
                 float scaledLength = (radialLength - deadzone) / (1.0f - deadzone);
                 float curvedLength = std::pow(std::min<float>(1.0f, scaledLength), responsecurve);
-
                 // Final output
                 float finalLength = speedup_enabled ? curvedLength * speedupratio : curvedLength;
                 joystickScaledX = dirX * finalLength;
@@ -161,11 +152,11 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
             } else {
                 joystickScaledX = 0.0f;
                 joystickScaledY = 0.0f;
-            }            
-            //_joystickCursorPosition = vec2((NDS_SCREEN_WIDTH/2.0f)+(std::min<float>(1.0,(joystickNormX/0.7071))*(NDS_SCREEN_WIDTH/2.0f)), (NDS_SCREEN_HEIGHT/2.0f)+(std::min<float>(1.0,(joystickNormY/0.7071))*(NDS_SCREEN_HEIGHT/2.0f)));// This is for absolute position based
-            _joystickCursorPosition +=  vec2(joystickScaledX * heightSpeed, joystickScaledY * heightSpeed);//This is for velocity based
-            _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(0.0), vec2(255.0,191.0));//Change this back to NDS_SCREEN_SIZE<int> - 1 
-             }
+            }
+            _joystickCursorPosition +=  vec2(joystickScaledX * heightSpeed, joystickScaledY * heightSpeed);
+            _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(0.0), NDS_SCREEN_SIZE<float> - 1.0f); 
+            
+        }
         if (joypad.CursorActive()) {
             // If the player moved, pressed, or released the joystick within the past frame...
             ResetCursorTimeout();
