@@ -62,7 +62,7 @@ namespace MelonDsDs {
         void SetConfig(const CoreConfig& config) noexcept;
         void Update(const CoreConfig& config, const ScreenLayoutData& layout) noexcept;
         void SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noexcept;
-        void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic) const noexcept;
+        void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic, CoreConfig& config) const noexcept;
         [[nodiscard]] bool CursorVisible() const noexcept { return _cursor.CursorVisible(); }
         [[nodiscard]] bool IsTouching() const noexcept { return _cursor.IsTouching(); }
         [[nodiscard]] bool TouchReleased() const noexcept {

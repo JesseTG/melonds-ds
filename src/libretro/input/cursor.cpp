@@ -98,67 +98,74 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
 
             //Normalize the joystick direction to a range of -1 to 1
             int maxSpeed = config.JoystickCursorMaxSpeed();
-            float widthSpeed = (NDS_SCREEN_WIDTH / 20.0) * std::pow(2.0,(maxSpeed-5.0)/5.0);
-            float heightSpeed = (NDS_SCREEN_HEIGHT / 20.0) * std::pow(2.0,(maxSpeed-5.0)/5.0);
+            float realSpeed;
+            switch (maxSpeed) {
+                case 1:
+                    realSpeed = 0.4f;
+                    break;            
+                case 2:
+                    realSpeed = 0.6f;
+                    break;
+                case 3:
+                    realSpeed = 0.8f;
+                    break;
+                case 4:
+                    realSpeed = 1.0f;
+                    break;
+                case 5:
+                    realSpeed = 1.2f;
+                    break;
+                case 6:
+                    realSpeed = 1.4f;
+                    break;
+                case 7:
+                    realSpeed = 1.6f;
+                    break;
+                case 8:
+                    realSpeed = 1.8f;
+                    break;
+                case 9:
+                    realSpeed = 2.0f;
+                    break;
+                default:
+                    realSpeed = 1.0f; // Default to max speed
+            }            
+            //float widthSpeed = (NDS_SCREEN_WIDTH / 20.0) * realSpeed;
+            float heightSpeed = (NDS_SCREEN_HEIGHT / 20.0) * realSpeed;
             float joystickNormX = _joystickRawDirection.x/32767.0;
             float joystickNormY = _joystickRawDirection.y/32767.0;
-            float absX = std::abs(joystickNormX);
-            float absY = std::abs(joystickNormY);
-            float deadzone = config.JoystickCursorDeadzone()/100.0;
-            float radialLength = std::min<float>(1.0, std::sqrt((absX*absX)+(absY*absY)));
-            int signX = 0;
-            int signY = 0;
-            float joystickScaledX = 0;
-            float joystickScaledY = 0;
-            float joystickDeflectionX = 0;
-            float joystickDeflectionY = 0;
-            if (radialLength <= deadzone) {
-                joystickScaledX = 0;
-                joystickScaledY = 0;
+
+            float deadzone = config.JoystickCursorDeadzone() / 100.0f;
+            bool speedup_enabled = config.JoystickSpeedupEnabled();
+            float responsecurve = config.JoystickCursorResponse() / 100.0f;
+            float speedupratio = config.JoystickCursorSpeedup() / 100.0f;
+
+            float radialLength = std::sqrt((joystickNormX * joystickNormX) + (joystickNormY * joystickNormY));
+
+            float joystickScaledX = 0.0f;
+            float joystickScaledY = 0.0f;
+
+            if (radialLength > deadzone) {
+                // Get X and Y as a relation to the radial length
+                float dirX = joystickNormX / radialLength;
+                float dirY = joystickNormY / radialLength;
+
+                // Apply deadzone and curve
+                float scaledLength = (radialLength - deadzone) / (1.0f - deadzone);
+                float curvedLength = std::pow(std::min<float>(1.0f, scaledLength), responsecurve);
+
+                // Final output
+                float finalLength = speedup_enabled ? curvedLength * speedupratio : curvedLength;
+                joystickScaledX = dirX * finalLength;
+                joystickScaledY = dirY * finalLength;
             } else {
-                float scaledLength = (radialLength - deadzone) / (1 - deadzone);
-                float scaleFactor = scaledLength/radialLength;
-                if (joystickNormX < 0) {
-                    signX = -1;
-                } else {
-                    signX = 1;
-                }
-                if (joystickNormY < 0) {
-                    signY = -1;
-                } else {
-                    signY = 1;
-                }
-                //See joystick deflection after deadzone
-                joystickDeflectionX = absX*scaleFactor; //Gives adjusted joystick deflection after deadzone
-                joystickDeflectionY = absY*scaleFactor;
-                float adjustJoystickRadialLength = std::min<float>(1.0, std::sqrt((joystickDeflectionX*joystickDeflectionX)+(joystickDeflectionY*joystickDeflectionY)));
-
-                //Set these values to adjust the response curve of the joystick
-                float edgeboostdeadzone = config.JoystickCursorEdgeDeadzone()/100.0; //This is the radial length at which the boost multiplier starts to apply. From this value to 1.0, the boost multiplier will scale the speed linearly.
-                float preboostratio = config.JoystickCursorPreBoost()/100.0; //Max speed when joystick is below the edgeboostdeadzone. The Boost multiplier will scale from this speed to the full max width/height speed (1.0)
-                float responsecurve = config.JoystickCursorResponse()/100.0; //responsecurve of the exponential response curve
-                float boostMultiplier = 0.0;
-                if (edgeboostdeadzone == 0.0) {
-                    joystickScaledX = signX*std::pow(std::min<float>(1.0,(joystickDeflectionX)),responsecurve); //No edgeboost and no scaling
-                    joystickScaledY = signY*std::pow(std::min<float>(1.0,(joystickDeflectionY)),responsecurve);
-                } else {
-                    float adjustedScaleFactor = 1.0/edgeboostdeadzone;
-                    if (adjustJoystickRadialLength >= edgeboostdeadzone) {
-                        boostMultiplier = preboostratio+((1-preboostratio)*((adjustJoystickRadialLength-edgeboostdeadzone)/(1- edgeboostdeadzone))); //Boost multiplier scales linearly once the radialjoystick deflection is greater than 0.9
-                        joystickScaledX = signX*std::pow(std::min<float>(1.0,((joystickDeflectionX)*adjustedScaleFactor)),responsecurve)*boostMultiplier;
-                        joystickScaledY = signY*std::pow(std::min<float>(1.0,((joystickDeflectionY)*adjustedScaleFactor)),responsecurve)*boostMultiplier;
-                    } else {
-                        joystickScaledX = signX*std::pow(std::min<float>(1.0,((joystickDeflectionX)*adjustedScaleFactor)),responsecurve)*preboostratio; //divide deflection by 0.9 to full range between 0 and 0.9 deflection. Then Multiply by preboostratio so max deflection below 0.9 gives a max speed of specified fraction
-                        joystickScaledY = signY*std::pow(std::min<float>(1.0,((joystickDeflectionY)*adjustedScaleFactor)),responsecurve)*preboostratio;
-                    }
-                }
-                _joystickCursorPosition +=  vec2(joystickScaledX * heightSpeed, joystickScaledY * heightSpeed);//This is division of both x and y components of joystick direction. 2048 is the speed
-                _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(0.0), vec2(255.0,191.0));//Change this back to NDS_SCREEN_SIZE<int> - 1 
-
-            if (retro::_log)
-                retro::_log(RETRO_LOG_INFO, "Deadzone: %f, Edge Boost Deadzone: %f, Pre-Boost Ratio: %f, Response Curve: %f, Max Speed: %d\n", deadzone, edgeboostdeadzone, preboostratio, responsecurve, maxSpeed);
-            }
-        }
+                joystickScaledX = 0.0f;
+                joystickScaledY = 0.0f;
+            }            
+            //_joystickCursorPosition = vec2((NDS_SCREEN_WIDTH/2.0f)+(std::min<float>(1.0,(joystickNormX/0.7071))*(NDS_SCREEN_WIDTH/2.0f)), (NDS_SCREEN_HEIGHT/2.0f)+(std::min<float>(1.0,(joystickNormY/0.7071))*(NDS_SCREEN_HEIGHT/2.0f)));// This is for absolute position based
+            _joystickCursorPosition +=  vec2(joystickScaledX * heightSpeed, joystickScaledY * heightSpeed);//This is for velocity based
+            _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(0.0), vec2(255.0,191.0));//Change this back to NDS_SCREEN_SIZE<int> - 1 
+             }
         if (joypad.CursorActive()) {
             // If the player moved, pressed, or released the joystick within the past frame...
             ResetCursorTimeout();
