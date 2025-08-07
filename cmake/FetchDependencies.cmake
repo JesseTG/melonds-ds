@@ -41,13 +41,13 @@ function(fetch_dependency name default_url default_tag)
     FetchContent_GetProperties(${name})
 endfunction()
 
-fetch_dependency(melonDS "https://github.com/JesseTG/melonDS" "f6692df")
-fetch_dependency(libretro-common "https://github.com/JesseTG/libretro-common" "8e2b884")
+fetch_dependency(melonDS "https://github.com/melonDS-emu/melonDS" "7117178")
+fetch_dependency(libretro-common "https://github.com/libretro/libretro-common" "ad9124f")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
-fetch_dependency(glm "https://github.com/g-truc/glm" "33b4a62")
+fetch_dependency(glm "https://github.com/g-truc/glm" "2d4c4b4")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror" "e61dbd4")
-fetch_dependency(pntr "https://github.com/robloach/pntr" "650237a")
-fetch_dependency(fmt "https://github.com/fmtlib/fmt" "11.0.2")
+fetch_dependency(pntr "https://github.com/robloach/pntr" "922aed0")
+fetch_dependency(fmt "https://github.com/fmtlib/fmt" "11.2.0")
 fetch_dependency(yamc "https://github.com/yohhoy/yamc" "4e015a7")
 fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "00afc28")
 fetch_dependency(date "https://github.com/HowardHinnant/date" "1ead671")
@@ -68,6 +68,14 @@ set(ENABLE_GDBSTUB OFF)
 set(GLM_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
 set(GLM_ENABLE_CXX_17 ON CACHE BOOL "" FORCE)
 option(ENABLE_TESTING "Enable unit testing." OFF)
+if (${CMAKE_MAJOR_VERSION} VERSION_GREATER_EQUAL 4)
+    # Needed for https://github.com/JesseTG/melonds-ds/issues/265
+    # yamc's stated minimum CMake version is 3.2,
+    # but it configures and builds fine with CMake 4.
+    # Setting the policy version to 3.5
+    # lets us fix this without having to fork yamc.
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif ()
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date)
 
 if (TRACY_ENABLE)

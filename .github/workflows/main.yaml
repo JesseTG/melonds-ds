@@ -84,7 +84,8 @@ jobs:
       shell: msys2 {0}
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
-      cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe"
+      cmake-args: -DENABLE_SCCACHE=ON -DSCCACHE="C:/Users/runneradmin/.cargo/bin/sccache.exe" -DENABLE_LTO_RELEASE=OFF
+      # Temporarily disable LTO until a regression in GCC 15 is resolved https://github.com/msys2/MINGW-packages/issues/24152
       cmake-config: "${{ matrix.config }}"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
@@ -232,7 +233,9 @@ jobs:
       core-name: melondsds_libretro_android
       archive-name: melondsds_libretro-android
       cmake-config: "${{ matrix.config }}"
-      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake"
+      cmake-args: -DENABLE_OGLRENDERER=OFF -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=24 -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" -DENABLE_LTO_RELEASE=OFF
+      # Disabling LTO because it causes a linker error with Clang 18.0.3 and NDK 27.2.12479018 for some reason
+      # (GitHub Actions uses these at the time of writing)
       runs-on: ubuntu-latest
       # Disabled OpenGL on Android due to https://github.com/JesseTG/melonds-ds/issues/23
 
