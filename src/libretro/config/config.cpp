@@ -99,8 +99,8 @@ const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<int> JOYSTICK_CURSOR_DEADZONES = {0, 5, 10, 15, 20, 25, 30, 35};
 const initializer_list<int> JOYSTICK_CURSOR_MAXSPEEDS = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-const initializer_list<int> JOYSTICK_CURSOR_RESPONSES = {100, 200, 300};
-const initializer_list<int> JOYSTICK_CURSOR_SPEEDUPS = {150, 200};
+const initializer_list<int> JOYSTICK_CURSOR_RESPONSES = {100, 200};
+const initializer_list<int> JOYSTICK_CURSOR_SPEEDUPS = {150, 200, 250, 300};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<uint16_t> RUMBLE_INTENSITY_VALUES = {0, 6554, 13107, 19661, 26214, 32768, 39321, 45875, 52428, 58982, 65535};
@@ -769,8 +769,8 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
     if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_MAXSPEED), JOYSTICK_CURSOR_MAXSPEEDS)) {
         config.SetJoystickCursorMaxSpeed(*value);
     } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_MAXSPEED, 4);
-        config.SetJoystickCursorMaxSpeed(4);
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_MAXSPEED, 3);
+        config.SetJoystickCursorMaxSpeed(3);
     }
 
     if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_RESPONSE), JOYSTICK_CURSOR_RESPONSES)) {
@@ -783,8 +783,8 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
     if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_SPEEDUP), JOYSTICK_CURSOR_SPEEDUPS)) {
         config.SetJoystickCursorSpeedup(*value);
     } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_SPEEDUP, 150);
-        config.SetJoystickCursorSpeedup(150);
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_SPEEDUP, 200);
+        config.SetJoystickCursorSpeedup(200);
     }
 
     if (optional<MelonDsDs::CursorMode> value = ParseCursorMode(get_variable(SHOW_CURSOR))) {

@@ -475,9 +475,9 @@ namespace MelonDsDs {
         MelonDsDs::CursorMode _cursorMode = CursorMode::Always;
         unsigned _cursorTimeout = 3;
         int _joystickCursorDeadzone = 5;
-        int _joystickCursorMaxSpeed = 4;
+        int _joystickCursorMaxSpeed = 3;
         int _joystickCursorResponse = 200;
-        int _joystickCursorSpeedup = 150;
+        int _joystickCursorSpeedup = 200;
         bool _joystickSpeedupEnabled = false;
         MelonDsDs::TouchMode _touchMode;
         MelonDsDs::ConsoleType _consoleType;

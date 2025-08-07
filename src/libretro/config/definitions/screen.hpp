@@ -118,7 +118,7 @@ namespace MelonDsDs::config::definitions {
         config::screen::JOYSTICK_CURSOR_MAXSPEED,
         "Joystick Cursor Max Speed",
         nullptr,
-        "Changes the maximum speed of the joystick cursor.",
+        "Set the max speed for the joystick cursor.",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -133,21 +133,20 @@ namespace MelonDsDs::config::definitions {
             {"9", "9"},
             {nullptr, nullptr},
         },
-        "4"
+        "3"
     };
     constexpr retro_core_option_v2_definition JoystickCursorResponse {
         config::screen::JOYSTICK_CURSOR_RESPONSE,
         "Joystick Cursor Response",
         nullptr,
-        "The response curve of the joystick cursor. "
-        "1 is a linear response curve where the cursor speed is 1:1 with the joystick input. "
-        "2 and 3 are exponential curves that reduce sensitivity near the joystick center for finer control but increase the sensitivity near the edges",
+        "Set the response curve for the joystick cursor.\n"
+        "1 is a linear response curve where the cursor speed is 1:1 with the joystick input.\n"
+        "2 is an exponential curve that reduces the sensitivity near the joystick center for finer control, but increases the sensitivity near the edges",
         nullptr,
         config::screen::CATEGORY,
         {
             {"100", "1"},
             {"200", "2"},
-            {"300", "3"},
             {nullptr, nullptr},
         },
         "200"
@@ -155,17 +154,19 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition JoystickCursorSpeedup {
         config::screen::JOYSTICK_CURSOR_SPEEDUP,
-        "Joystick Cursor Speedup Ratio",
+        "Joystick Cursor Speedup Multiplier",
         nullptr,
-        "When the joystick speedup button is pressed, the cursor speed gets multiplied by this percentage",
+        "Set the speedup multiplier for the joystick cursor when the speedup pointer button (L2 by default) is held",
         nullptr,
         config::screen::CATEGORY,
         {
             {"150", "150%"},
             {"200", "200%"},
+            {"250", "250%"},
+            {"300", "300%"},
             {nullptr, nullptr},
         },
-        "150"
+        "200"
     };    
     
     constexpr retro_core_option_v2_definition HybridRatio {
