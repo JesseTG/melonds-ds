@@ -85,11 +85,17 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
     _previousToggleLidButton = _toggleLidButton;
     _toggleLidButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L3);
 
-    //_previousMicButton = _micButton;
-    //_micButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
-
 
     _joystickSpeedupCursorButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
+
+    _previousMicButton = _micButton;
+    if (_joystickSpeedupCursorButton){
+            _micButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_Y);
+    } else {
+        _micButton = false;
+    }
+
+
 
 
     _previousCycleLayoutButton = _cycleLayoutButton;
