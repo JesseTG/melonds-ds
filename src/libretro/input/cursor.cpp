@@ -83,7 +83,6 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
         _joypadCursorTouching = joypad.IsTouching();
         _joystickRawDirection = joypad.RawCursorDirection();
         _joystickRawDirection = (i16vec2)glm::rotate(vec2(_joystickRawDirection), GetOrientationAngle(orientation));
-
         if (_joystickRawDirection != i16vec2(0)) {
             // If the player moved the joypad's cursor this frame...
             if (_pointerCursorLastUpdate > _joypadCursorLastUpdate) {
@@ -154,7 +153,7 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
                 joystickScaledY = 0.0f;
             }
             _joystickCursorPosition +=  vec2(joystickScaledX * heightSpeed, joystickScaledY * heightSpeed);
-            _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(0.0), NDS_SCREEN_SIZE<float> - 1.0f); 
+            _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(1.0), NDS_SCREEN_SIZE<float> - 1.0f); 
             
         }
         if (joypad.CursorActive()) {
