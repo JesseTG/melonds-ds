@@ -36,7 +36,6 @@ namespace retro {
         UpsideDown = 2,
         RotatedRight = 3,
     };
-    extern retro_log_printf_t _log;
 
     /// For use by other parts of the core
     bool environment(unsigned cmd, void *data) noexcept;

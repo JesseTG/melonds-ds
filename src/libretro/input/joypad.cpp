@@ -82,21 +82,17 @@ void JoypadState::Update(const InputPollResult& poll) noexcept {
     // We'll send these bits to the DS in Apply() later
     _consoleButtons = ndsInputBits;
 
-    _previousToggleLidButton = _toggleLidButton;
-    _toggleLidButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L3);
-
-
     _joystickSpeedupCursorButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L2);
 
     _previousMicButton = _micButton;
+    _micButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_L3);
+
+    _previousToggleLidButton = _toggleLidButton;
     if (_joystickSpeedupCursorButton){
-            _micButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_Y);
+        _toggleLidButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_Y);
     } else {
-        _micButton = false;
+        _toggleLidButton = false;
     }
-
-
-
 
     _previousCycleLayoutButton = _cycleLayoutButton;
     _cycleLayoutButton = poll.JoypadButtons & (1 << RETRO_DEVICE_ID_JOYPAD_R3);

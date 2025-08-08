@@ -57,7 +57,7 @@ namespace retro {
     static retro_audio_sample_batch_t _audio_sample_batch;
     static retro_input_poll_t _input_poll;
     static retro_input_state_t _input_state;
-    retro_log_printf_t _log;
+    static retro_log_printf_t _log;
     static bool _supports_bitmasks;
     static bool _supportsPowerStatus;
     static bool _supportsNoGameMode;
