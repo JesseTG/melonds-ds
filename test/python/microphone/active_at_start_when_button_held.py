@@ -11,7 +11,7 @@ def generate_noise() -> Iterator[int]:
         yield randint(-30000, 30000)
 
 def generate_input():
-    yield from repeat(DeviceIdJoypad.L2)
+    yield from repeat(DeviceIdJoypad.L3)
 
 options = {
     "melonds_mic_input": "microphone",
