@@ -437,7 +437,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::BOTTOM_TOP
+        MelonDsDs::config::values::LEFT_RIGHT
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout3 {
@@ -527,7 +527,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::LEFT_RIGHT
+        MelonDsDs::config::values::HYBRID_TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout6 {
@@ -557,7 +557,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::RIGHT_LEFT
+        MelonDsDs::config::values::HYBRID_BOTTOM
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout7 {
@@ -587,7 +587,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::HYBRID_TOP
+        MelonDsDs::config::values::TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout8 {
@@ -617,7 +617,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::HYBRID_BOTTOM
+        MelonDsDs::config::values::BOTTOM
     };
 
     constexpr std::initializer_list<retro_core_option_v2_definition> ScreenOptionDefinitions {
