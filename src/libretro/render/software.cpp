@@ -59,7 +59,7 @@ void MelonDsDs::SoftwareRenderState::Render(
 
     buffer.SetSize(screenLayout.BufferSize());
 
-    if (IsHybridLayout(screenLayout.Layout())) {
+    if (IsHybridLayout(screenLayout.Layout()) || IsLargeScreenLayout(screenLayout.Layout())) {
         uvec2 requiredHybridBufferSize = NDS_SCREEN_SIZE<unsigned> * screenLayout.HybridRatio();
         hybridBuffer.SetSize(requiredHybridBufferSize);
 
@@ -188,7 +188,31 @@ void MelonDsDs::SoftwareRenderState::CombineScreens(
             // If we should display both screens, or if the top one is being focused...
             buffer.CopyRows(bottomBuffer.data(), screenLayout.GetBottomScreenTranslation(), NDS_SCREEN_SIZE<unsigned>);
         }
-    }
+    } 
+    else if (IsLargeScreenLayout(layout)) {
+        bool focusTop = layout == ScreenLayout::LargescreenTop || layout == ScreenLayout::FlippedLargescreenTop;
+        if (focusTop) {
+            auto primaryBuffer = topBuffer;
+            hybridScaler.Scale(hybridBuffer[0], primaryBuffer.data());
+            buffer.CopyRows(
+                hybridBuffer[0],
+                screenLayout.GetTopScreenTranslation(),
+                NDS_SCREEN_SIZE<unsigned> * screenLayout.HybridRatio()
+            );
+            // If the top screen is the primary copy the bottom to the small screen
+            CopyScreen(bottomBuffer.data(), screenLayout.GetBottomScreenTranslation(), layout);
+        } else {
+            auto primaryBuffer = bottomBuffer;
+            hybridScaler.Scale(hybridBuffer[0], primaryBuffer.data());
+            buffer.CopyRows(
+                hybridBuffer[0],
+                screenLayout.GetBottomScreenTranslation(),
+                NDS_SCREEN_SIZE<unsigned> * screenLayout.HybridRatio()
+            );            
+            // If the bottom screen is the primary copy the top to the small screen
+            CopyScreen(topBuffer.data(), screenLayout.GetTopScreenTranslation(), layout);
+        }
+    } 
     else {
         if (layout != ScreenLayout::BottomOnly)
             CopyScreen(topBuffer.data(), screenLayout.GetTopScreenTranslation(), layout);

@@ -151,6 +151,9 @@ void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layou
                 joystickScaledX = 0.0f;
                 joystickScaledY = 0.0f;
             }
+            //The code below sets the cursor position to the position of the joystick (absolute)
+            //_joystickCursorPosition = vec2((NDS_SCREEN_WIDTH/2.0f)+(std::min<float>(1.0,(joystickNormX/0.7071))*(NDS_SCREEN_WIDTH/2.0f)), (NDS_SCREEN_HEIGHT/2.0f)+(std::min<float>(1.0,(joystickNormY/0.7071))*(NDS_SCREEN_HEIGHT/2.0f)));
+
             _joystickCursorPosition +=  vec2(joystickScaledX * heightSpeed, joystickScaledY * heightSpeed);
             _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(1.0), NDS_SCREEN_SIZE<float> - 1.0f); 
             

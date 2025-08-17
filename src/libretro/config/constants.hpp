@@ -224,6 +224,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const FIRMWARE = "firmware";
         static constexpr const char *const FLIPPED_HYBRID_BOTTOM = "flipped-hybrid-bottom";
         static constexpr const char *const FLIPPED_HYBRID_TOP = "flipped-hybrid-top";
+        static constexpr const char *const FLIPPED_LARGESCREEN_BOTTOM = "flipped-largescreen-bottom";
+        static constexpr const char *const FLIPPED_LARGESCREEN_TOP = "flipped-largescreen-top";
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GAUSSIAN = "gaussian";
         static constexpr const char *const GERMAN = "de";
@@ -234,6 +236,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const ITALIAN = "it";
         static constexpr const char *const JAPANESE = "ja";
         static constexpr const char *const JOYSTICK = "joystick";
+        static constexpr const char *const LARGESCREEN_BOTTOM = "largescreen-bottom";
+        static constexpr const char *const LARGESCREEN_TOP = "largescreen-top";
         static constexpr const char *const LEFT_RIGHT = "left-right";
         static constexpr const char *const LINEAR = "linear";
         static constexpr const char *const NATIVE = "native";

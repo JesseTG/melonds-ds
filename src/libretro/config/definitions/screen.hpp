@@ -171,9 +171,9 @@ namespace MelonDsDs::config::definitions {
     
     constexpr retro_core_option_v2_definition HybridRatio {
         config::screen::HYBRID_RATIO,
-        "Hybrid Ratio",
+        "Hybrid/Largescreen Ratio",
         nullptr,
-        "The size of the larger screen relative to the smaller ones when using a hybrid layout.",
+        "The size of the larger screen relative to the smaller ones when using a hybrid or largescreen layout.",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -201,9 +201,9 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition HybridScreenFiltering {
         config::screen::HYBRID_SCREEN_FILTERING,
-        "Hybrid Screen Filtering",
+        "Hybrid/Largescreen Filtering",
         nullptr,
-        "Affects how the hybrid screen is scaled up.\n"
+        "Affects how the hybrid/largescreen screen is scaled up.\n"
         "\n"
         "Nearest: No filtering. Graphics look blocky.\n"
         "Linear: Smooth scaling.\n",
@@ -394,6 +394,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -420,6 +424,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -429,7 +437,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::LEFT_RIGHT
+        MelonDsDs::config::values::BOTTOM_TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout3 {
@@ -446,6 +454,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -455,7 +467,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::TOP
+        MelonDsDs::config::values::LARGESCREEN_TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout4 {
@@ -472,6 +484,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -481,7 +497,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::BOTTOM
+        MelonDsDs::config::values::LARGESCREEN_BOTTOM
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout5 {
@@ -498,6 +514,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -507,7 +527,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::HYBRID_TOP
+        MelonDsDs::config::values::LEFT_RIGHT
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout6 {
@@ -524,6 +544,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -533,7 +557,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::HYBRID_BOTTOM
+        MelonDsDs::config::values::RIGHT_LEFT
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout7 {
@@ -550,6 +574,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -559,7 +587,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::BOTTOM_TOP
+        MelonDsDs::config::values::HYBRID_TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout8 {
@@ -576,6 +604,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -585,7 +617,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::RIGHT_LEFT
+        MelonDsDs::config::values::HYBRID_BOTTOM
     };
 
     constexpr std::initializer_list<retro_core_option_v2_definition> ScreenOptionDefinitions {
