@@ -140,13 +140,13 @@ namespace MelonDsDs::config::definitions {
         "Joystick Cursor Response",
         nullptr,
         "Set the response curve for the joystick cursor.\n"
-        "1 is a linear response curve where the cursor speed is 1:1 with the joystick input.\n"
-        "2 is an exponential curve that reduces the sensitivity near the joystick center for finer control, but increases the sensitivity near the edges",
+        "Linear is a response curve where the cursor speed is 1:1 with the joystick input.\n"
+        "Quadratic is a response curve that reduces the sensitivity near the joystick center for finer control, but increases the sensitivity near the edges",
         nullptr,
         config::screen::CATEGORY,
         {
-            {"100", "1"},
-            {"200", "2"},
+            {"100", "Linear"},
+            {"200", "Quadratic"},
             {nullptr, nullptr},
         },
         "200"
@@ -154,12 +154,15 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition JoystickCursorSpeedup {
         config::screen::JOYSTICK_CURSOR_SPEEDUP,
-        "Joystick Cursor Speedup Multiplier",
+        "Joystick Cursor Multiplier",
         nullptr,
-        "Set the speedup multiplier for the joystick cursor when the speedup pointer button (L2 by default) is held",
+        "Set the multiplier for the joystick cursor when the speedup/slowdown pointer button (L2 by default) is held",
         nullptr,
         config::screen::CATEGORY,
         {
+            {"33", "33%"},
+            {"50", "50%"},
+            {"66", "66%"},
             {"150", "150%"},
             {"200", "200%"},
             {"250", "250%"},

@@ -118,7 +118,7 @@ uint32_t retro::joypad_state(unsigned port) noexcept {
         buttons = retro::input_state(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
     } else {
         buttons = 0;
-        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R2 + 1); i++)
+        for (int i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R3 + 1); i++)
             buttons |= retro::input_state(port, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
     }
 
