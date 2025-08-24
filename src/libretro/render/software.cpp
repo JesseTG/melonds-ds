@@ -142,12 +142,14 @@ void MelonDsDs::SoftwareRenderState::DrawCursor(const InputState& input, const C
         return;
 
     ivec2 cursorSize = ivec2(config.CursorSize());
+    if (screenLayout.Layout() == ScreenLayout::LargescreenBottom || screenLayout.Layout() == ScreenLayout::FlippedLargescreenBottom) {
+        cursorSize = ivec2(screenLayout.HybridRatio())*cursorSize;
+    }
     ivec2 clampedTouch = clamp(input.TouchPosition(), ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
     ivec2 transformedTouch = screenLayout.GetBottomScreenMatrix() * vec3(clampedTouch, 1);
 
     uvec2 start = clamp(transformedTouch - ivec2(cursorSize), ivec2(0), ivec2(buffer.Size()));
     uvec2 end = clamp(transformedTouch + ivec2(cursorSize), ivec2(0), ivec2(buffer.Size()));
-
     for (uint32_t y = start.y; y < end.y; y++) {
         for (uint32_t x = start.x; x < end.x; x++) {
             // TODO: Replace with SIMD (does GLM have a SIMD version of this?)
