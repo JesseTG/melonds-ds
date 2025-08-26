@@ -34,8 +34,8 @@ function(fetch_dependency name default_url default_tag)
 
     FetchContent_Declare(
         ${name}
-        GIT_REPOSITORY "${${VAR_NAME}_REPOSITORY_URL}"
-        GIT_TAG "${${VAR_NAME}_REPOSITORY_TAG}"
+        URL "${${VAR_NAME}_REPOSITORY_URL}/archive/${${VAR_NAME}_REPOSITORY_TAG}.zip"
+        DOWNLOAD_EXTRACT_TIMESTAMP true
     )
 
     FetchContent_GetProperties(${name})
@@ -43,7 +43,7 @@ endfunction()
 
 fetch_dependency(melonDS "https://github.com/JesseTG/melonDS" "f6692df")
 fetch_dependency(libretro-common "https://github.com/JesseTG/libretro-common" "8e2b884")
-fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
+fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm" "33b4a62")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror" "e61dbd4")
 fetch_dependency(pntr "https://github.com/robloach/pntr" "650237a")
