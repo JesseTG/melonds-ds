@@ -70,16 +70,7 @@ libretro-build-linux-x64:
   extends:
     - .libretro-linux-cmake-x86_64
     - .core-defs
-  image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-amd64-ubuntu:latest
-  before_script:
-    - export NUMPROC=$(($(nproc)/5))
-    - sudo apt-get update -qy
-    - sudo apt-get install -qy software-properties-common
-    - sudo add-apt-repository -y ppa:savoury1/build-tools
-    - sudo add-apt-repository -y ppa:savoury1/gcc-defaults-12
-    - sudo apt-get update -qy
-    - sudo apt-get install -qy cmake gcc-12 g++-12
-  # This container's existing installations of gcc and CMake are way too old
+  image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-amd64-ubuntu:backports
   variables:
     CC: /usr/bin/gcc-12
     CXX: /usr/bin/g++-12
@@ -110,10 +101,6 @@ android-arm64-v8a:
   extends:
     - .libretro-android-cmake-arm64-v8a
     - .core-defs
-  before_script:
-    - export NUMPROC=$(($(nproc)/5))
-    - /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "cmake;3.30.3"
-    - export PATH=/android-sdk-linux/cmake/3.30.3/bin:$PATH
   variables:
     CORE_ARGS: -Wno-deprecated
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
@@ -125,10 +112,6 @@ android-x86_64:
   extends:
     - .libretro-android-cmake-x86_64
     - .core-defs
-  before_script:
-    - export NUMPROC=$(($(nproc)/5))
-    - /android-sdk-linux/cmdline-tools/latest/bin/sdkmanager "cmake;3.30.3"
-    - export PATH=/android-sdk-linux/cmake/3.30.3/bin:$PATH
   variables:
     CORE_ARGS: -Wno-deprecated
     CXXFLAGS: -Wno-deprecated-declarations -Wno-unknown-attributes
