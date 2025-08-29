@@ -81,7 +81,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::ENABLED, nullptr},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::DISABLED
+        MelonDsDs::config::values::ENABLED
     };
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)

@@ -93,11 +93,90 @@ namespace MelonDsDs::config::definitions {
         },
     };
 
+    constexpr retro_core_option_v2_definition JoystickCursorDeadzone {
+        config::screen::JOYSTICK_CURSOR_DEADZONE,
+        "Joystick Cursor Deadzone",
+        nullptr,
+        "If the joystick is within this deadzone the cursor will not move.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"0", "0%"},
+            {"5", "5%"},
+            {"10", "10%"},
+            {"15", "15%"},
+            {"20", "20%"},
+            {"25", "25%"},
+            {"30", "30%"},
+            {"35", "35%"},
+            {nullptr, nullptr},
+        },
+        "5"
+    };
+
+    constexpr retro_core_option_v2_definition JoystickCursorMaxSpeed {
+        config::screen::JOYSTICK_CURSOR_MAXSPEED,
+        "Joystick Cursor Max Speed",
+        nullptr,
+        "Set the max speed for the joystick cursor.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"1", "1"},
+            {"2", "2"},
+            {"3", "3"},
+            {"4", "4"},
+            {"5", "5"},
+            {"6", "6"},
+            {"7", "7"},
+            {"8", "8"},
+            {"9", "9"},
+            {nullptr, nullptr},
+        },
+        "3"
+    };
+    constexpr retro_core_option_v2_definition JoystickCursorResponse {
+        config::screen::JOYSTICK_CURSOR_RESPONSE,
+        "Joystick Cursor Response",
+        nullptr,
+        "Set the response curve for the joystick cursor.\n"
+        "Linear is a response curve where the cursor speed is 1:1 with the joystick input.\n"
+        "Quadratic is a response curve that reduces the sensitivity near the joystick center for finer control, but increases the sensitivity near the edges",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"100", "Linear"},
+            {"200", "Quadratic"},
+            {nullptr, nullptr},
+        },
+        "200"
+    };
+
+    constexpr retro_core_option_v2_definition JoystickCursorSpeedup {
+        config::screen::JOYSTICK_CURSOR_SPEEDUP,
+        "Joystick Cursor Multiplier",
+        nullptr,
+        "Set the multiplier for the joystick cursor when the speedup/slowdown pointer button (L2 by default) is held",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"33", "33%"},
+            {"50", "50%"},
+            {"66", "66%"},
+            {"150", "150%"},
+            {"200", "200%"},
+            {"250", "250%"},
+            {"300", "300%"},
+            {nullptr, nullptr},
+        },
+        "200"
+    };    
+    
     constexpr retro_core_option_v2_definition HybridRatio {
         config::screen::HYBRID_RATIO,
-        "Hybrid Ratio",
+        "Hybrid/Largescreen Ratio",
         nullptr,
-        "The size of the larger screen relative to the smaller ones when using a hybrid layout.",
+        "The size of the larger screen relative to the smaller ones when using a hybrid or largescreen layout.",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -125,9 +204,9 @@ namespace MelonDsDs::config::definitions {
 
     constexpr retro_core_option_v2_definition HybridScreenFiltering {
         config::screen::HYBRID_SCREEN_FILTERING,
-        "Hybrid Screen Filtering",
+        "Hybrid/Largescreen Filtering",
         nullptr,
-        "Affects how the hybrid screen is scaled up.\n"
+        "Affects how the hybrid/largescreen screen is scaled up.\n"
         "\n"
         "Nearest: No filtering. Graphics look blocky.\n"
         "Linear: Smooth scaling.\n",
@@ -318,6 +397,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -344,6 +427,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -370,6 +457,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -379,7 +470,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::TOP
+        MelonDsDs::config::values::LARGESCREEN_TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout4 {
@@ -396,6 +487,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -405,7 +500,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::BOTTOM
+        MelonDsDs::config::values::LARGESCREEN_BOTTOM
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout5 {
@@ -422,6 +517,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -448,6 +547,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -474,6 +577,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -483,7 +590,7 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::BOTTOM_TOP
+        MelonDsDs::config::values::TOP
     };
 
     constexpr retro_core_option_v2_definition ScreenLayout8 {
@@ -500,6 +607,10 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::RIGHT_LEFT, "Right/Left"},
             {MelonDsDs::config::values::TOP, "Top Only"},
             {MelonDsDs::config::values::BOTTOM, "Bottom Only"},
+            {MelonDsDs::config::values::LARGESCREEN_TOP, "Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::LARGESCREEN_BOTTOM, "Large Screen (Focus Bottom)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_TOP, "Flipped Large Screen (Focus Top)"},
+            {MelonDsDs::config::values::FLIPPED_LARGESCREEN_BOTTOM, "Flipped Large Screen (Focus Bottom)"},
             {MelonDsDs::config::values::HYBRID_TOP, "Hybrid (Focus Top)"},
             {MelonDsDs::config::values::HYBRID_BOTTOM, "Hybrid (Focus Bottom)"},
             {MelonDsDs::config::values::FLIPPED_HYBRID_TOP, "Flipped Hybrid (Focus Top)"},
@@ -509,13 +620,17 @@ namespace MelonDsDs::config::definitions {
             {MelonDsDs::config::values::UPSIDE_DOWN, "Upside Down"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::RIGHT_LEFT
+        MelonDsDs::config::values::BOTTOM
     };
 
     constexpr std::initializer_list<retro_core_option_v2_definition> ScreenOptionDefinitions {
         ShowCursor,
         CursorTimeout,
         TouchMode,
+        JoystickCursorDeadzone,
+        JoystickCursorMaxSpeed,
+        JoystickCursorResponse,
+        JoystickCursorSpeedup,
         NumberOfScreenLayouts,
         ScreenLayout1,
         ScreenLayout2,

@@ -58,7 +58,7 @@ MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
 MelonDsDs::ScreenLayoutData::~ScreenLayoutData() noexcept {
 }
 
-/// For a screen in the top left corner
+/// For a screen on the left
 mat3 NorthwestMatrix(unsigned resolutionScale) noexcept {
     return scale(mat3(1), vec2(resolutionScale));
 }
@@ -77,6 +77,24 @@ constexpr mat3 EastMatrix(unsigned resolutionScale) noexcept {
     using namespace MelonDsDs;
     return math::ts<float>(
         vec2(resolutionScale * NDS_SCREEN_WIDTH, 0),
+        vec2(resolutionScale)
+    );
+}
+
+/// For the small screen on the right in Largescreen Layout
+constexpr mat3 LargescreenEastMatrix(unsigned resolutionScale, unsigned hybridRatio) noexcept {
+    using namespace MelonDsDs;
+    return math::ts<float>(
+        vec2(resolutionScale * hybridRatio * NDS_SCREEN_WIDTH, (resolutionScale * NDS_SCREEN_HEIGHT * (hybridRatio - 1)) / 2.0),
+        vec2(resolutionScale)
+    );
+}
+
+/// For the small screen on the left in Flipped Largescreen Layout
+constexpr mat3 FlippedLargescreenWestMatrix(unsigned resolutionScale, unsigned hybridRatio) noexcept {
+    using namespace MelonDsDs;
+    return math::ts<float>(
+        vec2(0, (resolutionScale * NDS_SCREEN_HEIGHT * (hybridRatio - 1)) / 2.0),
         vec2(resolutionScale)
     );
 }
@@ -155,6 +173,14 @@ mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexc
         case ScreenLayout::FlippedHybridTop:
         case ScreenLayout::FlippedHybridBottom:
             return FlippedHybridNorthwestMatrix(scale, hybridRatio);
+        case ScreenLayout::LargescreenTop:
+            return HybridWestMatrix(scale, hybridRatio);
+        case ScreenLayout::FlippedLargescreenTop:
+            return FlippedHybridEastMatrix(scale, hybridRatio);
+        case ScreenLayout::LargescreenBottom:
+            return LargescreenEastMatrix(scale, hybridRatio);
+        case ScreenLayout::FlippedLargescreenBottom:
+            return FlippedLargescreenWestMatrix(scale, hybridRatio);
         default:
             return mat3(1);
     }
@@ -180,6 +206,14 @@ mat3 MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const no
         case ScreenLayout::FlippedHybridTop:
         case ScreenLayout::FlippedHybridBottom:
             return FlippedHybridSouthwestMatrix(scale, hybridRatio);
+        case ScreenLayout::LargescreenBottom:
+            return HybridWestMatrix(scale, hybridRatio);
+        case ScreenLayout::FlippedLargescreenBottom:
+            return FlippedHybridEastMatrix(scale, hybridRatio);
+        case ScreenLayout::LargescreenTop:
+            return LargescreenEastMatrix(scale, hybridRatio);
+        case ScreenLayout::FlippedLargescreenTop:
+            return FlippedLargescreenWestMatrix(scale, hybridRatio);
         default:
             return mat3(1);
     }

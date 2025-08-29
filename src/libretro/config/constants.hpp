@@ -112,6 +112,10 @@ namespace MelonDsDs::config {
         static constexpr const char *const SCREEN_LAYOUT8 = "melonds_screen_layout8";
         static constexpr const char *const SHOW_CURSOR = "melonds_show_cursor";
         static constexpr const char *const TOUCH_MODE = "melonds_touch_mode";
+        static constexpr const char *const JOYSTICK_CURSOR_DEADZONE = "melonds_joystick_cursor_deadzone";
+        static constexpr const char *const JOYSTICK_CURSOR_MAXSPEED = "melonds_joystick_cursor_maxspeed";
+        static constexpr const char *const JOYSTICK_CURSOR_RESPONSE = "melonds_joystick_cursor_response";
+        static constexpr const char *const JOYSTICK_CURSOR_SPEEDUP = "melonds_joystick_cursor_speedup";
         static constexpr std::array SCREEN_LAYOUTS = {
                 SCREEN_LAYOUT1,
                 SCREEN_LAYOUT2,
@@ -220,6 +224,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const FIRMWARE = "firmware";
         static constexpr const char *const FLIPPED_HYBRID_BOTTOM = "flipped-hybrid-bottom";
         static constexpr const char *const FLIPPED_HYBRID_TOP = "flipped-hybrid-top";
+        static constexpr const char *const FLIPPED_LARGESCREEN_BOTTOM = "flipped-largescreen-bottom";
+        static constexpr const char *const FLIPPED_LARGESCREEN_TOP = "flipped-largescreen-top";
         static constexpr const char *const FRENCH = "fr";
         static constexpr const char *const GAUSSIAN = "gaussian";
         static constexpr const char *const GERMAN = "de";
@@ -230,6 +236,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const ITALIAN = "it";
         static constexpr const char *const JAPANESE = "ja";
         static constexpr const char *const JOYSTICK = "joystick";
+        static constexpr const char *const LARGESCREEN_BOTTOM = "largescreen-bottom";
+        static constexpr const char *const LARGESCREEN_TOP = "largescreen-top";
         static constexpr const char *const LEFT_RIGHT = "left-right";
         static constexpr const char *const LINEAR = "linear";
         static constexpr const char *const NATIVE = "native";

@@ -475,10 +475,10 @@ auto fmt::formatter<MelonDsDs::ScreenLayout>::format(MelonDsDs::ScreenLayout lay
             break;
         case MelonDsDs::ScreenLayout::FlippedHybridTop:
             name = "FlippedHybridTop";
-        break;
+            break;
         case MelonDsDs::ScreenLayout::FlippedHybridBottom:
             name = "FlippedHybridBottom";
-        break;
+            break;
         case MelonDsDs::ScreenLayout::TurnLeft:
             name = "TurnLeft";
             break;
@@ -487,6 +487,18 @@ auto fmt::formatter<MelonDsDs::ScreenLayout>::format(MelonDsDs::ScreenLayout lay
             break;
         case MelonDsDs::ScreenLayout::UpsideDown:
             name = "UpsideDown";
+            break;
+        case MelonDsDs::ScreenLayout::LargescreenTop:
+            name = "LargescreenTop";
+            break;
+        case MelonDsDs::ScreenLayout::LargescreenBottom:
+            name = "LargescreenBottom";
+            break;
+        case MelonDsDs::ScreenLayout::FlippedLargescreenTop:
+            name = "FlippedLargescreenTop";
+            break;
+        case MelonDsDs::ScreenLayout::FlippedLargescreenBottom:
+            name = "FlippedLargescreenBottom";
             break;
         default:
             name = "<unknown>";
