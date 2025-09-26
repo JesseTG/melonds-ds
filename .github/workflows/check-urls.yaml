@@ -22,4 +22,4 @@ jobs:
           print_all: false
           timeout: 10
           retry_count: 3
-          exclude_patterns: http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd,http://www.gnu.org/licenses/
+          exclude_patterns: http://nus.cdn.t.shop.nintendowifi.net/ccs/download/%08x%08x/tmd,http://www.gnu.org/licenses/,https://problemkaputt.de/gbatek.htm#dsisdmmcdsiwarefilesfromnintendosserver
