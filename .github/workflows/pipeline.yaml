@@ -203,6 +203,7 @@ jobs:
             -Wno-deprecated \
             -DCMAKE_BUILD_TYPE="${{ inputs.cmake-config }}" \
             -DTRACY_ENABLE="${{ env.TRACY_ENABLE }}" \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ${{ inputs.cmake-args }}
 
       - name: Configure (With Test Suite)
@@ -226,6 +227,7 @@ jobs:
             -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
             -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
             -DMELONDSDS_INTERNAL_VENV=OFF \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ${{ inputs.cmake-args }}
 
       - name: Build
