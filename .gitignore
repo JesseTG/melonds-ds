@@ -40,3 +40,4 @@ out.txt
 
 # Python
 venv*
+*.pyc
