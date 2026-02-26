@@ -78,6 +78,23 @@ if (${CMAKE_MAJOR_VERSION} VERSION_GREATER_EQUAL 4)
 endif ()
 FetchContent_MakeAvailable(melonDS libretro-common embed-binaries glm zlib libslirp pntr fmt yamc span-lite date)
 
+# CMake 4.x populates CMAKE_PARENT_LIST_FILE in script mode (-P),
+# which breaks embed-binaries' script-mode detection.
+# Patch the condition to only check CMAKE_SCRIPT_MODE_FILE.
+set(_embed_binaries_script "${FETCHCONTENT_BASE_DIR}/embed-binaries-src/cmake/embed-binaries.cmake")
+if (EXISTS "${_embed_binaries_script}")
+    file(READ "${_embed_binaries_script}" _embed_binaries_content)
+    string(FIND "${_embed_binaries_content}" "AND NOT CMAKE_PARENT_LIST_FILE" _needs_patch)
+    if (NOT _needs_patch EQUAL -1)
+        string(REPLACE
+            "if(CMAKE_SCRIPT_MODE_FILE AND NOT CMAKE_PARENT_LIST_FILE)"
+            "if(CMAKE_SCRIPT_MODE_FILE)"
+            _embed_binaries_content "${_embed_binaries_content}"
+        )
+        file(WRITE "${_embed_binaries_script}" "${_embed_binaries_content}")
+    endif()
+endif()
+
 if (TRACY_ENABLE)
     set(BUILD_SHARED_LIBS OFF)
     option(TRACY_DELAYED_INIT "" ON)
