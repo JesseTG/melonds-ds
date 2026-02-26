@@ -193,7 +193,7 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
         glDeleteProgram(_screenProgram);
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
         _tracyCapture = std::nullopt;
 #endif
     }
@@ -267,7 +267,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
     retro::debug("Unbound GL state");
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (tracy::ProfilerAvailable()) {
         // If we're using Tracy...
         retro::debug("Using Tracy, will capture OpenGL calls");
@@ -406,9 +406,7 @@ void MelonDsDs::OpenGLRenderState::Render(
     }
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
 
     glUseProgram(_screenProgram);
 
@@ -444,7 +442,12 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-#ifdef HAVE_TRACY
+    // Unbind pixel pack buffer left behind by the melonDS GL renderer;
+    // GLSM state_unbind doesn't do this, and a stale PBO binding causes
+    // glReadPixels (used by the frontend for screenshots) to fail.
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (_tracyCapture) {
         // TODO: Expose the FBO that the emulator's GLRenderer uses for rendering, then pass it here
         _tracyCapture->CaptureFrame(current_fbo, config.ScaleFactor());
@@ -479,7 +482,7 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     // TODO: Delete these objects, since the context hasn't been destroyed yet
     // (just in case it's not really destroyed afterwards)
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     _tracyCapture = std::nullopt;
 #endif
 }
@@ -499,9 +502,7 @@ void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreC
     GL_ShaderConfig.cursorPos = vec4(-1);
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
 
     InitVertices(screenLayout);
 
