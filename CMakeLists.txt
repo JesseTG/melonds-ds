@@ -50,7 +50,7 @@ else()
 endif ()
 option(ENABLE_JIT "Enable JIT support. Not supported on all platforms." ${DEFAULT_ENABLE_JIT})
 
-if (ANDROID OR IOS OR APPLE)
+if (ANDROID)
     message(STATUS "OpenGL is disabled by default on this platform.")
     set(DEFAULT_ENABLE_OPENGL OFF)
 else ()
