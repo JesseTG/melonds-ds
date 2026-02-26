@@ -16,6 +16,8 @@
 
 #include "opengl.hpp"
 
+#if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)) && !defined(__APPLE__)
+
 #include <string>
 #include <fmt/format.h>
 
@@ -184,3 +186,5 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(GLuint current_fbo, float scale
     _tracyQueue.push(_tracyIndex);
     _tracyIndex = (_tracyIndex + 1) % 4;
 }
+
+#endif // HAVE_TRACY && (HAVE_OPENGL || HAVE_OPENGLES) && !__APPLE__
