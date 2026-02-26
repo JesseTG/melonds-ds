@@ -155,6 +155,7 @@ embed_binaries(libretro-assets
         PATH "assets/melon-sorry.png"
     ASSET
         NAME "melondsds_error_title_font"
+        # OpenSans doesn't have CJK characters.
         PATH "assets/OpenSans-ExtraBold.ttf"
     ASSET
         NAME "melondsds_error_body_font"
@@ -272,6 +273,10 @@ target_compile_definitions(melondsds_libretro PUBLIC
     PNTR_ENABLE_VARGS
     PNTR_PIXELFORMAT_ARGB
     PNTR_ENABLE_MATH
+    PNTR_ENABLE_UTF8
+    #PNTR_FONT_TTF_GLYPH_NUM=65535 # If we need CJK characters, increase the glyph count
+    PNTR_NO_SAVE_IMAGE # No need to save any images to the file system
+    PNTR_NO_STDIO # No need to load/save images with STDIO
     STB_IMAGE_STATIC # To avoid using any dynamically-linked STB implementations
 )
 

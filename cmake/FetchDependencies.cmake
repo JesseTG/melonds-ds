@@ -46,7 +46,7 @@ fetch_dependency(libretro-common "https://github.com/libretro/libretro-common" "
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries.git" "21f28ca")
 fetch_dependency(glm "https://github.com/g-truc/glm" "2d4c4b4")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror" "e61dbd4")
-fetch_dependency(pntr "https://github.com/robloach/pntr" "922aed0")
+fetch_dependency(pntr "https://github.com/robloach/pntr" "7d9449c")
 fetch_dependency(fmt "https://github.com/fmtlib/fmt" "11.2.0")
 fetch_dependency(yamc "https://github.com/yohhoy/yamc" "4e015a7")
 fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "00afc28")
