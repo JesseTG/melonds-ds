@@ -41,6 +41,7 @@ namespace MelonDsDs {
         void SetConfig(const CoreConfig& config) noexcept;
         void Update(const InputPollResult& poll) noexcept;
         void Apply(melonDS::NDS& nds) const noexcept;
+        void Apply(CoreConfig& config) const noexcept;
         void Apply(ScreenLayoutData& layout) const noexcept;
         void Apply(MicrophoneState& mic) const noexcept;
         void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
@@ -83,6 +84,7 @@ namespace MelonDsDs {
         bool _previousMicButton;
         bool _cycleLayoutButton;
         bool _previousCycleLayoutButton;
+        bool _joystickSpeedupCursorButton;
         bool _joystickTouchButton;
         bool _previousJoystickTouchButton;
         bool _lightLevelUpCombo;
