@@ -112,7 +112,7 @@ jobs:
         config: [ Debug, Release, RelWithDebInfo ]
     with:
       archive-name: melondsds_libretro-macos-x86_64
-      runs-on: macos-13
+      runs-on: macos-26-intel
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-config: "${{ matrix.config }}"
