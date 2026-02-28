@@ -2,5 +2,5 @@
 # so there's no need to install OpenGL dependencies
 libretro.py==0.6.0
 libretro.py[opengl]==0.6.0 ; sys_platform != "darwin"
-Pillow==10.3.0
+Pillow==12.1.1
 more-itertools==10.2.* ; python_version < '3.12'

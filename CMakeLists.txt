@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.19)
 
 cmake_policy(VERSION 3.19)
+
+# Allow dependencies with old cmake_minimum_required (e.g. yamc) to configure on CMake 4.x
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "4.0")
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif()
 message(STATUS "Using CMake ${CMAKE_VERSION} from ${CMAKE_COMMAND}" )
 if (CMAKE_MESSAGE_LOG_LEVEL)
     message(STATUS "Message log level is set to ${CMAKE_MESSAGE_LOG_LEVEL}")

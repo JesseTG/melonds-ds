@@ -40,3 +40,8 @@ out.txt
 
 # Python
 venv*
+*.pyc
+
+# VS Code
+.vscode/
+*.code-workspace
