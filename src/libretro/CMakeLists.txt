@@ -119,11 +119,11 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
 )
 
 target_include_directories(melondsds_libretro SYSTEM PUBLIC
+    fmt::fmt
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
     "${glm_SOURCE_DIR}"
     "${pntr_SOURCE_DIR}"
-    "${fmt_SOURCE_DIR}/include"
     "${yamc_SOURCE_DIR}/include"
     "${span-lite_SOURCE_DIR}/include"
     "${date_SOURCE_DIR}/include"
