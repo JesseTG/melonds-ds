@@ -53,10 +53,13 @@ retro::task::TaskSpec RumbleState::RumbleTask() noexcept {
                 last_frame_time = US_PER_FRAME;
             }
 
+            bool was_rumbling = _rumbleTimeout > 0us;
             _rumbleTimeout -= std::chrono::microseconds(static_cast<int>(last_frame_time->count() * RUMBLE_DECAY));
             if (_rumbleTimeout <= 0us) {
                 _rumbleTimeout = 0us;
-                retro::set_rumble_state(0, 0);
+                if (was_rumbling) {
+                    retro::set_rumble_state(0, 0);
+                }
             }
         },
         nullptr,
