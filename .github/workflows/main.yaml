@@ -116,7 +116,7 @@ jobs:
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-config: "${{ matrix.config }}"
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
       # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
