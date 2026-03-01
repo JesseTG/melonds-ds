@@ -60,7 +60,8 @@ static const char* const UNKNOWN_ERROR_MESSAGE =
 date::local_seconds LocalTime() noexcept {
     using namespace std::chrono;
 
-    std::tm tm = fmt::localtime(system_clock::to_time_t(system_clock::now()));
+    std::time_t now = system_clock::to_time_t(system_clock::now());
+    std::tm tm = *std::localtime(&now);
 
     year_month_day date {year{tm.tm_year + 1900}, month{tm.tm_mon + 1u}, day{(unsigned)tm.tm_mday}};
     seconds time = hours{tm.tm_hour} + minutes{tm.tm_min} + seconds{tm.tm_sec};
