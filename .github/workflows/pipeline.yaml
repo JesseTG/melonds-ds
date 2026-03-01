@@ -125,10 +125,7 @@ jobs:
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
         shell: bash
-        run: |
-          brew install pkg-config cmake ninja ccache
-          brew uninstall fmt
-        # Uninstalling fmt to avoid conflicts with the version of fmt that melonDS DS fetches
+        run: brew install pkg-config cmake ninja ccache
 
         # Skip this step on act due to https://github.com/nektos/act/issues/1849
       - name: Install Dependencies (Linux)
