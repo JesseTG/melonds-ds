@@ -125,7 +125,7 @@ target_include_directories(melondsds_libretro SYSTEM PUBLIC
     glm::glm
     pntr
     "${yamc_SOURCE_DIR}/include"
-    span_lite
+    nonstd::span-lite
     date
     )
 
@@ -278,7 +278,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
 target_compile_definitions(melondsds_libretro PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 target_compile_definitions(core PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 
-target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date span_lite)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date nonstd::span-lite)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)
