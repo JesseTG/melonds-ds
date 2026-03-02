@@ -28,8 +28,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
-#ifdef HAVE_TRACY
-#include "tracy.hpp"
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
 #include "tracy/opengl.hpp"
 #endif
 
@@ -91,7 +90,7 @@ namespace MelonDsDs {
 
         GLuint ubo = 0;
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
         std::optional<OpenGlTracyCapture> _tracyCapture;
 #endif
     };

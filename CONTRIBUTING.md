@@ -152,9 +152,8 @@ Most other dependencies are fetched automatically by CMake.
 4. Proceed to [Compilation](#compilation).
 
 > [!NOTE]
-> macOS builds exclude OpenGL by default,
-> as the OpenGL renderer [doesn't currently work on the platform](https://github.com/JesseTG/melonds-ds/issues/12).
-> To enable it anyway, pass `-DENABLE_OPENGL=ON` to CMake.
+> iOS builds exclude OpenGL,
+> as the OpenGL renderer has not been ported to the platform.
 
 #### Linux
 
@@ -275,7 +274,7 @@ To see the rest, run `cmake -LH` in the build directory.
 
 | Variable                          | Description                                                                                                            |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `ENABLE_OPENGL`                   | Whether to build the OpenGL renderer. Defaults to `ON` on Windows and Linux, `OFF` on other platforms.                 |
+| `ENABLE_OPENGL`                   | Whether to build the OpenGL renderer. Defaults to `ON` on Windows, Linux, and macOS; `OFF` on Android and iOS.         |
 | `TRACY_ENABLE`                    | Enables the Tracy frame profiler.                                                                                      |
 | `MELONDS_REPOSITORY_URL`          | The Git repo from which melonDS will be cloned. Set this to use a fork.                                                |
 | `MELONDS_REPOSITORY_TAG`          | The melonDS commit to use in the build.                                                                                |
