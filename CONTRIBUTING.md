@@ -153,7 +153,7 @@ Most other dependencies are fetched automatically by CMake.
 
 > [!NOTE]
 > Android and iOS builds exclude OpenGL,
-> as the OpenGL renderer has not been ported to those platform.
+> as the OpenGL renderer has not been ported to those platforms.
 
 #### Linux
 
