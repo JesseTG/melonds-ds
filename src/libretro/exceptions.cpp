@@ -157,6 +157,17 @@ MelonDsDs::dsi_no_nand_found_exception::dsi_no_nand_found_exception() noexcept
 
 }
 
+MelonDsDs::dsi_no_compatible_nand_exception::dsi_no_compatible_nand_exception(melonDS::RegionMask gameRegionMask) noexcept
+    : bios_exception(
+        fmt::format("No DSi NAND image with a region compatible with the loaded DSiWare ROM (region mask 0x{:08x}) was found.",
+            static_cast<uint32_t>(gameRegionMask)),
+        "Auto-selection couldn't find a DSi NAND whose region matches this DSiWare title. "
+        "Please add a NAND image for the appropriate region to your system directory, "
+        "or pick one explicitly in the core options."
+) {
+
+}
+
 MelonDsDs::dsi_nand_missing_exception::dsi_nand_missing_exception(string_view nandName) noexcept
     : bios_exception(
     fmt::format(

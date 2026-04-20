@@ -138,14 +138,16 @@ namespace MelonDsDs::config::definitions {
         "- Are exactly 251,658,304 bytes (240MB) or 257,425,472 bytes (245.5MB) long with valid footer data, OR;\n"
         "- Are 64 bytes shorter than these lengths and contain equivalent data at file offset 0xFF800.\n"
         "\n"
+        "Set to \"Auto\" to let the core pick a NAND image whose region matches the loaded DSiWare ROM. "
         "Changes take effect at next restart.",
         nullptr,
         config::system::CATEGORY,
         {
+            {MelonDsDs::config::values::AUTO, "Auto (match ROM region)"},
             {MelonDsDs::config::values::NOT_FOUND, "None found..."},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::NOT_FOUND
+        MelonDsDs::config::values::AUTO
     };
 
     constexpr retro_core_option_v2_definition BootMode {

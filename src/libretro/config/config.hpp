@@ -28,6 +28,7 @@
 #include <SPI_Firmware.h>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <SPU.h>
 
 #include "parse.hpp"
@@ -61,6 +62,8 @@ namespace MelonDsDs {
     void ParseConfig(CoreConfig& config) noexcept;
 
     bool RegisterCoreOptions() noexcept;
+
+    [[nodiscard]] const std::vector<std::string>& GetDiscoveredDsiNandPaths() noexcept;
 
     using std::string;
     using std::string_view;

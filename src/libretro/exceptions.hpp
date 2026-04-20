@@ -129,6 +129,11 @@ namespace MelonDsDs
         dsi_no_nand_found_exception() noexcept;
     };
 
+    class dsi_no_compatible_nand_exception : public bios_exception {
+    public:
+        explicit dsi_no_compatible_nand_exception(melonDS::RegionMask gameRegionMask) noexcept;
+    };
+
     class dsi_nand_missing_exception : public bios_exception {
     public:
         explicit dsi_nand_missing_exception(std::string_view biosName) noexcept;
