@@ -15,6 +15,7 @@
 */
 
 #include "cursor.hpp"
+#include "environment.hpp"
 
 #include <NDS.h>
 #include <glm/gtx/rotate_vector.hpp>
@@ -55,7 +56,7 @@ void CursorState::SetConfig(const CoreConfig& config) noexcept {
     _touchMode = config.TouchMode();
 }
 
-void CursorState::Update(const ScreenLayoutData& layout, const PointerState& pointer, const JoypadState& joypad) noexcept {
+void CursorState::Update(const CoreConfig& config, const ScreenLayoutData& layout, const PointerState& pointer, const JoypadState& joypad) noexcept {
     if (_cursorSettingsDirty) {
         ResetCursorTimeout();
     }
@@ -82,22 +83,77 @@ void CursorState::Update(const ScreenLayoutData& layout, const PointerState& poi
         _joypadCursorTouching = joypad.IsTouching();
         _joystickRawDirection = joypad.RawCursorDirection();
         _joystickRawDirection = (i16vec2)glm::rotate(vec2(_joystickRawDirection), GetOrientationAngle(orientation));
-
         if (_joystickRawDirection != i16vec2(0)) {
             // If the player moved the joypad's cursor this frame...
-
             if (_pointerCursorLastUpdate > _joypadCursorLastUpdate) {
                 // If the pointer was used more recently than the joypad cursor...
                 // Then continue using the cursor from where the pointer last left it
                 _joystickCursorPosition = _pointerCursorPosition;
             }
             // Rotate the joypad cursor to match the screen layout (if necessary),
-            // then clamp it to the touch screen's coordinates
-            // TODO: Allow speed to be customized
-            _joystickCursorPosition += _joystickRawDirection / i16vec2(2048);
-            _joystickCursorPosition = clamp(_joystickCursorPosition, ivec2(0), NDS_SCREEN_SIZE<int> - 1);
-        }
+            // then clamp it to the touch screen's coordinates.
 
+            int maxSpeed = config.JoystickCursorMaxSpeed();
+            float realSpeed;
+            switch (maxSpeed) {
+                case 1:
+                    realSpeed = 0.4f;
+                    break;            
+                case 2:
+                    realSpeed = 0.6f;
+                    break;
+                case 3:
+                    realSpeed = 0.8f;
+                    break;
+                case 4:
+                    realSpeed = 1.0f;
+                    break;
+                case 5:
+                    realSpeed = 1.2f;
+                    break;
+                case 6:
+                    realSpeed = 1.4f;
+                    break;
+                case 7:
+                    realSpeed = 1.6f;
+                    break;
+                case 8:
+                    realSpeed = 1.8f;
+                    break;
+                case 9:
+                    realSpeed = 2.0f;
+                    break;
+                default:
+                    realSpeed = 0.8f;
+            }            
+            //float widthSpeed = (NDS_SCREEN_WIDTH / 20.0) * realSpeed; //Currently unused
+            float heightSpeed = (NDS_SCREEN_HEIGHT / 20.0) * realSpeed;
+            float deadzone = config.JoystickCursorDeadzone() / 100.0f;
+            bool speedup_enabled = config.JoystickSpeedupEnabled();
+            float responsecurve = config.JoystickCursorResponse() / 100.0f;
+            float speedupratio = config.JoystickCursorSpeedup() / 100.0f;
+            vec2 joystickNorm = ((vec2)_joystickRawDirection/32767.0f);
+            vec2 joystickScaled = vec2(0.0f);
+            float radialLength = std::sqrt((joystickNorm.x * joystickNorm.x) + (joystickNorm.y * joystickNorm.y));
+            if (radialLength > deadzone) {
+                // Get X and Y as a relation to the radial length
+                vec2 dir = joystickNorm/radialLength;
+                // Apply deadzone and response curve
+                float scaledLength = (radialLength - deadzone) / (1.0f - deadzone);
+                float curvedLength = std::pow(std::min<float>(1.0f, scaledLength), responsecurve);
+                // Final output
+                float finalLength = speedup_enabled ? curvedLength * speedupratio : curvedLength;
+                joystickScaled = dir * finalLength;  
+            } else {
+                joystickScaled = vec2(0.0f);
+            }
+            //The code below sets the cursor position to the position of the joystick (absolute)
+            //_joystickCursorPosition = vec2((NDS_SCREEN_WIDTH/2.0f)+(std::min<float>(1.0,(joystickNorm.x/0.7071))*(NDS_SCREEN_WIDTH/2.0f)), (NDS_SCREEN_HEIGHT/2.0f)+(std::min<float>(1.0,(joystickNorm.y/0.7071))*(NDS_SCREEN_HEIGHT/2.0f)));
+
+            _joystickCursorPosition +=  joystickScaled*heightSpeed;
+            _joystickCursorPosition = clamp(_joystickCursorPosition, vec2(1.0), NDS_SCREEN_SIZE<float> - 1.0f); 
+            
+        }
         if (joypad.CursorActive()) {
             // If the player moved, pressed, or released the joystick within the past frame...
             ResetCursorTimeout();

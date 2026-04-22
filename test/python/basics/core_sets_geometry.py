@@ -17,7 +17,7 @@ def generate_input():
     yield from itertools.repeat(None, 10)
 
     # Cycle to the next screen layout
-    yield JoypadState(r2=True)
+    yield JoypadState(r3=True)
 
     yield from itertools.repeat(None)
 

@@ -92,6 +92,39 @@ include(CMakePrintHelpers)
 
 set(DEFAULT_TIMEOUT 60) # In seconds
 
+if (NOT TEST_EXCLUDE_PATHS)
+    set(TEST_EXCLUDE_PATHS "" CACHE PATH "List of paths to exclude from PATH for each test. Use this to work around IDEs that set the PATH to something with an incompatible opengl32.dll, like CLion.")
+endif ()
+
+function(filter_path original_path exclude_paths result_var)
+    # Split the original PATH into a list
+    # TODO: Remove both backslash and forward-slash variants of the path
+    if(WIN32)
+        string(REPLACE ";" ";" _path_list "${original_path}")
+    else()
+        string(REPLACE ":" ";" _path_list "${original_path}")
+    endif()
+    set(_filtered_list "")
+    foreach(_item IN LISTS _path_list)
+        set(_exclude FALSE)
+        foreach(_exclude_path IN LISTS exclude_paths)
+            if(_item STREQUAL _exclude_path)
+                set(_exclude TRUE)
+            endif()
+        endforeach()
+        if(NOT _exclude)
+            list(APPEND _filtered_list "${_item}")
+        endif()
+    endforeach()
+    # Join the filtered list back into a string
+    if(WIN32)
+        string (REPLACE ";" "\;" _filtered_path "${_filtered_list}")
+    else()
+        string (REPLACE ";" ":" _filtered_path "${_filtered_list}")
+    endif()
+    set(${result_var} "${_filtered_path}" PARENT_SCOPE)
+endfunction()
+
 function(add_python_test)
     set(options
         ARM7_BIOS
@@ -221,6 +254,15 @@ function(add_python_test)
     expose_system_file(NDS_FIRMWARE)
     expose_system_file(DSI_FIRMWARE)
     expose_system_file(DSI_NAND)
+
+    # Filter PATH to exclude TEST_EXCLUDE_PATHS
+    if(DEFINED ENV{PATH})
+        set(_orig_path "$ENV{PATH}")
+    else()
+        set(_orig_path "")
+    endif()
+    filter_path("${_orig_path}" "${TEST_EXCLUDE_PATHS}" _filtered_path)
+    list(APPEND ENVIRONMENT "PATH=${_filtered_path}")
 
     set_tests_properties("${RETRO_NAME}" PROPERTIES LABELS "libretro.py;${RETRO_LABELS}")
     set_tests_properties("${RETRO_NAME}" PROPERTIES ENVIRONMENT "${ENVIRONMENT}")

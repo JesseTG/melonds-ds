@@ -85,6 +85,19 @@ namespace MelonDsDs {
         }
     }
 
+    constexpr bool IsLargeScreenLayout(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::LargescreenTop:
+            case ScreenLayout::LargescreenBottom:
+            case ScreenLayout::FlippedLargescreenTop:
+            case ScreenLayout::FlippedLargescreenBottom:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+
     class ScreenLayoutData {
     public:
         ScreenLayoutData();

@@ -70,6 +70,8 @@ constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout)
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
         case ScreenLayout::LeftRight:
+        case ScreenLayout::LargescreenTop:
+        case ScreenLayout::FlippedLargescreenBottom:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 indexes[i] = topPositionIndexes[i];
                 indexes[i + VERTEXES_PER_SCREEN] = bottomPositionIndexes[i];
@@ -77,6 +79,8 @@ constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout)
             break;
         case ScreenLayout::RightLeft:
         case ScreenLayout::BottomTop:
+        case ScreenLayout::LargescreenBottom:
+        case ScreenLayout::FlippedLargescreenTop:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 indexes[i] = bottomPositionIndexes[i];
                 indexes[i + VERTEXES_PER_SCREEN] = topPositionIndexes[i];
@@ -218,9 +222,9 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     const char *rendererName = (const char*)glGetString(GL_RENDERER);
     const char *version  = (const char*)glGetString(GL_VERSION);
 
-    retro::info("OpenGL version: {}", version);
-    retro::info("OpenGL vendor: {}", vendor);
-    retro::info("OpenGL renderer: {}", rendererName);
+    retro::info("OpenGL version: {}", version ? version : "<null>");
+    retro::info("OpenGL vendor: {}", vendor ? vendor : "<null>");
+    retro::info("OpenGL renderer: {}", rendererName ? rendererName : "<null>");
 
     uintptr_t fbo = glsm_get_current_framebuffer();
     retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
@@ -523,6 +527,8 @@ void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLa
         case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
         case ScreenLayout::LeftRight:
+        case ScreenLayout::LargescreenTop:
+        case ScreenLayout::FlippedLargescreenBottom:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 // Top screen
                 screen_vertices[i] = {
@@ -539,6 +545,8 @@ void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLa
             break;
         case ScreenLayout::BottomTop:
         case ScreenLayout::RightLeft:
+        case ScreenLayout::LargescreenBottom:
+        case ScreenLayout::FlippedLargescreenTop:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 // Top screen
                 screen_vertices[i] = {

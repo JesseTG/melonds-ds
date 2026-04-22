@@ -130,7 +130,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     bool anyVerticalLayouts = false;
     for (unsigned i = 0; i < NumberOfShownScreenLayouts; i++) {
         optional<MelonDsDs::ScreenLayout> parsedLayout = ParseScreenLayout(get_variable(screen::SCREEN_LAYOUTS[i]));
-        anyHybridLayouts |= !parsedLayout || IsHybridLayout(*parsedLayout);
+        anyHybridLayouts |= !parsedLayout || IsHybridLayout(*parsedLayout) || IsLargeScreenLayout(*parsedLayout);
         anyVerticalLayouts |= !parsedLayout || LayoutSupportsScreenGap(*parsedLayout);
     }
     ShowHybridOptions = anyHybridLayouts;

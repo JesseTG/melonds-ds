@@ -9,6 +9,17 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
+## [Unreleased]
+
+### Changed
+
+- Updated melonDS to commit [7117178](https://github.com/melonDS-emu/melonDS/tree/7117178).
+
+### Fixed
+
+- Fixed a configure error when building with CMake 4 or later.
+  [#265](https://github.com/JesseTG/melonds-ds/pull/265)
+
 ## [1.2.0] - 2025-02-19
 
 With thanks to **@theooophile**, **@parkerlreed**, **@romatthe**, and **@scarrillo**
@@ -19,7 +30,7 @@ for their donations this month!
 - Added support for emulated LAN multiplayer.
   Only works on an actual LAN.
   [#225](https://github.com/JesseTG/melonds-ds/issues/225)
-  **Thanks for [#229](https://github.com/JesseTG/melonds-ds/pull/242), @BernardoGomesNegri!**
+  **Thanks for [#242](https://github.com/JesseTG/melonds-ds/pull/242), @BernardoGomesNegri!**
 - Integrated support for the GBA Memory Expansion Pak.
   [#44](https://github.com/JesseTG/melonds-ds/issues/44)
 - Integrated support for the Rumble Pak.

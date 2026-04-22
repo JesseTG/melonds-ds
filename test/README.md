@@ -96,4 +96,26 @@ ctest --test-dir build # Run the tests. (CTest is included with CMake)
 > If you can't reproduce a bug that should cause a test to fail,
 > try a different firmware image.
 
+## Troubleshooting
+
+This section has information about strange issues I've encountered
+while developing this core and its test suite.
+
+### Failing OpenGL Tests on Windows
+
+The test suite seems to be incompatible with the `opengl32.dll`
+shipped with [MSYS2's various Mesa packages](https://packages.msys2.org/base/mingw-w64-mesa).
+I'm not sure why this happens, but it should only be a problem
+if your MSYS2 environment's `/bin` directory is in your `PATH`;
+if you're developing melonDS DS in an environment that does so (e.g. CLion's test runner),
+you can work around this by setting the `TEST_EXCLUDE_PATHS` variable
+to the offending directory, like so:
+
+```bash
+cmake -B build -DTEST_EXCLUDE_PATHS="C:\tools\msys64\ucrt64\bin" # ...other variables...
+```
+
+CTest will then ensure that the specified directory
+is not included in each test process's `PATH`.
+
 [python]: https://www.python.org

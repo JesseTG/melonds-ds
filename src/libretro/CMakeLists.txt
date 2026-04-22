@@ -119,14 +119,14 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
 )
 
 target_include_directories(melondsds_libretro SYSTEM PUBLIC
+    fmt::fmt
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
-    "${glm_SOURCE_DIR}"
-    "${pntr_SOURCE_DIR}"
-    "${fmt_SOURCE_DIR}/include"
+    glm::glm
+    pntr
     "${yamc_SOURCE_DIR}/include"
-    "${span-lite_SOURCE_DIR}/include"
-    "${date_SOURCE_DIR}/include"
+    nonstd::span-lite
+    date
     )
 
 target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
@@ -278,7 +278,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
 target_compile_definitions(melondsds_libretro PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 target_compile_definitions(core PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 
-target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date nonstd::span-lite)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)
