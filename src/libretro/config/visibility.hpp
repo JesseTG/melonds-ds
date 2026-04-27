@@ -30,6 +30,7 @@ namespace MelonDsDs {
         bool ShowSoftwareRenderOptions = true;
         bool ShowHybridOptions = true;
         bool ShowVerticalLayoutOptions = true;
+        bool ShowSecondaryScaleOptions = true;
         bool ShowCursorTimeout = true;
         bool ShowAlarm = true;
         unsigned NumberOfShownScreenLayouts = config::screen::MAX_SCREEN_LAYOUTS;

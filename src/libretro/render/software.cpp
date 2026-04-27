@@ -45,6 +45,15 @@ MelonDsDs::SoftwareRenderState::SoftwareRenderState(const CoreConfig& config) no
         NDS_SCREEN_HEIGHT,
         NDS_SCREEN_WIDTH * config.HybridRatio(),
         NDS_SCREEN_HEIGHT * config.HybridRatio()
+    ),
+    secondaryScaleBuffer(1, 1),
+    secondaryScaleScaler(
+        SCALER_FMT_ARGB8888, SCALER_FMT_ARGB8888,
+        config.SecondaryScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR,
+        NDS_SCREEN_WIDTH,
+        NDS_SCREEN_HEIGHT,
+        NDS_SCREEN_WIDTH,
+        NDS_SCREEN_HEIGHT
     ) {
 }
 
@@ -66,6 +75,16 @@ void MelonDsDs::SoftwareRenderState::Render(
         auto filter = config.ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
         hybridScaler.SetScalerType(filter);
         hybridScaler.SetOutSize(requiredHybridBufferSize.x, requiredHybridBufferSize.y);
+    }
+
+    if (LayoutSupportsSecondaryScreenScale(screenLayout.Layout()) && screenLayout.SecondaryScreenScale() < 100) {
+        float f = screenLayout.SecondaryScreenScaleFactor();
+        unsigned scaledW = static_cast<unsigned>(NDS_SCREEN_WIDTH * f);
+        unsigned scaledH = static_cast<unsigned>(NDS_SCREEN_HEIGHT * f);
+        secondaryScaleBuffer.SetSize({ scaledW, scaledH });
+        auto filter = config.SecondaryScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
+        secondaryScaleScaler.SetScalerType(filter);
+        secondaryScaleScaler.SetOutSize(scaledW, scaledH);
     }
 
     const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();
@@ -216,11 +235,23 @@ void MelonDsDs::SoftwareRenderState::CombineScreens(
         }
     } 
     else {
-        if (layout != ScreenLayout::BottomOnly)
-            CopyScreen(topBuffer.data(), screenLayout.GetTopScreenTranslation(), layout);
+        if (layout != ScreenLayout::BottomOnly) {
+            if (layout == ScreenLayout::BottomTop && LayoutSupportsSecondaryScreenScale(layout) && screenLayout.SecondaryScreenScale() < 100) {
+                secondaryScaleScaler.Scale(secondaryScaleBuffer[0], topBuffer.data());
+                buffer.CopyRows(secondaryScaleBuffer[0], screenLayout.GetTopScreenTranslation(), secondaryScaleBuffer.Size());
+            } else {
+                CopyScreen(topBuffer.data(), screenLayout.GetTopScreenTranslation(), layout);
+            }
+        }
 
-        if (layout != ScreenLayout::TopOnly)
-            CopyScreen(bottomBuffer.data(), screenLayout.GetBottomScreenTranslation(), layout);
+        if (layout != ScreenLayout::TopOnly) {
+            if (layout != ScreenLayout::BottomTop && LayoutSupportsSecondaryScreenScale(layout) && screenLayout.SecondaryScreenScale() < 100) {
+                secondaryScaleScaler.Scale(secondaryScaleBuffer[0], bottomBuffer.data());
+                buffer.CopyRows(secondaryScaleBuffer[0], screenLayout.GetBottomScreenTranslation(), secondaryScaleBuffer.Size());
+            } else {
+                CopyScreen(bottomBuffer.data(), screenLayout.GetBottomScreenTranslation(), layout);
+            }
+        }
     }
 }
 

@@ -185,6 +185,13 @@ namespace MelonDsDs {
             screenGap = _screen_gap;
         }
 
+        unsigned SecondaryScreenScale() const noexcept { return secondaryScreenScale; }
+        float SecondaryScreenScaleFactor() const noexcept { return secondaryScreenScaleFactor; }
+        void SecondaryScreenScale(unsigned _scale) noexcept {
+            if (_scale != secondaryScreenScale) _dirty = true;
+            secondaryScreenScale = _scale;
+        }
+
         unsigned Scale() const noexcept { return resolutionScale; }
         void SetScale(unsigned _scale) noexcept {
             if (_scale != resolutionScale) _dirty = true;
@@ -247,6 +254,8 @@ namespace MelonDsDs {
         glm::mat3 pointerMatrix;
 
         unsigned screenGap;
+        unsigned secondaryScreenScale;
+        float secondaryScreenScaleFactor;
 
         HybridSideScreenDisplay hybridSmallScreenLayout;
         unsigned hybridRatio;
@@ -273,6 +282,16 @@ namespace MelonDsDs {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    constexpr bool LayoutSupportsSecondaryScreenScale(ScreenLayout layout) noexcept {
+        switch (layout) {
+        case ScreenLayout::TopBottom:
+        case ScreenLayout::BottomTop:
+            return true;
+        default:
+            return false;
         }
     }
 

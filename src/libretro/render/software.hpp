@@ -68,6 +68,8 @@ namespace MelonDsDs {
         // Used as a staging area for the hybrid screen to be scaled
         PixelBuffer hybridBuffer;
         retro::Scaler hybridScaler;
+        PixelBuffer secondaryScaleBuffer;
+        retro::Scaler secondaryScaleScaler;
     };
 }
 

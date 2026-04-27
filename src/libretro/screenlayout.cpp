@@ -51,6 +51,8 @@ MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
     bottomScreenMatrixInverse(1),
     hybridScreenMatrix(1),
     pointerMatrix(1),
+    secondaryScreenScale(100),
+    secondaryScreenScaleFactor(1.0f),
     hybridRatio(2),
     _numberOfLayouts(1) {
 }
@@ -69,6 +71,21 @@ constexpr mat3 SouthwestMatrix(unsigned resolutionScale, unsigned screenGap) noe
     return math::ts<float>(
         vec2(0, resolutionScale * (NDS_SCREEN_HEIGHT + screenGap)),
         vec2(resolutionScale)
+    );
+}
+
+/// For a bottom screen scaled relative to the top, horizontally centered
+constexpr mat3 SouthwestScaledMatrix(unsigned resolutionScale, unsigned screenGap, float secondaryScale) noexcept {
+    using namespace MelonDsDs;
+    if (secondaryScale == 1.0f) {
+        return SouthwestMatrix(resolutionScale, screenGap);
+    }
+
+    float scaledSize = resolutionScale * secondaryScale;
+    float xOffset = resolutionScale * NDS_SCREEN_WIDTH * (1.0f - secondaryScale) / 2.0f;
+    return math::ts<float>(
+        vec2(xOffset, resolutionScale * (NDS_SCREEN_HEIGHT + screenGap)),
+        vec2(scaledSize)
     );
 }
 
@@ -164,7 +181,7 @@ mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexc
         case ScreenLayout::UpsideDown:
             return NorthwestMatrix(scale);
         case ScreenLayout::BottomTop:
-            return SouthwestMatrix(scale, screenGap);
+            return SouthwestScaledMatrix(scale, screenGap, secondaryScreenScaleFactor);
         case ScreenLayout::RightLeft:
             return EastMatrix(scale);
         case ScreenLayout::HybridTop:
@@ -189,11 +206,12 @@ mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexc
 mat3 MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const noexcept {
     ZoneScopedN(TracyFunction);
     switch (Layout()) {
-        case ScreenLayout::TopBottom:
         case ScreenLayout::TurnLeft:
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
             return SouthwestMatrix(scale, screenGap);
+        case ScreenLayout::TopBottom:
+            return SouthwestScaledMatrix(scale, screenGap, secondaryScreenScaleFactor);
         case ScreenLayout::BottomTop:
         case ScreenLayout::BottomOnly:
         case ScreenLayout::RightLeft:
@@ -242,6 +260,8 @@ void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config, const RenderSt
     SetLayouts(config.ScreenLayouts());
     HybridSmallScreenLayout(config.SmallScreenLayout());
     ScreenGap(config.ScreenGap());
+    secondaryScreenScale = config.SecondaryScreenScale();
+    secondaryScreenScaleFactor = static_cast<float>(secondaryScreenScale) / 100.0f;
     HybridRatio(config.HybridRatio());
     Update();
 }
