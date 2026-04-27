@@ -43,6 +43,8 @@ namespace MelonDsDs {
         void ResetCursorTimeout() noexcept;
 
         [[nodiscard]] glm::ivec2 TouchPosition() const noexcept;
+        // Touch position actually sent to the emulated console (after hybrid-layout selection)
+        [[nodiscard]] glm::ivec2 ConsoleTouchPosition() const noexcept { return glm::ivec2(_consoleTouchPosition); }
         [[nodiscard]] glm::ivec2 JoypadTouchPosition() const noexcept { return _joystickCursorPosition; }
         [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return _pointerCursorPosition; }
         [[nodiscard]] bool IsTouching() const noexcept;
