@@ -184,8 +184,7 @@ bool Platform::CloseFile(FileHandle* file)
         return false;
     }
 
-    char path[PATH_MAX];
-    strlcpy(path, filestream_get_path(file->file), sizeof(path));
+    std::string_view path = filestream_get_path(file->file);
     retro::debug("Closing \"{}\"", path);
     bool ok = (filestream_close(file->file) == 0);
 
