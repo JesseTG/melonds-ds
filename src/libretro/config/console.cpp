@@ -21,8 +21,6 @@
 #include <optional>
 #include <span>
 #include <string_view>
-#include <mutex>
-#include <unordered_map>
 
 #include <FreeBIOS.h>
 #include <NDS.h>
@@ -132,29 +130,16 @@ namespace MelonDsDs {
 }
 
 namespace {
-    struct DsiNandRegionCache {
-        std::mutex mutex;
-        std::unordered_map<std::string, melonDS::DSi_NAND::ConsoleRegion> entries;
-    };
-
-    DsiNandRegionCache& GetDsiNandRegionCache() noexcept {
-        static DsiNandRegionCache cache;
-        return cache;
-    }
-
     std::optional<melonDS::DSi_NAND::ConsoleRegion> ReadDsiNandRegion(
         const std::string& absolutePath,
-        const uint8_t* es_keyY) noexcept
+        const uint8_t* es_keyY,
+        const MelonDsDs::CoreConfig& config) noexcept
     {
         using namespace melonDS;
         using namespace melonDS::DSi_NAND;
 
-        {
-            auto& cache = GetDsiNandRegionCache();
-            std::lock_guard lock(cache.mutex);
-            if (auto it = cache.entries.find(absolutePath); it != cache.entries.end()) {
-                return it->second;
-            }
+        if (auto cached = config.GetCachedNandRegion(absolutePath)) {
+            return static_cast<ConsoleRegion>(*cached);
         }
 
         Platform::FileHandle* file = Platform::OpenLocalFile(
@@ -182,25 +167,21 @@ namespace {
             return std::nullopt;
         }
 
-        {
-            auto& cache = GetDsiNandRegionCache();
-            std::lock_guard lock(cache.mutex);
-            cache.entries[absolutePath] = serial.Region;
-        }
+        config.CacheNandRegion(absolutePath, static_cast<uint32_t>(serial.Region));
         return serial.Region;
     }
 
     std::optional<std::string> SelectDsiNandForRom(
+        const MelonDsDs::CoreConfig& config,
         const melonDS::NDSHeader& header,
         const uint8_t* es_keyY) noexcept
     {
-        const auto& candidates = MelonDsDs::GetDiscoveredDsiNandPaths();
-        for (const std::string& relPath : candidates) {
+        for (const std::string& relPath : config.DiscoveredDsiNandPaths()) {
             std::optional<std::string> abs = retro::get_system_path(relPath);
             if (!abs) continue;
 
             std::optional<melonDS::DSi_NAND::ConsoleRegion> region =
-                ReadDsiNandRegion(*abs, es_keyY);
+                ReadDsiNandRegion(*abs, es_keyY, config);
             if (!region) continue;
 
             uint32_t consoleRegionMask = (1u << static_cast<int>(*region));
@@ -425,9 +406,9 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
     using namespace MelonDsDs::config::firmware;
 
     string_view nandName = config.DsiNandPath();
-    const bool isAutoNand = (nandName == config::values::AUTO);
+    const bool isAutoNand = (nandName == config::values::DSI_NAND_AUTO);
 
-    if ((isAutoNand && GetDiscoveredDsiNandPaths().empty()) || (!isAutoNand && nandName == config::values::NOT_FOUND)) {
+    if ((isAutoNand && config.DiscoveredDsiNandPaths().empty()) || (!isAutoNand && nandName == config::values::NOT_FOUND)) {
         throw dsi_no_nand_found_exception();
     }
 
@@ -481,13 +462,13 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
     string effectiveNandName(nandName);
     if (isAutoNand) {
         if (header && header->IsDSiWare()) {
-            if (auto picked = SelectDsiNandForRom(*header, &(*arm7i)[0x8308])) {
+            if (auto picked = SelectDsiNandForRom(config, *header, &(*arm7i)[0x8308])) {
                 effectiveNandName = std::move(*picked);
             } else {
                 throw dsi_no_compatible_nand_exception(header->DSiRegionMask);
             }
         } else {
-            effectiveNandName = GetDiscoveredDsiNandPaths().front();
+            effectiveNandName = config.DiscoveredDsiNandPaths().front();
             retro::info("Auto-NAND: non-DSiWare boot, using first discovered NAND \"{}\"", effectiveNandName);
         }
     }

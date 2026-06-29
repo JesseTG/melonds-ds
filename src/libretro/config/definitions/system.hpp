@@ -143,11 +143,11 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         config::system::CATEGORY,
         {
-            {MelonDsDs::config::values::AUTO, "Auto (match ROM region)"},
+            {MelonDsDs::config::values::DSI_NAND_AUTO, "Auto (match ROM region)"},
             {MelonDsDs::config::values::NOT_FOUND, "None found..."},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::AUTO
+        MelonDsDs::config::values::DSI_NAND_AUTO
     };
 
     constexpr retro_core_option_v2_definition BootMode {

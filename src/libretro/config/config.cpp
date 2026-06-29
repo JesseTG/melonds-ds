@@ -109,10 +109,6 @@ const initializer_list<int> RELATIVE_DAY_OFFSETS = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 30, 60, 90, 120, 150, 180, 364
 };
 
-namespace {
-    std::vector<std::string> g_discoveredDsiNandPaths;
-}
-
 namespace MelonDsDs::config {
     static void ParseSystemOptions(CoreConfig& config) noexcept;
     static void ParseTimeOptions(CoreConfig& config) noexcept;
@@ -151,10 +147,6 @@ namespace MelonDsDs::config::definitions {
     // Work around a clang bug (can't compare pointers for some reason)
     static_assert(AreOptionKeysUnique());
 #endif
-}
-
-const std::vector<std::string>& MelonDsDs::GetDiscoveredDsiNandPaths() noexcept {
-    return g_discoveredDsiNandPaths;
 }
 
 void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
@@ -528,8 +520,8 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     if (string_view value = get_variable(storage::DSI_NAND_PATH); !value.empty()) {
         config.SetDsiNandPath(value);
     } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_NAND_PATH, values::AUTO);
-        config.SetDsiNandPath(string_view(values::AUTO));
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_NAND_PATH, values::DSI_NAND_AUTO);
+        config.SetDsiNandPath(string_view(values::DSI_NAND_AUTO));
     }
 
     if (string_view value = get_variable(system::FIRMWARE_PATH); !value.empty()) {
@@ -946,7 +938,7 @@ struct AdapterOption {
 
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
-bool MelonDsDs::RegisterCoreOptions() noexcept {
+bool MelonDsDs::RegisterCoreOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config;
 
@@ -996,11 +988,11 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 
         retro_assert(dsiNandPathOption != definitions.end());
 
-        constexpr int kReservedSlots = 1; // [0] = "auto"
+        constexpr int kReservedSlots = 1; // [0] = "/auto"
         memset(dsiNandPathOption->values + kReservedSlots, 0, sizeof(retro_core_option_value) * (RETRO_NUM_CORE_OPTION_VALUES_MAX - kReservedSlots));
 
-        g_discoveredDsiNandPaths.clear();
-        g_discoveredDsiNandPaths.reserve(dsiNandPaths.size());
+        std::vector<std::string> discoveredPaths;
+        discoveredPaths.reserve(dsiNandPaths.size());
 
         const int maxAppendable = (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1 - kReservedSlots;
         const int length = std::min((int)dsiNandPaths.size(), maxAppendable);
@@ -1012,10 +1004,11 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
             dsiNandPathOption->values[i + kReservedSlots].value = path.data();
             dsiNandPathOption->values[i + kReservedSlots].label = nullptr;
 
-            g_discoveredDsiNandPaths.emplace_back(path);
+            discoveredPaths.emplace_back(path);
         }
 
         dsiNandPathOption->values[length + kReservedSlots] = { nullptr, nullptr };
+        config.SetDiscoveredDsiNandPaths(std::move(discoveredPaths));
     }
 
     if (!firmware.empty()) {
