@@ -23,6 +23,10 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-cmake.yml'
 
+  # Linux ARM 64-bit
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-cmake-aarch64.yml'
+
   # MacOS 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/osx-cmake-x86.yml'
@@ -75,6 +79,20 @@ libretro-build-linux-x64:
     CC: /usr/bin/gcc-12
     CXX: /usr/bin/g++-12
     CXXFLAGS: -Wno-deprecated-declarations # Deprecation warnings aren't helpful on the libretro Gitlab
+    CORE_ARGS: -Wno-deprecated
+
+# Linux ARM 64-bit
+libretro-build-linux-aarch64:
+  extends:
+    - .libretro-linux-cmake-aarch64
+    - .core-defs
+  # Same as the x64 job: the default image's GCC is too old for this core's
+  # C++20 usage, so use the backports image and GCC 12.
+  image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-aarch64-ubuntu:backports
+  variables:
+    CC: /usr/bin/gcc-12
+    CXX: /usr/bin/g++-12
+    CXXFLAGS: -Wno-deprecated-declarations
     CORE_ARGS: -Wno-deprecated
 
 # MacOS 64-bit
