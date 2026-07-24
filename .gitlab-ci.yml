@@ -23,10 +23,6 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-cmake.yml'
 
-  # Linux ARM 64-bit
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/linux-cmake-aarch64.yml'
-
   # MacOS 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/osx-cmake-x86.yml'
