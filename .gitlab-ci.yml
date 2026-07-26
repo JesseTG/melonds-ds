@@ -82,9 +82,8 @@ libretro-build-linux-aarch64:
   extends:
     - .libretro-linux-cmake-aarch64
     - .core-defs
-  # Same as the x64 job: the default image's GCC is too old for this core's
-  # C++20 usage, so use the backports image and GCC 12.
-  image: $CI_SERVER_HOST:5050/libretro-infrastructure/libretro-build-aarch64-ubuntu:backports
+  # No image override here: unlike the x64 image, the aarch64 one already ships
+  # GCC 12 and a current CMake, so the template's default image is what we want.
   variables:
     CC: /usr/bin/gcc-12
     CXX: /usr/bin/g++-12
