@@ -520,8 +520,8 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     if (string_view value = get_variable(storage::DSI_NAND_PATH); !value.empty()) {
         config.SetDsiNandPath(value);
     } else {
-        retro::warn("Failed to get value for {}", storage::DSI_NAND_PATH);
-        config.SetDsiNandPath(string_view(values::NOT_FOUND));
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_NAND_PATH, values::DSI_NAND_AUTO);
+        config.SetDsiNandPath(string_view(values::DSI_NAND_AUTO));
     }
 
     if (string_view value = get_variable(system::FIRMWARE_PATH); !value.empty()) {
@@ -938,7 +938,7 @@ struct AdapterOption {
 
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
-bool MelonDsDs::RegisterCoreOptions() noexcept {
+bool MelonDsDs::RegisterCoreOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config;
 
@@ -988,18 +988,27 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 
         retro_assert(dsiNandPathOption != definitions.end());
 
-        memset(dsiNandPathOption->values, 0, sizeof(dsiNandPathOption->values));
-        int length = std::min((int)dsiNandPaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
+        constexpr int kReservedSlots = 1; // [0] = "/auto"
+        memset(dsiNandPathOption->values + kReservedSlots, 0, sizeof(retro_core_option_value) * (RETRO_NUM_CORE_OPTION_VALUES_MAX - kReservedSlots));
+
+        std::vector<std::string> discoveredPaths;
+        discoveredPaths.reserve(dsiNandPaths.size());
+
+        const int maxAppendable = (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1 - kReservedSlots;
+        const int length = std::min((int)dsiNandPaths.size(), maxAppendable);
         for (int i = 0; i < length; ++i) {
             string_view path = dsiNandPaths[i];
             path.remove_prefix(sysdir->size() + 1);
             retro::debug("Found a DSi NAND image at \"{}\", presenting it in the options as \"{}\"", dsiNandPaths[i], path);
             retro_assert(!path_is_absolute(path.data()));
-            dsiNandPathOption->values[i].value = path.data();
-            dsiNandPathOption->values[i].label = nullptr;
+            dsiNandPathOption->values[i + kReservedSlots].value = path.data();
+            dsiNandPathOption->values[i + kReservedSlots].label = nullptr;
+
+            discoveredPaths.emplace_back(path);
         }
 
-        dsiNandPathOption->default_value = dsiNandPathOption->values[0].value;
+        dsiNandPathOption->values[length + kReservedSlots] = { nullptr, nullptr };
+        config.SetDiscoveredDsiNandPaths(std::move(discoveredPaths));
     }
 
     if (!firmware.empty()) {

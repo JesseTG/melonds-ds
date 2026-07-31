@@ -214,7 +214,7 @@ void MelonDsDs::CoreState::Reset() {
     _savestateSize = std::nullopt;
 
     retro_assert(Console != nullptr);
-    RegisterCoreOptions();
+    RegisterCoreOptions(Config);
     ParseConfig(Config);
     ApplyConfig(Config);
     _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
@@ -510,7 +510,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
-    if (RegisterCoreOptions()) {
+    if (RegisterCoreOptions(Config)) {
         ParseConfig(Config);
         _optionVisibility.Update();
     }
