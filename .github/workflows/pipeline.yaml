@@ -262,6 +262,40 @@ jobs:
         working-directory: "${{ env.BUILD_DIR }}"
         run: cmake --build "${{ env.BUILD_DIR }}" --parallel
 
+      # ccache-action publishes a job summary for ccache, but its hasJsonStats()
+      # returns false for any variant that isn't ccache, so the Windows legs get
+      # nothing. This is the sccache equivalent.
+      #
+      # Nothing compiles after the build step, so the numbers here are final.
+      # Parsing the text output rather than --stats-format=json keeps this working
+      # across sccache versions, which have reshaped the JSON more than once.
+      - name: Summarize sccache Statistics (Windows)
+        if: ${{ always() && runner.os == 'Windows' }}
+        shell: bash
+        run: |
+          if ! command -v sccache > /dev/null; then
+            echo "sccache is not on PATH; skipping the statistics summary."
+            exit 0
+          fi
+
+          {
+            echo "### sccache Statistics"
+            echo
+            echo "| Statistic | Value |"
+            echo "| --------- | ----- |"
+
+            # Every row is a label and a value separated by a run of spaces. Values
+            # themselves contain spaces ("12 MiB", "100.00 %"), so only collapse the
+            # first run, and escape pipes so a value can't break out of the table.
+            sccache --show-stats \
+              | sed -E 's/[[:space:]]{2,}/\t/' \
+              | awk -F'\t' 'NF == 2 {
+                  gsub(/[|]/, "\\\\|", $1)
+                  gsub(/[|]/, "\\\\|", $2)
+                  printf "| %s | %s |\n", $1, $2
+                }'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prepare Artifact Directory
         env:
           CORES_PATH: "${{ env.DIST_DIR }}/${{ inputs.cores-dir }}"
