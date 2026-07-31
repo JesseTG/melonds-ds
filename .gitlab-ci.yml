@@ -77,6 +77,19 @@ libretro-build-linux-x64:
     CXXFLAGS: -Wno-deprecated-declarations # Deprecation warnings aren't helpful on the libretro Gitlab
     CORE_ARGS: -Wno-deprecated
 
+# Linux ARM 64-bit
+libretro-build-linux-aarch64:
+  extends:
+    - .libretro-linux-cmake-aarch64
+    - .core-defs
+  # No image override here: unlike the x64 image, the aarch64 one already ships
+  # GCC 12 and a current CMake, so the template's default image is what we want.
+  variables:
+    CC: /usr/bin/gcc-12
+    CXX: /usr/bin/g++-12
+    CXXFLAGS: -Wno-deprecated-declarations
+    CORE_ARGS: -Wno-deprecated
+
 # MacOS 64-bit
 libretro-build-osx-x64:
   extends:
