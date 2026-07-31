@@ -42,7 +42,7 @@ jobs:
       actions: write
     steps:
       - name: Clone Test File Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         id: clone-test-file-repo
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
@@ -51,7 +51,7 @@ jobs:
           persist-credentials: false
 
       - name: Check For Existing Cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: check-existing-cache
         with:
           path: |
@@ -71,7 +71,7 @@ jobs:
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
 
       - name: Cache Test Files
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: steps.check-existing-cache.outputs.cache-hit != 'true'
         with:
           path: |

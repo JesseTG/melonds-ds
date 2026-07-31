@@ -113,7 +113,7 @@ jobs:
       TRACY_ENABLE: "${{ inputs.cmake-config == 'RelWithDebInfo' && 'ON' || 'OFF' }}"
     steps:
       - name: Check Out Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
@@ -132,7 +132,7 @@ jobs:
           build-directory: ${{ env.BUILD_DIR }}
 
       - name: Install MSYS2 Dependencies (Windows)
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
         if: ${{ runner.os == 'Windows' }}
         with:
           msystem: MINGW64
@@ -141,7 +141,7 @@ jobs:
 
       - name: Install Mesa
         if: ${{ runner.os == 'Windows' }}
-        uses: ssciwr/setup-mesa-dist-win@v2
+        uses: ssciwr/setup-mesa-dist-win@2dfeaebfa514f74c2b8cd8d27108c31486d33e72 # v3.0.0
 
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
@@ -153,7 +153,7 @@ jobs:
         # to the uncached step below rather than being allowed to populate the cache.
       - name: Install Dependencies (Linux)
         if: ${{ !env.ACT && env.CAN_WRITE_CACHE == 'true' && runner.os == 'Linux' }}
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 #v1.6.3
         with:
           packages: ${{ env.APT_PACKAGES }}
           version: 1.2
@@ -164,7 +164,7 @@ jobs:
         run: sudo apt-get update -qy && sudo apt-get install -qy ${{ env.APT_PACKAGES }}
 
       - name: Install CCache
-        uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
         with:
           key: ${{ inputs.archive-name }}-${{ inputs.cmake-config }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
@@ -177,7 +177,7 @@ jobs:
 
       - name: Install Python
         if: ${{ inputs.test-suite }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
           cache: ${{ env.CAN_WRITE_CACHE == 'true' && 'pip' || '' }}
@@ -194,7 +194,7 @@ jobs:
       - name: Restore Cached Test Files
         if: ${{ inputs.test-suite && inputs.testfiles-cache-key }}
         id: restore-test-files
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             testfiles
@@ -207,7 +207,7 @@ jobs:
 
       - name: Download Test Files
         if: ${{ inputs.test-suite && steps.restore-test-files.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
           token: "${{ secrets.TESTFILE_REPO_TOKEN }}"
@@ -276,7 +276,7 @@ jobs:
           cp -f "${{ env.BUILD_DIR }}/melondsds-LICENSE.txt" "$CORES_PATH"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: "${{ inputs.archive-name }}-${{ inputs.cmake-config }}"
           if-no-files-found: error
