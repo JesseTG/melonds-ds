@@ -165,6 +165,16 @@ jobs:
 
       - name: Install CCache
         uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
+        env:
+          # TEMPORARY: sccache reports a 0% hit rate on Windows every run (0/158 hits,
+          # 0 errors, 0 non-cacheable) even though the cache restores successfully,
+          # while ccache on Linux hits 100%. These make the sccache server log the hash
+          # key it computes per object so two runs can be diffed. Remove once diagnosed.
+          #
+          # The server is started by this action, so the variables have to be set here;
+          # setting them on the build step would be too late.
+          SCCACHE_LOG: ${{ runner.os == 'Windows' && 'sccache=debug' || '' }}
+          SCCACHE_ERROR_LOG: ${{ runner.os == 'Windows' && format('{0}/sccache.log', github.workspace) || '' }}
         with:
           key: ${{ inputs.archive-name }}-${{ inputs.cmake-config }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
@@ -261,6 +271,15 @@ jobs:
       - name: Build
         working-directory: "${{ env.BUILD_DIR }}"
         run: cmake --build "${{ env.BUILD_DIR }}" --parallel
+
+      # TEMPORARY: companion to the SCCACHE_LOG variables set above; remove with them.
+      - name: Upload sccache Log (Windows)
+        if: ${{ always() && runner.os == 'Windows' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: "sccache-log-${{ inputs.archive-name }}-${{ inputs.cmake-config }}"
+          if-no-files-found: warn
+          path: "${{ github.workspace }}/sccache.log"
 
       - name: Prepare Artifact Directory
         env:
