@@ -20,10 +20,41 @@ on:
       - "*.github/ISSUE_TEMPLATE/**"
       - "*.github/FUNDING.yml"
       - "*.github/workflows/**"
+  pull_request:
+    # For platforms that don't run the test suite
+    # (so we don't need to expose the test data repo's access token)
+    branches:
+      - dev
+    paths-ignore:
+      - "**.md"
+      - ".gitignore"
+      - "*.gitlab-ci.yml"
+      - "*.github/ISSUE_TEMPLATE/**"
+      - "*.github/FUNDING.yml"
+      - "*.github/workflows/**"
+  # Platforms that run the test suite need the private system files, which a fork's
+  # pull_request run can't have. Keep this targeting `dev` only -- see assert-base-branch.
 jobs:
+  assert-base-branch:
+    name: Assert Base Branch
+    # `branches: [dev]` above is the only thing keeping fork cache writes out of the
+    # default branch's scope, which every branch can restore from and which feeds
+    # releases. Fail loudly if that filter is ever widened.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-slim
+    permissions: {}
+    steps:
+      - name: Check Base Branch
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.base.ref != 'dev'
+        run: |
+          echo "::error::pull_request_target must only target 'dev', but this run targets '${{ github.event.pull_request.base.ref }}'. Fork code would be able to write to that branch's cache scope."
+          exit 1
+
   fetch-testfiles:
     name: Fetch Test Files
-    runs-on: ubuntu-22.04-arm
+    if: github.event_name != 'pull_request'
+    needs: assert-base-branch
+    runs-on: ubuntu-slim
     permissions:
       actions: write
     steps:
@@ -73,6 +104,7 @@ jobs:
   windows:
     name: Windows (x86_64)
     uses: ./.github/workflows/pipeline.yaml
+    if: github.event_name != 'pull_request' # Needs secrets; runs under pull_request_target
     needs: fetch-testfiles
     strategy:
       matrix:
@@ -106,6 +138,7 @@ jobs:
   macos-x86_64:
     name: macOS (x86_64)
     uses: ./.github/workflows/pipeline.yaml
+    if: github.event_name != 'pull_request' # Needs secrets; runs under pull_request_target
     needs: fetch-testfiles
     strategy:
       matrix:
@@ -136,6 +169,7 @@ jobs:
   macos-arm64:
     name: macOS (arm64)
     uses: ./.github/workflows/pipeline.yaml
+    if: github.event_name != 'pull_request' # Needs secrets; runs under pull_request_target
     needs: fetch-testfiles
     strategy:
       matrix:
@@ -166,6 +200,7 @@ jobs:
   linux-x86_64:
     name: Linux (x86_64)
     uses: ./.github/workflows/pipeline.yaml
+    if: github.event_name != 'pull_request' # Needs secrets; runs under pull_request_target
     needs: fetch-testfiles
     strategy:
       matrix:
@@ -195,6 +230,7 @@ jobs:
   linux-aarch64:
     name: Linux (arm64)
     uses: ./.github/workflows/pipeline.yaml
+    if: github.event_name != 'pull_request' # Needs secrets; runs under pull_request_target
     needs: fetch-testfiles
     strategy:
       matrix:
@@ -224,6 +260,16 @@ jobs:
   android:
     name: Android
     uses: ./.github/workflows/pipeline.yaml
+    # These platforms take no secrets, so they run under pull_request instead of
+    # pull_request_target: no elevated token, and a per-PR cache scope that lets fork
+    # contributors keep incremental builds across pushes.
+    #
+    # The second clause skips them on same-repo PRs, where the branch's own `push` run
+    # has already built them; without it those PRs would build Android/iOS/tvOS twice.
+    if: >-
+      github.event_name != 'pull_request_target' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name != github.repository)
     strategy:
       matrix:
         config: [ Debug, Release, RelWithDebInfo ]
@@ -240,6 +286,10 @@ jobs:
   ios:
     name: iOS
     uses: ./.github/workflows/pipeline.yaml
+    if: >- # See the android job for why
+      github.event_name != 'pull_request_target' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name != github.repository)
     strategy:
       matrix:
         config: [ Debug, Release, RelWithDebInfo ]
@@ -254,6 +304,10 @@ jobs:
   tvos:
     name: tvOS
     uses: ./.github/workflows/pipeline.yaml
+    if: >- # See the android job for why
+      github.event_name != 'pull_request_target' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name != github.repository)
     strategy:
       matrix:
         config: [ Debug, Release, RelWithDebInfo ]
