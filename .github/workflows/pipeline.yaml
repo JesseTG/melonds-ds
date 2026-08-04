@@ -89,6 +89,20 @@ env:
   BUILD_DIR: "${{ github.workspace }}/${{ inputs.build-dir }}"
   DIST_DIR: "${{ github.workspace }}/${{ inputs.dist-dir }}"
   TESTFILE_DIR: "${{ github.workspace }}/testfiles"
+
+  # Whether this run may write to the Actions cache.
+  #
+  # A pull_request_target run is attributed to the base branch, so anything it saves
+  # lands in that branch's cache scope where trusted builds will read it back. When the
+  # PR comes from a fork we're building untrusted code, so it must not save anything.
+  # (Cache writes aren't governed by `permissions:`, so this is the only control.)
+  #
+  # pull_request is deliberately allowed: those runs are scoped to refs/pull/N/merge,
+  # which nothing else can restore from.
+  CAN_WRITE_CACHE: ${{ github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+  # Shared by the cached and uncached Linux dependency steps below; keep them in sync.
+  APT_PACKAGES: ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
 jobs:
   build:
     runs-on: ${{ inputs.runs-on }}
@@ -99,10 +113,17 @@ jobs:
       TRACY_ENABLE: "${{ inputs.cmake-config == 'RelWithDebInfo' && 'ON' || 'OFF' }}"
     steps:
       - name: Check Out Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+
+          # Building and testing a fork's code is the entire point of this workflow, and
+          # the test suite needs system files that can't be redistributed -- which means
+          # pull_request_target, which means fork code runs with this repo's secrets.
+          # That risk is accepted deliberately; see CAN_WRITE_CACHE above for the part
+          # that is *not* accepted (poisoning caches that trusted builds read back).
+          allow-unsafe-pr-checkout: true
 
       - name: Install GCC Problem Matcher
         uses: root-project/gcc-problem-matcher-improved@c45ac8b7c1589268fdef2f7f5772375aa96ab210
@@ -111,7 +132,7 @@ jobs:
           build-directory: ${{ env.BUILD_DIR }}
 
       - name: Install MSYS2 Dependencies (Windows)
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
         if: ${{ runner.os == 'Windows' }}
         with:
           msystem: MINGW64
@@ -120,7 +141,7 @@ jobs:
 
       - name: Install Mesa
         if: ${{ runner.os == 'Windows' }}
-        uses: ssciwr/setup-mesa-dist-win@v2
+        uses: ssciwr/setup-mesa-dist-win@2dfeaebfa514f74c2b8cd8d27108c31486d33e72 # v3.0.0
 
       - name: Install Dependencies (macOS)
         if: ${{ runner.os == 'macOS' }}
@@ -128,33 +149,40 @@ jobs:
         run: brew install pkg-config cmake ninja ccache
 
         # Skip this step on act due to https://github.com/nektos/act/issues/1849
+        # cache-apt-pkgs-action has no restore-only mode, so untrusted runs fall through
+        # to the uncached step below rather than being allowed to populate the cache.
       - name: Install Dependencies (Linux)
-        if: ${{ !env.ACT && runner.os == 'Linux' }}
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        if: ${{ !env.ACT && env.CAN_WRITE_CACHE == 'true' && runner.os == 'Linux' }}
+        uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 #v1.6.3
         with:
-          packages: ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
+          packages: ${{ env.APT_PACKAGES }}
           version: 1.2
 
-      - name: Install Dependencies (Linux + act)
-        if: ${{ env.ACT && runner.os == 'Linux' }}
+      - name: Install Dependencies (Linux, uncached)
+        if: ${{ (env.ACT || env.CAN_WRITE_CACHE != 'true') && runner.os == 'Linux' }}
         shell: bash
-        run: sudo apt-get update -qy && sudo apt-get install -qy ccache cmake libepoxy-dev libopengl0 libopengl-dev ninja-build p7zip-full x11-xserver-utils xdg-utils xvfb
+        run: sudo apt-get update -qy && sudo apt-get install -qy ${{ env.APT_PACKAGES }}
 
       - name: Install CCache
-        uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
         with:
           key: ${{ inputs.archive-name }}-${{ inputs.cmake-config }}
           variant: ${{ runner.os == 'Windows' && 'sccache' || 'ccache' }} # Equivalent to (runner.os == 'Windows') ? 'sccache' : 'ccache'
           # Using sccache on Windows due to https://github.com/hendrikmuhs/ccache-action/issues/112
           verbose: 2
           evict-old-files: job
+          save: ${{ env.CAN_WRITE_CACHE }}
+          # Untrusted runs still restore from the base branch, so they aren't cold;
+          # they just don't persist their own objects for a trusted build to link.
 
       - name: Install Python
         if: ${{ inputs.test-suite }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
-          cache: 'pip'
+          cache: ${{ env.CAN_WRITE_CACHE == 'true' && 'pip' || '' }}
+          # requirements.txt is attacker-controlled on a fork PR, and the pip cache is
+          # keyed by its hash; an empty value disables caching entirely for those runs.
           cache-dependency-path: "${{ github.workspace }}/test/requirements.txt"
 
       - name: Install Python Dependencies
@@ -166,7 +194,7 @@ jobs:
       - name: Restore Cached Test Files
         if: ${{ inputs.test-suite && inputs.testfiles-cache-key }}
         id: restore-test-files
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             testfiles
@@ -179,7 +207,7 @@ jobs:
 
       - name: Download Test Files
         if: ${{ inputs.test-suite && steps.restore-test-files.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
           token: "${{ secrets.TESTFILE_REPO_TOKEN }}"
@@ -234,6 +262,40 @@ jobs:
         working-directory: "${{ env.BUILD_DIR }}"
         run: cmake --build "${{ env.BUILD_DIR }}" --parallel
 
+      # ccache-action publishes a job summary for ccache, but its hasJsonStats()
+      # returns false for any variant that isn't ccache, so the Windows legs get
+      # nothing. This is the sccache equivalent.
+      #
+      # Nothing compiles after the build step, so the numbers here are final.
+      # Parsing the text output rather than --stats-format=json keeps this working
+      # across sccache versions, which have reshaped the JSON more than once.
+      - name: Summarize sccache Statistics (Windows)
+        if: ${{ always() && runner.os == 'Windows' }}
+        shell: bash
+        run: |
+          if ! command -v sccache > /dev/null; then
+            echo "sccache is not on PATH; skipping the statistics summary."
+            exit 0
+          fi
+
+          {
+            echo "### sccache Statistics"
+            echo
+            echo "| Statistic | Value |"
+            echo "| --------- | ----- |"
+
+            # Every row is a label and a value separated by a run of spaces. Values
+            # themselves contain spaces ("12 MiB", "100.00 %"), so only collapse the
+            # first run, and escape pipes so a value can't break out of the table.
+            sccache --show-stats \
+              | sed -E 's/[[:space:]]{2,}/\t/' \
+              | awk -F'\t' 'NF == 2 {
+                  gsub(/[|]/, "\\\\|", $1)
+                  gsub(/[|]/, "\\\\|", $2)
+                  printf "| %s | %s |\n", $1, $2
+                }'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prepare Artifact Directory
         env:
           CORES_PATH: "${{ env.DIST_DIR }}/${{ inputs.cores-dir }}"
@@ -248,7 +310,7 @@ jobs:
           cp -f "${{ env.BUILD_DIR }}/melondsds-LICENSE.txt" "$CORES_PATH"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: "${{ inputs.archive-name }}-${{ inputs.cmake-config }}"
           if-no-files-found: error

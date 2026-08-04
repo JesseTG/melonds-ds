@@ -11,6 +11,16 @@ option(ENABLE_ZLIB "Build with zlib support, if supported by the target." ON)
 option(ENABLE_GLSM_DEBUG "Enable debug output for GLSM." OFF)
 
 if (ENABLE_SCCACHE)
+    # I use sscache on Windows due to this issue with the ccache action:
+    # https://github.com/hendrikmuhs/ccache-action/issues/112
+    #
+    # I don't configure ccache because melonDS already does so.
+    # Need to revisit that if any of the following happens:
+    # - melonDS stops doing its own ccache config
+    # - ccache-action fixes ccache support on Windows
+    # - The Windows runner adds ccache
+    #
+    # A sign of this happening: every non-Windows build stops being cached.
     find_program(SCCACHE "sccache" PATHS "$ENV{HOME}/.cargo/bin")
     if (SCCACHE)
         message(STATUS "Using sccache (instead of ccache) to speed up compilation")

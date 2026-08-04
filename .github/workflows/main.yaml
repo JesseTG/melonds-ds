@@ -9,7 +9,6 @@ on:
       - "*.gitignore"
       - "*.github/ISSUE_TEMPLATE/**"
       - "*.github/FUNDING.yml"
-      - "*.github/workflows/**"
   pull_request_target:
     branches:
       - dev
@@ -21,14 +20,29 @@ on:
       - "*.github/FUNDING.yml"
       - "*.github/workflows/**"
 jobs:
+  assert-base-branch:
+    name: Assert Base Branch
+    # `branches: [dev]` above is the only thing keeping fork cache writes out of the
+    # default branch's scope, which every branch can restore from and which feeds
+    # releases. Fail loudly if that filter is ever widened.
+    runs-on: ubuntu-slim
+    permissions: {}
+    steps:
+      - name: Check Base Branch
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.base.ref != 'dev'
+        run: |
+          echo "::error::pull_request_target must only target 'dev', but this run targets '${{ github.event.pull_request.base.ref }}'. Fork code would be able to write to that branch's cache scope."
+          exit 1
+
   fetch-testfiles:
     name: Fetch Test Files
-    runs-on: ubuntu-22.04-arm
+    needs: assert-base-branch
+    runs-on: ubuntu-slim
     permissions:
       actions: write
     steps:
       - name: Clone Test File Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         id: clone-test-file-repo
         with:
           repository: "${{ secrets.TESTFILE_REPO }}"
@@ -37,7 +51,7 @@ jobs:
           persist-credentials: false
 
       - name: Check For Existing Cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: check-existing-cache
         with:
           path: |
@@ -57,7 +71,7 @@ jobs:
         run: 7z x "${{ secrets.DSI_NAND_ARCHIVE }}"
 
       - name: Cache Test Files
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: steps.check-existing-cache.outputs.cache-hit != 'true'
         with:
           path: |
@@ -116,8 +130,7 @@ jobs:
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-config: "${{ matrix.config }}"
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
-      # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="x86_64" -DCMAKE_APPLE_SILICON_PROCESSOR="x86_64"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}
@@ -147,8 +160,7 @@ jobs:
       test-suite: true
       testfiles-cache-key: ${{ needs.fetch-testfiles.outputs.testfiles-cache-key }}
       cmake-config: "${{ matrix.config }}"
-      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DENABLE_OGLRENDERER=OFF -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
-      # Disabled OpenGL on macOS due to https://github.com/JesseTG/melonds-ds/issues/12
+      cmake-args: -DCMAKE_OSX_ARCHITECTURES:STRING="arm64" -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
     secrets:
       TESTFILE_REPO_TOKEN: ${{ secrets.TESTFILE_REPO_TOKEN }}
       TESTFILE_REPO: ${{ secrets.TESTFILE_REPO }}

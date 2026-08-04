@@ -16,7 +16,7 @@
 
 #pragma once
 
-#if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES))
+#if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)) && !defined(__APPLE__)
 #include <array>
 #include <queue>
 

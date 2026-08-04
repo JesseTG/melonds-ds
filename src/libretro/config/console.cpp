@@ -129,6 +129,71 @@ namespace MelonDsDs {
     }
 }
 
+namespace {
+    std::optional<melonDS::DSi_NAND::ConsoleRegion> ReadDsiNandRegion(
+        const std::string& absolutePath,
+        const uint8_t* es_keyY,
+        const MelonDsDs::CoreConfig& config) noexcept
+    {
+        using namespace melonDS;
+        using namespace melonDS::DSi_NAND;
+
+        if (auto cached = config.GetCachedNandRegion(absolutePath)) {
+            return static_cast<ConsoleRegion>(*cached);
+        }
+
+        Platform::FileHandle* file = Platform::OpenLocalFile(
+            absolutePath, Platform::FileMode::ReadWriteExisting);
+        if (!file) {
+            retro::warn("Auto-NAND: failed to open \"{}\" for region probing", absolutePath);
+            return std::nullopt;
+        }
+
+        NANDImage nand(file, es_keyY);
+        if (!nand) {
+            retro::warn("Auto-NAND: \"{}\" is not a valid NAND image", absolutePath);
+            return std::nullopt;
+        }
+
+        NANDMount mount(nand);
+        if (!mount) {
+            retro::warn("Auto-NAND: failed to mount \"{}\"", absolutePath);
+            return std::nullopt;
+        }
+
+        DSiSerialData serial{};
+        if (!mount.ReadSerialData(serial)) {
+            retro::warn("Auto-NAND: failed to read serial data from \"{}\"", absolutePath);
+            return std::nullopt;
+        }
+
+        config.CacheNandRegion(absolutePath, static_cast<uint32_t>(serial.Region));
+        return serial.Region;
+    }
+
+    std::optional<std::string> SelectDsiNandForRom(
+        const MelonDsDs::CoreConfig& config,
+        const melonDS::NDSHeader& header,
+        const uint8_t* es_keyY) noexcept
+    {
+        for (const std::string& relPath : config.DiscoveredDsiNandPaths()) {
+            std::optional<std::string> abs = retro::get_system_path(relPath);
+            if (!abs) continue;
+
+            std::optional<melonDS::DSi_NAND::ConsoleRegion> region =
+                ReadDsiNandRegion(*abs, es_keyY, config);
+            if (!region) continue;
+
+            uint32_t consoleRegionMask = (1u << static_cast<int>(*region));
+            if (consoleRegionMask & static_cast<uint32_t>(header.DSiRegionMask)) {
+                retro::info("Auto-selected DSi NAND \"{}\" (region {}) for DSiWare ROM with region mask 0x{:08x}", relPath, *region, static_cast<uint32_t>(header.DSiRegionMask));
+                return relPath;
+            }
+        }
+        return std::nullopt;
+    }
+}
+
 std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
     CoreState& state,
     const CoreConfig& config,
@@ -341,7 +406,9 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
     using namespace MelonDsDs::config::firmware;
 
     string_view nandName = config.DsiNandPath();
-    if (nandName == config::values::NOT_FOUND) {
+    const bool isAutoNand = (nandName == config::values::DSI_NAND_AUTO);
+
+    if ((isAutoNand && config.DiscoveredDsiNandPaths().empty()) || (!isAutoNand && nandName == config::values::NOT_FOUND)) {
         throw dsi_no_nand_found_exception();
     }
 
@@ -391,7 +458,22 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
     // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
     CustomizeFirmware(config, *firmware);
 
-    optional<string> nandPath = retro::get_system_path(nandName);
+    const NDSHeader* header = ndsInfo ? reinterpret_cast<const NDSHeader*>(ndsInfo->GetData().data()) : nullptr;
+    string effectiveNandName(nandName);
+    if (isAutoNand) {
+        if (header && header->IsDSiWare()) {
+            if (auto picked = SelectDsiNandForRom(config, *header, &(*arm7i)[0x8308])) {
+                effectiveNandName = std::move(*picked);
+            } else {
+                throw dsi_no_compatible_nand_exception(header->DSiRegionMask);
+            }
+        } else {
+            effectiveNandName = config.DiscoveredDsiNandPaths().front();
+            retro::info("Auto-NAND: non-DSiWare boot, using first discovered NAND \"{}\"", effectiveNandName);
+        }
+    }
+
+    optional<string> nandPath = retro::get_system_path(effectiveNandName);
     if (!nandPath) {
         throw environment_exception("Failed to get the system directory, which means the NAND image can't be loaded.");
     }
@@ -402,12 +484,11 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
     { // Scoped to limit the mount's lifetime
         NANDMount mount(nand);
         if (!mount) {
-            throw dsi_nand_corrupted_exception(nandName);
+            throw dsi_nand_corrupted_exception(effectiveNandName);
         }
         retro::debug("Opened and mounted the DSi NAND image file at {}", *nandPath);
 
-        const NDSHeader* header = ndsInfo ? reinterpret_cast<const NDSHeader*>(ndsInfo->GetData().data()) : nullptr;
-        CustomizeNAND(config, mount, header, nandName);
+        CustomizeNAND(config, mount, header, effectiveNandName);
 
         if (ndsInfo && ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
             // If we're trying to play a DSiWare game...
