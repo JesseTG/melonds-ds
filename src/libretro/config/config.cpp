@@ -745,6 +745,20 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
         config.SetScreenGap(0);
     }
 
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(SECONDARY_SCREEN_SCALE), 50, 100)) {
+        config.SetSecondaryScreenScale(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100", SECONDARY_SCREEN_SCALE);
+        config.SetSecondaryScreenScale(100);
+    }
+
+    if (optional<ScreenFilter> value = ParseScreenFilter(get_variable(SECONDARY_SCREEN_FILTERING))) {
+        config.SetSecondaryScreenFilter(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SECONDARY_SCREEN_FILTERING, values::NEAREST);
+        config.SetSecondaryScreenFilter(ScreenFilter::Nearest);
+    }
+
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
         config.SetCursorTimeout(*value);
     } else {

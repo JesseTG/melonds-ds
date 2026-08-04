@@ -102,6 +102,8 @@ namespace MelonDsDs::config {
         static constexpr const char *const HYBRID_SMALL_SCREEN = "melonds_hybrid_small_screen";
         static constexpr const char *const NUMBER_OF_SCREEN_LAYOUTS = "melonds_number_of_screen_layouts";
         static constexpr const char *const SCREEN_GAP = "melonds_screen_gap";
+        static constexpr const char* const SECONDARY_SCREEN_SCALE = "melonds_secondary_screen_scale";
+        static constexpr const char* const SECONDARY_SCREEN_FILTERING = "melonds_secondary_screen_filtering";
         static constexpr const char *const SCREEN_LAYOUT1 = "melonds_screen_layout1";
         static constexpr const char *const SCREEN_LAYOUT2 = "melonds_screen_layout2";
         static constexpr const char *const SCREEN_LAYOUT3 = "melonds_screen_layout3";

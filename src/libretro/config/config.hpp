@@ -266,6 +266,12 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned ScreenGap() const noexcept { return _screenGap; }
         void SetScreenGap(unsigned screenGap) noexcept { _screenGap = screenGap; }
 
+        [[nodiscard]] unsigned SecondaryScreenScale() const noexcept { return _secondaryScreenScale; }
+        void SetSecondaryScreenScale(unsigned scale) noexcept { _secondaryScreenScale = scale; }
+
+        [[nodiscard]] MelonDsDs::ScreenFilter SecondaryScreenFilter() const noexcept { return _secondaryScreenFilter; }
+        void SetSecondaryScreenFilter(MelonDsDs::ScreenFilter filter) noexcept { _secondaryScreenFilter = filter; }
+
         [[nodiscard]] unsigned HybridRatio() const noexcept { return _hybridRatio; }
         void SetHybridRatio(unsigned hybridRatio) noexcept { _hybridRatio = hybridRatio; }
 
@@ -483,6 +489,8 @@ namespace MelonDsDs {
         unsigned _numberOfScreenLayouts = 1;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _screenLayouts;
         unsigned _screenGap = 0;
+        unsigned _secondaryScreenScale = 100;
+        MelonDsDs::ScreenFilter _secondaryScreenFilter = MelonDsDs::ScreenFilter::Nearest;
         unsigned _hybridRatio = 2;
         HybridSideScreenDisplay _smallScreenLayout;
         unsigned _cursorSize = 2.0f;

@@ -362,6 +362,51 @@ namespace MelonDsDs::config::definitions {
         "0"
     };
 
+    constexpr retro_core_option_v2_definition SecondaryScreenScale{
+        config::screen::SECONDARY_SCREEN_SCALE,
+        "Secondary Screen Scale",
+        nullptr,
+        "The size of the secondary screen relative to the primary screen. "
+        "Applies to vertical layouts (Top/Bottom, Bottom/Top). "
+        "At 100%, both screens are the same size. "
+        "At 50%, the secondary screen is half the width and height of the primary screen.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {"50",  "50%"},
+            {"55",  "55%"},
+            {"60",  "60%"},
+            {"65",  "65%"},
+            {"70",  "70%"},
+            {"75",  "75%"},
+            {"80",  "80%"},
+            {"85",  "85%"},
+            {"90",  "90%"},
+            {"95",  "95%"},
+            {"100", "100%"},
+            {nullptr, nullptr},
+        },
+        "100"
+    };
+
+    constexpr retro_core_option_v2_definition SecondaryScreenFiltering{
+        config::screen::SECONDARY_SCREEN_FILTERING,
+        "Secondary Screen Filtering",
+        nullptr,
+        "Affects how the secondary screen is scaled down.\n"
+        "\n"
+        "Nearest: No filtering. Graphics look blocky.\n"
+        "Linear: Smooth scaling. Recommended when using Secondary Screen Scale below 100%.\n",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {MelonDsDs::config::values::NEAREST, "Nearest"},
+            {MelonDsDs::config::values::LINEAR,  "Linear"},
+            {nullptr, nullptr},
+        },
+        MelonDsDs::config::values::NEAREST
+    };
+
     constexpr retro_core_option_v2_definition NumberOfScreenLayouts {
         config::screen::NUMBER_OF_SCREEN_LAYOUTS,
         "# of Screen Layouts",
@@ -644,6 +689,8 @@ namespace MelonDsDs::config::definitions {
         HybridSmallScreen,
         HybridScreenFiltering,
         ScreenGap,
+        SecondaryScreenScale,
+        SecondaryScreenFiltering,
     };
 }
 

@@ -78,6 +78,8 @@ namespace MelonDsDs::config::definitions {
         HybridSmallScreen,
         HybridScreenFiltering,
         ScreenGap,
+        SecondaryScreenScale,
+        SecondaryScreenFiltering,
 
         DnsOverride,
         Language,
