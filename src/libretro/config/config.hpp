@@ -28,6 +28,8 @@
 #include <SPI_Firmware.h>
 #include <string>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 #include <SPU.h>
 
 #include "parse.hpp"
@@ -60,7 +62,7 @@ namespace MelonDsDs {
 
     void ParseConfig(CoreConfig& config) noexcept;
 
-    bool RegisterCoreOptions() noexcept;
+    bool RegisterCoreOptions(CoreConfig& config) noexcept;
 
     using std::string;
     using std::string_view;
@@ -343,6 +345,18 @@ namespace MelonDsDs {
         void SetDsiNandPath(string_view dsiNandPath) noexcept { _dsiNandPath = dsiNandPath; }
         void SetDsiNandPath(string&& dsiNandPath) noexcept { _dsiNandPath = std::move(dsiNandPath); }
 
+        [[nodiscard]] const std::vector<std::string>& DiscoveredDsiNandPaths() const noexcept { return _discoveredDsiNandPaths; }
+        void SetDiscoveredDsiNandPaths(std::vector<std::string> paths) noexcept { _discoveredDsiNandPaths = std::move(paths); }
+
+        [[nodiscard]] std::optional<uint32_t> GetCachedNandRegion(const std::string& path) const noexcept {
+            auto it = _dsiNandRegionCache.find(path);
+            if (it != _dsiNandRegionCache.end()) return it->second;
+            return std::nullopt;
+        }
+        void CacheNandRegion(const std::string& path, uint32_t region) const noexcept {
+            _dsiNandRegionCache[path] = region;
+        }
+
         [[nodiscard]] int ScaleFactor() const noexcept { return _scaleFactor; }
         void SetScaleFactor(int scaleFactor) noexcept { _scaleFactor = scaleFactor; }
 
@@ -496,6 +510,8 @@ namespace MelonDsDs {
         string _firmwarePath;
         string _dsiFirmwarePath;
         string _dsiNandPath;
+        std::vector<std::string> _discoveredDsiNandPaths;
+        mutable std::unordered_map<std::string, uint32_t> _dsiNandRegionCache;
         int _scaleFactor = 1;
         bool _betterPolygonSplitting = false;
         RenderMode _configuredRenderer;

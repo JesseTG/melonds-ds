@@ -35,7 +35,9 @@
 #include "tracy.hpp"
 
 using glm::ivec2;
+using glm::mat3;
 using glm::vec2;
+using glm::vec3;
 using std::array;
 using MelonDsDs::ScreenLayout;
 
@@ -193,7 +195,7 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
         glDeleteProgram(_screenProgram);
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
         _tracyCapture = std::nullopt;
 #endif
     }
@@ -267,7 +269,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
     retro::debug("Unbound GL state");
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (tracy::ProfilerAvailable()) {
         // If we're using Tracy...
         retro::debug("Using Tracy, will capture OpenGL calls");
@@ -395,20 +397,32 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     if (!nds.IsLidClosed() && input.CursorVisible()) {
         float cursorSize = config.CursorSize();
-        ivec2 touch = input.TouchPosition();
-        GL_ShaderConfig.cursorPos[0] = ((float) touch.x - cursorSize) / NDS_SCREEN_WIDTH;
-        GL_ShaderConfig.cursorPos[1] = (((float) touch.y - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
-        GL_ShaderConfig.cursorPos[2] = ((float) touch.x + cursorSize) / NDS_SCREEN_WIDTH;
-        GL_ShaderConfig.cursorPos[3] = (((float) touch.y + cursorSize) / ((float) NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
+        ScreenLayout layout = screenLayout.Layout();
+        ivec2 touch = clamp(input.ConsoleTouchPosition(), ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
+
+        bool secondaryTouchInBounds =
+            (input.TouchPosition().x >= 0 && input.TouchPosition().x < NDS_SCREEN_WIDTH) &&
+            (input.TouchPosition().y >= 0 && input.TouchPosition().y < NDS_SCREEN_HEIGHT);
+        bool touchUsesHybrid =
+            (layout == ScreenLayout::HybridBottom || layout == ScreenLayout::FlippedHybridBottom) &&
+            (screenLayout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One || !secondaryTouchInBounds);
+
+        const mat3& touchScreenMatrix = touchUsesHybrid ? screenLayout.GetHybridScreenMatrix() : screenLayout.GetBottomScreenMatrix();
+
+        vec3 p0 = touchScreenMatrix * vec3(vec2(touch) - vec2(cursorSize), 1.0f);
+        vec3 p1 = touchScreenMatrix * vec3(vec2(touch) + vec2(cursorSize), 1.0f);
+        float x0 = std::min(p0.x, p1.x);
+        float y0 = std::min(p0.y, p1.y);
+        float x1 = std::max(p0.x, p1.x);
+        float y1 = std::max(p0.y, p1.y);
+        GL_ShaderConfig.cursorPos = vec4(x0, y0, x1, y1);
         GL_ShaderConfig.cursorVisible = true;
     } else {
         GL_ShaderConfig.cursorVisible = false;
     }
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
 
     glUseProgram(_screenProgram);
 
@@ -444,7 +458,12 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-#ifdef HAVE_TRACY
+    // Unbind pixel pack buffer left behind by the melonDS GL renderer;
+    // GLSM state_unbind doesn't do this, and a stale PBO binding causes
+    // glReadPixels (used by the frontend for screenshots) to fail.
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (_tracyCapture) {
         // TODO: Expose the FBO that the emulator's GLRenderer uses for rendering, then pass it here
         _tracyCapture->CaptureFrame(current_fbo, config.ScaleFactor());
@@ -479,7 +498,7 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     // TODO: Delete these objects, since the context hasn't been destroyed yet
     // (just in case it's not really destroyed afterwards)
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     _tracyCapture = std::nullopt;
 #endif
 }
@@ -499,9 +518,7 @@ void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreC
     GL_ShaderConfig.cursorPos = vec4(-1);
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
 
     InitVertices(screenLayout);
 

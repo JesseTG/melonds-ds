@@ -232,6 +232,7 @@ namespace MelonDsDs {
 
         [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
         [[nodiscard]] const glm::mat3& GetBottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
+        [[nodiscard]] const glm::mat3& GetHybridScreenMatrix() const noexcept { return hybridScreenMatrix; }
         [[nodiscard]] glm::uvec2 GetTopScreenTranslation() const noexcept { return topScreenTranslation; }
         [[nodiscard]] glm::uvec2 GetBottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
         [[nodiscard]] glm::uvec2 GetHybridScreenTranslation() const noexcept { return hybridScreenTranslation; }

@@ -11,14 +11,28 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+**With thanks to @KojoZero for various touch-screen improvements in [#279](https://github.com/JesseTG/melonds-ds/pull/279)!**
+
+### Added
+
+- Added core options for joystick pointer speed, response curve and speedup pointer multiplier.
+- Added "Speedup Pointer" button which adds a multiplier to the pointer speed when held (set to L2).
+- Certain games require stylus "flicks" that couldn't easily be achieved with a higher base sensitivity.
+
 ### Changed
 
 - Updated melonDS to commit [7117178](https://github.com/melonDS-emu/melonDS/tree/7117178).
+- Changed Close Lid button to a button combo (L2+Y in Retropad Layout).
+- "Touch Touchscreen" button was changed to R2 to enhance playability.
 
 ### Fixed
 
 - Fixed a configure error when building with CMake 4 or later.
   [#265](https://github.com/JesseTG/melonds-ds/pull/265)
+- Fixed OpenGL support on macOS.
+  [#293](https://github.com/JesseTG/melonds-ds/pull/293)
+  [#12](https://github.com/JesseTG/melonds-ds/issues/12)
+  **Thanks, @warmenhoven!**
 
 ## [1.2.0] - 2025-02-19
 

@@ -16,6 +16,8 @@
 
 #include "software.hpp"
 
+#include <cmath>
+
 #include <retro_assert.h>
 
 #include <NDS.h>
@@ -30,6 +32,7 @@
 
 using glm::ivec2;
 using glm::mat3;
+using glm::vec2;
 using glm::vec3;
 using glm::uvec2;
 using std::span;
@@ -160,15 +163,32 @@ void MelonDsDs::SoftwareRenderState::DrawCursor(const InputState& input, const C
     if (screenLayout.Layout() == ScreenLayout::TopOnly)
         return;
 
-    ivec2 cursorSize = ivec2(config.CursorSize());
+    float cursorRadius = config.CursorSize();
     if (screenLayout.Layout() == ScreenLayout::LargescreenBottom || screenLayout.Layout() == ScreenLayout::FlippedLargescreenBottom) {
-        cursorSize = ivec2(screenLayout.HybridRatio())*cursorSize;
+        cursorRadius *= static_cast<float>(screenLayout.HybridRatio());
     }
-    ivec2 clampedTouch = clamp(input.TouchPosition(), ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
-    ivec2 transformedTouch = screenLayout.GetBottomScreenMatrix() * vec3(clampedTouch, 1);
 
-    uvec2 start = clamp(transformedTouch - ivec2(cursorSize), ivec2(0), ivec2(buffer.Size()));
-    uvec2 end = clamp(transformedTouch + ivec2(cursorSize), ivec2(0), ivec2(buffer.Size()));
+    ScreenLayout layout = screenLayout.Layout();
+    ivec2 touch = clamp(input.ConsoleTouchPosition(), ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
+
+    bool secondaryTouchInBounds =
+        (input.TouchPosition().x >= 0 && input.TouchPosition().x < NDS_SCREEN_WIDTH) &&
+        (input.TouchPosition().y >= 0 && input.TouchPosition().y < NDS_SCREEN_HEIGHT);
+    bool touchUsesHybrid =
+        (layout == ScreenLayout::HybridBottom || layout == ScreenLayout::FlippedHybridBottom) &&
+        (screenLayout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One || !secondaryTouchInBounds);
+
+    const mat3& touchScreenMatrix = touchUsesHybrid ? screenLayout.GetHybridScreenMatrix() : screenLayout.GetBottomScreenMatrix();
+    vec3 p0 = touchScreenMatrix * vec3(vec2(touch) - vec2(cursorRadius), 1.0f);
+    vec3 p1 = touchScreenMatrix * vec3(vec2(touch) + vec2(cursorRadius), 1.0f);
+    float x0 = std::min(p0.x, p1.x);
+    float y0 = std::min(p0.y, p1.y);
+    float x1 = std::max(p0.x, p1.x);
+    float y1 = std::max(p0.y, p1.y);
+    ivec2 startI = clamp(ivec2(static_cast<int>(std::floor(x0)), static_cast<int>(std::floor(y0))), ivec2(0), ivec2(buffer.Size()));
+    ivec2 endI = clamp(ivec2(static_cast<int>(std::ceil(x1)), static_cast<int>(std::ceil(y1))), ivec2(0), ivec2(buffer.Size()));
+    uvec2 start = uvec2(startI);
+    uvec2 end = uvec2(endI);
     for (uint32_t y = start.y; y < end.y; y++) {
         for (uint32_t x = start.x; x < end.x; x++) {
             // TODO: Replace with SIMD (does GLM have a SIMD version of this?)

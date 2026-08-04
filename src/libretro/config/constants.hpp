@@ -205,6 +205,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const ABSOLUTE_TIME = "absolute";
         static constexpr const char *const ALWAYS = "always";
         static constexpr const char *const AUTO = "auto";
+        static constexpr const char* const DSI_NAND_AUTO = "/auto";
         static constexpr const char *const BLOW = "blow";
         static constexpr const char *const BOTTOM_TOP = "bottom-top";
         static constexpr const char *const BOTH = "both";

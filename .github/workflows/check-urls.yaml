@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate URLs
-        uses: urlstechie/urlchecker-action@0.0.34
+        uses: urlstechie/urlchecker-action@b643b43e2ac605e1475331c7b67247d242b7dce4 # 0.0.34
         with:
           file_types: .md,.yaml,.yml,.cpp,.hpp,.cmake,.txt
           print_all: false

@@ -69,6 +69,7 @@ namespace MelonDsDs {
             return _pointer.CursorReleased() || _joypad.TouchReleased();
         }
         [[nodiscard]] ivec2 TouchPosition() const noexcept { return _cursor.TouchPosition(); };
+        [[nodiscard]] ivec2 ConsoleTouchPosition() const noexcept { return _cursor.ConsoleTouchPosition(); }
         [[nodiscard]] ivec2 PointerTouchPosition() const noexcept { return _cursor.PointerTouchPosition(); }
         [[nodiscard]] ivec2 JoystickTouchPosition() const noexcept { return _cursor.JoypadTouchPosition(); }
         [[nodiscard]] i16vec2 PointerRawPosition() const noexcept { return _pointer.RawPosition(); }
