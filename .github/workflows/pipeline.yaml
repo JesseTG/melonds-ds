@@ -179,7 +179,7 @@ jobs:
         if: ${{ inputs.test-suite }}
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: '3.11'
+          python-version: '3.14'
           cache: ${{ env.CAN_WRITE_CACHE == 'true' && 'pip' || '' }}
           # requirements.txt is attacker-controlled on a fork PR, and the pip cache is
           # keyed by its hash; an empty value disables caching entirely for those runs.
@@ -255,6 +255,7 @@ jobs:
             -DGBA_ROM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_ROM }}" \
             -DGBA_SRAM="${{ env.TESTFILE_DIR }}/${{ secrets.GBA_SRAM }}" \
             -DMELONDSDS_INTERNAL_VENV=OFF \
+            -DMELONDSDS_INSTALL_TEST_REQUIREMENTS=OFF \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             ${{ inputs.cmake-args }}
 
@@ -324,14 +325,14 @@ jobs:
           # Defining TRACY_NO_INVARIANT_CHECK fixes test suite failures on the macos-13 runner;
           # this is fine because we're not taking traces on the CI anyway.
           TRACY_NO_INVARIANT_CHECK: 1
-        run: ctest --exclude-regex example --output-on-failure
+        run: ctest --output-on-failure
 
       - name: Run Test Suite (Linux)
         if: ${{ inputs.test-suite && runner.os == 'Linux' }}
         working-directory: "${{ env.BUILD_DIR }}"
         env:
           PYTHONUNBUFFERED: 1
-        run: xvfb-run ctest --exclude-regex example --output-on-failure
+        run: xvfb-run ctest --output-on-failure
 
       - name: Run Test Suite (Windows)
         if: ${{ inputs.test-suite && runner.os == 'Windows' }}
@@ -343,4 +344,4 @@ jobs:
           D3D12_DEBUG: verbose,debuglayer,gpuvalidator
           GLCONTEXT_WIN_LIBGL: "C:/Windows/System32/opengl32.dll"
         run: |
-          ctest --exclude-regex example --output-on-failure
+          ctest --output-on-failure

@@ -13,46 +13,39 @@ function(CreatePythonVenv venv_dest venv_name out_venv_executable)
     SET(VENV_PATH "${venv_dest}/${venv_name}")
 
     # if path doesn't exist, create the virtual environment
-    if (NOT EXISTS ${VENV_PATH})
-        FIND_PACKAGE(Python3 COMPONENTS Interpreter)
+    if (NOT EXISTS "${VENV_PATH}")
+        FIND_PACKAGE(Python3 COMPONENTS Interpreter REQUIRED)
         MESSAGE(STATUS "Creating Python virtual environment at ${VENV_PATH} with ${Python3_EXECUTABLE}")
         EXECUTE_PROCESS(COMMAND ${Python3_EXECUTABLE} "-m" "venv" ${venv_name}
                 WORKING_DIRECTORY ${venv_dest}
-                ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE)
+                ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE
+                COMMAND_ERROR_IS_FATAL ANY)
     endif()
 
-    # check if virtual environment was made successfully/already exists (path exists)
-    if (EXISTS ${VENV_PATH})
-        # unset python executable
-        UNSET(Python3_EXECUTABLE)
+    # Derive the venv's interpreter from its well-known layout instead of calling
+    # FIND_PACKAGE(Python3) again. The hints that pick a specific base interpreter
+    # (Python3_ROOT_DIR, Python3_EXECUTABLE) outrank Python3_FIND_VIRTUALENV, so a
+    # second FIND_PACKAGE would silently resolve back to the base installation.
+    if (CMAKE_HOST_WIN32)
+        SET(venv_executable "${VENV_PATH}/Scripts/python.exe")
+    else()
+        SET(venv_executable "${VENV_PATH}/bin/python")
+    endif()
 
-        # make cmake find the python executable in virtual environment instead
-        SET(ENV{VIRTUAL_ENV} ${VENV_PATH})
-        SET(Python3_FIND_VIRTUALENV FIRST)
-        SET(Python3_FIND_REGISTRY NEVER)
-        SET(CMAKE_FIND_FRAMEWORK NEVER)
-        FIND_PACKAGE(Python3 COMPONENTS Interpreter Development)
+    if (NOT EXISTS "${venv_executable}")
+        MESSAGE(FATAL_ERROR "Python virtual environment creation failed; no interpreter at ${venv_executable}")
+    endif()
 
-        # make a regex that can be used to check whether a path is within the venv
-        # need to replace escape all special regex characters in the path
-        string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" VENV_PATH_AS_REGEX "${VENV_PATH}")
-        SET(IN_VENV_REGEX "${VENV_PATH_AS_REGEX}/+")
+    # set return variable in parent scope
+    SET(${out_venv_executable} "${venv_executable}" PARENT_SCOPE)
 
-        # If python executable found in the venv path
-        if (Python3_FOUND AND Python3_EXECUTABLE MATCHES "${IN_VENV_REGEX}")
-            # set return variable in parent scope
-            SET(venv_executable "${Python3_EXECUTABLE}")
-            SET(${out_venv_executable} "${venv_executable}" PARENT_SCOPE)
-
-            # if given path to requirements.txt try install/update them
-            if (DEFINED ARGV3)
-                MESSAGE(STATUS "Checking/installing python requirements")
-                EXECUTE_PROCESS(COMMAND ${venv_executable} -m pip install --upgrade pip setuptools -q)
-                EXECUTE_PROCESS(COMMAND ${venv_executable} -m pip install --upgrade -r "${ARGV3}" -q)
-                MESSAGE(STATUS "Python requirements updated")
-            endif()
-        else()
-            MESSAGE(WARNING "Python virtual environment creation failed.")
-        endif()
+    # if given path to requirements.txt try install/update them
+    if (DEFINED ARGV3)
+        MESSAGE(STATUS "Checking/installing python requirements")
+        EXECUTE_PROCESS(COMMAND "${venv_executable}" -m pip install --upgrade pip setuptools -q
+                COMMAND_ERROR_IS_FATAL ANY)
+        EXECUTE_PROCESS(COMMAND "${venv_executable}" -m pip install --upgrade -r "${ARGV3}" -q
+                COMMAND_ERROR_IS_FATAL ANY)
+        MESSAGE(STATUS "Python requirements updated")
     endif()
 endfunction()

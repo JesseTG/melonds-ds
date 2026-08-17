@@ -68,6 +68,10 @@ set(ENABLE_GDBSTUB OFF)
 set(GLM_BUILD_LIBRARY ON CACHE BOOL "" FORCE)
 set(GLM_ENABLE_CXX_17 ON CACHE BOOL "" FORCE)
 option(ENABLE_TESTING "Enable unit testing." OFF)
+# zlib's example programs are registered as CTest tests, which would otherwise show
+# up alongside (and be run by) melonDS DS's own suite. Turning them off also drops
+# the minigzip binaries, which we never built anyway.
+set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 if (${CMAKE_MAJOR_VERSION} VERSION_GREATER_EQUAL 4)
     # Needed for https://github.com/JesseTG/melonds-ds/issues/265
     # yamc's stated minimum CMake version is 3.2,
@@ -85,9 +89,4 @@ if (TRACY_ENABLE)
     option(TRACY_ON_DEMAND "" ON)
     option(TRACY_STATIC "" ON)
     FetchContent_MakeAvailable(tracy)
-endif()
-
-set_target_properties(example minigzip PROPERTIES EXCLUDE_FROM_ALL TRUE)
-if(HAVE_OFF64_T)
-    set_target_properties(example64 minigzip64 PROPERTIES EXCLUDE_FROM_ALL TRUE)
 endif()

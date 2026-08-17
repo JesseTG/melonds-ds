@@ -322,8 +322,9 @@ if doing so makes sense for your contribution
 (and [libretro.py][libretro.py] supports it) --
 I may even ask you to do so as a condition of merging.
 
-Note that tests are only run on GitHub Actions --
-they are not run on libretro's build infrastructure.
+> [!NOTE]
+> Tests are only run on GitHub Actions --
+> they are not run on libretro's build infrastructure.
 
 #### Style
 
@@ -334,6 +335,12 @@ But I do have some rules you'll need to follow:
 - If you _do_ need to introduce a new dependency,
   then fetch it at configure-time with `FetchContent` instead of vendoring it.
   See [here](cmake/FetchDependencies.cmake) for more details.
+- The test suite's Python dependencies live in
+  [`test/requirements.txt`](test/requirements.txt) and are pinned exactly.
+  They're separate from the rule above, but the same restraint applies.
+- Python code is linted and formatted with [Ruff][ruff],
+  configured by [`test/python/ruff.toml`](test/python/ruff.toml).
+  It's not enforced by CI, but please run it before opening a pull request.
 - All C++ code (including dependencies) *must* be built as C++17.
 - All text should use [Semantic Line Breaks][sembr] (aka SemBr),
   including comments and string literals in the code.
@@ -349,6 +356,9 @@ But I do have some rules you'll need to follow:
 [melondsds-issues]: https://github.com/JesseTG/melonds-ds/issues/new/choose
 [melondsds-releases]: https://github.com/JesseTG/melonds-ds/releases
 [melondsds-tests]: test/README.md
+[pytest]: https://docs.pytest.org
+[pytest-cmake]: https://python-cmake.github.io/pytest-cmake
+[ruff]: https://docs.astral.sh/ruff
 [sembr]: https://sembr.org
 [sponsor]: https://github.com/sponsors/JesseTG
 [tracy]: https://github.com/wolfpld/tracy
