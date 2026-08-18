@@ -11,8 +11,10 @@ that loading a libretro core leaves behind.
 
 from __future__ import annotations
 
+import ctypes
 import os
 import shutil
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -84,6 +86,30 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
         pytest.importorskip("moderngl", reason="install libretro.py[opengl]")
 
 
+#: Windows C runtimes whose ``getenv`` the core might be reading.
+#:
+#: :data:`os.environ` writes through the CRT that CPython itself links,
+#: which for an official build is ``ucrtbase.dll``.
+#: A core built for MSYS2's MINGW64 environment links ``msvcrt.dll`` instead,
+#: which keeps its own copy of the environment
+#: that it snapshots when the process starts;
+#: it never sees :meth:`~pytest.MonkeyPatch.setenv`.
+#: Writing to every CRT keeps the suite working
+#: no matter which one the core under test was built against.
+_CRTS = ("msvcrt.dll", "ucrtbase.dll") if sys.platform == "win32" else ()
+
+
+def _putenv_all_crts(name: str, value: str | None) -> None:
+    """Set ``name`` in every CRT loaded into this process, or unset it if ``value`` is None."""
+    if sys.platform != 'win32':
+        return
+
+    assignment = f"{name}={'' if value is None else value}".encode()
+
+    for crt in _CRTS:
+        ctypes.CDLL(crt)._putenv(assignment)
+
+
 @pytest.fixture(autouse=True)
 def _error_screen(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
     """
@@ -93,12 +119,20 @@ def _error_screen(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatc
     (see ``src/libretro/core/core.cpp``),
     so flipping it per test works.
     Setting it unconditionally also makes a bare ``pytest`` run behave like a CTest run.
+
+    Both branches go through :func:`_putenv_all_crts` as well as :mod:`monkeypatch`,
+    because ``monkeypatch`` alone can't reach a core that links a different CRT.
+    Nothing needs to be undone afterwards;
+    every test takes one of these two branches,
+    and each CTest case runs in its own process anyway.
     """
     assert isinstance(request.node, pytest.Item)
     if request.node.get_closest_marker("no_skip_error_screen") is not None:
         monkeypatch.delenv("MELONDSDS_SKIP_ERROR_SCREEN", raising=False)
+        _putenv_all_crts("MELONDSDS_SKIP_ERROR_SCREEN", None)
     else:
         monkeypatch.setenv("MELONDSDS_SKIP_ERROR_SCREEN", "1")
+        _putenv_all_crts("MELONDSDS_SKIP_ERROR_SCREEN", "1")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
