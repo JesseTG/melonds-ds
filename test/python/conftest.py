@@ -247,6 +247,8 @@ def staged_system_files(
     del core_save_dir  # Requested so it exists before the core loads, like prelude did.
 
     staged: dict[str, Path] = {}
+    claimed: dict[str, str] = {}  # Staged basename -> the variable that put it there.
+
     assert isinstance(request.node, pytest.Item)
     for marker in _asset_markers(request.node):
         if marker not in SYSTEM_FILE_MARKERS:
@@ -259,9 +261,28 @@ def staged_system_files(
             # pytest_runtest_setup would have skipped the test if this were None.
             source = asset_path(variable)
             assert source is not None
+
+            # Two assets that share a basename would overwrite each other here.
+            # The test would still run,
+            # but against a system directory quietly missing a file it asked for.
+            assert source.name not in claimed
+            claimed[source.name] = variable
+
             target = core_system_dir / source.name
             shutil.copyfile(source, target)
+
+            # A copy that didn't fully land is worth catching on the spot.
+            # The core finds its system files by scanning this directory,
+            # so the symptom otherwise surfaces much later
+            # as an unrelated complaint about a missing BIOS, firmware or NAND image.
+            assert target.stat().st_size == source.stat().st_size
+
             staged[variable] = target
+
+    # Nothing else writes here before the test body runs,
+    # so the directory the core is about to scan
+    # should hold exactly the files the markers asked for -- no more, no fewer.
+    assert sorted(path.name for path in core_system_dir.iterdir()) == sorted(claimed)
 
     return staged
 
