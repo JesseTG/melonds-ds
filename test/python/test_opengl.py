@@ -34,7 +34,7 @@ macos_fbo_bug = pytest.mark.skipif(
 @pytest.mark.parametrize(
     "options",
     [
-        pytest.param({"melonds_render_mode": "opengl"}, id="opengl", marks=macos_fbo_bug),
+        pytest.param({"melonds_render_mode": "opengl"}, id="opengl"),
         pytest.param({}, id="software-default"),
     ],
 )
