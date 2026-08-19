@@ -18,12 +18,19 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Added core options for joystick pointer speed, response curve and speedup pointer multiplier.
 - Added "Speedup Pointer" button which adds a multiplier to the pointer speed when held (set to L2).
 - Certain games require stylus "flicks" that couldn't easily be achieved with a higher base sensitivity.
+- Added support for auto-selecting a compatible DSi NAND for a given game's region.
+  **Thanks for [#303](https://github.com/JesseTG/melonds-ds/pull/303), @bulzipke!**
+- Added core options for scaling and filtering one of the screens separately from the other.
+  **Thanks for [#304](https://github.com/JesseTG/melonds-ds/pull/304), @bulzipke!**
+
 
 ### Changed
 
 - Updated melonDS to commit [7117178](https://github.com/melonDS-emu/melonDS/tree/7117178).
 - Changed Close Lid button to a button combo (L2+Y in Retropad Layout).
 - "Touch Touchscreen" button was changed to R2 to enhance playability.
+- Refactor the test suite to be less verbose and repetitive,
+  using Pytest and its fixture APIs.
 
 ### Fixed
 
@@ -33,6 +40,8 @@ a design goal is to avoid a 2.x release for as long as possible.
   [#293](https://github.com/JesseTG/melonds-ds/pull/293)
   [#12](https://github.com/JesseTG/melonds-ds/issues/12)
   **Thanks, @warmenhoven!**
+- Fixed the position of the touch screen cursor to be more accurate on both renderers.
+  **Thanks for [#305](https://github.com/JesseTG/melonds-ds/pull/305), @DaVinciLord!**
 
 ## [1.2.0] - 2025-02-19
 
