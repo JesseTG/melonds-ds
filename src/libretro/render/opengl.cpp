@@ -18,6 +18,7 @@
 #include "opengl.hpp"
 
 #include <array>
+#include <cstring>
 
 #include <GPU3D_OpenGL.h>
 #include <NDS.h>
@@ -217,6 +218,35 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 
     // Initialize all OpenGL function pointers
     retro::debug("Initializing OpenGL function pointers");
+    if (!hw_render.get_proc_address) {
+        retro::error("Frontend didn't provide a get_proc_address callback");
+        throw opengl_not_initialized_exception();
+    }
+
+    // The core doesn't link against OpenGL,
+    // so the OpenGL 1.0/1.1 functions that glsym doesn't cover
+    // must be resolved before glsm makes its first OpenGL call
+    // (see PlatformOGLPrivate.h)
+    rglgen_resolve_symbols_custom(
+        reinterpret_cast<rglgen_proc_address_t>(hw_render.get_proc_address),
+        melondsds_base_gl_symbol_map
+    );
+
+    unsigned missingSymbols = 0;
+    for (const rglgen_sym_map* entry = melondsds_base_gl_symbol_map; entry->sym; ++entry) {
+        void* address = nullptr;
+        memcpy(&address, entry->ptr, sizeof(address));
+        if (!address) {
+            retro::error("Frontend couldn't resolve {}", entry->sym);
+            ++missingSymbols;
+        }
+    }
+
+    if (missingSymbols) {
+        retro::error("Frontend couldn't resolve {} OpenGL functions, can't use the OpenGL renderer", missingSymbols);
+        throw opengl_not_initialized_exception();
+    }
+
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
     TracyGpuContext; // Must be called AFTER the function pointers are bound!
 

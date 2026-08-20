@@ -95,7 +95,7 @@ endif()
 
 if (HAVE_OPENGL)
     target_sources(libretro-common PRIVATE ${libretro-common_SOURCE_DIR}/glsym/glsym_gl.c)
-    target_link_libraries(libretro-common PUBLIC OpenGL::GL)
+    # OpenGL is deliberately not linked; see src/libretro/PlatformOGLPrivate.h
     target_include_directories(libretro-common PUBLIC SYSTEM ${OPENGL_INCLUDE_DIR})
 endif ()
 

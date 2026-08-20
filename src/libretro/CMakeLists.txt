@@ -207,10 +207,10 @@ if (HAVE_OPENGL OR HAVE_OPENGLES)
 endif()
 
 if (HAVE_OPENGL)
-    if (APPLE)
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-framework,OpenGL")
-    endif ()
-    target_link_libraries(melondsds_libretro PUBLIC OpenGL::GL)
+    # OpenGL is deliberately not linked;
+    # every OpenGL function (even the ancient 1.0/1.1 ones)
+    # is loaded at runtime through the frontend's get_proc_address.
+    # See PlatformOGLPrivate.h for details.
     target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OPENGL_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES1)
     target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv1)

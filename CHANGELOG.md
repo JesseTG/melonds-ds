@@ -31,6 +31,7 @@ a design goal is to avoid a 2.x release for as long as possible.
 - "Touch Touchscreen" button was changed to R2 to enhance playability.
 - Refactor the test suite to be less verbose and repetitive,
   using Pytest and its fixture APIs.
+- Remove the need to link against OpenGL when building the core.
 
 ### Fixed
 
