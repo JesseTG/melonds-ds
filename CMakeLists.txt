@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 
 cmake_policy(VERSION 3.19)
 
+# adding a bs comment just to test a PR workflow
 # Allow dependencies with old cmake_minimum_required (e.g. yamc) to configure on CMake 4.x
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "4.0")
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
