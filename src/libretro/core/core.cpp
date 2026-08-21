@@ -99,7 +99,13 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 }
 
 void MelonDsDs::CoreState::UnloadGame() noexcept {
-    if (Console && Console->IsRunning()) {
+    if (!Console) {
+        // The console object may be uninitialized
+        // if unloading a game after exiting from the error screen.
+        return;
+    }
+
+    if (Console->IsRunning()) {
         // If the NDS wasn't already stopped due to some internal event...
         Console->Stop();
     }

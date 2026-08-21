@@ -43,6 +43,8 @@ a design goal is to avoid a 2.x release for as long as possible.
   **Thanks, @warmenhoven!**
 - Fixed the position of the touch screen cursor to be more accurate on both renderers.
   **Thanks for [#305](https://github.com/JesseTG/melonds-ds/pull/305), @DaVinciLord!**
+- Fixed a bug where the core would crash after exiting an error screen
+  when it failed to load a DSiWare ROM.
 
 ## [1.2.0] - 2025-02-19
 

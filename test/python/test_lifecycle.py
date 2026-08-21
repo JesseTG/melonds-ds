@@ -94,6 +94,17 @@ def test_loads_unloads_with_content(session: SessionFactory, nds_rom: Path) -> N
     with session(nds_rom):
         pass
 
+@pytest.mark.dsiware_rom
+@pytest.mark.dsi_firmware
+@pytest.mark.no_skip_error_screen
+def test_unloads_dsiware_from_error_screen(session: SessionFactory, dsiware_rom: Path) -> None:
+    """
+    The core unloads normally if the core shows an error screen
+    when trying to play DSiWare.
+    """
+    with session(dsiware_rom) as emulator:
+        for _ in range(10):
+            emulator.run()
 
 @pytest.mark.parametrize(
     "content_fixture",
