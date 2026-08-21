@@ -9,7 +9,7 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
-## [Unreleased]
+## [1.3.0] - 2026-08-21
 
 **With thanks to @KojoZero for various touch-screen improvements in [#279](https://github.com/JesseTG/melonds-ds/pull/279)!**
 
