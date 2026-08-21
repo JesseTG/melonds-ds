@@ -1,0 +1,43 @@
+# Lint and format configuration for the melonDS DS test suite.
+#
+# Ruff isn't part of the build or of CI;
+# nothing in `test/requirements.txt` depends on it.
+# Run it by hand from this directory:
+#
+#     ruff check .
+#     ruff format .
+
+line-length = 99
+
+[lint]
+# The default value of `select` is ["E4", "E7", "E9", "F"],
+# which are flake8-style rules that Ruff implements equivalents for.
+extend-select = [
+    "ARG", # flake8-unused-arguments
+    "D",   # pydocstyle
+    "I",   # isort
+    "S1",  # flake8-bandit (basic security checks)
+]
+
+ignore = [
+    "S101", # Allow asserts; they're how a pytest suite checks anything
+    "D203",
+    "D205", # We use semantic linebreaks for docstrings, which violate PEP 257
+    "D212",
+
+    # Ruff linter rules that conflict with the formatter
+    # (see https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules)
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q",      # flake8-quotes
+    "COM812",
+    "COM819",
+]
+
+[lint.extend-per-file-ignores]
+# "from module import *" is common for __init__.py files
+"__init__.py" = ["F403"]

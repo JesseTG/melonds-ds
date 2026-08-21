@@ -123,7 +123,7 @@
 #define TracyFiberLeave
 #endif
 
-#if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES))
+#if defined(HAVE_TRACY) && (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)) && !defined(__APPLE__)
 #include "PlatformOGLPrivate.h"
 #include <tracy/TracyOpenGL.hpp>
 #else

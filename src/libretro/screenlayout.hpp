@@ -85,6 +85,19 @@ namespace MelonDsDs {
         }
     }
 
+    constexpr bool IsLargeScreenLayout(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::LargescreenTop:
+            case ScreenLayout::LargescreenBottom:
+            case ScreenLayout::FlippedLargescreenTop:
+            case ScreenLayout::FlippedLargescreenBottom:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+
     class ScreenLayoutData {
     public:
         ScreenLayoutData();
@@ -172,6 +185,13 @@ namespace MelonDsDs {
             screenGap = _screen_gap;
         }
 
+        unsigned SecondaryScreenScale() const noexcept { return secondaryScreenScale; }
+        float SecondaryScreenScaleFactor() const noexcept { return secondaryScreenScaleFactor; }
+        void SecondaryScreenScale(unsigned _scale) noexcept {
+            if (_scale != secondaryScreenScale) _dirty = true;
+            secondaryScreenScale = _scale;
+        }
+
         unsigned Scale() const noexcept { return resolutionScale; }
         void SetScale(unsigned _scale) noexcept {
             if (_scale != resolutionScale) _dirty = true;
@@ -212,6 +232,7 @@ namespace MelonDsDs {
 
         [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
         [[nodiscard]] const glm::mat3& GetBottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
+        [[nodiscard]] const glm::mat3& GetHybridScreenMatrix() const noexcept { return hybridScreenMatrix; }
         [[nodiscard]] glm::uvec2 GetTopScreenTranslation() const noexcept { return topScreenTranslation; }
         [[nodiscard]] glm::uvec2 GetBottomScreenTranslation() const noexcept { return bottomScreenTranslation; }
         [[nodiscard]] glm::uvec2 GetHybridScreenTranslation() const noexcept { return hybridScreenTranslation; }
@@ -234,6 +255,8 @@ namespace MelonDsDs {
         glm::mat3 pointerMatrix;
 
         unsigned screenGap;
+        unsigned secondaryScreenScale;
+        float secondaryScreenScaleFactor;
 
         HybridSideScreenDisplay hybridSmallScreenLayout;
         unsigned hybridRatio;
@@ -260,6 +283,16 @@ namespace MelonDsDs {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    constexpr bool LayoutSupportsSecondaryScreenScale(ScreenLayout layout) noexcept {
+        switch (layout) {
+        case ScreenLayout::TopBottom:
+        case ScreenLayout::BottomTop:
+            return true;
+        default:
+            return false;
         }
     }
 

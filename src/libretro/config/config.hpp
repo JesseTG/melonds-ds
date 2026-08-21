@@ -28,6 +28,8 @@
 #include <SPI_Firmware.h>
 #include <string>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 #include <SPU.h>
 
 #include "parse.hpp"
@@ -60,7 +62,7 @@ namespace MelonDsDs {
 
     void ParseConfig(CoreConfig& config) noexcept;
 
-    bool RegisterCoreOptions() noexcept;
+    bool RegisterCoreOptions(CoreConfig& config) noexcept;
 
     using std::string;
     using std::string_view;
@@ -264,6 +266,12 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned ScreenGap() const noexcept { return _screenGap; }
         void SetScreenGap(unsigned screenGap) noexcept { _screenGap = screenGap; }
 
+        [[nodiscard]] unsigned SecondaryScreenScale() const noexcept { return _secondaryScreenScale; }
+        void SetSecondaryScreenScale(unsigned scale) noexcept { _secondaryScreenScale = scale; }
+
+        [[nodiscard]] MelonDsDs::ScreenFilter SecondaryScreenFilter() const noexcept { return _secondaryScreenFilter; }
+        void SetSecondaryScreenFilter(MelonDsDs::ScreenFilter filter) noexcept { _secondaryScreenFilter = filter; }
+
         [[nodiscard]] unsigned HybridRatio() const noexcept { return _hybridRatio; }
         void SetHybridRatio(unsigned hybridRatio) noexcept { _hybridRatio = hybridRatio; }
 
@@ -281,6 +289,21 @@ namespace MelonDsDs {
 
         [[nodiscard]] MelonDsDs::TouchMode TouchMode() const noexcept { return _touchMode; }
         void SetTouchMode(MelonDsDs::TouchMode touchMode) noexcept { _touchMode = touchMode; }
+
+        [[nodiscard]] int JoystickCursorDeadzone() const noexcept { return _joystickCursorDeadzone; }
+        void SetJoystickCursorDeadzone(int joystickCursorDeadzone) noexcept { _joystickCursorDeadzone = joystickCursorDeadzone; }
+
+        [[nodiscard]] int JoystickCursorMaxSpeed() const noexcept { return _joystickCursorMaxSpeed; }
+        void SetJoystickCursorMaxSpeed(int joystickCursorMaxSpeed) noexcept { _joystickCursorMaxSpeed = joystickCursorMaxSpeed; }        
+
+        [[nodiscard]] int JoystickCursorResponse() const noexcept { return _joystickCursorResponse; }
+        void SetJoystickCursorResponse(int joystickCursorResponse) noexcept { _joystickCursorResponse = joystickCursorResponse; }        
+            
+        [[nodiscard]] int JoystickCursorSpeedup() const noexcept { return _joystickCursorSpeedup; }
+        void SetJoystickCursorSpeedup(int joystickCursorSpeedup) noexcept { _joystickCursorSpeedup = joystickCursorSpeedup; }        
+
+        [[nodiscard]] bool JoystickSpeedupEnabled() const noexcept { return _joystickSpeedupEnabled; }
+        void SetJoystickSpeedupEnabled(bool joystickSpeedupEnabled) noexcept { _joystickSpeedupEnabled = joystickSpeedupEnabled; }           
 
         [[nodiscard]] MelonDsDs::ConsoleType ConsoleType() const noexcept { return _consoleType; }
         void SetConsoleType(MelonDsDs::ConsoleType consoleType) noexcept { _consoleType = consoleType; }
@@ -321,6 +344,18 @@ namespace MelonDsDs {
         [[nodiscard]] string_view DsiNandPath() const noexcept { return _dsiNandPath; }
         void SetDsiNandPath(string_view dsiNandPath) noexcept { _dsiNandPath = dsiNandPath; }
         void SetDsiNandPath(string&& dsiNandPath) noexcept { _dsiNandPath = std::move(dsiNandPath); }
+
+        [[nodiscard]] const std::vector<std::string>& DiscoveredDsiNandPaths() const noexcept { return _discoveredDsiNandPaths; }
+        void SetDiscoveredDsiNandPaths(std::vector<std::string> paths) noexcept { _discoveredDsiNandPaths = std::move(paths); }
+
+        [[nodiscard]] std::optional<uint32_t> GetCachedNandRegion(const std::string& path) const noexcept {
+            auto it = _dsiNandRegionCache.find(path);
+            if (it != _dsiNandRegionCache.end()) return it->second;
+            return std::nullopt;
+        }
+        void CacheNandRegion(const std::string& path, uint32_t region) const noexcept {
+            _dsiNandRegionCache[path] = region;
+        }
 
         [[nodiscard]] int ScaleFactor() const noexcept { return _scaleFactor; }
         void SetScaleFactor(int scaleFactor) noexcept { _scaleFactor = scaleFactor; }
@@ -454,11 +489,18 @@ namespace MelonDsDs {
         unsigned _numberOfScreenLayouts = 1;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _screenLayouts;
         unsigned _screenGap = 0;
+        unsigned _secondaryScreenScale = 100;
+        MelonDsDs::ScreenFilter _secondaryScreenFilter = MelonDsDs::ScreenFilter::Nearest;
         unsigned _hybridRatio = 2;
         HybridSideScreenDisplay _smallScreenLayout;
         unsigned _cursorSize = 2.0f;
         MelonDsDs::CursorMode _cursorMode = CursorMode::Always;
         unsigned _cursorTimeout = 3;
+        int _joystickCursorDeadzone = 5;
+        int _joystickCursorMaxSpeed = 3;
+        int _joystickCursorResponse = 200;
+        int _joystickCursorSpeedup = 200;
+        bool _joystickSpeedupEnabled = false;
         MelonDsDs::TouchMode _touchMode;
         MelonDsDs::ConsoleType _consoleType;
         MelonDsDs::BootMode _bootMode;
@@ -468,6 +510,8 @@ namespace MelonDsDs {
         string _firmwarePath;
         string _dsiFirmwarePath;
         string _dsiNandPath;
+        std::vector<std::string> _discoveredDsiNandPaths;
+        mutable std::unordered_map<std::string, uint32_t> _dsiNandRegionCache;
         int _scaleFactor = 1;
         bool _betterPolygonSplitting = false;
         RenderMode _configuredRenderer;

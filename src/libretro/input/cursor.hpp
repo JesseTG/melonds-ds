@@ -34,7 +34,7 @@ namespace MelonDsDs {
     class CursorState {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
-        void Update(const ScreenLayoutData& layout, const PointerState& pointer, const JoypadState& joypad) noexcept;
+        void Update(const CoreConfig& config, const ScreenLayoutData& layout, const PointerState& pointer, const JoypadState& joypad) noexcept;
 
         // Gathers the input by the pointer and joystick, and forwards one of them to the NDS
         void Apply(melonDS::NDS& nds) const noexcept;
@@ -43,6 +43,8 @@ namespace MelonDsDs {
         void ResetCursorTimeout() noexcept;
 
         [[nodiscard]] glm::ivec2 TouchPosition() const noexcept;
+        // Touch position actually sent to the emulated console (after hybrid-layout selection)
+        [[nodiscard]] glm::ivec2 ConsoleTouchPosition() const noexcept { return glm::ivec2(_consoleTouchPosition); }
         [[nodiscard]] glm::ivec2 JoypadTouchPosition() const noexcept { return _joystickCursorPosition; }
         [[nodiscard]] glm::ivec2 PointerTouchPosition() const noexcept { return _pointerCursorPosition; }
         [[nodiscard]] bool IsTouching() const noexcept;
@@ -51,18 +53,16 @@ namespace MelonDsDs {
     private:
         [[nodiscard]] bool IsCursorInputInBounds() const noexcept;
         [[nodiscard]] glm::uvec2 ConsoleTouchPosition(const ScreenLayoutData& layout) const noexcept;
-
         bool _cursorSettingsDirty = true;
         CursorMode _cursorMode;
         TouchMode _touchMode;
         unsigned _cursorTimeout = 0;
         unsigned _maxCursorTimeout;
-        glm::ivec2 _joystickCursorPosition;
+        glm::vec2 _joystickCursorPosition;
         glm::ivec2 _pointerCursorPosition;
         glm::i16vec2 _joystickRawDirection;
         glm::i16vec2 _pointerRawPosition;
         glm::uvec2 _consoleTouchPosition;
-
         bool _isTouchReleased;
         bool _pointerCursorTouching;
         bool _joypadCursorTouching;

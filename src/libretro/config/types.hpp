@@ -151,6 +151,10 @@ namespace MelonDsDs {
         TurnLeft = 10,
         TurnRight = 11,
         UpsideDown = 12,
+        LargescreenTop = 13,
+        LargescreenBottom = 14,
+        FlippedLargescreenTop = 15,
+        FlippedLargescreenBottom = 16,
     };
 
     enum class HybridSideScreenDisplay {

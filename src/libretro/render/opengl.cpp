@@ -18,6 +18,7 @@
 #include "opengl.hpp"
 
 #include <array>
+#include <cstring>
 
 #include <GPU3D_OpenGL.h>
 #include <NDS.h>
@@ -35,7 +36,9 @@
 #include "tracy.hpp"
 
 using glm::ivec2;
+using glm::mat3;
 using glm::vec2;
+using glm::vec3;
 using std::array;
 using MelonDsDs::ScreenLayout;
 
@@ -70,6 +73,8 @@ constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout)
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
         case ScreenLayout::LeftRight:
+        case ScreenLayout::LargescreenTop:
+        case ScreenLayout::FlippedLargescreenBottom:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 indexes[i] = topPositionIndexes[i];
                 indexes[i + VERTEXES_PER_SCREEN] = bottomPositionIndexes[i];
@@ -77,6 +82,8 @@ constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout)
             break;
         case ScreenLayout::RightLeft:
         case ScreenLayout::BottomTop:
+        case ScreenLayout::LargescreenBottom:
+        case ScreenLayout::FlippedLargescreenTop:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 indexes[i] = bottomPositionIndexes[i];
                 indexes[i + VERTEXES_PER_SCREEN] = topPositionIndexes[i];
@@ -189,7 +196,7 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
         glDeleteProgram(_screenProgram);
         glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
         _tracyCapture = std::nullopt;
 #endif
     }
@@ -211,6 +218,35 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 
     // Initialize all OpenGL function pointers
     retro::debug("Initializing OpenGL function pointers");
+    if (!hw_render.get_proc_address) {
+        retro::error("Frontend didn't provide a get_proc_address callback");
+        throw opengl_not_initialized_exception();
+    }
+
+    // The core doesn't link against OpenGL,
+    // so the OpenGL 1.0/1.1 functions that glsym doesn't cover
+    // must be resolved before glsm makes its first OpenGL call
+    // (see PlatformOGLPrivate.h)
+    rglgen_resolve_symbols_custom(
+        reinterpret_cast<rglgen_proc_address_t>(hw_render.get_proc_address),
+        melondsds_base_gl_symbol_map
+    );
+
+    unsigned missingSymbols = 0;
+    for (const rglgen_sym_map* entry = melondsds_base_gl_symbol_map; entry->sym; ++entry) {
+        void* address = nullptr;
+        memcpy(&address, entry->ptr, sizeof(address));
+        if (!address) {
+            retro::error("Frontend couldn't resolve {}", entry->sym);
+            ++missingSymbols;
+        }
+    }
+
+    if (missingSymbols) {
+        retro::error("Frontend couldn't resolve {} OpenGL functions, can't use the OpenGL renderer", missingSymbols);
+        throw opengl_not_initialized_exception();
+    }
+
     glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
     TracyGpuContext; // Must be called AFTER the function pointers are bound!
 
@@ -218,9 +254,9 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     const char *rendererName = (const char*)glGetString(GL_RENDERER);
     const char *version  = (const char*)glGetString(GL_VERSION);
 
-    retro::info("OpenGL version: {}", version);
-    retro::info("OpenGL vendor: {}", vendor);
-    retro::info("OpenGL renderer: {}", rendererName);
+    retro::info("OpenGL version: {}", version ? version : "<null>");
+    retro::info("OpenGL vendor: {}", vendor ? vendor : "<null>");
+    retro::info("OpenGL renderer: {}", rendererName ? rendererName : "<null>");
 
     uintptr_t fbo = glsm_get_current_framebuffer();
     retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
@@ -263,7 +299,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
     retro::debug("Unbound GL state");
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (tracy::ProfilerAvailable()) {
         // If we're using Tracy...
         retro::debug("Using Tracy, will capture OpenGL calls");
@@ -391,20 +427,32 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     if (!nds.IsLidClosed() && input.CursorVisible()) {
         float cursorSize = config.CursorSize();
-        ivec2 touch = input.TouchPosition();
-        GL_ShaderConfig.cursorPos[0] = ((float) touch.x - cursorSize) / NDS_SCREEN_WIDTH;
-        GL_ShaderConfig.cursorPos[1] = (((float) touch.y - cursorSize) / (NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
-        GL_ShaderConfig.cursorPos[2] = ((float) touch.x + cursorSize) / NDS_SCREEN_WIDTH;
-        GL_ShaderConfig.cursorPos[3] = (((float) touch.y + cursorSize) / ((float) NDS_SCREEN_WIDTH * 1.5f)) + 0.5f;
+        ScreenLayout layout = screenLayout.Layout();
+        ivec2 touch = clamp(input.ConsoleTouchPosition(), ivec2(0), ivec2(NDS_SCREEN_WIDTH - 1, NDS_SCREEN_HEIGHT - 1));
+
+        bool secondaryTouchInBounds =
+            (input.TouchPosition().x >= 0 && input.TouchPosition().x < NDS_SCREEN_WIDTH) &&
+            (input.TouchPosition().y >= 0 && input.TouchPosition().y < NDS_SCREEN_HEIGHT);
+        bool touchUsesHybrid =
+            (layout == ScreenLayout::HybridBottom || layout == ScreenLayout::FlippedHybridBottom) &&
+            (screenLayout.HybridSmallScreenLayout() == HybridSideScreenDisplay::One || !secondaryTouchInBounds);
+
+        const mat3& touchScreenMatrix = touchUsesHybrid ? screenLayout.GetHybridScreenMatrix() : screenLayout.GetBottomScreenMatrix();
+
+        vec3 p0 = touchScreenMatrix * vec3(vec2(touch) - vec2(cursorSize), 1.0f);
+        vec3 p1 = touchScreenMatrix * vec3(vec2(touch) + vec2(cursorSize), 1.0f);
+        float x0 = std::min(p0.x, p1.x);
+        float y0 = std::min(p0.y, p1.y);
+        float x1 = std::max(p0.x, p1.x);
+        float y1 = std::max(p0.y, p1.y);
+        GL_ShaderConfig.cursorPos = vec4(x0, y0, x1, y1);
         GL_ShaderConfig.cursorVisible = true;
     } else {
         GL_ShaderConfig.cursorVisible = false;
     }
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
 
     glUseProgram(_screenProgram);
 
@@ -440,7 +488,12 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
 
-#ifdef HAVE_TRACY
+    // Unbind pixel pack buffer left behind by the melonDS GL renderer;
+    // GLSM state_unbind doesn't do this, and a stale PBO binding causes
+    // glReadPixels (used by the frontend for screenshots) to fail.
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (_tracyCapture) {
         // TODO: Expose the FBO that the emulator's GLRenderer uses for rendering, then pass it here
         _tracyCapture->CaptureFrame(current_fbo, config.ScaleFactor());
@@ -475,7 +528,7 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     // TODO: Delete these objects, since the context hasn't been destroyed yet
     // (just in case it's not really destroyed afterwards)
 
-#ifdef HAVE_TRACY
+#if defined(HAVE_TRACY) && !defined(__APPLE__)
     _tracyCapture = std::nullopt;
 #endif
 }
@@ -495,9 +548,7 @@ void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreC
     GL_ShaderConfig.cursorPos = vec4(-1);
 
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    void *unibuf = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    if (unibuf) memcpy(unibuf, &GL_ShaderConfig, sizeof(GL_ShaderConfig));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
 
     InitVertices(screenLayout);
 
@@ -523,6 +574,8 @@ void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLa
         case ScreenLayout::UpsideDown:
         case ScreenLayout::TopBottom:
         case ScreenLayout::LeftRight:
+        case ScreenLayout::LargescreenTop:
+        case ScreenLayout::FlippedLargescreenBottom:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 // Top screen
                 screen_vertices[i] = {
@@ -539,6 +592,8 @@ void MelonDsDs::OpenGLRenderState::InitVertices(const ScreenLayoutData& screenLa
             break;
         case ScreenLayout::BottomTop:
         case ScreenLayout::RightLeft:
+        case ScreenLayout::LargescreenBottom:
+        case ScreenLayout::FlippedLargescreenTop:
             for (unsigned i = 0; i < VERTEXES_PER_SCREEN; ++i) {
                 // Top screen
                 screen_vertices[i] = {

@@ -1,0 +1,42 @@
+[pytest]
+minversion = "9.0"
+testpaths = ["."]
+pythonpath = ["."]
+strict_markers = true
+strict_config = true
+xfail_strict = true
+addopts = ["-ra", "--showlocals"]
+norecursedirs = ["melondsds", "__pycache__", ".pytest_cache", "Testing"]
+filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
+
+markers = [
+    # --- Content assets --------------------------------------------------
+    # Each of these names an environment variable that test/CMakeLists.txt fills
+    # in from a CMake cache variable. Unset or missing files skip the test.
+    "nds_rom: needs an NDS ROM (-DNDS_ROM=...)",
+    "dsiware_rom: needs a DSiWare ROM (-DDSIWARE_ROM=...)",
+    "gba_rom: needs a GBA ROM (-DGBA_ROM=...)",
+    "gba_sram: needs GBA save data (-DGBA_SRAM=...)",
+    "godmode9i_rom: needs the GodMode9i homebrew ROM (downloaded at configure time)",
+    "micrecord_nds: needs test/nds/micrecord.nds",
+    "periph_slot2_nds: needs test/nds/periph_slot2.nds",
+
+    # --- System files ----------------------------------------------------
+    # These are both a prerequisite and a staging instruction: a marked file is
+    # copied into <system>/melonDS DS/ before the core is loaded. Only marked
+    # files are staged, which is what makes the "boot fails without bios7.bin"
+    # cases meaningful.
+    "arm7_bios: stages bios7.bin",
+    "arm9_bios: stages bios9.bin",
+    "arm7_dsi_bios: stages dsi_bios7.bin",
+    "arm9_dsi_bios: stages dsi_bios9.bin",
+    "nds_firmware: stages firmware.bin",
+    "dsi_firmware: stages dsi_firmware.bin",
+    "dsi_nand: stages dsi_nand.bin",
+    "nds_sysfiles: stages bios7.bin, bios9.bin and firmware.bin",
+    "dsi_sysfiles: stages both BIOS pairs, dsi_firmware.bin and dsi_nand.bin",
+
+    # --- Capabilities and behavior switches ------------------------------
+    "opengl: needs an OpenGL-enabled core build and libretro.py[opengl]",
+    "no_skip_error_screen: do not set MELONDSDS_SKIP_ERROR_SCREEN for this test",
+]

@@ -60,7 +60,8 @@ static const char* const UNKNOWN_ERROR_MESSAGE =
 date::local_seconds LocalTime() noexcept {
     using namespace std::chrono;
 
-    std::tm tm = fmt::localtime(system_clock::to_time_t(system_clock::now()));
+    std::time_t now = system_clock::to_time_t(system_clock::now());
+    std::tm tm = *std::localtime(&now);
 
     year_month_day date {year{tm.tm_year + 1900}, month{tm.tm_mon + 1u}, day{(unsigned)tm.tm_mday}};
     seconds time = hours{tm.tm_hour} + minutes{tm.tm_min} + seconds{tm.tm_sec};
@@ -98,7 +99,13 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 }
 
 void MelonDsDs::CoreState::UnloadGame() noexcept {
-    if (Console && Console->IsRunning()) {
+    if (!Console) {
+        // The console object may be uninitialized
+        // if unloading a game after exiting from the error screen.
+        return;
+    }
+
+    if (Console->IsRunning()) {
         // If the NDS wasn't already stopped due to some internal event...
         Console->Stop();
     }
@@ -154,8 +161,8 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
-        _inputState.Update(_screenLayout);
-        _inputState.Apply(nds, _screenLayout, _micState);
+        _inputState.Update(Config, _screenLayout);
+        _inputState.Apply(nds, _screenLayout, _micState, Config);
         std::array<int16_t, 735> buffer {};
         _micState.Read(buffer);
         nds.MicInputFrame(buffer.data(), buffer.size());
@@ -213,7 +220,7 @@ void MelonDsDs::CoreState::Reset() {
     _savestateSize = std::nullopt;
 
     retro_assert(Console != nullptr);
-    RegisterCoreOptions();
+    RegisterCoreOptions(Config);
     ParseConfig(Config);
     ApplyConfig(Config);
     _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
@@ -509,7 +516,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             "Failed to set the required XRGB8888 pixel format for rendering; it may not be supported.");
     }
 
-    if (RegisterCoreOptions()) {
+    if (RegisterCoreOptions(Config)) {
         ParseConfig(Config);
         _optionVisibility.Update();
     }
@@ -979,7 +986,7 @@ void MelonDsDs::CoreState::CheatSet(unsigned index, bool enabled, std::string_vi
     if (!Console)
         return;
 
-    if (!regex_match(code.data(), _cheatSyntax)) {
+    if (!regex_match(code.cbegin(), code.cend(), _cheatSyntax)) {
         // If we're trying to activate this cheat code, but it's not valid...
         retro::set_warn_message("Cheat #{} ({:.8}...) isn't valid, ignoring it.", index, code);
         return;

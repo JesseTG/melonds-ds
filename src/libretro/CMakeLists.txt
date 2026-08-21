@@ -119,14 +119,14 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
 )
 
 target_include_directories(melondsds_libretro SYSTEM PUBLIC
+    fmt::fmt
     "${libretro-common_SOURCE_DIR}/include"
     "${melonDS_SOURCE_DIR}/src"
-    "${glm_SOURCE_DIR}"
-    "${pntr_SOURCE_DIR}"
-    "${fmt_SOURCE_DIR}/include"
+    glm::glm
+    pntr
     "${yamc_SOURCE_DIR}/include"
-    "${span-lite_SOURCE_DIR}/include"
-    "${date_SOURCE_DIR}/include"
+    nonstd::span-lite
+    date
     )
 
 target_include_directories(melondsds_libretro PRIVATE "${CMAKE_SOURCE_DIR}/src/libretro")
@@ -207,10 +207,10 @@ if (HAVE_OPENGL OR HAVE_OPENGLES)
 endif()
 
 if (HAVE_OPENGL)
-    if (APPLE)
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-framework,OpenGL")
-    endif ()
-    target_link_libraries(melondsds_libretro PUBLIC OpenGL::GL)
+    # OpenGL is deliberately not linked;
+    # every OpenGL function (even the ancient 1.0/1.1 ones)
+    # is loaded at runtime through the frontend's get_proc_address.
+    # See PlatformOGLPrivate.h for details.
     target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OPENGL_INCLUDE_DIR}")
 elseif (HAVE_OPENGLES1)
     target_link_libraries(melondsds_libretro PUBLIC OpenGLES::OpenGLESv1)
@@ -278,7 +278,7 @@ target_compile_definitions(melondsds_libretro PUBLIC
 target_compile_definitions(melondsds_libretro PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 target_compile_definitions(core PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 
-target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date)
+target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date nonstd::span-lite)
 
 if (HAVE_NETWORKING)
     target_compile_definitions(melondsds_libretro PUBLIC BUILDING_LIBSLIRP)

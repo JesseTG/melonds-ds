@@ -97,6 +97,10 @@ const char* const DEFAULT_DSI_SDCARD_IMAGE_NAME = "dsi_sd_card.bin";
 const char* const DEFAULT_DSI_SDCARD_DIR_NAME = "dsi_sd_card";
 
 const initializer_list<unsigned> CURSOR_TIMEOUTS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
+const initializer_list<int> JOYSTICK_CURSOR_DEADZONES = {0, 5, 10, 15, 20, 25, 30, 35};
+const initializer_list<int> JOYSTICK_CURSOR_MAXSPEEDS = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+const initializer_list<int> JOYSTICK_CURSOR_RESPONSES = {100, 200};
+const initializer_list<int> JOYSTICK_CURSOR_SPEEDUPS = {33, 50, 66, 150, 200, 250, 300};
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<uint16_t> RUMBLE_INTENSITY_VALUES = {0, 6554, 13107, 19661, 26214, 32768, 39321, 45875, 52428, 58982, 65535};
@@ -516,8 +520,8 @@ static void MelonDsDs::config::ParseDsiStorageOptions(CoreConfig& config) noexce
     if (string_view value = get_variable(storage::DSI_NAND_PATH); !value.empty()) {
         config.SetDsiNandPath(value);
     } else {
-        retro::warn("Failed to get value for {}", storage::DSI_NAND_PATH);
-        config.SetDsiNandPath(string_view(values::NOT_FOUND));
+        retro::warn("Failed to get value for {}; defaulting to {}", storage::DSI_NAND_PATH, values::DSI_NAND_AUTO);
+        config.SetDsiNandPath(string_view(values::DSI_NAND_AUTO));
     }
 
     if (string_view value = get_variable(system::FIRMWARE_PATH); !value.empty()) {
@@ -741,6 +745,20 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
         config.SetScreenGap(0);
     }
 
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(SECONDARY_SCREEN_SCALE), 50, 100)) {
+        config.SetSecondaryScreenScale(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100", SECONDARY_SCREEN_SCALE);
+        config.SetSecondaryScreenScale(100);
+    }
+
+    if (optional<ScreenFilter> value = ParseScreenFilter(get_variable(SECONDARY_SCREEN_FILTERING))) {
+        config.SetSecondaryScreenFilter(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SECONDARY_SCREEN_FILTERING, values::NEAREST);
+        config.SetSecondaryScreenFilter(ScreenFilter::Nearest);
+    }
+
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(CURSOR_TIMEOUT), CURSOR_TIMEOUTS)) {
         config.SetCursorTimeout(*value);
     } else {
@@ -753,6 +771,34 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", TOUCH_MODE, values::AUTO);
         config.SetTouchMode(TouchMode::Auto);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_DEADZONE), JOYSTICK_CURSOR_DEADZONES)) {
+        config.SetJoystickCursorDeadzone(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_DEADZONE, 0.05);
+        config.SetJoystickCursorDeadzone(5);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_MAXSPEED), JOYSTICK_CURSOR_MAXSPEEDS)) {
+        config.SetJoystickCursorMaxSpeed(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_MAXSPEED, 3);
+        config.SetJoystickCursorMaxSpeed(3);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_RESPONSE), JOYSTICK_CURSOR_RESPONSES)) {
+        config.SetJoystickCursorResponse(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_RESPONSE, 2);
+        config.SetJoystickCursorResponse(200);
+    }
+
+    if (optional<int> value = ParseIntegerInList<int>(get_variable(JOYSTICK_CURSOR_SPEEDUP), JOYSTICK_CURSOR_SPEEDUPS)) {
+        config.SetJoystickCursorSpeedup(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", JOYSTICK_CURSOR_SPEEDUP, 200);
+        config.SetJoystickCursorSpeedup(200);
     }
 
     if (optional<MelonDsDs::CursorMode> value = ParseCursorMode(get_variable(SHOW_CURSOR))) {
@@ -906,7 +952,7 @@ struct AdapterOption {
 
 // If I make an option depend on the game (e.g. different defaults for different games),
 // then I can have set_core_option accept a NDSHeader
-bool MelonDsDs::RegisterCoreOptions() noexcept {
+bool MelonDsDs::RegisterCoreOptions(CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     using namespace MelonDsDs::config;
 
@@ -956,18 +1002,27 @@ bool MelonDsDs::RegisterCoreOptions() noexcept {
 
         retro_assert(dsiNandPathOption != definitions.end());
 
-        memset(dsiNandPathOption->values, 0, sizeof(dsiNandPathOption->values));
-        int length = std::min((int)dsiNandPaths.size(), (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1);
+        constexpr int kReservedSlots = 1; // [0] = "/auto"
+        memset(dsiNandPathOption->values + kReservedSlots, 0, sizeof(retro_core_option_value) * (RETRO_NUM_CORE_OPTION_VALUES_MAX - kReservedSlots));
+
+        std::vector<std::string> discoveredPaths;
+        discoveredPaths.reserve(dsiNandPaths.size());
+
+        const int maxAppendable = (int)RETRO_NUM_CORE_OPTION_VALUES_MAX - 1 - kReservedSlots;
+        const int length = std::min((int)dsiNandPaths.size(), maxAppendable);
         for (int i = 0; i < length; ++i) {
             string_view path = dsiNandPaths[i];
             path.remove_prefix(sysdir->size() + 1);
             retro::debug("Found a DSi NAND image at \"{}\", presenting it in the options as \"{}\"", dsiNandPaths[i], path);
             retro_assert(!path_is_absolute(path.data()));
-            dsiNandPathOption->values[i].value = path.data();
-            dsiNandPathOption->values[i].label = nullptr;
+            dsiNandPathOption->values[i + kReservedSlots].value = path.data();
+            dsiNandPathOption->values[i + kReservedSlots].label = nullptr;
+
+            discoveredPaths.emplace_back(path);
         }
 
-        dsiNandPathOption->default_value = dsiNandPathOption->values[0].value;
+        dsiNandPathOption->values[length + kReservedSlots] = { nullptr, nullptr };
+        config.SetDiscoveredDsiNandPaths(std::move(discoveredPaths));
     }
 
     if (!firmware.empty()) {

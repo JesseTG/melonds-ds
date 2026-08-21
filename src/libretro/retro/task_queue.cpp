@@ -128,7 +128,7 @@ void retro::task::TaskSpec::TaskHandlerWrapper(retro_task_t* task) noexcept {
     retro_assert(task != nullptr);
     TaskFunctions* functions = static_cast<TaskFunctions*>(task->user_data);
 
-    if (functions->handler && !task_get_finished(task)) {
+    if (functions->handler && !(task_get_flags(task) & RETRO_TASK_FLG_FINISHED)) {
         retro::task::TaskHandle handle(task);
         retro_assert(!handle.IsFinished());
         if (handle.IsCancelled()) {
@@ -186,7 +186,7 @@ retro::task::TaskSpec::TaskSpec(const TaskHandler& handler, const TaskCallback& 
         throw std::bad_alloc();
     }
 
-    _task->mute = true;
+    _task->flags = RETRO_TASK_FLG_MUTE;
     _task->when = when;
     _task->handler = TaskHandlerWrapper;
     _task->callback = callback ? &TaskCallbackWrapper : nullptr;
@@ -240,22 +240,22 @@ retro::task::TaskHandle::TaskHandle(retro_task_t* task) noexcept : _task(task) {
 
 void retro::task::TaskHandle::Finish() noexcept {
     ZoneScopedN("task_set_finished");
-    task_set_finished(_task, true);
+    task_set_flags(_task, RETRO_TASK_FLG_FINISHED, true);
 }
 
 void retro::task::TaskHandle::Cancel() noexcept {
     ZoneScopedN("task_set_cancelled");
-    task_set_cancelled(_task, true);
+    task_set_flags(_task, RETRO_TASK_FLG_CANCELLED, true);
 }
 
 bool retro::task::TaskHandle::IsCancelled() const noexcept {
     ZoneScopedN("task_get_cancelled");
-    return task_get_cancelled(_task);
+    return task_get_flags(_task) & RETRO_TASK_FLG_CANCELLED;
 }
 
 bool retro::task::TaskHandle::IsFinished() const noexcept {
     ZoneScopedN("task_get_finished");
-    return task_get_finished(_task);
+    return task_get_flags(_task) & RETRO_TASK_FLG_FINISHED;
 }
 
 void retro::task::TaskHandle::SetError(const string_view& error) noexcept {

@@ -9,6 +9,43 @@ New features will increment the minor version.
 Breaking changes (**except for savestates**) will increment the major version;
 a design goal is to avoid a 2.x release for as long as possible.
 
+## [Unreleased]
+
+**With thanks to @KojoZero for various touch-screen improvements in [#279](https://github.com/JesseTG/melonds-ds/pull/279)!**
+
+### Added
+
+- Added core options for joystick pointer speed, response curve and speedup pointer multiplier.
+- Added "Speedup Pointer" button which adds a multiplier to the pointer speed when held (set to L2).
+- Certain games require stylus "flicks" that couldn't easily be achieved with a higher base sensitivity.
+- Added support for auto-selecting a compatible DSi NAND for a given game's region.
+  **Thanks for [#303](https://github.com/JesseTG/melonds-ds/pull/303), @bulzipke!**
+- Added core options for scaling and filtering one of the screens separately from the other.
+  **Thanks for [#304](https://github.com/JesseTG/melonds-ds/pull/304), @bulzipke!**
+
+
+### Changed
+
+- Updated melonDS to commit [7117178](https://github.com/melonDS-emu/melonDS/tree/7117178).
+- Changed Close Lid button to a button combo (L2+Y in Retropad Layout).
+- "Touch Touchscreen" button was changed to R2 to enhance playability.
+- Refactor the test suite to be less verbose and repetitive,
+  using Pytest and its fixture APIs.
+- Remove the need to link against OpenGL when building the core.
+
+### Fixed
+
+- Fixed a configure error when building with CMake 4 or later.
+  [#265](https://github.com/JesseTG/melonds-ds/pull/265)
+- Fixed OpenGL support on macOS.
+  [#293](https://github.com/JesseTG/melonds-ds/pull/293)
+  [#12](https://github.com/JesseTG/melonds-ds/issues/12)
+  **Thanks, @warmenhoven!**
+- Fixed the position of the touch screen cursor to be more accurate on both renderers.
+  **Thanks for [#305](https://github.com/JesseTG/melonds-ds/pull/305), @DaVinciLord!**
+- Fixed a bug where the core would crash after exiting an error screen
+  when it failed to load a DSiWare ROM.
+
 ## [1.2.0] - 2025-02-19
 
 With thanks to **@theooophile**, **@parkerlreed**, **@romatthe**, and **@scarrillo**
@@ -19,7 +56,7 @@ for their donations this month!
 - Added support for emulated LAN multiplayer.
   Only works on an actual LAN.
   [#225](https://github.com/JesseTG/melonds-ds/issues/225)
-  **Thanks for [#229](https://github.com/JesseTG/melonds-ds/pull/242), @BernardoGomesNegri!**
+  **Thanks for [#242](https://github.com/JesseTG/melonds-ds/pull/242), @BernardoGomesNegri!**
 - Integrated support for the GBA Memory Expansion Pak.
   [#44](https://github.com/JesseTG/melonds-ds/issues/44)
 - Integrated support for the Rumble Pak.

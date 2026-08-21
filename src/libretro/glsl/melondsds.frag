@@ -14,10 +14,11 @@ void main()
 {
     vec4 pixel = texture(ScreenTex, fTexcoord);
     // virtual cursor so you can see where you touch
-    if(fTexcoord.y >= 0.5 && fTexcoord.y <= 1.0) {
-        if(cursorVisible && cursorPos.x <= fTexcoord.x && cursorPos.y <= fTexcoord.y && cursorPos.z >= fTexcoord.x && cursorPos.w >= fTexcoord.y) {
-            pixel = vec4(1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, pixel.a);
-        }
+    vec2 fragPos = vec2(gl_FragCoord.x, uScreenSize.y - gl_FragCoord.y);
+    if (cursorVisible &&
+        cursorPos.x <= fragPos.x && cursorPos.y <= fragPos.y &&
+        cursorPos.z >= fragPos.x && cursorPos.w >= fragPos.y) {
+        pixel = vec4(1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, pixel.a);
     }
     oColor = vec4(pixel.bgr, 1.0);
 }

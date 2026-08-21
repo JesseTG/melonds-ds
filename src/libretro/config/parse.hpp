@@ -151,7 +151,10 @@ namespace MelonDsDs {
         if (value == config::values::ROTATE_LEFT) return ScreenLayout::TurnLeft;
         if (value == config::values::ROTATE_RIGHT) return ScreenLayout::TurnRight;
         if (value == config::values::UPSIDE_DOWN) return ScreenLayout::UpsideDown;
-
+        if (value == config::values::LARGESCREEN_TOP) return ScreenLayout::LargescreenTop;
+        if (value == config::values::LARGESCREEN_BOTTOM) return ScreenLayout::LargescreenBottom;
+        if (value == config::values::FLIPPED_LARGESCREEN_TOP) return ScreenLayout::FlippedLargescreenTop;
+        if (value == config::values::FLIPPED_LARGESCREEN_BOTTOM) return ScreenLayout::FlippedLargescreenBottom;
         return std::nullopt;
     }
 
