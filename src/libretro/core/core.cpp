@@ -351,6 +351,30 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
 
 void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     assert(_messageScreen != nullptr);
+
+    if (retro::is_variable_updated()) [[unlikely]] {
+        // The error screen follows the same layout settings as the emulated screens,
+        // so keep it in step with whatever the player changes while it's shown.
+        ParseConfig(Config);
+        Config.SetConfiguredRenderer(RenderMode::Software);
+        _renderState.Apply(Config);
+        _screenLayout.Apply(Config, _renderState);
+        _inputState.SetConfig(Config);
+        _screenLayout.SetDirty();
+    }
+
+    // The screen layout hotkey works here too, even though there's no console to drive
+    _inputState.Update(Config, _screenLayout);
+    _inputState.Apply(_screenLayout);
+
+    if (_screenLayout.Dirty()) {
+        _screenLayout.Update();
+
+        if (!retro::set_geometry(_screenLayout.Geometry(RenderMode::Software))) {
+            retro::warn("Failed to update geometry after screen layout change");
+        }
+    }
+
     _renderState.Render(*_messageScreen, Config, _screenLayout);
 }
 

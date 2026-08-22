@@ -48,6 +48,7 @@ namespace MelonDsDs {
 
         void Render(
             const error::ErrorScreen& error,
+            const CoreConfig& config,
             const ScreenLayoutData& screenLayout
         ) noexcept;
 
@@ -56,6 +57,9 @@ namespace MelonDsDs {
         glm::uvec2 BufferSize() const noexcept { return buffer.Size(); }
 
     private:
+        /// Sizes the output and staging buffers and configures the scalers
+        /// for the given layout; shared by both Render overloads.
+        void PrepareBuffers(const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void CopyScreen(const uint32_t* src, glm::uvec2 destTranslation, ScreenLayout layout) noexcept;
         void DrawCursor(const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void CombineScreens(

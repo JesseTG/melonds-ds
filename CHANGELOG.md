@@ -11,6 +11,20 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the error screen not honoring the screen layout settings
+  (secondary screen scale, hybrid layouts, the layout hotkey, and changes made while it's shown).
+  See [#316](https://github.com/JesseTG/melonds-ds/issues/316).
+
+## [1.3.1] - 2026-08-22
+
+### Fixed
+
+- Fixed a linker error for Android and x64 Windows on the Libretro build.
+
+## [1.3.0] - 2026-08-21
+
 **With thanks to @KojoZero for various touch-screen improvements in [#279](https://github.com/JesseTG/melonds-ds/pull/279)!**
 
 ### Added

@@ -69,26 +69,7 @@ void MelonDsDs::SoftwareRenderState::Render(
 ) noexcept {
     ZoneScopedN(TracyFunction);
 
-    buffer.SetSize(screenLayout.BufferSize());
-
-    if (IsHybridLayout(screenLayout.Layout()) || IsLargeScreenLayout(screenLayout.Layout())) {
-        uvec2 requiredHybridBufferSize = NDS_SCREEN_SIZE<unsigned> * screenLayout.HybridRatio();
-        hybridBuffer.SetSize(requiredHybridBufferSize);
-
-        auto filter = config.ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
-        hybridScaler.SetScalerType(filter);
-        hybridScaler.SetOutSize(requiredHybridBufferSize.x, requiredHybridBufferSize.y);
-    }
-
-    if (LayoutSupportsSecondaryScreenScale(screenLayout.Layout()) && screenLayout.SecondaryScreenScale() < 100) {
-        float f = screenLayout.SecondaryScreenScaleFactor();
-        unsigned scaledW = static_cast<unsigned>(NDS_SCREEN_WIDTH * f);
-        unsigned scaledH = static_cast<unsigned>(NDS_SCREEN_HEIGHT * f);
-        secondaryScaleBuffer.SetSize({ scaledW, scaledH });
-        auto filter = config.SecondaryScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
-        secondaryScaleScaler.SetScalerType(filter);
-        secondaryScaleScaler.SetOutSize(scaledW, scaledH);
-    }
+    PrepareBuffers(config, screenLayout);
 
     const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();
     const uint32_t* bottomScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][1].get();
@@ -123,14 +104,42 @@ void MelonDsDs::SoftwareRenderState::Render(
 
 void MelonDsDs::SoftwareRenderState::Render(
     const error::ErrorScreen& error,
+    const CoreConfig& config,
     const ScreenLayoutData& screenLayout
 ) noexcept {
     ZoneScopedN(TracyFunction);
 
-    buffer.SetSize(screenLayout.BufferSize());
+    // The error screen is laid out exactly like the emulated screens,
+    // so it needs the same staging buffers that the happy path does.
+    PrepareBuffers(config, screenLayout);
     CombineScreens(error.TopScreen(), error.BottomScreen(), screenLayout);
 
     retro::video_refresh(buffer[0], buffer.Width(), buffer.Height(), buffer.Stride());
+}
+
+void MelonDsDs::SoftwareRenderState::PrepareBuffers(const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
+    ZoneScopedN(TracyFunction);
+
+    buffer.SetSize(screenLayout.BufferSize());
+
+    if (IsHybridLayout(screenLayout.Layout()) || IsLargeScreenLayout(screenLayout.Layout())) {
+        uvec2 requiredHybridBufferSize = NDS_SCREEN_SIZE<unsigned> * screenLayout.HybridRatio();
+        hybridBuffer.SetSize(requiredHybridBufferSize);
+
+        auto filter = config.ScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
+        hybridScaler.SetScalerType(filter);
+        hybridScaler.SetOutSize(requiredHybridBufferSize.x, requiredHybridBufferSize.y);
+    }
+
+    if (LayoutSupportsSecondaryScreenScale(screenLayout.Layout()) && screenLayout.SecondaryScreenScale() < 100) {
+        float f = screenLayout.SecondaryScreenScaleFactor();
+        unsigned scaledW = static_cast<unsigned>(NDS_SCREEN_WIDTH * f);
+        unsigned scaledH = static_cast<unsigned>(NDS_SCREEN_HEIGHT * f);
+        secondaryScaleBuffer.SetSize({ scaledW, scaledH });
+        auto filter = config.SecondaryScreenFilter() == ScreenFilter::Nearest ? SCALER_TYPE_POINT : SCALER_TYPE_BILINEAR;
+        secondaryScaleScaler.SetScalerType(filter);
+        secondaryScaleScaler.SetOutSize(scaledW, scaledH);
+    }
 }
 
 void MelonDsDs::SoftwareRenderState::CopyScreen(const uint32_t* src, uvec2 destTranslation, ScreenLayout layout) noexcept {

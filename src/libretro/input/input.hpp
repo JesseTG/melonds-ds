@@ -63,6 +63,9 @@ namespace MelonDsDs {
         void Update(const CoreConfig& config, const ScreenLayoutData& layout) noexcept;
         void SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noexcept;
         void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic, CoreConfig& config) const noexcept;
+        /// Applies only the screen layout hotkey, for when there's no console to drive
+        /// (such as on the error screen).
+        void Apply(ScreenLayoutData& layout) const noexcept;
         [[nodiscard]] bool CursorVisible() const noexcept { return _cursor.CursorVisible(); }
         [[nodiscard]] bool IsTouching() const noexcept { return _cursor.IsTouching(); }
         [[nodiscard]] bool TouchReleased() const noexcept {

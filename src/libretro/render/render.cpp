@@ -50,7 +50,7 @@ void MelonDsDs::RenderStateWrapper::Render(
     const ScreenLayoutData& screenLayout
 ) noexcept {
     SetRenderer(config);
-    static_cast<SoftwareRenderState*>(_renderState.get())->Render(error, screenLayout);
+    static_cast<SoftwareRenderState*>(_renderState.get())->Render(error, config, screenLayout);
 }
 
 void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config) noexcept {

@@ -178,6 +178,95 @@ def test_hybrid_screen_ratio(session: SessionFactory, nds_rom: Path) -> None:
         emulator.run()
 
 
+@pytest.mark.dsiware_rom
+@pytest.mark.dsi_firmware
+@pytest.mark.no_skip_error_screen
+@pytest.mark.parametrize(
+    ("options", "probe"),
+    [
+        # The bottom screen is drawn at half size, centered under the top screen.
+        pytest.param(
+            {"melonds_screen_layout1": "top-bottom", "melonds_secondary_screen_scale": "50"},
+            (128, 240),
+            id="secondary-scale",
+        ),
+        # The top screen is drawn at triple size on the left.
+        pytest.param(
+            {"melonds_screen_layout1": "hybrid-top", "melonds_hybrid_ratio": "3"},
+            (384, 288),
+            id="hybrid",
+        ),
+    ],
+)
+def test_error_screen_honors_screen_layout(
+    session: SessionFactory, dsiware_rom: Path, options: dict[str, str], probe: tuple[int, int]
+) -> None:
+    """
+    The error screen is laid out the same way the emulated screens would be,
+    including any screen that's scaled through a staging buffer.
+
+    See https://github.com/JesseTG/melonds-ds/issues/316
+    """
+    with session(dsiware_rom, options=options) as emulator:
+        for _ in range(10):
+            emulator.run()
+
+        frame = emulator.video.screenshot()
+        geometry = emulator.video.geometry
+
+        assert frame is not None
+        assert geometry is not None
+        assert frame.width == geometry.base_width
+        assert frame.height == geometry.base_height
+
+        # The probe lands in the middle of the scaled screen,
+        # which is left blank if the staging buffer was never set up.
+        x, y = probe
+        offset = (y * frame.width + x) * 4
+        pixel = bytes(frame.data[offset : offset + 3])  # XRGB8888, so B, G, R come first
+        assert pixel != b"\x00\x00\x00"
+
+
+@pytest.mark.dsiware_rom
+@pytest.mark.dsi_firmware
+@pytest.mark.no_skip_error_screen
+def test_error_screen_cycles_layout_with_hotkey(session: SessionFactory, dsiware_rom: Path) -> None:
+    """
+    The screen layout hotkey still cycles layouts while the error screen is shown.
+
+    See https://github.com/JesseTG/melonds-ds/issues/316
+    """
+    options = {
+        "melonds_number_of_screen_layouts": "2",
+        "melonds_screen_layout1": "top-bottom",
+        "melonds_screen_layout2": "left-right",
+    }
+
+    with session(dsiware_rom, input=_press_r3_after(10), options=options) as emulator:
+        for _ in range(10):
+            emulator.run()
+
+        frame1 = emulator.video.screenshot()
+        geometry1 = emulator.video.geometry
+
+        assert frame1 is not None
+        assert geometry1 is not None
+        assert frame1.width == geometry1.base_width
+        assert frame1.height == geometry1.base_height
+
+        for _ in range(20):
+            emulator.run()
+
+        frame2 = emulator.video.screenshot()
+        geometry2 = emulator.video.geometry
+
+        assert frame2 is not None
+        assert geometry2 is not None
+        assert geometry1 != geometry2
+        assert frame2.width == geometry2.base_width
+        assert frame2.height == geometry2.base_height
+
+
 # --------------------------------------------------------------------------- #
 # Software rendering
 # --------------------------------------------------------------------------- #

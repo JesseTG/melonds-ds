@@ -132,11 +132,18 @@ void InputState::Update(const CoreConfig& config, const ScreenLayoutData& layout
     _cursor.Update(config, layout, _pointer, _joypad);
 }
 
-void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic, CoreConfig& config) const noexcept {
+void InputState::Apply(ScreenLayoutData& layout) const noexcept {
     ZoneScopedN(TracyFunction);
 
     // Adjust the screen layout based on the frontend's input
     _joypad.Apply(layout);
+}
+
+void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic, CoreConfig& config) const noexcept {
+    ZoneScopedN(TracyFunction);
+
+    // Adjust the screen layout based on the frontend's input
+    Apply(layout);
 
     // Forward the frontend's button input to the emulated DS
     _joypad.Apply(nds);
