@@ -50,22 +50,22 @@ namespace retro {
 
     template <typename... T>
     void debug(fmt::format_string<T...> format, T&&... args) noexcept {
-        fmt_log(RETRO_LOG_DEBUG, format, fmt::make_format_args(args...));
+        fmt_log(RETRO_LOG_DEBUG, format.get(), fmt::make_format_args(args...));
     }
 
     template <typename... T>
     void info(fmt::format_string<T...> format, T&&... args) noexcept {
-        fmt_log(RETRO_LOG_INFO, format, fmt::make_format_args(args...));
+        fmt_log(RETRO_LOG_INFO, format.get(), fmt::make_format_args(args...));
     }
 
     template <typename... T>
     void warn(fmt::format_string<T...> format, T&&... args) noexcept {
-        fmt_log(RETRO_LOG_WARN, format, fmt::make_format_args(args...));
+        fmt_log(RETRO_LOG_WARN, format.get(), fmt::make_format_args(args...));
     }
 
     template <typename... T>
     void error(fmt::format_string<T...> format, T&&... args) noexcept {
-        fmt_log(RETRO_LOG_ERROR, format, fmt::make_format_args(args...));
+        fmt_log(RETRO_LOG_ERROR, format.get(), fmt::make_format_args(args...));
     }
 
     [[gnu::format(printf, 2, 0)]]
