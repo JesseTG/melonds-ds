@@ -44,20 +44,20 @@ endfunction()
 fetch_dependency(melonDS "https://github.com/melonDS-emu/melonDS" "7117178")
 fetch_dependency(libretro-common "https://github.com/libretro/libretro-common" "ad9124f")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries" "078b62b")
-fetch_dependency(glm "https://github.com/g-truc/glm" "e7970a8")
+fetch_dependency(glm "https://github.com/g-truc/glm" "6f14f47")
 fetch_dependency(libslirp "https://github.com/JesseTG/libslirp-mirror" "e61dbd4")
-fetch_dependency(pntr "https://github.com/robloach/pntr" "922aed0")
-fetch_dependency(fmt "https://github.com/fmtlib/fmt" "11.2.0")
+fetch_dependency(pntr "https://github.com/robloach/pntr" "a47fe16")
+fetch_dependency(fmt "https://github.com/fmtlib/fmt" "12.2.0")
 fetch_dependency(yamc "https://github.com/yohhoy/yamc" "4e015a7")
-fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "00afc28")
-fetch_dependency(date "https://github.com/HowardHinnant/date" "1ead671")
+fetch_dependency(span-lite "https://github.com/martinmoene/span-lite" "f63fe29")
+fetch_dependency(date "https://github.com/HowardHinnant/date" "v3.0.5")
 
 # We build zlib from source because some distributions (e.g. Ubuntu) ship a static library
 # that wasn't compiled with -fPIC, which causes linking errors when building a shared library.
-fetch_dependency(zlib "https://github.com/madler/zlib" "v1.3.1")
+fetch_dependency(zlib "https://github.com/madler/zlib" "v1.3.2")
 
 if (TRACY_ENABLE)
-    fetch_dependency(tracy "https://github.com/wolfpld/tracy" "v0.11.1")
+    fetch_dependency(tracy "https://github.com/wolfpld/tracy" "v0.14.1")
 endif()
 
 set(CMAKE_MODULE_PATH "${FETCHCONTENT_BASE_DIR}/melonds-src/cmake" "${FETCHCONTENT_BASE_DIR}/embed-binaries-src/cmake" "${CMAKE_MODULE_PATH}")
