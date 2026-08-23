@@ -71,7 +71,12 @@ option(ENABLE_TESTING "Enable unit testing." OFF)
 # zlib's example programs are registered as CTest tests, which would otherwise show
 # up alongside (and be run by) melonDS DS's own suite. Turning them off also drops
 # the minigzip binaries, which we never built anyway.
-set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# (This option was named ZLIB_BUILD_EXAMPLES before zlib 1.3.2.)
+set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+# We only ever link against zlibstatic; the shared library is unused,
+# and its test executables fail to link on iOS and tvOS.
+set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
 if (${CMAKE_MAJOR_VERSION} VERSION_GREATER_EQUAL 4)
     # Needed for https://github.com/JesseTG/melonds-ds/issues/265
     # yamc's stated minimum CMake version is 3.2,
