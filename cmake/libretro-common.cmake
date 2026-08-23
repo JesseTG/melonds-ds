@@ -12,6 +12,7 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/compat/fopen_utf8.c
     ${libretro-common_SOURCE_DIR}/encodings/encoding_base64.c
     ${libretro-common_SOURCE_DIR}/encodings/encoding_crc32.c
+    ${libretro-common_SOURCE_DIR}/encodings/encoding_deflate.c
     ${libretro-common_SOURCE_DIR}/encodings/encoding_utf.c
     ${libretro-common_SOURCE_DIR}/features/features_cpu.c
     ${libretro-common_SOURCE_DIR}/file/archive_file.c
@@ -27,7 +28,6 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/formats/image_transfer.c
     ${libretro-common_SOURCE_DIR}/formats/json/rjson.c
     ${libretro-common_SOURCE_DIR}/formats/logiqx_dat/logiqx_dat.c
-    ${libretro-common_SOURCE_DIR}/formats/m3u/m3u_file.c
     ${libretro-common_SOURCE_DIR}/formats/png/rpng.c
     ${libretro-common_SOURCE_DIR}/formats/png/rpng_encode.c
     ${libretro-common_SOURCE_DIR}/gfx/scaler/pixconv.c
@@ -55,6 +55,7 @@ target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/streams/rzip_stream.c
     ${libretro-common_SOURCE_DIR}/streams/stdin_stream.c
     ${libretro-common_SOURCE_DIR}/streams/trans_stream.c
+    ${libretro-common_SOURCE_DIR}/streams/trans_stream_deflate.c
     ${libretro-common_SOURCE_DIR}/streams/trans_stream_pipe.c
     ${libretro-common_SOURCE_DIR}/string/stdstring.c
     ${libretro-common_SOURCE_DIR}/time/rtime.c
@@ -88,7 +89,6 @@ endif ()
 if (HAVE_OPENGL OR HAVE_OPENGLES)
     target_sources(libretro-common PRIVATE
         ${libretro-common_SOURCE_DIR}/gfx/gl_capabilities.c
-        ${libretro-common_SOURCE_DIR}/glsm/glsm.c
         ${libretro-common_SOURCE_DIR}/glsym/rglgen.c
         )
 endif()

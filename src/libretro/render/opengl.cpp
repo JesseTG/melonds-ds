@@ -24,7 +24,7 @@
 #include <NDS.h>
 
 #include <gfx/gl_capabilities.h>
-#include <glsm/glsm.h>
+#include <glsym/rglgen.h>
 #include <retro_assert.h>
 #include <embedded/melondsds_fragment_shader.h>
 #include <embedded/melondsds_vertex_shader.h>
@@ -137,10 +137,10 @@ constexpr unsigned GetVertexCount(ScreenLayout layout, MelonDsDs::HybridSideScre
     }
 }
 
-// HACK: Defined in glsm.c, but we need to peek into it occasionally
-extern retro_hw_render_callback hw_render;
-
 static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
+
+// Index of the uniform buffer binding point used by the screen shader's uConfig block
+constexpr GLuint SHADER_CONFIG_UBO_BINDING = 16; // TODO: Where does 16 come from? It's not a size.
 
 
 std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New() noexcept {
@@ -156,51 +156,53 @@ std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New(
 MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
     ZoneScopedN(TracyFunction);
     retro::debug(TracyFunction);
-    glsm_ctx_params_t params = {};
 
     // MelonDS needs at least OpenGL 3.2 for OpenGL renderer
     // (it doesn't use the legacy fixed-function pipeline)
-    params.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
-    params.major = 3;
-    params.minor = 2;
-    params.context_reset = HardwareContextReset;
-    params.context_destroy = HardwareContextDestroyed;
-    params.environ_cb = retro::environment;
-    params.stencil = false;
-    params.framebuffer_lock = nullptr;
+    _hw_render.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
+    _hw_render.version_major = 3;
+    _hw_render.version_minor = 2;
+    _hw_render.context_reset = HardwareContextReset;
+    _hw_render.context_destroy = HardwareContextDestroyed;
+    _hw_render.depth = true;
+    _hw_render.stencil = false;
+    _hw_render.bottom_left_origin = true;
+    _hw_render.cache_context = false;
 
 #ifndef NDEBUG
-    hw_render.debug_context = true;
+    _hw_render.debug_context = true;
 #endif
 
-    if (!glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params)) {
+    // If this succeeds, the frontend fills in _hw_render's function pointers
+    // (but it won't call them until the context is reset)
+    if (!retro::set_hw_render(_hw_render)) {
         throw opengl_not_initialized_exception();
     }
 
 #ifndef NDEBUG
-    retro_assert(hw_render.debug_context);
+    retro_assert(_hw_render.debug_context);
 #endif
 
-    gl_query_core_context_set(hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
+    gl_query_core_context_set(_hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
 }
 
 MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
     retro::debug(TracyFunction);
     if (_contextInitialized) {
         TracyGpuZone(TracyFunction);
-        glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
+        BindState();
         glDeleteTextures(1, &screen_framebuffer_texture);
 
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &ubo);
         glDeleteProgram(_screenProgram);
-        glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
+        UnbindState();
 
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
         _tracyCapture = std::nullopt;
 #endif
     }
-    glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
     gl_query_core_context_unset();
 
     // Disable OpenGL hardware rendering;
@@ -218,17 +220,17 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 
     // Initialize all OpenGL function pointers
     retro::debug("Initializing OpenGL function pointers");
-    if (!hw_render.get_proc_address) {
-        retro::error("Frontend didn't provide a get_proc_address callback");
+    if (!_hw_render.get_proc_address || !_hw_render.get_current_framebuffer) {
+        retro::error("Frontend didn't provide the get_proc_address and get_current_framebuffer callbacks");
         throw opengl_not_initialized_exception();
     }
 
     // The core doesn't link against OpenGL,
     // so the OpenGL 1.0/1.1 functions that glsym doesn't cover
-    // must be resolved before glsm makes its first OpenGL call
+    // must be resolved before we make our first OpenGL call
     // (see PlatformOGLPrivate.h)
     rglgen_resolve_symbols_custom(
-        reinterpret_cast<rglgen_proc_address_t>(hw_render.get_proc_address),
+        reinterpret_cast<rglgen_proc_address_t>(_hw_render.get_proc_address),
         melondsds_base_gl_symbol_map
     );
 
@@ -247,7 +249,8 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
         throw opengl_not_initialized_exception();
     }
 
-    glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, nullptr);
+    // Now resolve everything else that glsym knows about
+    rglgen_resolve_symbols(_hw_render.get_proc_address);
     TracyGpuContext; // Must be called AFTER the function pointers are bound!
 
     const char *vendor   = (const char*)glGetString(GL_VENDOR);
@@ -258,23 +261,15 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     retro::info("OpenGL vendor: {}", vendor ? vendor : "<null>");
     retro::info("OpenGL renderer: {}", rendererName ? rendererName : "<null>");
 
-    uintptr_t fbo = glsm_get_current_framebuffer();
+    // Start using OpenGL on the frontend's framebuffer
+    retro::debug("Binding GL state");
+    BindState();
+    retro::debug("Bound GL state");
+
+    GLuint fbo = CurrentFramebuffer();
     retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     retro::debug("Current OpenGL framebuffer: id={}, status={}", fbo, static_cast<FormattedGLEnum>(status));
-
-    // Initialize global OpenGL resources (e.g. VAOs) and get config info (e.g. limits)
-    retro::debug("Setting up GL state");
-    glsm_ctl(GLSM_CTL_STATE_SETUP, nullptr);
-    retro::debug("Set up GL state");
-
-    // Start using global OpenGL structures
-    {
-        TracyGpuZone("GLSM_CTL_STATE_BIND");
-        retro::debug("Binding GL state");
-        glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
-        retro::debug("Bound GL state");
-    }
 
     // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
     // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
@@ -296,7 +291,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     _contextInitialized = true;
 
     // Stop using OpenGL structures
-    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr); // Always succeeds
+    UnbindState();
     retro::debug("Unbound GL state");
 
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
@@ -349,7 +344,7 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
     }
 
     GLuint uConfigBlockIndex = glGetUniformBlockIndex(_screenProgram, "uConfig");
-    glUniformBlockBinding(_screenProgram, uConfigBlockIndex, 16); // TODO: Where does 16 come from? It's not a size.
+    glUniformBlockBinding(_screenProgram, uConfigBlockIndex, SHADER_CONFIG_UBO_BINDING);
 
     glUseProgram(_screenProgram);
     GLuint uni_id = glGetUniformLocation(_screenProgram, "ScreenTex");
@@ -363,7 +358,7 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
         glObjectLabel(GL_BUFFER, ubo, -1, "melonDS DS Shader Config UBO");
     }
     glBufferData(GL_UNIFORM_BUFFER, sizeof(GL_ShaderConfig), &GL_ShaderConfig, GL_STATIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 16, ubo);
+    glBindBufferBase(GL_UNIFORM_BUFFER, SHADER_CONFIG_UBO_BINDING, ubo);
 
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -408,11 +403,9 @@ void MelonDsDs::OpenGLRenderState::Render(
     TracyGpuZone(TracyFunction);
     retro_assert(nds.GetRenderer3D().Accelerated);
 
-    glsm_ctl(GLSM_CTL_STATE_BIND, nullptr);
-
-    GLuint current_fbo = glsm_get_current_framebuffer();
-    // Tell OpenGL that we want to draw to (and read from) the screen framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+    // Binds the frontend's framebuffer, the screen shader, the VAO/VBO/UBO,
+    // and resets whatever fixed-function state the frontend or melonDS may have changed
+    BindState();
 
     melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GetRenderer3D());
 
@@ -451,19 +444,11 @@ void MelonDsDs::OpenGLRenderState::Render(
         GL_ShaderConfig.cursorVisible = false;
     }
 
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GL_ShaderConfig), &GL_ShaderConfig);
-
-    glUseProgram(_screenProgram);
-
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_STENCIL_TEST);
-    glDisable(GL_BLEND);
 
     glViewport(0, 0, screenLayout.BufferWidth(), screenLayout.BufferHeight());
 
-    glActiveTexture(GL_TEXTURE0);
-
+    // Bind melonDS's output texture to texture unit 0 (the active unit after BindState)
     renderer.BindOutputTexture(nds.GPU.FrontBuffer);
 
     // Set the filtering mode for the active texture
@@ -472,8 +457,6 @@ void MelonDsDs::OpenGLRenderState::Render(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindVertexArray(vao);
     if (nds.IsLidClosed()) [[unlikely]] {
         // If the emulated lid is closed, just draw a blank
         // so that there's no annoying flickering with some games
@@ -486,17 +469,12 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glFlush();
 
-    glsm_ctl(GLSM_CTL_STATE_UNBIND, nullptr);
-
-    // Unbind pixel pack buffer left behind by the melonDS GL renderer;
-    // GLSM state_unbind doesn't do this, and a stale PBO binding causes
-    // glReadPixels (used by the frontend for screenshots) to fail.
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    UnbindState();
 
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
     if (_tracyCapture) {
         // TODO: Expose the FBO that the emulator's GLRenderer uses for rendering, then pass it here
-        _tracyCapture->CaptureFrame(current_fbo, config.ScaleFactor());
+        _tracyCapture->CaptureFrame(CurrentFramebuffer(), config.ScaleFactor());
     }
 #endif
 
@@ -513,7 +491,6 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     ZoneScopedN(TracyFunction);
 //    TracyGpuZone(TracyFunction);
     retro::debug(TracyFunction);
-    glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, nullptr);
     _openGlDebugAvailable = false;
     _needsRefresh = false;
     _contextInitialized = false;
@@ -531,6 +508,94 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
     _tracyCapture = std::nullopt;
 #endif
+}
+
+GLuint MelonDsDs::OpenGLRenderState::CurrentFramebuffer() const noexcept {
+    retro_assert(_hw_render.get_current_framebuffer != nullptr);
+    return static_cast<GLuint>(_hw_render.get_current_framebuffer());
+}
+
+// This and UnbindState replace the parts of libretro-common's glsm
+// that melonDS DS actually used, before glsm was removed from libretro-common.
+// Unlike glsm, nothing here is tracked through wrappers;
+// melonDS DS and melonDS both call OpenGL directly,
+// so we just apply the state we know the core needs.
+void MelonDsDs::OpenGLRenderState::BindState() noexcept {
+    ZoneScopedN(TracyFunction);
+    TracyGpuZone(TracyFunction);
+
+    // Draw to (and read from) the frontend's framebuffer.
+    // Don't cache it; some frontends hand out a different one each frame.
+    glBindFramebuffer(GL_FRAMEBUFFER, CurrentFramebuffer());
+
+    // Our own resources (all 0 until SetUpCoreOpenGlState runs, which is fine)
+    glUseProgram(_screenProgram);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBufferBase(GL_UNIFORM_BUFFER, SHADER_CONFIG_UBO_BINDING, ubo); // Also binds GL_UNIFORM_BUFFER itself
+
+    // Fixed-function state that the screen blit depends on;
+    // the frontend or melonDS's renderer may have left any of it in another state
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_BLEND);
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE); // For the depth clears in InitFrameState and the closed-lid path
+    glClearColor(0, 0, 0, 0);
+
+    // melonDS's output texture gets bound to unit 0 in Render
+    glActiveTexture(GL_TEXTURE0);
+}
+
+void MelonDsDs::OpenGLRenderState::UnbindState() noexcept {
+    ZoneScopedN(TracyFunction);
+    TracyGpuZone(TracyFunction);
+
+    // Everything below is state that melonDS DS or melonDS's OpenGL renderer sets,
+    // reset to OpenGL's defaults.
+    // melonDS's renderer sets all of it again every frame,
+    // except the uniform buffer it binds to index 0 once at startup;
+    // leave that index alone or its shaders will stop working.
+
+    glUseProgram(0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, SHADER_CONFIG_UBO_BINDING, 0); // Also unbinds GL_UNIFORM_BUFFER itself
+
+    // melonDS's renderer leaves its readback PBO bound,
+    // which makes the frontend's own glReadPixels (e.g. for screenshots) fail
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_BLEND);
+    glDisable(GL_SCISSOR_TEST);
+
+    glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO);
+    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+    glBlendColor(0, 0, 0, 0);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // Covers the per-buffer masks melonDS sets with glColorMaski
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    glDepthRange(0, 1);
+    glClearDepth(1);
+    glClearColor(0, 0, 0, 0);
+    glStencilFunc(GL_ALWAYS, 0, ~0u);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    glStencilMask(~0u);
+    glLineWidth(1);
+
+    // melonDS's renderer and compositor only use texture units 0 and 1
+    // (the texture cache binds 2D array textures to whichever unit is active)
+    for (GLenum unit : {GL_TEXTURE1, GL_TEXTURE0}) {
+        glActiveTexture(unit);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    }
+    // (Loop order leaves GL_TEXTURE0 active, which is the default)
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {

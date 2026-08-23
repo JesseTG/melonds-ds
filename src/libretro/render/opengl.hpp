@@ -22,6 +22,8 @@
 #include <memory>
 #include <optional>
 
+#include <libretro.h>
+
 #include "render.hpp"
 
 #include "PlatformOGLPrivate.h"
@@ -70,6 +72,22 @@ namespace MelonDsDs {
         void SetUpCoreOpenGlState(const CoreConfig& config);
         void InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void InitVertices(const ScreenLayoutData& screenLayout) noexcept;
+
+        // The frontend's framebuffer, i.e. the one we draw the final image into.
+        // Only valid after the OpenGL context has been reset.
+        [[nodiscard]] GLuint CurrentFramebuffer() const noexcept;
+
+        // Applies the OpenGL state that melonDS DS's screen blit relies on,
+        // and binds this object's OpenGL resources.
+        // Call before making any OpenGL calls on behalf of the core;
+        // the frontend may have changed any of this state in the meantime.
+        void BindState() noexcept;
+
+        // Resets all OpenGL state that melonDS DS (including melonDS's own renderer) touches
+        // back to OpenGL's defaults, so the frontend can't be tripped up by what we left behind.
+        // Call after the core is done making OpenGL calls for the frame.
+        void UnbindState() noexcept;
+
         bool _openGlDebugAvailable = false;
         bool _needsRefresh = true;
         bool _contextInitialized = false;
@@ -77,6 +95,10 @@ namespace MelonDsDs {
         GLuint screen_framebuffer_texture = 0;
         std::array<Vertex, 18> screen_vertices {};
         unsigned vertexCount = 0;
+        // What we ask of the frontend's OpenGL context,
+        // plus the callbacks it gives us in return.
+        // Set up in the constructor; the frontend fills in the function pointers.
+        retro_hw_render_callback _hw_render {};
         GLuint vao = 0;
         GLuint vbo = 0;
 
