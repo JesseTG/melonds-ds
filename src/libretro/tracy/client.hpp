@@ -100,13 +100,9 @@
 
 #define TracyAllocS(x,y,z)
 #define TracyFreeS(x,y)
-#define TracySecureAllocS(x,y,z)
-#define TracySecureFreeS(x,y)
 
 #define TracyAllocNS(x,y,z,w)
 #define TracyFreeNS(x,y,z)
-#define TracySecureAllocNS(x,y,z,w)
-#define TracySecureFreeNS(x,y,z)
 
 #define TracyMessageS(x,y,z)
 #define TracyMessageLS(x,y)

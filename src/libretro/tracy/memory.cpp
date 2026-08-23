@@ -26,7 +26,7 @@ void* operator new(std::size_t count)
         ++count; // avoid std::malloc(0) which may return nullptr on success
 
     if (void *ptr = std::malloc(count)) {
-        TracySecureAlloc(ptr, count);
+        TracyAlloc(ptr, count);
         return ptr;
     }
 
@@ -35,6 +35,6 @@ void* operator new(std::size_t count)
 
 void operator delete(void* ptr) noexcept
 {
-    TracySecureFree(ptr);
+    TracyFree(ptr);
     std::free(ptr);
 }
