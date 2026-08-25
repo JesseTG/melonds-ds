@@ -21,8 +21,6 @@
 #include <array>
 #include <cmath>
 
-#include <GPU3D.h>
-
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <retro_assert.h>
 

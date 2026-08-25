@@ -36,10 +36,6 @@
 #include "buffer.hpp"
 #include "retro/scaler.hpp"
 
-namespace melonDS {
-    class Renderer3D;
-}
-
 namespace MelonDsDs {
     class RenderState;
     class RenderStateWrapper;
