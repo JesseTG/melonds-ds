@@ -42,7 +42,6 @@ namespace melonDS {
     struct NDSArgs;
     struct DSiArgs;
     struct NDSHeader;
-    struct RenderSettings;
     class Firmware;
     class NDS;
 }

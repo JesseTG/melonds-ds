@@ -28,6 +28,7 @@
 
 #include "PlatformOGLPrivate.h"
 #include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
@@ -36,6 +37,7 @@
 
 namespace MelonDsDs {
     using glm::vec2;
+    using glm::vec3;
     using glm::vec4;
 
     class OpenGLRenderState final : public RenderState {
@@ -64,10 +66,12 @@ namespace MelonDsDs {
     private:
         struct Vertex {
             vec2 position;
-            vec2 texcoord;
+            /// The third coordinate selects one of the two screens
+            /// within melonDS's output texture, which is a 2D array texture.
+            vec3 texcoord;
         };
 
-        static_assert(sizeof(Vertex) == sizeof(vec2::value_type) * 4);
+        static_assert(sizeof(Vertex) == sizeof(vec2::value_type) * 5);
 
         void SetUpCoreOpenGlState(const CoreConfig& config);
         void InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
@@ -91,8 +95,11 @@ namespace MelonDsDs {
         bool _openGlDebugAvailable = false;
         bool _needsRefresh = true;
         bool _contextInitialized = false;
+        // melonDS's top-level renderer doesn't expose its current settings,
+        // so we track the ones we last gave it to know when they've changed.
+        unsigned _appliedScaleFactor = 0;
+        bool _appliedBetterPolygons = false;
         GLuint _screenProgram = 0;
-        GLuint screen_framebuffer_texture = 0;
         std::array<Vertex, 18> screen_vertices {};
         unsigned vertexCount = 0;
         // What we ask of the frontend's OpenGL context,

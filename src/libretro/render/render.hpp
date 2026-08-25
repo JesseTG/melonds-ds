@@ -35,6 +35,11 @@ namespace MelonDsDs {
         class ErrorScreen;
     }
 
+    /// Applies \c config's renderer settings to whichever renderer \c nds is currently using.
+    /// melonDS accepts all renderers' settings through one struct,
+    /// then forwards each field to whichever renderer cares about it.
+    void ApplyRendererSettings(melonDS::NDS& nds, const CoreConfig& config) noexcept;
+
     class RenderState {
     public:
         virtual ~RenderState() noexcept = default;

@@ -8,8 +8,8 @@ layout(std140) uniform uConfig
     bool cursorVisible;
 };
 in vec2 vPosition;
-in vec2 vTexcoord;
-smooth out vec2 fTexcoord;
+in vec3 vTexcoord;
+smooth out vec3 fTexcoord;
 void main()
 {
     vec4 fpos;

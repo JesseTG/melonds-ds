@@ -19,7 +19,7 @@
 #include "PlatformOGLPrivate.h"
 
 #include <NDS.h>
-#include <GPU3D_Soft.h>
+#include <GPU_Soft.h>
 #include <retro_assert.h>
 
 #include "config/config.hpp"
@@ -28,9 +28,22 @@
 #include "screenlayout.hpp"
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-#include <GPU3D_OpenGL.h>
+#include <GPU_OpenGL.h>
 #include "render/opengl.hpp"
 #endif
+
+void MelonDsDs::ApplyRendererSettings(melonDS::NDS& nds, const CoreConfig& config) noexcept {
+    melonDS::RendererSettings settings {
+        .ScaleFactor = static_cast<int>(config.ScaleFactor()),
+        .Threaded = config.ThreadedSoftRenderer(),
+        // TODO: Expose melonDS's compute renderer as a core option;
+        //  HiresCoordinates only applies to that one, so it's inert until then.
+        .HiresCoordinates = false,
+        .BetterPolygons = config.BetterPolygonSplitting(),
+    };
+
+    nds.GetRenderer().SetRenderSettings(settings);
+}
 
 
 void MelonDsDs::RenderStateWrapper::Render(
@@ -97,33 +110,34 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
 
     if (dynamic_cast<SoftwareRenderState*>(_renderState.get())) {
         // If we're configured to use the software renderer...
-        if (auto* softRender = dynamic_cast<melonDS::SoftRenderer*>(&nds.GetRenderer3D())) {
-            // ...and we already are...
-            softRender->SetThreaded(config.ThreadedSoftRenderer(), nds.GPU);
+        if (!dynamic_cast<melonDS::SoftRenderer*>(&nds.GetRenderer())) {
+            // ...but we aren't using it yet...
+            nds.SetRenderer(std::make_unique<melonDS::SoftRenderer>(nds));
         }
-        else {
-            auto renderer = std::make_unique<melonDS::SoftRenderer>();
-            renderer->SetThreaded(config.ThreadedSoftRenderer(), nds.GPU);
-            nds.GPU.SetRenderer3D(std::move(renderer));
-        }
+
+        ApplyRendererSettings(nds, config);
         return;
     }
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (auto* glRender = dynamic_cast<OpenGLRenderState*>(_renderState.get()); glRender && !nds.GPU.GetRenderer3D().Accelerated) {
+    if (auto* glRender = dynamic_cast<OpenGLRenderState*>(_renderState.get());
+        glRender && !dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
         // If we're configured to use the OpenGL renderer, and we aren't already...
         retro::debug("Initializing OpenGL renderer");
-        if (auto renderer = melonDS::GLRenderer::New()) {
+
+        // TODO: Offer melonDS's compute renderer as a core option (the bool selects it).
+        nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, false));
+
+        // melonDS installs its own software renderer if the one we gave it failed to start,
+        // so that's how we find out whether this worked.
+        if (dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
             retro::debug("Initialized OpenGL renderer.");
-            nds.GPU.SetRenderer3D(std::move(renderer));
+            ApplyRendererSettings(nds, config);
             glRender->RequestRefresh();
         } else {
             retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
             _renderState = std::make_unique<SoftwareRenderState>(config);
-            auto softwareRenderer = std::make_unique<melonDS::SoftRenderer>();
-            softwareRenderer->SetThreaded(config.ThreadedSoftRenderer(), nds.GPU);
-            nds.GPU.SetRenderer3D(std::move(softwareRenderer));
-
+            ApplyRendererSettings(nds, config);
         }
     }
 #endif

@@ -7,8 +7,8 @@ layout(std140) uniform uConfig
     vec4 cursorPos;
     bool cursorVisible;
 };
-uniform sampler2D ScreenTex;
-smooth in vec2 fTexcoord;
+uniform sampler2DArray ScreenTex;
+smooth in vec3 fTexcoord;
 out vec4 oColor;
 void main()
 {

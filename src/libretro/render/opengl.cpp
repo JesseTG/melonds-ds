@@ -20,7 +20,8 @@
 #include <array>
 #include <cstring>
 
-#include <GPU3D_OpenGL.h>
+#include <GPU_OpenGL.h>
+#include <GPU_Soft.h>
 #include <NDS.h>
 
 #include <gfx/gl_capabilities.h>
@@ -42,23 +43,27 @@ using glm::vec3;
 using std::array;
 using MelonDsDs::ScreenLayout;
 
-constexpr float PIXEL_PAD = 1.0f / (MelonDsDs::NDS_SCREEN_HEIGHT * 2 + 2);
 constexpr unsigned VERTEXES_PER_SCREEN = 6;
+
+// melonDS renders each screen into its own layer of a 2D array texture,
+// so the third texture coordinate selects the screen.
+constexpr float TOP_SCREEN_LAYER = 0.0f;
+constexpr float BOTTOM_SCREEN_LAYER = 1.0f;
 constexpr array TOP_SCREEN_TEXCOORDS {
-    vec2(0), // northwest
-    vec2(0, 0.5f - PIXEL_PAD), // southwest
-    vec2(1, 0.5f - PIXEL_PAD), // southeast
-    vec2(0), //northwest
-    vec2(1, 0), // northeast
-    vec2(1, 0.5f - PIXEL_PAD), // southeast
+    vec3(0, 0, TOP_SCREEN_LAYER), // northwest
+    vec3(0, 1, TOP_SCREEN_LAYER), // southwest
+    vec3(1, 1, TOP_SCREEN_LAYER), // southeast
+    vec3(0, 0, TOP_SCREEN_LAYER), // northwest
+    vec3(1, 0, TOP_SCREEN_LAYER), // northeast
+    vec3(1, 1, TOP_SCREEN_LAYER), // southeast
 };
 constexpr array BOTTOM_SCREEN_TEXCOORDS {
-    vec2(0, 0.5f + PIXEL_PAD), // northwest
-    vec2(0, 1), // southwest
-    vec2(1), // southeast
-    vec2(0, 0.5f + PIXEL_PAD), // northwest
-    vec2(1, 0.5f + PIXEL_PAD), // northeast
-    vec2(1), // southeast
+    vec3(0, 0, BOTTOM_SCREEN_LAYER), // northwest
+    vec3(0, 1, BOTTOM_SCREEN_LAYER), // southwest
+    vec3(1, 1, BOTTOM_SCREEN_LAYER), // southeast
+    vec3(0, 0, BOTTOM_SCREEN_LAYER), // northwest
+    vec3(1, 0, BOTTOM_SCREEN_LAYER), // northeast
+    vec3(1, 1, BOTTOM_SCREEN_LAYER), // southeast
 };
 
 constexpr array<unsigned, 18> GetPositionIndexes(MelonDsDs::ScreenLayout layout) noexcept {
@@ -191,8 +196,6 @@ MelonDsDs::OpenGLRenderState::~OpenGLRenderState() noexcept {
     if (_contextInitialized) {
         TracyGpuZone(TracyFunction);
         BindState();
-        glDeleteTextures(1, &screen_framebuffer_texture);
-
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1, &vbo);
         glDeleteBuffers(1, &ubo);
@@ -274,17 +277,22 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
     // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
     // that recreates all resources)
-    nds.GPU.GPU3D.SetCurrentRenderer(std::make_unique<melonDS::SoftRenderer>());
-    auto renderer = melonDS::GLRenderer::New();
-    if (!renderer) {
+    nds.SetRenderer(std::make_unique<melonDS::SoftRenderer>(nds));
+
+    // TODO: Offer melonDS's compute renderer as a core option (the bool selects it).
+    nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, false));
+
+    // melonDS installs its own software renderer if the one we gave it failed to start,
+    // so that's how we find out whether this worked.
+    if (!dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
         retro::error("Failed to initialize OpenGL renderer!");
         throw opengl_not_initialized_exception();
     }
     retro::debug("Constructed OpenGL renderer");
-    renderer->SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
-    retro::debug("Applied OpenGL renderer settings");
-    nds.GPU.SetRenderer3D(std::move(renderer));
-    retro::debug("Installed OpenGL renderer");
+    ApplyRendererSettings(nds, config);
+    _appliedScaleFactor = config.ScaleFactor();
+    _appliedBetterPolygons = config.BetterPolygonSplitting();
+    retro::debug("Installed OpenGL renderer and applied its settings");
 
     SetUpCoreOpenGlState(config);
     retro::debug("Initialized core OpenGL state");
@@ -373,22 +381,12 @@ void MelonDsDs::OpenGLRenderState::SetUpCoreOpenGlState(const CoreConfig& config
         glObjectLabel(GL_VERTEX_ARRAY, vao, -1, "melonDS DS Screen VAO");
     }
     glEnableVertexAttribArray(0); // position
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * 4, (void *) nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, position));
     glEnableVertexAttribArray(1); // texcoord
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * 4, (void *) (2 * 4));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texcoord));
 
-    glGenTextures(1, &screen_framebuffer_texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, screen_framebuffer_texture);
-    if (_openGlDebugAvailable) {
-        glObjectLabel(GL_TEXTURE, screen_framebuffer_texture, -1, "melonDS DS Screen Texture");
-    }
-    GLint filter = config.ScreenFilter() == ScreenFilter::Linear ? GL_LINEAR : GL_NEAREST;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI, NDS_SCREEN_WIDTH * 3 + 1, NDS_SCREEN_HEIGHT * 2, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, nullptr);
+    // We don't create a screen texture of our own;
+    // Render samples the one that melonDS's renderer owns.
 
     _needsRefresh = true;
 }
@@ -401,15 +399,13 @@ void MelonDsDs::OpenGLRenderState::Render(
 ) noexcept {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);
-    retro_assert(nds.GetRenderer3D().Accelerated);
+    retro_assert(dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer()) != nullptr);
 
     // Binds the frontend's framebuffer, the screen shader, the VAO/VBO/UBO,
     // and resets whatever fixed-function state the frontend or melonDS may have changed
     BindState();
 
-    melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GetRenderer3D());
-
-    if (renderer.GetBetterPolygons() != config.BetterPolygonSplitting() || renderer.GetScaleFactor() != config.ScaleFactor())
+    if (_appliedBetterPolygons != config.BetterPolygonSplitting() || _appliedScaleFactor != config.ScaleFactor())
         // If any of the OpenGL renderer's settings have changed...
         _needsRefresh = true;
 
@@ -448,14 +444,22 @@ void MelonDsDs::OpenGLRenderState::Render(
 
     glViewport(0, 0, screenLayout.BufferWidth(), screenLayout.BufferHeight());
 
-    // Bind melonDS's output texture to texture unit 0 (the active unit after BindState)
-    renderer.BindOutputTexture(nds.GPU.FrontBuffer);
+    // Bind melonDS's output texture to texture unit 0 (the active unit after BindState).
+    // In OpenGL mode this is a 2D array texture with one layer per screen,
+    // and GetFramebuffers hands back a pointer to the texture's name
+    // (which belongs to the renderer, so don't keep it).
+    void* outputTexture = nullptr;
+    void* unused = nullptr;
+    [[maybe_unused]] bool inMainMemory = nds.GPU.GetFramebuffers(&outputTexture, &unused);
+    retro_assert(!inMainMemory);
+    retro_assert(outputTexture != nullptr);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, *static_cast<const GLuint*>(outputTexture));
 
     // Set the filtering mode for the active texture
     // For simplicity, we'll just use the same filter for both minification and magnification
     GLint filter = config.ScreenFilter() == ScreenFilter::Linear ? GL_LINEAR : GL_NEAREST;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, filter);
 
     if (nds.IsLidClosed()) [[unlikely]] {
         // If the emulated lid is closed, just draw a blank
@@ -495,7 +499,8 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     _needsRefresh = false;
     _contextInitialized = false;
     _screenProgram = 0;
-    screen_framebuffer_texture = 0;
+    _appliedScaleFactor = 0;
+    _appliedBetterPolygons = false;
     screen_vertices = {};
     vertexCount = 0;
     vao = 0;
@@ -601,12 +606,13 @@ void MelonDsDs::OpenGLRenderState::UnbindState() noexcept {
 void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept {
     ZoneScopedN(TracyFunction);
     TracyGpuZone(TracyFunction);
-    retro_assert(nds.GPU.GetRenderer3D().Accelerated);
+    retro_assert(dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer()) != nullptr);
 
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    melonDS::GLRenderer& renderer = static_cast<melonDS::GLRenderer&>(nds.GPU.GetRenderer3D());
-    renderer.SetRenderSettings(config.BetterPolygonSplitting(), config.ScaleFactor());
+    ApplyRendererSettings(nds, config);
+    _appliedScaleFactor = config.ScaleFactor();
+    _appliedBetterPolygons = config.BetterPolygonSplitting();
 
     GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();
     GL_ShaderConfig.u3DScale = screenLayout.Scale();

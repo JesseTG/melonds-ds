@@ -18,8 +18,6 @@
 
 #include <charconv>
 #include <DSi.h>
-#include <GPU3D_OpenGL.h>
-#include <GPU3D_Soft.h>
 
 #include <retro_assert.h>
 
@@ -173,7 +171,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             // Apply the new screen layout
             _screenLayout.Update();
 
-            RenderMode renderer = Console->GPU.GetRenderer3D().Accelerated ? RenderMode::OpenGl : RenderMode::Software;
+            RenderMode renderer = _renderState.GetRenderMode().value_or(RenderMode::Software);
             // And update the geometry
             if (!retro::set_geometry(_screenLayout.Geometry(renderer))) {
                 retro::warn("Failed to update geometry after screen layout change");
@@ -188,6 +186,13 @@ void MelonDsDs::CoreState::Run() noexcept {
 
         // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
         // which is then drawn to the screen by _renderState.Render
+        //
+        // TODO: When melonDS's compute renderer is offered as a core option,
+        //  compile its shaders here instead of running a frame
+        //  for as long as nds.GetRenderer().NeedsShaderCompile() is true;
+        //  see EmuThread::compileShaders in melonDS's Qt frontend for the pattern.
+        //  The regular OpenGL renderer compiles everything up front,
+        //  so this isn't necessary yet.
         {
             ZoneScopedN("NDS::RunFrame");
             nds.RunFrame();

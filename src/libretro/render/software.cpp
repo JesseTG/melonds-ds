@@ -71,8 +71,18 @@ void MelonDsDs::SoftwareRenderState::Render(
 
     PrepareBuffers(config, screenLayout);
 
-    const uint32_t* topScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][0].get();
-    const uint32_t* bottomScreenBuffer = nds.GPU.Framebuffer[nds.GPU.FrontBuffer][1].get();
+    // The renderer owns these buffers, so don't hold onto them past this frame.
+    void* topBuffer = nullptr;
+    void* bottomBuffer = nullptr;
+    [[maybe_unused]] bool inMainMemory = nds.GPU.GetFramebuffers(&topBuffer, &bottomBuffer);
+    // The software renderer always renders to main memory,
+    // so we'll always get a pair of pointers back.
+    retro_assert(inMainMemory);
+    retro_assert(topBuffer != nullptr);
+    retro_assert(bottomBuffer != nullptr);
+
+    const auto* topScreenBuffer = static_cast<const uint32_t*>(topBuffer);
+    const auto* bottomScreenBuffer = static_cast<const uint32_t*>(bottomBuffer);
     CombineScreens(
         span<const uint32_t, NDS_SCREEN_AREA<size_t>>(topScreenBuffer, NDS_SCREEN_AREA<size_t>),
         span<const uint32_t, NDS_SCREEN_AREA<size_t>>(bottomScreenBuffer, NDS_SCREEN_AREA<size_t>),
