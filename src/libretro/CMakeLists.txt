@@ -97,6 +97,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     retro/info.hpp
     retro/microphone.cpp
     retro/microphone.hpp
+    retro/resampler.cpp
+    retro/resampler.hpp
     retro/scaler.cpp
     retro/scaler.hpp
     retro/task_queue.cpp
