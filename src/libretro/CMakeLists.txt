@@ -280,6 +280,13 @@ target_compile_definitions(melondsds_libretro PUBLIC
 target_compile_definitions(melondsds_libretro PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 target_compile_definitions(core PUBLIC MELONDS_GL_HEADER="PlatformOGLPrivate.h")
 
+if (WIN32)
+    # melonDS used to set these on its own "core" target with PUBLIC visibility,
+    # but it now uses add_definitions in its top-level CMakeLists.txt instead;
+    # that doesn't propagate to us, since we're the parent project.
+    target_compile_definitions(melondsds_libretro PUBLIC WIN32_LEAN_AND_MEAN NOMINMAX)
+endif ()
+
 target_link_libraries(melondsds_libretro PUBLIC libretro-common core libretro-assets glm::glm pntr fmt::fmt date nonstd::span-lite)
 
 if (HAVE_NETWORKING)
