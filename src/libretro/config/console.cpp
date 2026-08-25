@@ -330,8 +330,8 @@ static MelonDsDs::NDSArgs MelonDsDs::GetNdsArgs(
         retro::debug("Installed native ARM7 and ARM9 NDS BIOS images");
     }
     else {
-        ndsargs.args.ARM9BIOS = std::make_unique<melonDS::ARM9BIOSImage>(melonDS::bios_arm9_bin);
-        ndsargs.args.ARM7BIOS = std::make_unique<melonDS::ARM7BIOSImage>(melonDS::bios_arm7_bin);
+        ndsargs.args.ARM9BIOS = std::make_unique<melonDS::ARM9BIOSImage>(melonDS::FreeBIOSGetNtrArm9());
+        ndsargs.args.ARM7BIOS = std::make_unique<melonDS::ARM7BIOSImage>(melonDS::FreeBIOSGetNtrArm7());
         retro::debug("Installed built-in ARM7 and ARM9 NDS BIOS images");
     }
 
