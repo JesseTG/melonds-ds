@@ -35,6 +35,7 @@
 #include <string/stdstring.h>
 
 #include "config.hpp"
+#include "constants.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "format.hpp"
@@ -521,6 +522,10 @@ static void MelonDsDs::ApplyCommonArgs(const CoreConfig& config, melonDS::NDSArg
     ZoneScopedN(TracyFunction);
     args.Interpolation = config.Interpolation();
     args.BitDepth = config.BitDepth();
+
+    // melonDS resamples the SPU's output to this rate,
+    // so it has to match the sample rate we report in retro_get_system_av_info.
+    args.OutputSampleRate = MelonDsDs::SAMPLE_RATE;
 #ifdef JIT_ENABLED
     if (config.JitEnable()) {
         args.JIT = {

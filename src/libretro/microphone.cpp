@@ -16,12 +16,15 @@
 
 #include "microphone.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <optional>
 
 #include <libretro.h>
 #include <frontend/mic_blow.h>
 
 #include "config/config.hpp"
+#include "constants.hpp"
 #include "environment.hpp"
 #include "input/input.hpp"
 #include "tracy.hpp"
@@ -65,8 +68,50 @@ void MelonDsDs::MicrophoneState::SetMicInputMode(MicInputMode mode) noexcept {
 
     if (_micInterface && _micInputMode == MicInputMode::HostMic) {
         // If we can access the host microphone and we want to use it...
-        _microphone = retro::Microphone::Open(*_micInterface, { 44100 });
+        OpenMicrophone();
     }
+}
+
+void MelonDsDs::MicrophoneState::OpenMicrophone() noexcept {
+    ZoneScopedN(TracyFunction);
+
+    constexpr auto WANTED_RATE = static_cast<unsigned>(MIC_SAMPLE_RATE);
+
+    _resampler = nullopt;
+    _microphone = retro::Microphone::Open(*_micInterface, { WANTED_RATE });
+    if (!_microphone)
+        return;
+
+    // The frontend is free to ignore the sample rate we asked for,
+    // in which case we have to convert its samples ourselves.
+    optional<retro_microphone_params_t> params = _microphone->GetParams();
+    unsigned actualRate = params ? params->rate : WANTED_RATE;
+
+    if (actualRate == 0 || actualRate == WANTED_RATE) {
+        retro::debug("Opened the host microphone at {} Hz", actualRate ? actualRate : WANTED_RATE);
+        return;
+    }
+
+    _resampler = retro::Resampler::Create(actualRate, MIC_SAMPLE_RATE);
+    if (_resampler) {
+        retro::debug("Opened the host microphone at {} Hz; resampling to {} Hz", actualRate, WANTED_RATE);
+    }
+    else {
+        retro::warn(
+            "Opened the host microphone at {} Hz, but couldn't create a resampler for {} Hz; "
+            "microphone input will be off-pitch",
+            actualRate,
+            WANTED_RATE
+        );
+    }
+}
+
+void MelonDsDs::MicrophoneState::Start() noexcept {
+    ZoneScopedN(TracyFunction);
+}
+
+void MelonDsDs::MicrophoneState::Stop() noexcept {
+    ZoneScopedN(TracyFunction);
 }
 
 
@@ -112,12 +157,12 @@ void MelonDsDs::MicrophoneState::SetMicButtonState(bool down) noexcept {
 }
 
 
-void MelonDsDs::MicrophoneState::Read(std::span<int16_t> buffer) noexcept {
+int MelonDsDs::MicrophoneState::Read(std::span<int16_t> buffer) noexcept {
     ZoneScopedN(TracyFunction);
 
     if (!_shouldCaptureAudio) {
         memset(buffer.data(), 0, buffer.size_bytes());
-        return;
+        return buffer.size();
     }
 
     switch (_micInputMode) {
@@ -125,30 +170,46 @@ void MelonDsDs::MicrophoneState::Read(std::span<int16_t> buffer) noexcept {
             for (short& i : buffer)
                 i = _random(_randomEngine);
 
-            break;
+            return buffer.size();
         }
         case MicInputMode::Blow: {
             constexpr size_t MIC_BLOW_LENGTH = sizeof(mic_blow) / sizeof(mic_blow[0]);
 
-            // builtin sample is 16-bit signed PCM
-            // sample rate is 44.1KHz
+            // The built-in sample is 16-bit signed PCM
+            // at the same rate that melonDS reads microphone input,
+            // so we can feed it in as-is.
             for (int i = 0; i < buffer.size(); ++i) {
-                buffer[i] = static_cast<int16_t>(mic_blow[_blowSampleOffset] ^ 0x8000);
+                buffer[i] = mic_blow[_blowSampleOffset];
                 _blowSampleOffset = (_blowSampleOffset + 1) % MIC_BLOW_LENGTH;
             }
 
-            break;
+            return buffer.size();
         }
         case MicInputMode::HostMic: {
-            if (_microphone && _microphone->IsActive() && _microphone->Read(buffer)) {
-                // If the microphone is open and turned on, and we read from it successfully...
-                break;
+            if (_microphone && _microphone->IsActive()) {
+                // If the microphone is open and turned on...
+                if (!_resampler) {
+                    // ...and the frontend gives us samples at the rate we want...
+                    if (optional<unsigned> read = _microphone->Read(buffer); read && *read <= buffer.size()) {
+                        return *read;
+                    }
+                }
+                else {
+                    // ...or if we have to convert them first...
+                    auto wanted = static_cast<size_t>(std::ceil(buffer.size() / _resampler->Ratio()));
+                    _hostBuffer.resize(wanted);
+
+                    optional<unsigned> read = _microphone->Read(_hostBuffer);
+                    if (read && *read <= _hostBuffer.size()) {
+                        return _resampler->ProcessMono(std::span(_hostBuffer).first(*read), buffer);
+                    }
+                }
             }
             // If the mic isn't available, feed silence instead
             [[fallthrough]];
         }
         default:
             memset(buffer.data(), 0, buffer.size_bytes());
-            break;
+            return buffer.size();
     }
 }

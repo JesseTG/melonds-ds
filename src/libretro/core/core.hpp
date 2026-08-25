@@ -107,6 +107,7 @@ namespace MelonDsDs {
         const melonDS::NDS* GetConsole() const noexcept { return Console.get(); }
         [[nodiscard]] const InputState& GetInputState() const noexcept { return _inputState; }
         [[nodiscard]] InputState& GetInputState() noexcept { return _inputState; }
+        [[nodiscard]] MicrophoneState& GetMicrophoneState() noexcept { return _micState; }
         std::optional<RenderMode> GetRenderMode() const noexcept { return _renderState.GetRenderMode(); }
         const ScreenLayoutData& GetScreenLayoutData() const noexcept { return _screenLayout; }
     private:

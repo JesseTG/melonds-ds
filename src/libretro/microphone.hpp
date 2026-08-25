@@ -21,9 +21,11 @@
 #include <limits>
 #include <optional>
 #include <random>
+#include <vector>
 
 #include "config/types.hpp"
 #include "retro/microphone.hpp"
+#include "retro/resampler.hpp"
 
 namespace MelonDsDs {
     class InputState;
@@ -38,7 +40,16 @@ namespace MelonDsDs {
         bool IsHostMicOpen() const noexcept { return _microphone.has_value(); }
         bool IsHostMicActive() const noexcept { return _microphone && _microphone->IsActive(); }
 
-        void Read(std::span<int16_t> buffer) noexcept;
+        /// Called when the emulated console starts listening to the microphone.
+        void Start() noexcept;
+
+        /// Called when the emulated console stops listening to the microphone.
+        void Stop() noexcept;
+
+        /// Fills \c buffer with microphone samples at \c MIC_SAMPLE_RATE.
+        /// \returns The number of samples written, which may be fewer than requested.
+        /// melonDS holds the previous sample for whatever it doesn't receive.
+        int Read(std::span<int16_t> buffer) noexcept;
 
         MicInputMode GetMicInputMode() const noexcept { return _micInputMode; }
         void SetMicInputMode(MicInputMode mode) noexcept;
@@ -49,8 +60,16 @@ namespace MelonDsDs {
         void SetMicButtonState(bool down) noexcept;
 
     private:
+        /// Opens the host microphone, plus a resampler if the frontend
+        /// couldn't give us the sample rate that melonDS wants.
+        void OpenMicrophone() noexcept;
+
         std::optional<retro_microphone_interface> _micInterface {};
         std::optional<retro::Microphone> _microphone {};
+        /// Only set if the host microphone's sample rate differs from \c MIC_SAMPLE_RATE.
+        std::optional<retro::Resampler> _resampler {};
+        /// Staging area for host microphone samples that still need resampling.
+        std::vector<int16_t> _hostBuffer {};
         MicInputMode _micInputMode = MicInputMode::None;
         MicButtonMode _micButtonMode = MicButtonMode::Hold;
         size_t _blowSampleOffset = 0;

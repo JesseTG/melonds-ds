@@ -163,9 +163,9 @@ void MelonDsDs::CoreState::Run() noexcept {
         // If the global state needed for rendering is ready...
         _inputState.Update(Config, _screenLayout);
         _inputState.Apply(nds, _screenLayout, _micState, Config);
-        std::array<int16_t, 735> buffer {};
-        _micState.Read(buffer);
-        nds.MicInputFrame(buffer.data(), buffer.size());
+        // melonDS pulls microphone samples as it needs them
+        // (see Platform::Mic_ReadInput in platform/mic.cpp),
+        // so there's nothing to push here.
 
         if (_screenLayout.Dirty()) {
             // If the active screen layout has changed (either by settings or by hotkey)...

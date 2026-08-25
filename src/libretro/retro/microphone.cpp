@@ -87,11 +87,11 @@ bool retro::Microphone::IsActive() const noexcept {
 }
 
 std::optional<unsigned> retro::Microphone::Read(std::span<int16_t> buffer) noexcept {
-    if (!_microphoneInterface.get_params)
-        return -1;
+    if (!_microphoneInterface.read_mic)
+        return nullopt;
 
     if (!_microphone)
-        return -1;
+        return nullopt;
 
     int samplesRead = _microphoneInterface.read_mic(_microphone, buffer.data(), buffer.size());
     if (samplesRead < 0)

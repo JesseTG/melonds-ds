@@ -24,5 +24,9 @@ namespace MelonDsDs {
 
     constexpr double FPS = 33513982.0 / 560190.0; // In frames per second
     constexpr double SAMPLE_RATE =  33513982.0 / 1024.0; // In Hz
+    /// The rate at which melonDS consumes microphone samples, in Hz.
+    /// It takes one sample every 704 master clock cycles,
+    /// which is the highest rate the DSi's microphone supports.
+    constexpr double MIC_SAMPLE_RATE = 33513982.0 / 704.0; // In Hz
     constexpr std::chrono::microseconds US_PER_FRAME {static_cast<int64_t>(1000000.0 / FPS)};
 }

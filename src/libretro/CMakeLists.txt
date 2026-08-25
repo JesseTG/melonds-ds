@@ -77,6 +77,7 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     net/mp.hpp
     platform/file.cpp
     platform/lan.cpp
+    platform/mic.cpp
     platform/mp.cpp
     platform/mutex.cpp
     platform/platform.cpp
