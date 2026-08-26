@@ -20,5 +20,5 @@ void main()
         cursorPos.z >= fragPos.x && cursorPos.w >= fragPos.y) {
         pixel = vec4(1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, pixel.a);
     }
-    oColor = vec4(pixel.bgr, 1.0);
+    oColor = vec4(pixel.rgb, 1.0);
 }
