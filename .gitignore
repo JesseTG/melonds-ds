@@ -45,3 +45,7 @@ venv*
 # VS Code
 .vscode/
 *.code-workspace
+
+# RenderDoc
+*.cap
+*.rdc
