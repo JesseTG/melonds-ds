@@ -292,3 +292,18 @@ u64 Platform::FileLength(FileHandle* file)
     }
     return size;
 }
+
+u64 Platform::FilePosition(FileHandle* file)
+{
+    ZoneScopedN(TracyFunction);
+    if (!file)
+        return 0;
+
+    int64_t position = filestream_tell(file->file);
+    if (position < 0) {
+        retro::error("Failed to get position within file \"{}\"", filestream_get_path(file->file));
+        return 0;
+    }
+
+    return position;
+}
