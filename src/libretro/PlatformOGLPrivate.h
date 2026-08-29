@@ -61,6 +61,10 @@
 #define GL_SHADER_IMAGE_ACCESS_BARRIER_BIT 0x00000020
 #endif
 
+#ifndef GL_COMMAND_BARRIER_BIT
+#define GL_COMMAND_BARRIER_BIT 0x00000040
+#endif
+
 #if defined(HAVE_OPENGL) && !defined(HAVE_OPENGLES)
 // glsym.h doesn't have wrappers for OpenGL 1.x functions,
 // so we define our own equivalents
