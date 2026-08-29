@@ -75,6 +75,7 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     net/net.hpp
     net/mp.cpp
     net/mp.hpp
+    platform/aac.cpp
     platform/file.cpp
     platform/lan.cpp
     platform/mic.cpp

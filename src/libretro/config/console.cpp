@@ -35,7 +35,10 @@
 #include <string/stdstring.h>
 
 #include "config.hpp"
-#include "constants.hpp"
+// Spelled out because an unqualified "constants.hpp" resolves to the one
+// next to this file, which is not the one that defines SAMPLE_RATE.
+#include "config/constants.hpp"
+#include "../constants.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "format.hpp"
@@ -417,7 +420,21 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
         throw dsi_no_firmware_found_exception();
     }
 
-    // DSi mode requires all native BIOS files
+    // DSi mode typically requires all native BIOS files.
+    //
+    // TODO: Consider falling back to melonDS's built-in DSi BIOS
+    //  (melonDS::FreeBIOSGetTwlArm7 and melonDS::FreeBIOSGetTwlArm9,
+    //  added upstream in https://github.com/melonDS-emu/melonDS/pull/2523).
+    //  That PR ships an open DSi BIOS (a patched FreeBIOS, with no new SWI functions)
+    //  and a generated DSi firmware,
+    //  but there's no stub NAND to go with them;
+    //  melonDS just permits booting without a NAND image at all.
+    //  That's enough for DSi-mode homebrew and for most plain DS games in DSi mode,
+    //  but DSiWare, DSi-exclusive cards, and DSi-enhanced DS games
+    //  all still need a real NAND dump,
+    //  which is most of what players actually use DSi mode for.
+    //  Revisit this once there's a stub NAND,
+    //  or if we decide DSi-mode homebrew is worth supporting without dumps.
     unique_ptr<melonDS::DSiBIOSImage> arm7i = make_unique<melonDS::DSiBIOSImage>();
     if (!LoadBios(config.DsiBios7Path(), BiosType::Arm7i, *arm7i)) {
         throw dsi_missing_bios_exception(BiosType::Arm7i, config.DsiBios7Path());
@@ -447,10 +464,12 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
         throw firmware_missing_exception(config.DsiFirmwarePath());
     }
 
-    if (firmware->GetHeader().ConsoleType != Firmware::FirmwareConsoleType::DSi) {
-        retro::warn("Expected firmware of type DSi, got {}", firmware->GetHeader().ConsoleType);
-        throw wrong_firmware_type_exception(config.DsiFirmwarePath(), ConsoleType::DSi,
-                                            firmware->GetHeader().ConsoleType);
+    // melonDS declares FirmwareHeader::ConsoleType as a u8,
+    // so we have to name the enum ourselves.
+    auto firmwareConsoleType = static_cast<Firmware::FirmwareConsoleType>(firmware->GetHeader().ConsoleType);
+    if (firmwareConsoleType != Firmware::FirmwareConsoleType::DSi) {
+        retro::warn("Expected firmware of type DSi, got {}", firmwareConsoleType);
+        throw wrong_firmware_type_exception(config.DsiFirmwarePath(), ConsoleType::DSi, firmwareConsoleType);
     }
     // DSi firmware isn't bootable, so we don't need to check for that here.
 
@@ -498,6 +517,8 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
         }
     }
 
+    // The DSi-specific fields are named here (rather than initialized positionally)
+    // so that reordering them upstream is a compile error instead of a silent mix-up.
     DSiArgs dsiargs {
         .args = {
             {
@@ -505,10 +526,13 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
                 .ARM7BIOS = std::move(arm7),
                 .Firmware = std::move(*firmware),
             },
-            std::move(arm9i),
-            std::move(arm7i),
-            std::move(nand),
-            LoadDSiSDCardImage(config),
+            .ARM9iBIOS = std::move(arm9i),
+            .ARM7iBIOS = std::move(arm7i),
+            .NANDImage = std::move(nand),
+            .DSiSDCard = LoadDSiSDCardImage(config),
+            // TODO: Expose melonDS's HLE implementation of the DSi's DSP as a core option
+            //  (see src/libretro/platform/aac.cpp for what that would entail).
+            .DSPHLE = false,
         },
         .ndsCart = std::move(ndsRom),
     };
@@ -1046,7 +1070,9 @@ static optional<Firmware> MelonDsDs::LoadFirmware(const string& firmwarePath) no
     }
 
     melonDS::FirmwareIdentifier id = firmware->GetHeader().Identifier;
-    Firmware::FirmwareConsoleType type = firmware->GetHeader().ConsoleType;
+    // melonDS declares FirmwareHeader::ConsoleType as a u8,
+    // so we have to name the enum ourselves.
+    auto type = static_cast<Firmware::FirmwareConsoleType>(firmware->GetHeader().ConsoleType);
     retro::info(
         "Loaded {} firmware from \"{}\" (Identifier: {})",
         type,

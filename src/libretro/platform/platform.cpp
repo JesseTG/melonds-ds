@@ -107,3 +107,22 @@ void Platform::Camera_Stop(int num, void* userdata) {
 
 void Platform::Camera_CaptureFrame(int num, u32 *frame, int width, int height, bool yuv, void* userdata) {
 }
+
+/// TODO: Support the Guitar Grip (\c melonDS::GBAAddon_GuitarGrip).
+///  Needs a new Slot-2 device option in config/definitions/system.hpp,
+///  plus four buttons tracked by \c InputState;
+///  see input/solar.cpp for how the other input-bearing Slot-2 addon does it.
+bool Platform::Addon_KeyDown(Platform::KeyType type, void* userdata) {
+    return false;
+}
+
+/// TODO: Support the DS Motion Pak
+///  (\c melonDS::GBAAddon_MotionPakRetail and \c melonDS::GBAAddon_MotionPakHomebrew).
+///  Needs a new Slot-2 device option,
+///  plus \c RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE
+///  for \c RETRO_SENSOR_ACCELEROMETER_* and \c RETRO_SENSOR_GYROSCOPE_*.
+///  melonDS expects SI units here:
+///  m/s^2 for the acceleration queries, rad/s for the rotation queries.
+float Platform::Addon_MotionQuery(Platform::MotionQueryType type, void* userdata) {
+    return 0.0f;
+}
