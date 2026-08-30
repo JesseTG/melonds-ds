@@ -34,9 +34,9 @@ constexpr pntr_color TEXT_COLOR_TOP = {.rgba = {.b = 0x19, .g = 0x0F, .r = 0xD7,
 constexpr pntr_color BACKGROUND_COLOR_BOTTOM = {.rgba = {.b = 0x36, .g = 0x7D, .r = 0x63, .a = 0xFF}}; // dark green
 constexpr pntr_color TEXT_COLOR_BOTTOM = {.rgba = {.b = 0x98, .g = 0xE5, .r = 0xE7, .a = 0xFF}}; // light green
 
-static constexpr const char* const ERROR_TITLE = "Oh no! melonDS DS couldn't start...";
-static constexpr const char* const SOLUTION_TITLE = "Here's what you can do:";
-static constexpr const char* const THANK_YOU = "Thank you for using melonDS DS!";
+static constexpr const char* const ERROR_TITLE = u8"Oh no! Добрий день!";
+static constexpr const char* const SOLUTION_TITLE = u8"Here's do: 修复方法";
+static constexpr const char* const THANK_YOU = u8"Thank you 谢谢您";
 
 using std::span;
 using MelonDsDs::NDS_SCREEN_AREA;
