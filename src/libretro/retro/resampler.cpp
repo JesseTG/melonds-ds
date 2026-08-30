@@ -22,6 +22,7 @@
 
 #include <audio/conversion/float_to_s16.h>
 #include <audio/conversion/s16_to_float.h>
+#include <audio/conversion/dual_mono.h>
 
 #include "../tracy.hpp"
 
@@ -105,10 +106,7 @@ size_t retro::Resampler::ProcessMono(std::span<const int16_t> in, std::span<int1
     convert_s16_to_float(_mono.data(), in.data(), in.size(), 1.0f);
 
     // The resamplers all work on stereo frames, so give them the same signal twice.
-    for (size_t i = 0; i < in.size(); ++i) {
-        _stereoIn[i * 2] = _mono[i];
-        _stereoIn[i * 2 + 1] = _mono[i];
-    }
+    convert_to_dual_mono_float(_stereoIn.data(), _mono.data(), _mono.size());
 
     resampler_data data {
         .data_in = _stereoIn.data(),
@@ -123,9 +121,7 @@ size_t retro::Resampler::ProcessMono(std::span<const int16_t> in, std::span<int1
     // The resampler decides how many frames it produces,
     // which may be more than the caller has room for.
     size_t frames = std::min(data.output_frames, out.size());
-    for (size_t i = 0; i < frames; ++i) {
-        _mono[i] = _stereoOut[i * 2];
-    }
+    convert_to_mono_float_left(_mono.data(), _stereoOut.data(), frames);
 
     convert_float_to_s16(out.data(), _mono.data(), frames);
 

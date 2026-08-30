@@ -3,7 +3,9 @@ target_include_directories(libretro-common PUBLIC "${libretro-common_SOURCE_DIR}
 
 target_sources(libretro-common PRIVATE
     ${libretro-common_SOURCE_DIR}/audio/conversion/float_to_s16.c
+    ${libretro-common_SOURCE_DIR}/audio/conversion/mono_to_stereo_float.c
     ${libretro-common_SOURCE_DIR}/audio/conversion/s16_to_float.c
+    ${libretro-common_SOURCE_DIR}/audio/conversion/stereo_to_mono_float.c
     ${libretro-common_SOURCE_DIR}/audio/resampler/audio_resampler.c
     ${libretro-common_SOURCE_DIR}/audio/resampler/drivers/sinc_resampler.c
     ${libretro-common_SOURCE_DIR}/compat/compat_fnmatch.c
