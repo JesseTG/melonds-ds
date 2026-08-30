@@ -54,6 +54,11 @@ else()
     set(DEFAULT_ENABLE_JIT ON)
 endif ()
 option(ENABLE_JIT "Enable JIT support. Not supported on all platforms." ${DEFAULT_ENABLE_JIT})
+# melonDS temporarily disables its JIT on x86_64 macOS (melonDS-emu/melonDS@99d29008)
+# over melonDS-emu/melonDS#2292, which only triggers via fastmem — and fastmem is
+# already hard-disabled on Apple by ARMJIT_Memory::IsFastMemSupported().
+# Defining ENABLE_JIT_ISSET makes cmake_dependent_option honor our value verbatim.
+set(ENABLE_JIT_ISSET "${ENABLE_JIT}")
 
 if (ANDROID OR IOS)
     message(STATUS "OpenGL is disabled by default on this platform.")

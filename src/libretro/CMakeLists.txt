@@ -233,14 +233,20 @@ elseif (HAVE_OPENGLES32)
     target_include_directories(melondsds_libretro SYSTEM PUBLIC "${OpenGLES_V32_INCLUDE_DIR}")
 endif ()
 
-if (ENABLE_JIT)
-    target_compile_definitions(melondsds_libretro PUBLIC JIT_ENABLED HAVE_JIT ENABLE_JIT)
+get_target_property(MELONDS_CORE_INTERFACE_DEFINITIONS core INTERFACE_COMPILE_DEFINITIONS)
+if (JIT_ENABLED IN_LIST MELONDS_CORE_INTERFACE_DEFINITIONS)
+    # JIT_ENABLED itself comes from melonDS's `core` target; defining it here too
+    # would let the two disagree and change melonDS::NDS's layout underneath us.
+    target_compile_definitions(melondsds_libretro PUBLIC HAVE_JIT ENABLE_JIT)
 
     if (NOT APPLE)
         target_compile_definitions(melondsds_libretro PUBLIC HAVE_JIT_FASTMEM)
         # melonDS doesn't support FastMem on macOS
     endif ()
+elseif (ENABLE_JIT)
+    message(FATAL_ERROR "ENABLE_JIT is ON, but melonDS's `core` target was built without JIT_ENABLED.")
 endif ()
+
 
 # libretro cores do not start with "lib"
 set_target_properties(melondsds_libretro PROPERTIES PREFIX "")
