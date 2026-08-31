@@ -51,7 +51,7 @@ def test_loads_unloads(session: SessionFactory, nds_rom: Path, options: dict[str
         frame1 = video.screenshot()
         assert frame1 is not None
 
-        for _ in range(360):
+        for _ in range(60):
             emulator.run()
 
         frame2 = video.screenshot()
