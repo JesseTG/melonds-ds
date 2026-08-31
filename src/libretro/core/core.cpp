@@ -16,7 +16,9 @@
 
 #include "core.hpp"
 
+#include <algorithm>
 #include <charconv>
+#include <optional>
 #include <DSi.h>
 
 #include <retro_assert.h>
@@ -29,6 +31,7 @@
 #include "console/dsi.hpp"
 #include "constants.hpp"
 #include "../config/console.hpp"
+#include "../environment.hpp"
 #include "../exceptions.hpp"
 #include "../format.hpp"
 #include "../info.hpp"
@@ -199,7 +202,7 @@ void MelonDsDs::CoreState::Run() noexcept {
         }
 
         _renderState.Render(nds, _inputState, Config, _screenLayout);
-        RenderAudio(*Console);
+        RenderAudio(*Console, Config);
 
         retro::task::check();
     }
@@ -288,13 +291,87 @@ void MelonDsDs::CoreState::Reset() {
 }
 
 
-void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) noexcept {
+namespace {
+    // The volume percentage for the frontend's current throttle mode, or 100 when
+    // it's at normal speed or reports nothing we can act on.
+    unsigned ThrottleVolume(const MelonDsDs::CoreConfig& config) noexcept {
+        // Nothing to override, so don't ask the frontend anything.
+        if (config.SpeedupVolume() == 100 && config.SlowmoVolume() == 100 && config.RewindVolume() == 100)
+            return 100;
+
+        if (std::optional<retro_throttle_state> throttle = retro::get_throttle_state()) {
+            switch (throttle->mode) {
+                case RETRO_THROTTLE_FAST_FORWARD:
+                case RETRO_THROTTLE_UNBLOCKED:
+                    return config.SpeedupVolume();
+                case RETRO_THROTTLE_SLOW_MOTION:
+                    return config.SlowmoVolume();
+                case RETRO_THROTTLE_REWINDING:
+                    return config.RewindVolume();
+                default:
+                    return 100;
+            }
+        }
+
+        // GET_THROTTLE_STATE and GET_FASTFORWARDING are both experimental calls;
+        // fall back to the latter, coarser one when the former isn't available.
+        // A bool can't tell slow motion or rewind apart, so only speed-up is reachable.
+        if (std::optional<bool> fastforwarding = retro::is_fastforwarding()) {
+            return *fastforwarding ? config.SpeedupVolume() : 100;
+        }
+
+        // Neither environment call is available, so there's nothing to override.
+        return 100;
+    }
+}
+
+void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds, const CoreConfig& config) noexcept {
     ZoneScopedN(TracyFunction);
     int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
     uint32_t size = std::min(nds.SPU.GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
     // Ensure that we don't overrun the buffer
 
     size_t read = nds.SPU.ReadOutput(audio_buffer, size);
+    // read is a count of stereo frames, so the buffer holds read*2 samples.
+
+    if (read > 0) {
+        // Only query the frontend, and only update _lastAudioVolume, when there's
+        // audio to act on; an empty buffer has nothing to ramp and nothing to remember.
+        unsigned volume = ThrottleVolume(config);
+        unsigned prevVolume = _lastAudioVolume;
+        if (prevVolume == 100 && volume == 100) {
+            // Nothing to do; leave the buffer as the SPU wrote it.
+        } else if (prevVolume == volume) {
+            // Steady state at some other volume, so apply it flat.
+            if (volume == 0) {
+                std::fill_n(audio_buffer, read * 2, int16_t {0});
+            } else {
+                for (size_t i = 0; i < read * 2; ++i) {
+                    audio_buffer[i] = static_cast<int16_t>(
+                        (static_cast<int32_t>(audio_buffer[i]) * static_cast<int32_t>(volume)) / 100
+                    );
+                }
+            }
+        } else {
+            // The volume changed, so ramp across this buffer rather than snapping to it,
+            // which would click. Both channels of a frame share a gain, so interpolate
+            // per frame instead of per sample.
+            int32_t prev = static_cast<int32_t>(prevVolume);
+            int32_t cur = static_cast<int32_t>(volume);
+            int32_t span = cur - prev;
+            auto frameCount = static_cast<int32_t>(read);
+            for (size_t frame = 0; frame < read; ++frame) {
+                int32_t gain = prev + (span * static_cast<int32_t>(frame)) / frameCount;
+                int16_t& left = audio_buffer[frame * 2];
+                int16_t& right = audio_buffer[frame * 2 + 1];
+                left = static_cast<int16_t>((static_cast<int32_t>(left) * gain) / 100);
+                right = static_cast<int16_t>((static_cast<int32_t>(right) * gain) / 100);
+            }
+        }
+
+        _lastAudioVolume = volume;
+    }
+
     retro::audio_sample_batch(audio_buffer, read);
 }
 

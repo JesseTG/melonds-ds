@@ -125,7 +125,7 @@ namespace MelonDsDs {
             const melonDS::NDSHeader& header,
             int type
         ) noexcept;
-        [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
+        [[gnu::hot]] void RenderAudio(melonDS::NDS& nds, const CoreConfig& config) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void RenderErrorScreen() noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
@@ -170,6 +170,14 @@ namespace MelonDsDs {
         bool _ndsSramInstalled = false;
         bool _deferredInitializationPending = false;
         uint32_t _flushTaskId = 0;
+        // The target volume of the last audio buffer that carried samples (read > 0),
+        // so RenderAudio can ramp into a change; a ramp's final frame falls slightly
+        // short of this value, since it's the target rather than the gain actually
+        // applied. A member and not a function-local static: CoreState is placement-new'd
+        // into a single static buffer at retro_init and destroyed at retro_deinit, so a
+        // static here would persist across that cycle and leak a stale volume into the
+        // next session.
+        unsigned _lastAudioVolume = 100;
     };
 }
 #endif //MELONDSDS_CORE_HPP

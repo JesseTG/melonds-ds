@@ -113,5 +113,74 @@ namespace MelonDsDs::config::definitions {
         BitDepth,
         AudioInterpolation,
     };
+
+    constexpr retro_core_option_v2_definition SpeedupVolume {
+        config::audio::SPEEDUP_VOLUME,
+        "Fast-Forward Volume",
+        nullptr,
+        "The volume to use while the frontend runs the core faster than normal, "
+        "whether by fast-forwarding or by not throttling at all.\n"
+        "\n"
+        "100% leaves the audio untouched.\n"
+        "0% silences it.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {"0", "0% (Muted)"},
+            {"10", "10%"},
+            {"25", "25%"},
+            {"50", "50%"},
+            {"75", "75%"},
+            {"100", "100%"},
+            {nullptr, nullptr},
+        },
+        "100",
+    };
+
+    constexpr retro_core_option_v2_definition SlowmoVolume {
+        config::audio::SLOWMO_VOLUME,
+        "Slow Motion Volume",
+        nullptr,
+        "The volume to use while the frontend runs the core in slow motion.\n"
+        "\n"
+        "100% leaves the audio untouched.\n"
+        "0% silences it.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {"0", "0% (Muted)"},
+            {"10", "10%"},
+            {"25", "25%"},
+            {"50", "50%"},
+            {"75", "75%"},
+            {"100", "100%"},
+            {nullptr, nullptr},
+        },
+        "100",
+    };
+
+    constexpr retro_core_option_v2_definition RewindVolume {
+        config::audio::REWIND_VOLUME,
+        "Rewind Volume",
+        nullptr,
+        "The volume to use while the frontend is rewinding.\n"
+        "\n"
+        "Rewound audio is played backwards, so a reduced volume is often more pleasant.\n"
+        "\n"
+        "100% leaves the audio untouched.\n"
+        "0% silences it.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {"0", "0% (Muted)"},
+            {"10", "10%"},
+            {"25", "25%"},
+            {"50", "50%"},
+            {"75", "75%"},
+            {"100", "100%"},
+            {nullptr, nullptr},
+        },
+        "100",
+    };
 }
 #endif //MELONDS_DS_AUDIO_HPP

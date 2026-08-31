@@ -83,6 +83,15 @@ namespace MelonDsDs {
         [[nodiscard]] melonDS::AudioInterpolation Interpolation() const noexcept { return _interpolation; }
         void SetInterpolation(melonDS::AudioInterpolation interpolation) noexcept { _interpolation = interpolation; }
 
+        [[nodiscard]] unsigned SpeedupVolume() const noexcept { return _speedupVolume; }
+        void SetSpeedupVolume(unsigned volume) noexcept { _speedupVolume = volume; }
+
+        [[nodiscard]] unsigned SlowmoVolume() const noexcept { return _slowmoVolume; }
+        void SetSlowmoVolume(unsigned volume) noexcept { _slowmoVolume = volume; }
+
+        [[nodiscard]] unsigned RewindVolume() const noexcept { return _rewindVolume; }
+        void SetRewindVolume(unsigned volume) noexcept { _rewindVolume = volume; }
+
         [[nodiscard]] MelonDsDs::AlarmMode AlarmMode() const noexcept { return _alarmMode; }
         void SetAlarmMode(MelonDsDs::AlarmMode alarmMode) noexcept { _alarmMode = alarmMode; }
 
@@ -429,6 +438,9 @@ namespace MelonDsDs {
         MelonDsDs::MicInputMode _micInputMode = *ParseMicInputMode(config::definitions::MicInput.default_value);
         melonDS::AudioBitDepth _bitDepth;
         melonDS::AudioInterpolation _interpolation;
+        unsigned _speedupVolume = 100;
+        unsigned _slowmoVolume = 100;
+        unsigned _rewindVolume = 100;
         MelonDsDs::AlarmMode _alarmMode;
         optional<unsigned> _alarmHour;
         optional<unsigned> _alarmMinute;
