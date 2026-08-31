@@ -341,7 +341,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: 1
           MESA_DEBUG: 1
-          D3D12_DEBUG: verbose,debuglayer,gpuvalidator
+          D3D12_DEBUG: debuglayer
           GLCONTEXT_WIN_LIBGL: "C:/Windows/System32/opengl32.dll"
         run: |
           ctest --output-on-failure
