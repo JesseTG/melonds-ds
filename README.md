@@ -24,7 +24,7 @@ Installation instructions may vary depending on your chosen libretro frontend.
 You can install melonDS DS through the built-in core downloader where supported.
 If your build of RetroArch doesn't include it (e.g. Steam)
 or if you want to use a development build,
-you can install it [RetroArch][retroarch] manually like so:
+you can install it in [RetroArch][retroarch] manually like so:
 
 1. Place `melondsds_libretro.dll` (or `.so` or `.dylib`, depending on the platform) in RetroArch's `cores` directory.
 2. Place `melondsds_libretro.info` in the same directory as the other `.info` files,
@@ -39,7 +39,7 @@ Usage instructions may vary depending on your chosen libretro frontend.
 ### Playing Nintendo DS Games
 
 1. Start RetroArch.
-2. Scan your Nintendo DS game library with the <kbd>Import Content</kbd> menu 
+2. Scan your Nintendo DS game library with the <kbd>Import Content</kbd> menu
    to build a playlist if you haven't already.
 3. Load a Nintendo DS game from the playlist.
    If you have the legacy melonDS core installed,
