@@ -18,8 +18,10 @@ markers = [
     "gba_rom: needs a GBA ROM (-DGBA_ROM=...)",
     "gba_sram: needs GBA save data (-DGBA_SRAM=...)",
     "godmode9i_rom: needs the GodMode9i homebrew ROM (downloaded at configure time)",
+    "godmode9i_dsi_rom: needs the DSi build of GodMode9i (downloaded at configure time)",
     "micrecord_nds: needs test/nds/micrecord.nds",
     "periph_slot2_nds: needs test/nds/periph_slot2.nds",
+    "scfg_registers_nds: needs test/nds/tests_sys_scfg_registers.nds",
 
     # --- System files ----------------------------------------------------
     # These are both a prerequisite and a staging instruction: a marked file is

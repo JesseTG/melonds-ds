@@ -25,8 +25,10 @@ ASSETS: Mapping[str, tuple[str, ...]] = {
     "gba_rom": ("GBA_ROM",),
     "gba_sram": ("GBA_SRAM",),
     "godmode9i_rom": ("GODMODE9I_ROM",),
+    "godmode9i_dsi_rom": ("GODMODE9I_DSI_ROM",),
     "micrecord_nds": ("MICRECORD_NDS",),
     "periph_slot2_nds": ("PERIPH_SLOT2_NDS",),
+    "scfg_registers_nds": ("SCFG_REGISTERS_NDS",),
     # System files, individually
     "arm7_bios": ("ARM7_BIOS",),
     "arm9_bios": ("ARM9_BIOS",),

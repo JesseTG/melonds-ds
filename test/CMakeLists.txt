@@ -117,9 +117,11 @@ FetchContent_Declare(
 FetchContent_GetProperties(godmode9i)
 FetchContent_MakeAvailable(godmode9i)
 set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
+set(GODMODE9I_DSI_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.dsi")
 
 set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
 set(PERIPH_SLOT2_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/periph_slot2.nds")
+set(SCFG_REGISTERS_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/tests_sys_scfg_registers.nds")
 
 ################################################################################
 # System files
@@ -261,8 +263,10 @@ pytest_discover_tests(melonDSDS
         "GBA_ROM=${GBA_ROM}"
         "GBA_SRAM=${GBA_SRAM}"
         "GODMODE9I_ROM=${GODMODE9I_ROM}"
+        "GODMODE9I_DSI_ROM=${GODMODE9I_DSI_ROM}"
         "MICRECORD_NDS=${MICRECORD_NDS}"
         "PERIPH_SLOT2_NDS=${PERIPH_SLOT2_NDS}"
+        "SCFG_REGISTERS_NDS=${SCFG_REGISTERS_NDS}"
         "ARM7_BIOS=${ARM7_BIOS}"
         "ARM9_BIOS=${ARM9_BIOS}"
         "ARM7_DSI_BIOS=${ARM7_DSI_BIOS}"
