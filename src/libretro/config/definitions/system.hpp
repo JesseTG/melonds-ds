@@ -386,23 +386,6 @@ namespace MelonDsDs::config::definitions {
         values::ENABLED
     };
 
-    constexpr std::initializer_list<retro_core_option_v2_definition> SystemOptionDefinitions {
-        ConsoleMode,
-        SysfileMode,
-        FirmwarePath,
-        DsiFirmwarePath,
-        NandPath,
-        BootMode,
-        DsiSdCardSaveMode,
-        DsiSdCardReadOnly,
-        DsiSdCardSyncToHost,
-        Slot2Device,
-        HomebrewSdCard,
-        HomebrewSdCardReadOnly,
-        HomebrewSdCardSyncToHost,
-        BatteryUpdateInterval,
-        NdsPowerOkThreshold,
-    };
 }
 
 #endif //MELONDS_DS_SYSTEM_HPP
