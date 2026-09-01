@@ -20,9 +20,20 @@
 #include <cstdint>
 
 namespace MelonDsDs {
+    /// The console that's actually emulated.
+    /// These values match \c melonDS::NDS::ConsoleType, so don't renumber them.
     enum class ConsoleType {
         DS = 0,
         DSi = 1,
+    };
+
+    /// The console the player asked for,
+    /// which is not necessarily the console they get.
+    /// Resolved against the loaded ROM's header by \c MelonDsDs::ResolveConsoleType.
+    enum class ConsoleMode {
+        Auto,
+        DS,
+        DSi,
     };
 
     enum class Slot2Device {

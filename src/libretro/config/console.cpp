@@ -198,6 +198,30 @@ namespace {
     }
 }
 
+bool MelonDsDs::RequiresDSi(const melonDS::NDSHeader& header) noexcept {
+    // A DSiWare title ID can turn up with either DSi unit code,
+    // so neither check subsumes the other.
+    return header.UnitCode == 0x03 || header.IsDSiWare();
+}
+
+bool MelonDsDs::IsRetailDSiTitle(const melonDS::NDSHeader& header) noexcept {
+    constexpr uint8_t MODCRYPT_APPLIED = 1 << 1;
+
+    return (header.DSiCryptoFlags & MODCRYPT_APPLIED) && !header.IsHomebrew();
+}
+
+MelonDsDs::ConsoleType MelonDsDs::ResolveConsoleType(ConsoleMode mode, const melonDS::NDSHeader* header) noexcept {
+    switch (mode) {
+        case ConsoleMode::DS:
+            return ConsoleType::DS;
+        case ConsoleMode::DSi:
+            return ConsoleType::DSi;
+        case ConsoleMode::Auto:
+        default:
+            return (header && RequiresDSi(*header)) ? ConsoleType::DSi : ConsoleType::DS;
+    }
+}
+
 std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
     CoreState& state,
     const CoreConfig& config,
@@ -206,15 +230,28 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
     const retro::GameInfo* gbaSaveInfo
 ) {
     ZoneScopedN(TracyFunction);
-    ConsoleType type = config.ConsoleType();
-    const melonDS::NDSHeader* header = ndsInfo
+    // The header is only trustworthy if the whole of it was actually loaded;
+    // IsDSiWare reads fields near the end of it.
+    const melonDS::NDSHeader* header = (ndsInfo && ndsInfo->GetData().size() >= sizeof(melonDS::NDSHeader))
         ? reinterpret_cast<const melonDS::NDSHeader*>(ndsInfo->GetData().data())
         : nullptr;
 
-    if (header && header->IsDSiWare()) {
-        // If we're loading a DSiWare game...
-        type = ConsoleType::DSi;
-        retro::warn("Forcing DSi mode for DSiWare game");
+    // config.ConsoleMode() is what the player asked for;
+    // from here on, Console->ConsoleType is what they got.
+    ConsoleType type = ResolveConsoleType(config.ConsoleMode(), header);
+
+    if (type == ConsoleType::DS && header && RequiresDSi(*header)) {
+        // If the player forced DS mode for a game that needs a DSi...
+        if (IsRetailDSiTitle(*header)) {
+            // ...and it's a retail game, then it definitely won't work.
+            throw wrong_console_mode_exception(config.ConsoleMode());
+        }
+
+        // Homebrew is a different story;
+        // BlocksDS marks its ROMs as DSiWare by default,
+        // but they generally still run on a DS.
+        // See https://github.com/JesseTG/melonds-ds/issues/319.
+        retro::info("Running DSi-mode homebrew on a DS, as requested");
     }
 
     if (type == ConsoleType::DSi) {
