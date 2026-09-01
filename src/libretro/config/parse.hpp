@@ -106,9 +106,10 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
-    constexpr std::optional<MelonDsDs::ConsoleType> ParseConsoleType(std::string_view value) noexcept {
-        if (value == config::values::DS) return MelonDsDs::ConsoleType::DS;
-        if (value == config::values::DSI) return MelonDsDs::ConsoleType::DSi;
+    constexpr std::optional<MelonDsDs::ConsoleMode> ParseConsoleMode(std::string_view value) noexcept {
+        if (value == config::values::AUTO) return MelonDsDs::ConsoleMode::Auto;
+        if (value == config::values::DS) return MelonDsDs::ConsoleMode::DS;
+        if (value == config::values::DSI) return MelonDsDs::ConsoleMode::DSi;
         return std::nullopt;
     }
 

@@ -68,8 +68,9 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
 #endif
 
     bool oldShowDsiOptions = ShowDsiOptions;
-    optional<ConsoleType> consoleType = ParseConsoleType(get_variable(system::CONSOLE_MODE));
-    ShowDsiOptions = !consoleType || *consoleType == ConsoleType::DSi;
+    // Auto can end up on either console, so it shows both sets of options.
+    ConsoleMode consoleMode = ParseConsoleMode(get_variable(system::CONSOLE_MODE)).value_or(ConsoleMode::Auto);
+    ShowDsiOptions = consoleMode != ConsoleMode::DS;
     if (!VisibilityInitialized || ShowDsiOptions != oldShowDsiOptions) {
         set_option_visible(config::system::FIRMWARE_DSI_PATH, ShowDsiOptions);
         set_option_visible(config::storage::DSI_NAND_PATH, ShowDsiOptions);
@@ -87,7 +88,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
     }
 
     bool oldShowDsOptions = ShowDsOptions;
-    ShowDsOptions = !consoleType || *consoleType == ConsoleType::DS;
+    ShowDsOptions = consoleMode != ConsoleMode::DSi;
     if (!VisibilityInitialized || ShowDsOptions != oldShowDsOptions) {
         set_option_visible(config::system::SYSFILE_MODE, ShowDsOptions);
         set_option_visible(config::system::FIRMWARE_PATH, ShowDsOptions);

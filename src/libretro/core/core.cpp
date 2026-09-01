@@ -108,23 +108,38 @@ void MelonDsDs::CoreState::UnloadGame() noexcept {
         Console->Stop();
     }
 
-    if (_ndsInfo) {
-        // If this session involved a loaded DS game...
-
-        retro_assert(!_ndsInfo->GetData().empty());
-        const melonDS::NDSHeader& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
-        if (header.IsDSiWare()) {
-            // And that game was a DSiWare game...
-            retro_assert(Console->ConsoleType == 1);
-            retro_assert(dynamic_cast<melonDS::DSi*>(Console.get()) != nullptr);
-
-            melonDS::DSi& dsi = *static_cast<melonDS::DSi*>(Console.get());
-            UninstallDsiware(dsi.GetNAND());
-        }
-    }
+    UninstallDsiwareIfNeeded();
 
     Console = nullptr;
     melonDS::NDS::Current = nullptr;
+}
+
+const melonDS::NDSHeader* MelonDsDs::CoreState::LoadedHeader() const noexcept {
+    if (!_ndsInfo || _ndsInfo->GetData().size() < sizeof(melonDS::NDSHeader))
+        return nullptr;
+
+    return reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
+}
+
+bool MelonDsDs::CoreState::IsDsiwareSession() const noexcept {
+    // Mirrors the condition that installs the title in the first place;
+    // see GetDSiArgs in config/console.cpp.
+    if (!Console || static_cast<ConsoleType>(Console->ConsoleType) != ConsoleType::DSi)
+        return false;
+
+    const melonDS::NDSHeader* header = LoadedHeader();
+
+    return header && header->IsDSiWare();
+}
+
+void MelonDsDs::CoreState::UninstallDsiwareIfNeeded() noexcept {
+    if (!IsDsiwareSession())
+        return;
+
+    retro_assert(dynamic_cast<melonDS::DSi*>(Console.get()) != nullptr);
+
+    melonDS::DSi& dsi = *static_cast<melonDS::DSi*>(Console.get());
+    UninstallDsiware(dsi.GetNAND());
 }
 
 void MelonDsDs::CoreState::Run() noexcept {
@@ -241,6 +256,13 @@ void MelonDsDs::CoreState::Reset() {
     }
 
     std::vector<melonDS::ARCode> cheats = std::move(Console->AREngine.Cheats);
+
+    // ParseConfig has already run, so this is the console mode we're about to switch *to*.
+    // A title that stays on the DSi can stay installed; one that's leaving must be removed now,
+    // because by the time we unload it there'll be no NAND to remove it from.
+    if (ResolveConsoleType(Config.ConsoleMode(), LoadedHeader()) != ConsoleType::DSi) {
+        UninstallDsiwareIfNeeded();
+    }
 
     Console = nullptr;
     melonDS::NDS::Current = nullptr;
@@ -491,8 +513,10 @@ void MelonDsDs::CoreState::StartConsole() {
             // upstream melonDS doesn't support direct boot for DSiWare,
             // but this core does thanks to discoveries by CasualPokePlayer
         }
-        else if (Console->GetNDSCart() && !header.IsDSiWare() && (isDirectBootConfigured || Console->NeedsDirectBoot())) {
-            // Else if a regular NDS cart is inserted (even in DSi mode)...
+        else if (Console->GetNDSCart() && (isDirectBootConfigured || Console->NeedsDirectBoot())) {
+            // Else if a cart is inserted (even in DSi mode)...
+            // A DSiWare title is installed to the NAND rather than the cart slot,
+            // so if one is in the slot then the player forced DS mode and wants it booted.
 
             if (const char* ptr = path_basename(_ndsInfo->GetPath().data()); ptr) {
                 // If we know the name of the loaded ROM...
@@ -566,10 +590,14 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
     melonDS::NDS::Current = Console.get();
 
 
-    if (Console->GetNDSCart()) {
-        assert(!Console->GetNDSCart()->GetHeader().IsDSiWare());
-        // DSi mode should've been forced if loading a DSiWare game
-        InitNdsSave(*Console->GetNDSCart());
+    if (melonDS::NDSCart::CartCommon* cart = Console->GetNDSCart()) {
+        // A DSiWare title is installed to the NAND instead of being inserted into the cart slot,
+        // so it can only be in the slot if the player forced DS mode.
+        retro_assert(
+            !cart->GetHeader().IsDSiWare() ||
+            static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DS
+        );
+        InitNdsSave(*cart);
     }
 
     if (_gbaInfo && _gbaSaveInfo && Console->GetGBASave() && Console->GetGBASaveLength()) {

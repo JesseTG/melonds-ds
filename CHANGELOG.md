@@ -11,11 +11,28 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+### Added
+
+- Added an "Auto" setting to the Console Mode core option.
+  It forces DSi mode for games that need a DSi and DS mode for everything else.
+  Forcing DS mode now runs DSi-mode homebrew without any DSi system files,
+  which is useful for ROMs built with BlocksDS --
+  it marks them as DSiWare by default, even though they run on a DS.
+  See [#319](https://github.com/JesseTG/melonds-ds/issues/319).
+
+### Changed
+
+- Changed the default Console Mode to Auto.
+- DSi-exclusive cartridges now run in DSi mode when Console Mode is set to Auto.
+  DSi-_enhanced_ games are unaffected.
+
 ### Fixed
 
 - Fixed the error screen not honoring the screen layout settings
   (secondary screen scale, hybrid layouts, the layout hotkey, and changes made while it's shown).
   See [#316](https://github.com/JesseTG/melonds-ds/issues/316).
+- Fixed the temporarily-installed DSiWare title not being removed from the NAND
+  when resetting into DS mode.
 
 ## [1.3.1] - 2026-08-22
 

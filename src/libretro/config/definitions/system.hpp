@@ -26,24 +26,29 @@ namespace MelonDsDs::config::definitions {
         config::system::CONSOLE_MODE,
         "Console Mode",
         nullptr,
-        "Whether melonDS should emulate a Nintendo DS or a Nintendo DSi. "
+        "Whether to emulate a Nintendo DS or a Nintendo DSi.\n"
+        "\n"
+        "Auto uses DSi mode for games that need a DSi, and DS mode for everything else. "
+        "The DS and DSi settings force the corresponding console; "
+        "this is mostly useful for homebrew development.\n"
+        "\n"
         "DSi mode has some limits:\n"
         "\n"
         "- Native BIOS/firmware/NAND files must be provided, including for the regular DS.\n"
         "- Some features (such as savestates) are not available in DSi mode.\n"
-        "- Direct boot mode cannot be used for DSiWare.\n"
         "\n"
         "See the DSi-specific options in this category for more information. "
-        "If unsure, set to DS mode unless playing a DSi game. "
+        "If unsure, use Auto. "
         "Changes take effect at the next restart.",
         nullptr,
         config::system::CATEGORY,
         {
+            {MelonDsDs::config::values::AUTO, "Auto"},
             {MelonDsDs::config::values::DS, "DS"},
             {MelonDsDs::config::values::DSI, "DSi (experimental)"},
             {nullptr, nullptr},
         },
-        MelonDsDs::config::values::DS
+        MelonDsDs::config::values::AUTO
     };
 
     constexpr retro_core_option_v2_definition SysfileMode {

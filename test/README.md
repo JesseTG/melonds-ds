@@ -169,6 +169,7 @@ All of the test code lives in [`test/python`](python).
 | `test_environment.py` | Environment calls: directories, capabilities, messages, metadata |
 | `test_options.py` | Core options: declaration, reading, updating, visibility |
 | `test_booting.py` | Every combination of console mode and system files |
+| `test_console_mode.py` | Resolving "Auto" console mode against the loaded ROM |
 | `test_av.py` | Audio and video output, screen geometry, rotation |
 | `test_opengl.py` | Hardware rendering and runtime renderer switching |
 | `test_input.py` | Buttons, the touch pointer, the analog cursor, the microphone |

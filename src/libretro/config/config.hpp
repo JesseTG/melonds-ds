@@ -304,8 +304,10 @@ namespace MelonDsDs {
         [[nodiscard]] bool JoystickSpeedupEnabled() const noexcept { return _joystickSpeedupEnabled; }
         void SetJoystickSpeedupEnabled(bool joystickSpeedupEnabled) noexcept { _joystickSpeedupEnabled = joystickSpeedupEnabled; }           
 
-        [[nodiscard]] MelonDsDs::ConsoleType ConsoleType() const noexcept { return _consoleType; }
-        void SetConsoleType(MelonDsDs::ConsoleType consoleType) noexcept { _consoleType = consoleType; }
+        /// The console the player asked for.
+        /// What they actually got is \c melonDS::NDS::ConsoleType on the live console.
+        [[nodiscard]] MelonDsDs::ConsoleMode ConsoleMode() const noexcept { return _consoleMode; }
+        void SetConsoleMode(MelonDsDs::ConsoleMode consoleMode) noexcept { _consoleMode = consoleMode; }
 
         [[nodiscard]] MelonDsDs::BootMode BootMode() const noexcept { return _bootMode; }
         void SetBootMode(MelonDsDs::BootMode bootMode) noexcept { _bootMode = bootMode; }
@@ -501,7 +503,7 @@ namespace MelonDsDs {
         int _joystickCursorSpeedup = 200;
         bool _joystickSpeedupEnabled = false;
         MelonDsDs::TouchMode _touchMode;
-        MelonDsDs::ConsoleType _consoleType;
+        MelonDsDs::ConsoleMode _consoleMode = *ParseConsoleMode(config::definitions::ConsoleMode.default_value);
         MelonDsDs::BootMode _bootMode;
         MelonDsDs::SysfileMode _sysfileMode;
         unsigned _dsPowerOkayThreshold = 20;

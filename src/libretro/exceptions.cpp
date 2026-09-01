@@ -82,6 +82,18 @@ MelonDsDs::encrypted_rom_exception::encrypted_rom_exception() noexcept : bios_ex
 }
 
 
+MelonDsDs::wrong_console_mode_exception::wrong_console_mode_exception(MelonDsDs::ConsoleMode requested) noexcept
+    : config_exception(
+    fmt::format(
+        "The loaded game requires a DSi, "
+        "but the Console Mode core option is set to {}.",
+        requested
+    ),
+    "This game only runs on a Nintendo DSi. "
+    "Set the Console Mode core option to Auto or DSi, then restart the core."
+) {
+}
+
 MelonDsDs::dsi_region_mismatch_exception::dsi_region_mismatch_exception(
     string_view nandName,
     melonDS::DSi_NAND::ConsoleRegion nandRegion,

@@ -104,9 +104,40 @@ def test_defines_options(
     assert all(v.key for v in definitions.values())
 
 
+#: Options that only mean anything on a DS.
+DS_ONLY_OPTIONS = (
+    "melonds_ds_battery_ok_threshold",
+    "melonds_sysfile_mode",
+    "melonds_firmware_nds_path",
+    "melonds_slot2_device",
+)
+
+#: Options that only mean anything on a DSi.
+DSI_ONLY_OPTIONS = (
+    "melonds_firmware_dsi_path",
+    "melonds_dsi_nand_path",
+    "melonds_dsi_sdcard",
+)
+
+
 @pytest.mark.nds_rom
-def test_options_visibility(session: SessionFactory, nds_rom: Path) -> None:
-    """Switching to DSi mode hides the DS-only battery threshold option."""
+@pytest.mark.parametrize(
+    ("console_mode", "ds_shown", "dsi_shown"),
+    [
+        # Auto can end up on either console, so neither group is hidden.
+        pytest.param(b"auto", True, True, id="auto"),
+        pytest.param(b"ds", True, False, id="ds"),
+        pytest.param(b"dsi", False, True, id="dsi"),
+    ],
+)
+def test_options_visibility(
+    session: SessionFactory,
+    nds_rom: Path,
+    console_mode: bytes,
+    ds_shown: bool,
+    dsi_shown: bool,
+) -> None:
+    """The console mode hides the options that can't apply to it."""
     with session(nds_rom) as emulator:
         assert emulator.options.update_display_callback
         assert emulator.options.update_display_callback.callback
@@ -114,13 +145,16 @@ def test_options_visibility(session: SessionFactory, nds_rom: Path) -> None:
         assert "melonds_console_mode" in emulator.options.variables
         assert "melonds_dsi_nand_path" in emulator.options.variables
 
-        assert emulator.options.variables["melonds_console_mode"] == b"ds"
-        assert emulator.options.visibility["melonds_ds_battery_ok_threshold"]
+        assert emulator.options.variables["melonds_console_mode"] == b"auto"
 
-        emulator.options.variables["melonds_console_mode"] = b"dsi"
+        emulator.options.variables["melonds_console_mode"] = console_mode
+        assert emulator.options.variables["melonds_console_mode"] == console_mode
 
-        assert emulator.options.variables["melonds_console_mode"] == b"dsi"
-        assert not emulator.options.visibility["melonds_ds_battery_ok_threshold"]
+        for key in DS_ONLY_OPTIONS:
+            assert emulator.options.visibility[key] == ds_shown
+
+        for key in DSI_ONLY_OPTIONS:
+            assert emulator.options.visibility[key] == dsi_shown
 
 
 @pytest.mark.nds_rom

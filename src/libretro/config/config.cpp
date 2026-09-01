@@ -171,11 +171,11 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
 
     // All of these options take effect when a game starts, so there's no need to update them mid-game
 
-    if (optional<MelonDsDs::ConsoleType> type = ParseConsoleType(get_variable(CONSOLE_MODE))) {
-        config.SetConsoleType(*type);
+    if (optional<MelonDsDs::ConsoleMode> mode = ParseConsoleMode(get_variable(CONSOLE_MODE))) {
+        config.SetConsoleMode(*mode);
     } else {
-        retro::warn("Failed to get value for {}; defaulting to {}", CONSOLE_MODE, values::DS);
-        config.SetConsoleType(ConsoleType::DS);
+        retro::warn("Failed to get value for {}; defaulting to {}", CONSOLE_MODE, values::AUTO);
+        config.SetConsoleMode(ConsoleMode::Auto);
     }
 
     if (optional<MelonDsDs::Slot2Device> type = ParseSlot2Device(get_variable(SLOT2_DEVICE))) {

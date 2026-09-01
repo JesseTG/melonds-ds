@@ -118,6 +118,12 @@ namespace MelonDsDs {
         [[gnu::cold]] void StartConsole();
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds, local_seconds time) noexcept;
+        /// \return The header of the loaded NDS ROM,
+        /// or \c nullptr if there isn't one (or if it's too short to be trusted).
+        [[nodiscard]] const melonDS::NDSHeader* LoadedHeader() const noexcept;
+        /// \return \c true if the loaded game was temporarily installed onto the DSi NAND.
+        [[nodiscard]] bool IsDsiwareSession() const noexcept;
+        [[gnu::cold]] void UninstallDsiwareIfNeeded() noexcept;
         [[gnu::cold]] void UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) noexcept;
         [[gnu::cold]] static void ExportDsiwareSaveData(
             melonDS::DSi_NAND::NANDMount& nand,

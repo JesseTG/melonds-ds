@@ -224,6 +224,19 @@ extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept
     return Core.GetInputState().GetControllerPortDevice(port);
 }
 
+/// \return The type of the emulated console
+/// (0 for a DS, 1 for a DSi, matching melonDS::NDS::ConsoleType),
+/// or -1 if no console has been created.
+extern "C" int32_t melondsds_get_console_type() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!console)
+        return -1;
+
+    return console->ConsoleType;
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -305,6 +318,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);
+
+    if (string_is_equal(sym, "melondsds_get_console_type"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_get_console_type);
 
     return nullptr;
 }

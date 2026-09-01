@@ -81,6 +81,13 @@ namespace MelonDsDs
         encrypted_rom_exception() noexcept;
     };
 
+    /// Thrown when the player forced a console mode
+    /// that the loaded game can't run on.
+    class wrong_console_mode_exception : public config_exception {
+    public:
+        explicit wrong_console_mode_exception(MelonDsDs::ConsoleMode requested) noexcept;
+    };
+
     class dsi_region_mismatch_exception : public config_exception {
     public:
         dsi_region_mismatch_exception(std::string_view nandName, melonDS::DSi_NAND::ConsoleRegion nandRegion, melonDS::RegionMask gameRegionMask) noexcept;
