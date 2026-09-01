@@ -70,6 +70,11 @@ namespace fmt {
     };
 
     template<>
+    struct formatter<MelonDsDs::ConsoleMode> : formatter<std::string_view> {
+        auto format(MelonDsDs::ConsoleMode c, format_context& ctx) const -> decltype(ctx.out());
+    };
+
+    template<>
     struct formatter<melonDS::DSi_NAND::ConsoleRegion> : formatter<std::string_view> {
         auto format(melonDS::DSi_NAND::ConsoleRegion c, format_context& ctx) const -> decltype(ctx.out());
     };

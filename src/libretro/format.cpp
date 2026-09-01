@@ -195,6 +195,22 @@ auto fmt::formatter<MelonDsDs::ConsoleType>::format(MelonDsDs::ConsoleType c, fo
     return formatter<string_view>::format(name, ctx);
 }
 
+auto fmt::formatter<MelonDsDs::ConsoleMode>::format(MelonDsDs::ConsoleMode c, format_context& ctx) const -> decltype(ctx.out()) {
+    string_view name = "unknown";
+    switch (c) {
+        case MelonDsDs::ConsoleMode::Auto:
+            name = "Auto";
+            break;
+        case MelonDsDs::ConsoleMode::DS:
+            name = "DS";
+            break;
+        case MelonDsDs::ConsoleMode::DSi:
+            name = "DSi";
+            break;
+    }
+    return formatter<string_view>::format(name, ctx);
+}
+
 auto fmt::formatter<ConsoleRegion>::format(ConsoleRegion c, format_context& ctx) const -> decltype(ctx.out()) {
     string_view name = "<unknown>";
     switch (c) {
