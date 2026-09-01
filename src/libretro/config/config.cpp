@@ -652,6 +652,27 @@ static void MelonDsDs::config::ParseAudioOptions(CoreConfig& config) noexcept {
         retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_INTERPOLATION, values::DISABLED);
         config.SetInterpolation(AudioInterpolation::None);
     }
+
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(SPEEDUP_VOLUME), 0u, 100u)) {
+        config.SetSpeedupVolume(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100", SPEEDUP_VOLUME);
+        config.SetSpeedupVolume(100);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(SLOWMO_VOLUME), 0u, 100u)) {
+        config.SetSlowmoVolume(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100", SLOWMO_VOLUME);
+        config.SetSlowmoVolume(100);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInRange<unsigned>(get_variable(REWIND_VOLUME), 0u, 100u)) {
+        config.SetRewindVolume(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100", REWIND_VOLUME);
+        config.SetRewindVolume(100);
+    }
 }
 
 static void MelonDsDs::config::ParseNetworkOptions(CoreConfig& config) noexcept {

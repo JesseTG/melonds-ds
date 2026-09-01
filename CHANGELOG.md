@@ -11,6 +11,13 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 ## [Unreleased]
 
+### Added
+
+- Added core options for the audio volume while the frontend runs the core off-speed:
+  Fast-Forward Volume, Slow Motion Volume and Rewind Volume
+  (`melonds_audio_speedup_volume`, `melonds_audio_slowmo_volume`, `melonds_audio_rewind_volume`).
+  Each ranges from 0% (muted) to 100% (unchanged, the default).
+
 ### Fixed
 
 - Fixed the error screen not honoring the screen layout settings

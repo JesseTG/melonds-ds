@@ -39,6 +39,9 @@ namespace MelonDsDs::config::definitions {
         MicInputButton,
         BitDepth,
         AudioInterpolation,
+        SpeedupVolume,
+        SlowmoVolume,
+        RewindVolume,
 
 #ifdef JIT_ENABLED
         JitEnabled,

@@ -129,3 +129,33 @@ def test_options_visibility_update_callback(session: SessionFactory, nds_rom: Pa
     with session(nds_rom) as emulator:
         assert emulator.options.update_display_callback
         assert emulator.options.update_display_callback.callback
+
+
+@pytest.mark.nds_rom
+@pytest.mark.parametrize(
+    "key",
+    [
+        "melonds_audio_speedup_volume",
+        "melonds_audio_slowmo_volume",
+        "melonds_audio_rewind_volume",
+    ],
+)
+def test_declares_speed_volume_options(
+    session: SessionFactory, nds_rom: Path, key: str
+) -> None:
+    """Each per-speed volume option is declared, defaults to 100, and is readable."""
+    with session(nds_rom) as emulator:
+        definitions = emulator.options.definitions
+        assert key.encode() in definitions
+
+        definition = definitions[key.encode()]
+        assert definition.default_value == b"100"
+
+        values = {value.value for value in definition.values if value.value}
+        assert values == {b"0", b"10", b"25", b"50", b"75", b"100"}
+
+        get_option = emulator.get_proc_address(
+            "libretropy_get_option", TypedFunctionPointer[c_char_p, [CStringArg]]
+        )
+        assert get_option is not None
+        assert get_option(key.encode()) == b"100"

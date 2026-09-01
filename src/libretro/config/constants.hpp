@@ -46,6 +46,9 @@ namespace MelonDsDs::config {
         static constexpr const char *const AUDIO_INTERPOLATION = "melonds_audio_interpolation";
         static constexpr const char *const MIC_INPUT = "melonds_mic_input";
         static constexpr const char *const MIC_INPUT_BUTTON = "melonds_mic_input_active";
+        static constexpr const char *const SPEEDUP_VOLUME = "melonds_audio_speedup_volume";
+        static constexpr const char *const SLOWMO_VOLUME = "melonds_audio_slowmo_volume";
+        static constexpr const char *const REWIND_VOLUME = "melonds_audio_rewind_volume";
     }
 
     namespace cpu {
