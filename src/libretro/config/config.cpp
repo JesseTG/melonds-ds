@@ -652,6 +652,25 @@ static void MelonDsDs::config::ParseAudioOptions(CoreConfig& config) noexcept {
         retro::warn("Failed to get value for {}; defaulting to {}", AUDIO_INTERPOLATION, values::DISABLED);
         config.SetInterpolation(AudioInterpolation::None);
     }
+
+    if (optional<bool> value = ParseBoolean(get_variable(TIME_STRETCH))) {
+        config.SetTimeStretch(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", TIME_STRETCH, values::ENABLED);
+        config.SetTimeStretch(true);
+    }
+
+    // "disabled" is a value the cutoff can't otherwise take, rather than a
+    // separate flag: AudioComputeLowPassCutoff already treats anything at or
+    // above SPEEDUP_LOWPASS_OFF as wide open.
+    if (string_view value = get_variable(SPEEDUP_LOWPASS); value == values::DISABLED) {
+        config.SetSpeedUpLowPass(SPEEDUP_LOWPASS_OFF);
+    } else if (optional<int> cutoff = ParseIntegerInRange(value, 1000, SPEEDUP_LOWPASS_OFF)) {
+        config.SetSpeedUpLowPass(*cutoff);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", SPEEDUP_LOWPASS, SPEEDUP_LOWPASS_DEFAULT);
+        config.SetSpeedUpLowPass(SPEEDUP_LOWPASS_DEFAULT);
+    }
 }
 
 static void MelonDsDs::config::ParseNetworkOptions(CoreConfig& config) noexcept {

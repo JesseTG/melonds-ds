@@ -19,6 +19,13 @@ a design goal is to avoid a 2.x release for as long as possible.
   which is useful for ROMs built with BlocksDS --
   it marks them as DSiWare by default, even though they run on a DS.
   See [#319](https://github.com/JesseTG/melonds-ds/issues/319).
+- Added "Audio Time Stretching", which stretches audio so it keeps its pitch
+  whenever the frontend runs the emulator off real time, whether that's
+  fast-forward or slow motion. Enabled by default; the core paces its own audio
+  output against real time while it's active.
+  Ported from the standalone melonDS frontend.
+- Added "Fast-Forward Low-Pass Filter", which muffles fast-forward audio.
+  Defaults to 20 kHz, which is transparent until about 1.4x speed.
 
 ### Changed
 

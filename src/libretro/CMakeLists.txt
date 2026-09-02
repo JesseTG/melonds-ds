@@ -9,7 +9,21 @@ else ()
     set(LIBRARY_TYPE MODULE)
 endif ()
 
+# Mirror melonDS's LTO settings so our objects and melonDS's are both bitcode.
+# (Mixed LTO/non-LTO breaks emulated-TLS symbols like NDS::Current on Android/MinGW.)
+if (ENABLE_LTO_RELEASE)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+endif ()
+if (ENABLE_LTO)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif ()
+
 add_library(melondsds_libretro ${LIBRARY_TYPE}
+    audio/audio.cpp
+    audio/audio.hpp
+    audio/lowpass.hpp
+    audio/speed.hpp
+    audio/timestretch.hpp
     buffer.cpp
     buffer.hpp
     config/config.hpp
