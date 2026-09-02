@@ -32,6 +32,7 @@
 #include <vector>
 #include <SPU.h>
 
+#include "../audio/speed.hpp"
 #include "parse.hpp"
 #include "definitions.hpp"
 #include "std/span.hpp"
@@ -82,6 +83,14 @@ namespace MelonDsDs {
 
         [[nodiscard]] melonDS::AudioInterpolation Interpolation() const noexcept { return _interpolation; }
         void SetInterpolation(melonDS::AudioInterpolation interpolation) noexcept { _interpolation = interpolation; }
+
+        [[nodiscard]] bool TimeStretch() const noexcept { return _timeStretch; }
+        void SetTimeStretch(bool enabled) noexcept { _timeStretch = enabled; }
+
+        /// Low-pass cutoff in Hz, divided by the speed multiplier when fast-forwarding.
+        /// \c SPEEDUP_LOWPASS_OFF means the filter never engages.
+        [[nodiscard]] int SpeedUpLowPass() const noexcept { return _speedUpLowPass; }
+        void SetSpeedUpLowPass(int cutoffHz) noexcept { _speedUpLowPass = cutoffHz; }
 
         [[nodiscard]] MelonDsDs::AlarmMode AlarmMode() const noexcept { return _alarmMode; }
         void SetAlarmMode(MelonDsDs::AlarmMode alarmMode) noexcept { _alarmMode = alarmMode; }
@@ -431,6 +440,8 @@ namespace MelonDsDs {
         MelonDsDs::MicInputMode _micInputMode = *ParseMicInputMode(config::definitions::MicInput.default_value);
         melonDS::AudioBitDepth _bitDepth;
         melonDS::AudioInterpolation _interpolation;
+        bool _timeStretch = true;
+        int _speedUpLowPass = SPEEDUP_LOWPASS_DEFAULT;
         MelonDsDs::AlarmMode _alarmMode;
         optional<unsigned> _alarmHour;
         optional<unsigned> _alarmMinute;

@@ -214,7 +214,7 @@ void MelonDsDs::CoreState::Run() noexcept {
         }
 
         _renderState.Render(nds, _inputState, Config, _screenLayout);
-        RenderAudio(*Console);
+        _audioState.Render(*Console);
 
         retro::task::check();
     }
@@ -243,6 +243,7 @@ void MelonDsDs::CoreState::Reset() {
     RegisterCoreOptions(Config);
     ParseConfig(Config);
     ApplyConfig(Config);
+    _audioState.Reset();
     _syncClock = Config.StartTimeMode() == StartTimeMode::Sync;
 
     std::vector<uint8_t> ndsSram(Console->GetNDSSaveLength());
@@ -309,16 +310,6 @@ void MelonDsDs::CoreState::Reset() {
     StartConsole();
 }
 
-
-void MelonDsDs::CoreState::RenderAudio(melonDS::NDS& nds) noexcept {
-    ZoneScopedN(TracyFunction);
-    int16_t audio_buffer[0x1000]; // 4096 samples == 2048 stereo frames
-    uint32_t size = std::min(nds.SPU.GetOutputSize(), static_cast<int>(sizeof(audio_buffer) / (2 * sizeof(int16_t))));
-    // Ensure that we don't overrun the buffer
-
-    size_t read = nds.SPU.ReadOutput(audio_buffer, size);
-    retro::audio_sample_batch(audio_buffer, read);
-}
 
 bool MelonDsDs::CoreState::RunDeferredInitialization() noexcept {
     ZoneScopedN(TracyFunction);
@@ -739,6 +730,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     _screenLayout.Apply(config, _renderState);
     _inputState.SetConfig(config);
     _micState.SetConfig(config);
+    _audioState.SetConfig(config);
     _netState.Apply(config);
     _screenLayout.SetDirty();
 
@@ -979,7 +971,13 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
         return false;
     }
 
-    return Console->DoSavestate(&savestate) && !savestate.Error;
+    bool loaded = Console->DoSavestate(&savestate) && !savestate.Error;
+
+    // Whatever is buffered belongs to the state we just left, so splicing it onto
+    // the restored one would play a fragment of the wrong timeline.
+    if (loaded) _audioState.Reset();
+
+    return loaded;
 }
 
 std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {

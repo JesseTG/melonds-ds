@@ -24,6 +24,7 @@
 
 #include <NDS.h>
 
+#include "../audio/audio.hpp"
 #include "../config/config.hpp"
 #include "../config/visibility.hpp"
 #include "../message/error.hpp"
@@ -131,7 +132,6 @@ namespace MelonDsDs {
             const melonDS::NDSHeader& header,
             int type
         ) noexcept;
-        [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void RenderErrorScreen() noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
@@ -154,6 +154,7 @@ namespace MelonDsDs {
         ScreenLayoutData _screenLayout {};
         InputState _inputState {};
         MicrophoneState _micState {};
+        AudioState _audioState {};
         RenderStateWrapper _renderState {};
         MpState _mpState {};
         std::optional<retro::GameInfo> _ndsInfo = std::nullopt;
