@@ -107,11 +107,59 @@ namespace MelonDsDs::config::definitions {
         MelonDsDs::config::values::DISABLED
     };
 
+    constexpr retro_core_option_v2_definition TimeStretch {
+        config::audio::TIME_STRETCH,
+        "Audio Time Stretching",
+        "Time Stretching",
+        "Stretch audio so it keeps its pitch whenever the frontend runs the emulator "
+        "off real time, whether that's fast-forward or slow motion. "
+        "While this is active the core paces its own audio output against real time, "
+        "which takes over from however the frontend would otherwise handle it. "
+        "Costs a few hundred kilobytes of memory while enabled.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        MelonDsDs::config::values::ENABLED
+    };
+
+    constexpr retro_core_option_v2_definition SpeedUpLowPass {
+        config::audio::SPEEDUP_LOWPASS,
+        "Fast-Forward Low-Pass Filter",
+        "Speed-Up Low-Pass",
+        "Muffles fast-forward audio to take the edge off it. "
+        "The cutoff given here is divided by the speed multiplier, "
+        "so 12 kHz gives 4 kHz at 3x speed. "
+        "Audio at normal speed is never filtered. "
+        "Use the highest setting that still sounds good to you; "
+        "lower values tame harsher audio, but muffle more of the original sound. "
+        "Ignored unless Audio Time Stretching is enabled.",
+        nullptr,
+        config::audio::CATEGORY,
+        {
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {"22000", "22 kHz"},
+            {"20000", "20 kHz"},
+            {"16000", "16 kHz"},
+            {"12000", "12 kHz"},
+            {"8000", "8 kHz"},
+            {"6000", "6 kHz"},
+            {"4000", "4 kHz"},
+            {nullptr, nullptr},
+        },
+        "20000"
+    };
+
     constexpr std::initializer_list<retro_core_option_v2_definition> AudioOptionDefinitions {
         MicInput,
         MicInputButton,
         BitDepth,
         AudioInterpolation,
+        TimeStretch,
+        SpeedUpLowPass,
     };
 }
 #endif //MELONDS_DS_AUDIO_HPP

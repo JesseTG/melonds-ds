@@ -19,6 +19,11 @@ if (ENABLE_LTO)
 endif ()
 
 add_library(melondsds_libretro ${LIBRARY_TYPE}
+    audio/audio.cpp
+    audio/audio.hpp
+    audio/lowpass.hpp
+    audio/speed.hpp
+    audio/timestretch.hpp
     buffer.cpp
     buffer.hpp
     config/config.hpp

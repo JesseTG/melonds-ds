@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 import itertools
+import time
 from ctypes import c_int
 from pathlib import Path
 
 import pytest
-from libretro import JoypadState, PixelFormat, Rotation, Screenshot
+from libretro import JoypadState, PixelFormat, Rotation, Screenshot, ThrottleMode
+from libretro.api.timing import retro_throttle_state
 from libretro.ctypes import TypedFunctionPointer
+from libretro.drivers import DefaultTimingDriver
 
 from melondsds import SessionFactory
 from melondsds.options import DIRECT_BOOT_BUILTIN
+
+#: The DS's SPU output rate, in Hz; the rate the core reports to the frontend.
+SAMPLE_RATE = 33513982.0 / 1024.0
 
 
 def _press_r3_after(frames: int):
@@ -45,6 +51,61 @@ def test_generates_audio(session: SessionFactory, nds_rom: Path) -> None:
         assert audio.buffer is not None
         assert len(audio.buffer) > 0
         assert any(b != 0 for b in audio.buffer)
+
+
+@pytest.mark.nds_rom
+def test_fast_forward_audio_is_paced(session: SessionFactory, nds_rom: Path) -> None:
+    """
+    Fast-forward audio is stretched down to real time, not pushed through raw.
+
+    The SPU still produces one frame of audio per ``retro_run``, but those calls no
+    longer arrive at real time, so smoothing paces the core's output against the wall
+    clock instead. For the same number of emulated frames that means far fewer samples
+    than smoothing off, which hands the frontend everything the SPU made.
+    """
+
+    calls = 300
+
+    def emitted(*, smoothing: str) -> tuple[int, float]:
+        timing = DefaultTimingDriver(
+            retro_throttle_state(ThrottleMode.FAST_FORWARD, 4 * 60.0), 60.0
+        )
+        options = {**DIRECT_BOOT_BUILTIN, "melonds_audio_time_stretch": smoothing}
+        with session(nds_rom, timing=timing, options=options) as emulator:
+            start = time.monotonic()
+            for _ in range(calls):
+                emulator.run()
+            wall = time.monotonic() - start
+
+            # The driver stores interleaved samples, so halve for stereo frames.
+            return len(emulator.audio.buffer) // 2, wall
+
+    raw, raw_wall = emitted(smoothing="disabled")
+    smoothed, _ = emitted(smoothing="enabled")
+
+    assert raw > 0, "expected audio with smoothing off"
+    assert smoothed > 0, "smoothing silenced the core entirely"
+
+    # Stretching paces output against the wall clock, so it emits roughly what real
+    # time owes however fast the emulator ran. The two streams therefore only differ
+    # while the harness runs well ahead of real time; a slow build can take longer
+    # than a frame per retro_run, at which point the paced stream converges on the
+    # raw one and there is nothing here to measure. Skip rather than assert something
+    # the environment cannot demonstrate. The threshold is a third rather than the
+    # half below so the two conditions can't both miss.
+    owed = raw_wall * SAMPLE_RATE
+    if owed > raw / 3:
+        pytest.skip(
+            f"harness ran near real time ({owed:.0f} frames owed against {raw} "
+            "produced); paced and raw output are indistinguishable here"
+        )
+
+    # A loose "smoothed < raw" passes even when the option is ignored entirely,
+    # so require the paced stream to be dramatically smaller.
+    assert smoothed < raw / 2, (
+        f"smoothing emitted {smoothed} frames against {raw} raw "
+        f"({owed:.0f} owed by real time); expected the paced stream to be far smaller"
+    )
 
 
 @pytest.mark.nds_rom
