@@ -423,6 +423,12 @@ namespace MelonDsDs {
         [[nodiscard]] Slot2Device GetSlot2Device() const noexcept { return _slot2; }
         void SetSlot2Device(MelonDsDs::Slot2Device device) noexcept { _slot2 = device; }
 
+        [[nodiscard]] uint16_t RumbleIntensity() const noexcept { return _rumbleIntensity; }
+        void SetRumbleIntensity(uint16_t intensity) noexcept { _rumbleIntensity = intensity; }
+
+        [[nodiscard]] MelonDsDs::RumbleMotorType RumbleMotorType() const noexcept { return _rumbleMotors; }
+        void SetRumbleMotorType(MelonDsDs::RumbleMotorType motors) noexcept { _rumbleMotors = motors; }
+
         [[nodiscard]] bool UseRealLightSensor() const noexcept { return _useRealLightSensor; }
         void SetUseRealLightSensor(bool enabled) noexcept { _useRealLightSensor = enabled; }
     private:
@@ -443,6 +449,8 @@ namespace MelonDsDs {
         optional<melonDS::MacAddress> _macAddress;
         optional<melonDS::IpAddress> _dnsServer;
         MelonDsDs::Slot2Device _slot2 = *ParseSlot2Device(config::definitions::Slot2Device.default_value);
+        uint16_t _rumbleIntensity = UINT16_MAX;
+        MelonDsDs::RumbleMotorType _rumbleMotors = *ParseRumbleMotorType(config::definitions::RumbleType.default_value);
         bool _useRealLightSensor = *ParseBoolean(config::definitions::SolarSensorMode.default_value);
 #ifdef JIT_ENABLED
         bool _jitEnable;

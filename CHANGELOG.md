@@ -19,6 +19,11 @@ a design goal is to avoid a 2.x release for as long as possible.
   which is useful for ROMs built with BlocksDS --
   it marks them as DSiWare by default, even though they run on a DS.
   See [#319](https://github.com/JesseTG/melonds-ds/issues/319).
+- Added a "Rumble Intensity" core option
+  for scaling how hard the Rumble Pak drives your controller's motors.
+- Added a "Rumble Motors" core option
+  for choosing whether the Rumble Pak drives your controller's strong motor,
+  its weak motor, or both.
 
 ### Changed
 
@@ -33,6 +38,15 @@ a design goal is to avoid a 2.x release for as long as possible.
   See [#316](https://github.com/JesseTG/melonds-ds/issues/316).
 - Fixed the temporarily-installed DSiWare title not being removed from the NAND
   when resetting into DS mode.
+- Fixed the Rumble Pak being integrated incorrectly;
+  it now rumbles based on how often the game writes the
+  Rumble Pak's "trigger" register per frame.
+  See [#292](https://github.com/JesseTG/melonds-ds/pull/292).
+- Fixed the Rumble Pak updating the frontend's motors
+  many times per frame instead of once,
+  including a stream of redundant updates while nothing was rumbling.
+- Fixed the frontend's rumble motors staying on
+  after unloading a game or removing the Rumble Pak.
 
 ## [1.3.1] - 2026-08-22
 

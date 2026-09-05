@@ -714,9 +714,12 @@ bool retro::set_rumble_state(unsigned port, uint16_t strength) noexcept {
     if (!_rumble.set_rumble_state)
         return false;
 
-    return
-        _rumble.set_rumble_state(port, RETRO_RUMBLE_STRONG, strength) &&
-        _rumble.set_rumble_state(port, RETRO_RUMBLE_WEAK, strength);
+    // Both motors must be set even if the frontend rejects one of them,
+    // so don't let && short-circuit the second call.
+    bool strong = _rumble.set_rumble_state(port, RETRO_RUMBLE_STRONG, strength);
+    bool weak = _rumble.set_rumble_state(port, RETRO_RUMBLE_WEAK, strength);
+
+    return strong && weak;
 }
 
 bool retro::set_sensor_state(unsigned port, retro_sensor_action action, unsigned rate) noexcept {

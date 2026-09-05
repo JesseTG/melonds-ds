@@ -40,7 +40,6 @@ namespace melonDS {
 }
 
 namespace MelonDsDs {
-    constexpr const char* const RUMBLE_TASK = "RumbleTask";
     class CoreConfig;
     class ScreenLayoutData;
     class MicrophoneState;
@@ -61,7 +60,9 @@ namespace MelonDsDs {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
         void Update(const CoreConfig& config, const ScreenLayoutData& layout) noexcept;
-        void SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noexcept;
+        /// Chooses the Slot-2 input device to emulate;
+        /// pass \c nullptr when Slot-2 is empty.
+        void SetSlot2Input(const melonDS::GBACart::CartCommon* gbacart) noexcept;
         void Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneState& mic, CoreConfig& config) const noexcept;
         /// Applies only the screen layout hotkey, for when there's no console to drive
         /// (such as on the error screen).
@@ -91,15 +92,22 @@ namespace MelonDsDs {
             return std::nullopt;
         }
 
-        void RumbleStart(std::chrono::milliseconds len) noexcept;
+        void RumbleStart() noexcept;
         void RumbleStop() noexcept;
-        [[nodiscard]] retro::task::TaskSpec RumbleTask() noexcept {
-            if (auto* rumble = std::get_if<RumbleState>(&_slot2)) {
-                return rumble->RumbleTask();
-            }
 
-            return retro::task::TaskSpec();
-        }
+        /// Folds this frame's Rumble Pak activity into the frontend's motors.
+        void UpdateRumble() noexcept;
+
+        /// Switches the frontend's motors off, if a Rumble Pak is driving them.
+        void StopRumble() noexcept;
+
+        /// The strength most recently computed for the motors,
+        /// or -1 if there's no Rumble Pak in Slot-2.
+        [[nodiscard]] int32_t RumbleLevel() const noexcept;
+
+        /// The number of Rumble Pak register toggles counted in the most recent frame,
+        /// or -1 if there's no Rumble Pak in Slot-2.
+        [[nodiscard]] int32_t RumbleEdges() const noexcept;
     private:
         JoypadState _joypad;
         PointerState _pointer;

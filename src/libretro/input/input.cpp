@@ -168,12 +168,19 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
         solar->SetConfig(config);
     }
 
-    // RumbleState doesn't have any internal config right now
-    // (but if it does, do the same as with SolarSensorState)
+    if (auto* rumble = std::get_if<RumbleState>(&_slot2)) {
+        rumble->SetConfig(config);
+    }
 }
 
-void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noexcept {
-    switch (gbacart.Type()) {
+void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon* gbacart) noexcept {
+    if (!gbacart) {
+        // Nothing in Slot-2 at all.
+        _slot2 = std::monostate();
+        return;
+    }
+
+    switch (gbacart->Type()) {
         case melonDS::GBACart::CartType::GameSolarSensor:
             _slot2 = SolarSensorState(0);
             retro::debug("Enabled SolarSensorState");
@@ -189,9 +196,9 @@ void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon& gbacart) noex
     }
 }
 
-void InputState::RumbleStart(std::chrono::milliseconds len) noexcept {
+void InputState::RumbleStart() noexcept {
     if (auto* rumble = get_if<RumbleState>(&_slot2)) {
-        rumble->RumbleStart(len);
+        rumble->RumbleStart();
     }
 }
 
@@ -201,11 +208,42 @@ void InputState::RumbleStop() noexcept {
     }
 }
 
+void InputState::UpdateRumble() noexcept {
+    if (auto* rumble = get_if<RumbleState>(&_slot2)) {
+        rumble->Update();
+    }
+}
+
+void InputState::StopRumble() noexcept {
+    if (auto* rumble = get_if<RumbleState>(&_slot2)) {
+        rumble->Stop();
+    }
+}
+
+int32_t InputState::RumbleLevel() const noexcept {
+    if (const auto* rumble = get_if<RumbleState>(&_slot2)) {
+        return rumble->Level();
+    }
+
+    return -1;
+}
+
+int32_t InputState::RumbleEdges() const noexcept {
+    if (const auto* rumble = get_if<RumbleState>(&_slot2)) {
+        return static_cast<int32_t>(rumble->Edges());
+    }
+
+    return -1;
+}
+
 void melonDS::Platform::Addon_RumbleStart(melonDS::u32 len, void* userdata)
 {
     ZoneScopedN(TracyFunction);
+    // len is always 16 and carries no information about how hard to rumble;
+    // what matters is that the Rumble Pak's register was just flipped.
+    (void)len;
     MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
-    core.GetInputState().RumbleStart(std::chrono::milliseconds(len));
+    core.GetInputState().RumbleStart();
 }
 
 void melonDS::Platform::Addon_RumbleStop(void* userdata)

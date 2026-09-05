@@ -199,6 +199,20 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
         config.SetSysfileMode(SysfileMode::BuiltIn);
     }
 
+    if (optional<uint16_t> value = ParseIntegerInList<uint16_t>(get_variable(RUMBLE_INTENSITY), RUMBLE_INTENSITY_VALUES)) {
+        config.SetRumbleIntensity(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to full strength", RUMBLE_INTENSITY);
+        config.SetRumbleIntensity(UINT16_MAX);
+    }
+
+    if (optional<MelonDsDs::RumbleMotorType> value = ParseRumbleMotorType(get_variable(RUMBLE_TYPE))) {
+        config.SetRumbleMotorType(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", RUMBLE_TYPE, values::BOTH);
+        config.SetRumbleMotorType(RumbleMotorType::Both);
+    }
+
     if (optional<bool> value = ParseBoolean(get_variable(SOLAR_SENSOR_HOST_SENSOR))) {
         config.SetUseRealLightSensor(*value);
     } else {

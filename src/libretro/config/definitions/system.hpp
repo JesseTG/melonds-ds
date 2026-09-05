@@ -364,6 +364,54 @@ namespace MelonDsDs::config::definitions {
         values::AUTO
     };
 
+    constexpr retro_core_option_v2_definition RumbleIntensity {
+        config::system::RUMBLE_INTENSITY,
+        "Rumble Intensity",
+        nullptr,
+        "How hard the Rumble Pak drives your controller's motors. "
+        "The emulated Rumble Pak has no volume control of its own, "
+        "so this scales whatever the game asks for.\n"
+        "\n"
+        "Ignored unless \"Slot-2 Device\" is set to Rumble Pak.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {"0", "Off"},
+            {"6554", "10%"},
+            {"13107", "20%"},
+            {"19661", "30%"},
+            {"26214", "40%"},
+            {"32768", "50%"},
+            {"39321", "60%"},
+            {"45875", "70%"},
+            {"52428", "80%"},
+            {"58982", "90%"},
+            {"65535", "100%"},
+            {nullptr, nullptr},
+        },
+        "65535"
+    };
+
+    constexpr retro_core_option_v2_definition RumbleType {
+        config::system::RUMBLE_TYPE,
+        "Rumble Motors",
+        nullptr,
+        "Which of your controller's motors the Rumble Pak drives. "
+        "Most controllers pair a heavy motor with a lighter one; "
+        "which feels closer to a real Rumble Pak depends on the controller.\n"
+        "\n"
+        "Ignored unless \"Slot-2 Device\" is set to Rumble Pak.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {values::BOTH, "Both"},
+            {values::STRONG, "Strong Only"},
+            {values::WEAK, "Weak Only"},
+            {nullptr, nullptr},
+        },
+        values::BOTH
+    };
+
     constexpr retro_core_option_v2_definition SolarSensorMode {
         config::system::SOLAR_SENSOR_HOST_SENSOR,
         "Use Host Light Sensor",

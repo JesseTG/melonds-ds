@@ -16,10 +16,13 @@
 
 #include "test.hpp"
 
+#include <cmath>
+
 #include <string/stdstring.h>
 
 #include "core.hpp"
 #include "environment.hpp"
+#include "input/rumble.hpp"
 
 namespace MelonDsDs
 {
@@ -218,6 +221,49 @@ extern "C" int32_t melondsds_get_solar_sensor_level() {
     return solar->GetLightLevel();
 }
 
+/// \return The strength most recently computed for the frontend's rumble motors,
+/// or -1 if there's no Rumble Pak in Slot-2.
+extern "C" int32_t melondsds_get_rumble_level() {
+    using namespace MelonDsDs;
+
+    return Core.GetInputState().RumbleLevel();
+}
+
+/// \return The number of Rumble Pak register toggles counted in the most recent frame,
+/// or -1 if there's no Rumble Pak in Slot-2.
+extern "C" int32_t melondsds_get_rumble_edges() {
+    using namespace MelonDsDs;
+
+    return Core.GetInputState().RumbleEdges();
+}
+
+/// \return The number of frames that the rumble envelope averages over.
+extern "C" uint32_t melondsds_rumble_envelope_window() {
+    return static_cast<uint32_t>(MelonDsDs::RUMBLE_WINDOW_FRAMES);
+}
+
+/// Runs a fresh rumble envelope over a synthetic series of per-frame toggle counts,
+/// without touching the console or the frontend's motors.
+///
+/// \param edges The number of Rumble Pak register toggles in each frame.
+/// \param count The length of \c edges, and of \c out.
+/// \param out Receives the motor strength that each frame would produce.
+/// \return The number of frames written to \c out.
+extern "C" uint32_t melondsds_rumble_filter(const uint32_t* edges, uint32_t count, uint16_t* out) {
+    using namespace MelonDsDs;
+
+    if (!edges || !out)
+        return 0;
+
+    RumbleEnvelope envelope;
+    for (uint32_t i = 0; i < count; ++i) {
+        envelope.Push(edges[i]);
+        out[i] = static_cast<uint16_t>(std::lround(envelope.Level() * UINT16_MAX));
+    }
+
+    return count;
+}
+
 extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept {
     using namespace MelonDsDs;
 
@@ -315,6 +361,18 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_solar_sensor_level"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_solar_sensor_level);
+
+    if (string_is_equal(sym, "melondsds_get_rumble_level"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_get_rumble_level);
+
+    if (string_is_equal(sym, "melondsds_get_rumble_edges"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_get_rumble_edges);
+
+    if (string_is_equal(sym, "melondsds_rumble_envelope_window"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_rumble_envelope_window);
+
+    if (string_is_equal(sym, "melondsds_rumble_filter"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_rumble_filter);
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);

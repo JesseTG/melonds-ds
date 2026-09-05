@@ -97,6 +97,9 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 }
 
 void MelonDsDs::CoreState::UnloadGame() noexcept {
+    // Just in case the frontend forgets to stop the rumbling
+    _inputState.StopRumble();
+
     if (!Console) {
         // The console object may be uninitialized
         // if unloading a game after exiting from the error screen.
@@ -213,10 +216,18 @@ void MelonDsDs::CoreState::Run() noexcept {
             nds.RunFrame();
         }
 
+        // The Rumble Pak was flipped an unknown number of times during that frame;
+        // turn those into a single level before anything else can block.
+        _inputState.UpdateRumble();
+
         _renderState.Render(nds, _inputState, Config, _screenLayout);
         RenderAudio(*Console);
 
         retro::task::check();
+    }
+    else {
+        // No frames are running, so nothing is driving the Rumble Pak.
+        _inputState.StopRumble();
     }
 }
 
@@ -289,21 +300,10 @@ void MelonDsDs::CoreState::Reset() {
     _ndsSramInstalled = false;
     InitFlushFirmwareTask();
 
-    if (std::optional<retro::task::TaskHandle> rumble_task = retro::task::find(RUMBLE_TASK)) {
-        // Stop the existing rumble task, if any
-        rumble_task->Finish();
-    }
-
-    if (const auto* gbacart = Console->GetGBACart()) {
-        // If the console has a GBA cart (even if it's not a real ROM)...
-        _inputState.SetSlot2Input(*gbacart); // ...then let the input system know.
-        _inputState.SetConfig(Config);
-
-        if (gbacart->Type() == melonDS::GBACart::CartType::RumblePak) {
-            // If the console has a rumble pak...
-            retro::task::push(_inputState.RumbleTask());
-        }
-    }
+    // Tell the input system what's in Slot-2 now, if anything;
+    // a Rumble Pak that's just been removed has to release the motors.
+    _inputState.SetSlot2Input(Console->GetGBACart());
+    _inputState.SetConfig(Config);
 
 
     StartConsole();
@@ -610,16 +610,9 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
         retro::info("No GBA SRAM was provided.");
     }
 
-    if (const auto* gbacart = Console->GetGBACart()) {
-        // If the console has a GBA cart (even if it's not a real ROM)...
-        _inputState.SetSlot2Input(*gbacart); // ...then let the input system know.
-        _inputState.SetConfig(Config);
-
-        if (gbacart->Type() == melonDS::GBACart::CartType::RumblePak) {
-            // If the console has a rumble pak...
-            retro::task::push(_inputState.RumbleTask());
-        }
-    }
+    // Let the input system know what's in Slot-2, if anything.
+    _inputState.SetSlot2Input(Console->GetGBACart());
+    _inputState.SetConfig(Config);
 
     if (retro::supports_power_status()) {
         retro::task::push(PowerStatusUpdateTask());
@@ -979,7 +972,15 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
         return false;
     }
 
-    return Console->DoSavestate(&savestate) && !savestate.Error;
+    if (!(Console->DoSavestate(&savestate) && !savestate.Error))
+        return false;
+
+    // The loaded state's Rumble Pak register may differ from the one we just left,
+    // but melonDS won't report that as a flip;
+    // drop the buffered activity so the new timeline starts quiet.
+    _inputState.StopRumble();
+
+    return true;
 }
 
 std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {

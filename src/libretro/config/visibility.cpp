@@ -97,6 +97,15 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
         updated = true;
     }
 
+    bool oldShowRumbleOptions = ShowRumbleOptions;
+    optional<Slot2Device> slot2Device = ParseSlot2Device(get_variable(system::SLOT2_DEVICE));
+    ShowRumbleOptions = ShowDsOptions && (!slot2Device || *slot2Device == Slot2Device::RumblePak);
+    if (!VisibilityInitialized || ShowRumbleOptions != oldShowRumbleOptions) {
+        set_option_visible(system::RUMBLE_INTENSITY, ShowRumbleOptions);
+        set_option_visible(system::RUMBLE_TYPE, ShowRumbleOptions);
+        updated = true;
+    }
+
     bool oldShowHomebrewSdOptions = ShowHomebrewSdOptions;
     optional<bool> homebrewSdCardEnabled = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE));
     ShowHomebrewSdOptions = !homebrewSdCardEnabled || *homebrewSdCardEnabled;
