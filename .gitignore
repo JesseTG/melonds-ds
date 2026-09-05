@@ -15,6 +15,7 @@ cmake-build-*
 __cmake_systeminformation
 Authors.txt
 SystemInformation.in
+*.ii
 
 # JetBrains
 .idea/
