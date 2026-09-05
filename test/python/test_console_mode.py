@@ -6,14 +6,21 @@ which broke homebrew built with BlocksDS --
 its ROMs carry a DSiWare title ID by default but still run on a DS.
 See https://github.com/JesseTG/melonds-ds/issues/319.
 
+A ROM is now only treated as DSiWare -- and installed onto the DSi's NAND --
+if its DSi regions are modcrypted, as a retail release's are and homebrew's aren't.
+Anything else runs from the cart slot,
+and its unit code alone decides whether Auto picks a DS or a DSi.
+
 ``tests_sys_scfg_registers.nds`` is such a ROM,
 so it's the fixture that pins the fix.
+``auto-retail-dsiware`` is the guard on the other side:
+it proves a genuine DSiWare title still resolves to a DSi and still lands on the NAND.
 """
 
 from __future__ import annotations
 
 import struct
-from ctypes import c_int32
+from ctypes import c_bool, c_char_p, c_int32
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -52,6 +59,15 @@ def console_type(emulator: Session) -> int:
     """Return the type of the console the core actually created."""
     probe = emulator.get_proc_address(
         "melondsds_get_console_type", TypedFunctionPointer[c_int32, []]
+    )
+    assert probe is not None
+    return probe()
+
+
+def cart_inserted(emulator: Session) -> bool:
+    """Return whether a cartridge is in the emulated console's Slot-1."""
+    probe = emulator.get_proc_address(
+        "melondsds_nds_cart_inserted", TypedFunctionPointer[c_bool, []]
     )
     assert probe is not None
     return probe()
@@ -112,6 +128,19 @@ class ModeCase:
             ),
             id="auto-dsi-enhanced",
             marks=pytest.mark.godmode9i_rom,
+        ),
+        pytest.param(
+            # The #319 case.
+            # BlocksDS stamps this homebrew ROM with the DSiWare title ID,
+            # but its unit code is 02h and its DSi regions aren't modcrypted,
+            # so Auto must leave it on a DS -- with no DSi system files at all.
+            ModeCase(
+                content="scfg_registers_nds",
+                options={**AUTO, **DIRECT, **BUILTIN_FILES},
+                expected=DS_CONSOLE,
+            ),
+            id="auto-dsiware-homebrew",
+            marks=pytest.mark.scfg_registers_nds,
         ),
         pytest.param(
             ModeCase(
@@ -187,11 +216,24 @@ def test_resolves_console(
 
 
 # --------------------------------------------------------------------------- #
-# Forcing DS mode on DSiWare-flagged homebrew (the #319 regression)
+# Running DSiWare-flagged homebrew on a DS (the #319 regression)
 # --------------------------------------------------------------------------- #
 
 #: DS mode with no system files of any kind, native or DSi.
 FORCED_DS = {**DS, **DIRECT, **BUILTIN_FILES}
+
+#: The same, but reached through Auto -- which is the default,
+#: so it's the path players actually take.
+AUTO_DS = {**AUTO, **DIRECT, **BUILTIN_FILES}
+
+#: Both ways of landing a DSiWare-flagged homebrew ROM on a DS.
+on_a_ds = pytest.mark.parametrize(
+    "options",
+    [
+        pytest.param(FORCED_DS, id="forced"),
+        pytest.param(AUTO_DS, id="auto"),
+    ],
+)
 
 
 def _arm9_binary(rom: Path) -> tuple[int, bytes]:
@@ -209,16 +251,17 @@ def _arm9_binary(rom: Path) -> tuple[int, bytes]:
 
 
 @pytest.mark.scfg_registers_nds
+@on_a_ds
 def test_ds_mode_boots_dsiware_homebrew(
-    session: SessionFactory, scfg_registers_nds: Path
+    session: SessionFactory, scfg_registers_nds: Path, options: dict[str, str]
 ) -> None:
     """
-    DSiWare-flagged homebrew runs on a DS when asked to, with no DSi system files.
+    DSiWare-flagged homebrew runs on a DS, with no DSi system files.
 
     This is the configuration from
     `#319 <https://github.com/JesseTG/melonds-ds/issues/319>`_.
     """
-    with session(scfg_registers_nds, options=FORCED_DS) as emulator:
+    with session(scfg_registers_nds, options=options) as emulator:
         assert console_type(emulator) == DS_CONSOLE
 
         for _ in range(FRAMES):
@@ -226,11 +269,12 @@ def test_ds_mode_boots_dsiware_homebrew(
 
 
 @pytest.mark.scfg_registers_nds
+@on_a_ds
 def test_ds_mode_direct_boots_dsiware_homebrew(
-    session: SessionFactory, scfg_registers_nds: Path
+    session: SessionFactory, scfg_registers_nds: Path, options: dict[str, str]
 ) -> None:
     """
-    Direct boot actually happens in forced DS mode.
+    Direct boot actually happens once the ROM is on a DS.
 
     Reporting a DS console isn't enough:
     the core used to skip ``SetupDirectBoot`` for anything DSiWare-flagged,
@@ -242,7 +286,7 @@ def test_ds_mode_direct_boots_dsiware_homebrew(
     # StartConsole() runs during retro_load_game for the software renderer,
     # so direct boot has already happened by the time the session is entered --
     # and the game hasn't yet had a chance to overwrite its own binary.
-    with session(scfg_registers_nds, options=FORCED_DS) as emulator:
+    with session(scfg_registers_nds, options=options) as emulator:
         memory = emulator.core.get_memory(RETRO_MEMORY_SYSTEM_RAM)
         assert memory is not None
 
@@ -250,53 +294,59 @@ def test_ds_mode_direct_boots_dsiware_homebrew(
         assert memory[start : start + 0x100].tobytes() == expected[:0x100]
 
 
-@pytest.mark.parametrize(
-    "case",
-    [
-        pytest.param(
-            ModeCase(
-                content="scfg_registers_nds",
-                options={**AUTO, **DIRECT, **BUILTIN_FILES},
-                expected=DSI_CONSOLE,
-            ),
-            id="dsiware-homebrew",
-            marks=pytest.mark.scfg_registers_nds,
-        ),
-        pytest.param(
-            # Native DS system files, so that an encrypted secure area
-            # can't be what stops this from booting.
-            ModeCase(
-                content="godmode9i_dsi_rom",
-                options={**AUTO, **DIRECT, **NATIVE_FILES},
-                system_paths={"melonds_firmware_nds_path": "NDS_FIRMWARE"},
-                expected=DSI_CONSOLE,
-            ),
-            id="dsi-only-homebrew",
-            marks=[pytest.mark.godmode9i_dsi_rom, pytest.mark.nds_sysfiles],
-        ),
-    ],
+@pytest.mark.godmode9i_dsi_rom
+@pytest.mark.nds_sysfiles
+@pytest.mark.xfail(
+    strict=True,
+    reason="Auto sends a unit-code-03h ROM to a DSi, which needs DSi system files",
 )
-@pytest.mark.xfail(strict=True, reason="Auto sends these to a DSi, which needs DSi system files")
-def test_auto_mode_avoids_ds(
-    session: SessionFactory, case: ModeCase, request: pytest.FixtureRequest
+def test_auto_mode_still_needs_dsi_files(
+    session: SessionFactory, godmode9i_dsi_rom: Path
 ) -> None:
     """
     Auto still sends DSi-only content to a DSi, which needs DSi system files.
 
     This is the counterpart that makes the forced-DS cases meaningful:
     without it they'd pass even if the console mode were ignored entirely.
+    ``GodMode9i.dsi`` declares unit code 03h,
+    so no amount of homebrew detection can keep it on a DS.
 
-    These ROMs can't be checked positively --
-    installing a DSiWare title onto the NAND needs metadata from Nintendo's CDN,
-    which has nothing for a homebrew title ID --
-    so failing to boot is the observable part.
+    Native DS system files are staged
+    so that an encrypted secure area can't be what stops it from booting.
     """
-    assert case.content is not None
-    content = Path(request.getfixturevalue(case.content))
+    options = {
+        **AUTO,
+        **DIRECT,
+        **NATIVE_FILES,
+        "melonds_firmware_nds_path": system_option_path("NDS_FIRMWARE"),
+    }
 
-    with session(content, options=case.resolve()) as emulator:
+    with session(godmode9i_dsi_rom, options=options) as emulator:
         for _ in range(FRAMES):
             emulator.run()
+
+
+@pytest.mark.scfg_registers_nds
+@pytest.mark.dsi_sysfiles
+def test_dsi_mode_runs_dsiware_homebrew_from_cart(
+    session: SessionFactory, scfg_registers_nds: Path
+) -> None:
+    """
+    DSiWare-flagged homebrew forced onto a DSi runs from the cart slot.
+
+    It used to be installed onto the NAND instead,
+    which failed outright because Nintendo publishes no title metadata for it.
+    See https://github.com/JesseTG/melonds-ds/issues/319.
+    """
+    options = {
+        **DSI,
+        **DIRECT,
+        **{key: system_option_path(var) for key, var in DSI_PATHS.items()},
+    }
+
+    with session(scfg_registers_nds, options=options) as emulator:
+        assert console_type(emulator) == DSI_CONSOLE
+        assert cart_inserted(emulator)
 
 
 # --------------------------------------------------------------------------- #
@@ -354,21 +404,65 @@ def test_ds_mode_allows_unmodcrypted_dsi_homebrew(
 
 
 # --------------------------------------------------------------------------- #
+# Telling a homebrew game code apart from a real one
+# --------------------------------------------------------------------------- #
+
+#: Game codes and whether ``melondsds_is_valid_game_code`` should accept them,
+#: grouped so that the suite gets a handful of test cases
+#: rather than one per code.
+GAME_CODE_GROUPS = {
+    "valid": ((b"KGUV", True), (b"KS3E", True), (b"HGMA", True), (b"ASME", True)),
+    "placeholder": ((b"####", False), (b"", False), (b"    ", False)),
+    "length": ((b"ASM", False), (b"ASMEE", False), (b"A", False)),
+    "characters": ((b"asme", False), (b"AS-E", False), (b"AS.E", False)),
+}
+
+
+@pytest.mark.scfg_registers_nds
+@pytest.mark.parametrize("group", sorted(GAME_CODE_GROUPS), ids=sorted(GAME_CODE_GROUPS))
+def test_game_code_validity(
+    session: SessionFactory, scfg_registers_nds: Path, group: str
+) -> None:
+    """
+    The game code validator matches the shape GBATEK documents.
+
+    This is half of what separates homebrew that claims a DSiWare title ID
+    from a real DSiWare release; the other half is the modcrypt flag.
+    A session is entered only because ``get_proc_address`` needs a loaded core --
+    the probe itself doesn't touch the console.
+    """
+    with session(scfg_registers_nds, options=FORCED_DS) as emulator:
+        probe = emulator.get_proc_address(
+            "melondsds_is_valid_game_code", TypedFunctionPointer[c_bool, [c_char_p]]
+        )
+        assert probe is not None
+
+        for code, expected in GAME_CODE_GROUPS[group]:
+            assert probe(c_char_p(code)) == expected, code
+
+
+# --------------------------------------------------------------------------- #
 # Consequences of the resolved console type
 # --------------------------------------------------------------------------- #
 
 
 @pytest.mark.scfg_registers_nds
-def test_ds_mode_enables_savestates(session: SessionFactory, scfg_registers_nds: Path) -> None:
+@on_a_ds
+def test_ds_mode_enables_savestates(
+    session: SessionFactory, scfg_registers_nds: Path, options: dict[str, str]
+) -> None:
     """Savestates work for a DSiWare-flagged ROM once it's running on a DS."""
-    with session(scfg_registers_nds, options=FORCED_DS) as emulator:
+    with session(scfg_registers_nds, options=options) as emulator:
         emulator.run()
 
         assert emulator.core.serialize_size() > 0
 
 
 @pytest.mark.scfg_registers_nds
-def test_ds_mode_exposes_ds_sized_ram(session: SessionFactory, scfg_registers_nds: Path) -> None:
+@on_a_ds
+def test_ds_mode_exposes_ds_sized_ram(
+    session: SessionFactory, scfg_registers_nds: Path, options: dict[str, str]
+) -> None:
     """A DS reports 4 MiB of main RAM, not the DSi's 16 MiB."""
-    with session(scfg_registers_nds, options=FORCED_DS) as emulator:
+    with session(scfg_registers_nds, options=options) as emulator:
         assert emulator.core.get_memory_size(RETRO_MEMORY_SYSTEM_RAM) == 4 * 1024 * 1024

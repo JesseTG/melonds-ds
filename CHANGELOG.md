@@ -15,10 +15,6 @@ a design goal is to avoid a 2.x release for as long as possible.
 
 - Added an "Auto" setting to the Console Mode core option.
   It forces DSi mode for games that need a DSi and DS mode for everything else.
-  Forcing DS mode now runs DSi-mode homebrew without any DSi system files,
-  which is useful for ROMs built with BlocksDS --
-  it marks them as DSiWare by default, even though they run on a DS.
-  See [#319](https://github.com/JesseTG/melonds-ds/issues/319).
 - Added a "Rumble Intensity" core option
   for scaling how hard the Rumble Pak drives your controller's motors.
 - Added a "Rumble Motors" core option
@@ -38,6 +34,10 @@ a design goal is to avoid a 2.x release for as long as possible.
   See [#316](https://github.com/JesseTG/melonds-ds/issues/316).
 - Fixed the temporarily-installed DSiWare title not being removed from the NAND
   when resetting into DS mode.
+- Fixed homebrew that's flagged as DSiWare not being loaded.
+  [#319](https://github.com/JesseTG/melonds-ds/issues/319).
+- Fixed the DSi NAND's "most recently played title"
+  being set to a homebrew ROM that was never installed onto it.
 - Fixed the Rumble Pak being integrated incorrectly;
   it now rumbles based on how often the game writes the
   Rumble Pak's "trigger" register per frame.

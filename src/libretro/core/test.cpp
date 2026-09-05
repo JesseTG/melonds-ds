@@ -17,9 +17,11 @@
 #include "test.hpp"
 
 #include <cmath>
+#include <string_view>
 
 #include <string/stdstring.h>
 
+#include "config/console.hpp"
 #include "core.hpp"
 #include "environment.hpp"
 #include "input/rumble.hpp"
@@ -283,6 +285,26 @@ extern "C" int32_t melondsds_get_console_type() {
     return console->ConsoleType;
 }
 
+/// \return \c true if \c gameCode is shaped like a real NDS game code.
+/// The core uses this to tell homebrew apart from a retail release.
+/// \param gameCode A NUL-terminated string,
+/// so that the tests can exercise the length check.
+extern "C" bool melondsds_is_valid_game_code(const char* gameCode) {
+    using namespace MelonDsDs;
+
+    return gameCode && IsValidGameCode(std::string_view(gameCode));
+}
+
+/// \return \c true if a cartridge is inserted into the emulated console's Slot-1.
+/// A title installed onto the DSi's NAND isn't in the cart slot,
+/// so this distinguishes the two ways of running DSi content.
+extern "C" bool melondsds_nds_cart_inserted() {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    return console && console->GetNDSCart() != nullptr;
+}
+
 extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) noexcept {
     if (string_is_equal(sym, "libretropy_add_integers"))
         return reinterpret_cast<retro_proc_address_t>(libretropy_add_integers);
@@ -379,6 +401,12 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_get_console_type"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_console_type);
+
+    if (string_is_equal(sym, "melondsds_is_valid_game_code"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_is_valid_game_code);
+
+    if (string_is_equal(sym, "melondsds_nds_cart_inserted"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_nds_cart_inserted);
 
     return nullptr;
 }

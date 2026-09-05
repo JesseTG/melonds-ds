@@ -127,12 +127,14 @@ const melonDS::NDSHeader* MelonDsDs::CoreState::LoadedHeader() const noexcept {
 bool MelonDsDs::CoreState::IsDsiwareSession() const noexcept {
     // Mirrors the condition that installs the title in the first place;
     // see GetDSiArgs in config/console.cpp.
+    // These two must stay in lockstep,
+    // or a title could be installed and never removed (or vice versa).
     if (!Console || static_cast<ConsoleType>(Console->ConsoleType) != ConsoleType::DSi)
         return false;
 
     const melonDS::NDSHeader* header = LoadedHeader();
 
-    return header && header->IsDSiWare();
+    return header && RequiresNandInstall(*header);
 }
 
 void MelonDsDs::CoreState::UninstallDsiwareIfNeeded() noexcept {
@@ -507,16 +509,17 @@ void MelonDsDs::CoreState::StartConsole() {
         const auto& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
         bool isDsiMode = Console->ConsoleType == static_cast<int>(ConsoleType::DSi);
         bool isDirectBootConfigured = Config.BootMode() == BootMode::Direct;
-        if (isDirectBootConfigured && isDsiMode && header.IsDSiWare()) {
-            // If we're in DSi mode and this is a DSiWare game...
+        if (isDirectBootConfigured && isDsiMode && RequiresNandInstall(header)) {
+            // If we're in DSi mode and this is a DSiWare title on the NAND...
             SetUpDSiWareDirectBoot(*static_cast<melonDS::DSi*>(Console.get()), header);
             // upstream melonDS doesn't support direct boot for DSiWare,
             // but this core does thanks to discoveries by CasualPokePlayer
         }
         else if (Console->GetNDSCart() && (isDirectBootConfigured || Console->NeedsDirectBoot())) {
             // Else if a cart is inserted (even in DSi mode)...
-            // A DSiWare title is installed to the NAND rather than the cart slot,
-            // so if one is in the slot then the player forced DS mode and wants it booted.
+            // Only a title installed onto the NAND skips the cart slot,
+            // so anything that's actually in the slot is booted from it --
+            // including homebrew that's merely flagged as DSiWare.
 
             if (const char* ptr = path_basename(_ndsInfo->GetPath().data()); ptr) {
                 // If we know the name of the loaded ROM...
@@ -591,10 +594,12 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
 
     if (melonDS::NDSCart::CartCommon* cart = Console->GetNDSCart()) {
-        // A DSiWare title is installed to the NAND instead of being inserted into the cart slot,
+        // A title installed onto the NAND isn't inserted into the cart slot,
         // so it can only be in the slot if the player forced DS mode.
+        // Homebrew flagged as DSiWare is never installed,
+        // so it may legitimately be in the slot in either mode.
         retro_assert(
-            !cart->GetHeader().IsDSiWare() ||
+            !RequiresNandInstall(cart->GetHeader()) ||
             static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DS
         );
         InitNdsSave(*cart);
@@ -674,7 +679,7 @@ void MelonDsDs::CoreState::UninstallDsiware(melonDS::DSi_NAND::NANDImage& nand) 
     retro_assert(nand);
 
     const auto& header = *reinterpret_cast<const melonDS::NDSHeader*>(_ndsInfo->GetData().data());
-    retro_assert(header.IsDSiWare());
+    retro_assert(RequiresNandInstall(header));
 
     if (NANDMount mount = NANDMount(nand)) {
         // TODO: Report an error if the title doesn't exist

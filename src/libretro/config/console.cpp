@@ -198,16 +198,49 @@ namespace {
     }
 }
 
-bool MelonDsDs::RequiresDSi(const melonDS::NDSHeader& header) noexcept {
-    // A DSiWare title ID can turn up with either DSi unit code,
-    // so neither check subsumes the other.
-    return header.UnitCode == 0x03 || header.IsDSiWare();
+// Spot checks against real game codes,
+// so that a typo in GAME_CODE_CHARS is a compile error
+// instead of a mystery at load time.
+static_assert(MelonDsDs::IsValidGameCode("KGUV")); // Flipnote Studio
+static_assert(MelonDsDs::IsValidGameCode("KS3E")); // Shantae: Risky's Revenge
+static_assert(MelonDsDs::IsValidGameCode("HGMA")); // GodMode9i's DSi build
+static_assert(!MelonDsDs::IsValidGameCode("####")); // What ndstool writes by default
+static_assert(!MelonDsDs::IsValidGameCode(""));
+static_assert(!MelonDsDs::IsValidGameCode(string_view("\0\0\0\0", 4)));
+static_assert(!MelonDsDs::IsValidGameCode("ASM")); // Too short
+static_assert(!MelonDsDs::IsValidGameCode("ASMEE")); // Too long
+static_assert(!MelonDsDs::IsValidGameCode("asme")); // Lowercase codes aren't assigned
+static_assert(!MelonDsDs::IsValidGameCode("AS-E")); // Punctuation isn't allowed
+
+bool MelonDsDs::LooksLikeHomebrew(const melonDS::NDSHeader& header) noexcept {
+    // NDSHeader::GameCode is not NUL-terminated,
+    // so its length has to be given explicitly;
+    // otherwise the string_view would run on into the maker code.
+    return header.IsHomebrew()
+        || !IsValidGameCode(string_view(header.GameCode, sizeof(header.GameCode)));
 }
 
 bool MelonDsDs::IsRetailDSiTitle(const melonDS::NDSHeader& header) noexcept {
     constexpr uint8_t MODCRYPT_APPLIED = 1 << 1;
 
-    return (header.DSiCryptoFlags & MODCRYPT_APPLIED) && !header.IsHomebrew();
+    return (header.DSiCryptoFlags & MODCRYPT_APPLIED) && !LooksLikeHomebrew(header);
+}
+
+bool MelonDsDs::RequiresNandInstall(const melonDS::NDSHeader& header) noexcept {
+    // Homebrew tools stamp DSi-capable ROMs with the DSiWare title ID,
+    // but Nintendo publishes no title metadata for such a title,
+    // so it can't be installed onto the NAND at all.
+    // A retail release is modcrypted; homebrew and devkit builds aren't.
+    // See https://github.com/JesseTG/melonds-ds/issues/319.
+    return header.IsDSiWare() && IsRetailDSiTitle(header);
+}
+
+bool MelonDsDs::RequiresDSi(const melonDS::NDSHeader& header) noexcept {
+    // A title that lives on the NAND needs the console that has one,
+    // whichever DSi unit code it declares.
+    // Everything else is decided by the unit code alone:
+    // 03h is DSi-exclusive, 02h runs on either console.
+    return header.UnitCode == 0x03 || RequiresNandInstall(header);
 }
 
 MelonDsDs::ConsoleType MelonDsDs::ResolveConsoleType(ConsoleMode mode, const melonDS::NDSHeader* header) noexcept {
@@ -248,8 +281,8 @@ std::unique_ptr<melonDS::NDS> MelonDsDs::CreateConsole(
         }
 
         // Homebrew is a different story;
-        // BlocksDS marks its ROMs as DSiWare by default,
-        // but they generally still run on a DS.
+        // a DSi-only homebrew ROM will often run on a DS anyway,
+        // and the player is entitled to find out.
         // See https://github.com/JesseTG/melonds-ds/issues/319.
         retro::info("Running DSi-mode homebrew on a DS, as requested");
     }
@@ -515,10 +548,14 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
     // TODO: Customize the NAND first, then use the final value of TWLCFG to patch the firmware
     CustomizeFirmware(config, *firmware);
 
-    const NDSHeader* header = ndsInfo ? reinterpret_cast<const NDSHeader*>(ndsInfo->GetData().data()) : nullptr;
+    // The header is only trustworthy if the whole of it was actually loaded;
+    // IsDSiWare reads fields near the end of it.
+    const NDSHeader* header = (ndsInfo && ndsInfo->GetData().size() >= sizeof(NDSHeader))
+        ? reinterpret_cast<const NDSHeader*>(ndsInfo->GetData().data())
+        : nullptr;
     string effectiveNandName(nandName);
     if (isAutoNand) {
-        if (header && header->IsDSiWare()) {
+        if (header && RequiresNandInstall(*header)) {
             if (auto picked = SelectDsiNandForRom(config, *header, &(*arm7i)[0x8308])) {
                 effectiveNandName = std::move(*picked);
             } else {
@@ -526,7 +563,10 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
             }
         } else {
             effectiveNandName = config.DiscoveredDsiNandPaths().front();
-            retro::info("Auto-NAND: non-DSiWare boot, using first discovered NAND \"{}\"", effectiveNandName);
+            retro::info(
+                "Auto-NAND: nothing will be installed onto the NAND, using first discovered NAND \"{}\"",
+                effectiveNandName
+            );
         }
     }
 
@@ -547,10 +587,23 @@ static MelonDsDs::DSiArgs MelonDsDs::GetDSiArgs(const CoreConfig& config, const 
 
         CustomizeNAND(config, mount, header, effectiveNandName);
 
-        if (ndsInfo && ndsRom != nullptr && ndsRom->GetHeader().IsDSiWare()) {
-            // If we're trying to play a DSiWare game...
-            InstallDsiware(mount, *ndsInfo); // Temporarily install the game on the NAND
-            ndsRom = nullptr; // Don't want to insert the DSiWare into the cart slot
+        if (ndsInfo && ndsRom != nullptr) {
+            const NDSHeader& cartHeader = ndsRom->GetHeader();
+            if (RequiresNandInstall(cartHeader)) {
+                // If we're trying to play a genuine DSiWare game...
+                InstallDsiware(mount, *ndsInfo); // Temporarily install the game on the NAND
+                ndsRom = nullptr; // Don't want to insert the DSiWare into the cart slot
+            }
+            else if (cartHeader.IsDSiWare()) {
+                // Homebrew tools mark DSi-capable ROMs as DSiWare,
+                // and there's no title metadata to install one with.
+                retro::info(
+                    "\"{}\" carries a DSiWare title ID but isn't modcrypted, "
+                    "so it doesn't look like a retail release; "
+                    "running it from the cart slot instead of installing it onto the NAND",
+                    string_view(cartHeader.GameCode, sizeof(cartHeader.GameCode))
+                );
+            }
         }
     }
 
@@ -753,7 +806,7 @@ void MelonDsDs::InstallDsiware(NANDMount& mount, const retro::GameInfo& nds_info
     retro::info("Temporarily installing DSiWare title \"{}\" onto DSi NAND image", path);
     auto data = nds_info.GetData();
     const NDSHeader &header = *reinterpret_cast<const NDSHeader*>(data.data());
-    retro_assert(header.IsDSiWare());
+    retro_assert(RequiresNandInstall(header));
 
     if (mount.TitleExists(header.DSiTitleIDHigh, header.DSiTitleIDLow)) {
         retro::info("Title \"{}\" already exists on loaded NAND; skipping installation, and won't uninstall it later.", path);
@@ -1365,8 +1418,8 @@ static void MelonDsDs::CustomizeNAND(const CoreConfig& config, NANDMount& mount,
         throw emulator_exception("Failed to read serial data from NAND image");
     }
 
-    if (header && header->IsDSiWare()) {
-        // If we're loading a DSiWare game...
+    if (header && RequiresNandInstall(*header)) {
+        // If we're installing a DSiWare game onto this NAND...
 
         uint32_t consoleRegionMask = (1 << (int)dataS.Region);
         if (!(consoleRegionMask & header->DSiRegionMask)) {
@@ -1459,8 +1512,10 @@ static void MelonDsDs::CustomizeNAND(const CoreConfig& config, NANDMount& mount,
         settings.AlarmMinute = alarm->minutes().count();
     }
 
-    if (header && header->IsDSiWare()) {
-        // If we're loading a DSiWare game...
+    if (header && RequiresNandInstall(*header)) {
+        // If we're installing a DSiWare game onto this NAND...
+        // Homebrew is run from the cart slot instead,
+        // so it never becomes the most recently played title.
 
         memcpy(&settings.SystemMenuMostRecentTitleID[0], &header->DSiTitleIDLow, sizeof(header->DSiTitleIDLow));
         memcpy(&settings.SystemMenuMostRecentTitleID[4], &header->DSiTitleIDHigh, sizeof(header->DSiTitleIDHigh));
