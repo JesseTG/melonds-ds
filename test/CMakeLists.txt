@@ -258,6 +258,7 @@ pytest_discover_tests(melonDSDS
         "MELONDSDS_CORE=$<TARGET_FILE:melondsds_libretro>"
         "MELONDSDS_SKIP_ERROR_SCREEN=1"
         "MELONDSDS_HAVE_OPENGL=$<BOOL:${HAVE_OPENGL}>"
+        "MELONDSDS_HAVE_COMPUTE_RENDERER=$<BOOL:${HAVE_COMPUTE_RENDERER}>"
         "NDS_ROM=${NDS_ROM}"
         "DSIWARE_ROM=${DSIWARE_ROM}"
         "GBA_ROM=${GBA_ROM}"

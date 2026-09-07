@@ -81,6 +81,16 @@ if (ENABLE_OPENGL AND (NOT OPENGL_PROFILE STREQUAL "OpenGL"))
     message(FATAL_ERROR "melonDS does not support OpenGL ES yet")
 endif()
 
+if (APPLE)
+    # Apple's OpenGL stops at 4.1, but melonDS's compute renderer needs 4.3
+    # (its shaders are "#version 430 core").
+    # Turn this on if a translation layer ever provides OpenGL 4.3 on Apple platforms.
+    set(DEFAULT_ENABLE_COMPUTE_RENDERER OFF)
+else ()
+    set(DEFAULT_ENABLE_COMPUTE_RENDERER ON)
+endif ()
+option(ENABLE_COMPUTE_RENDERER "Offer melonDS's compute-shader 3D renderer as a render mode. Needs OpenGL 4.3." ${DEFAULT_ENABLE_COMPUTE_RENDERER})
+
 if (ANDROID)
     if (NOT ANDROID_PLATFORM)
         set(ANDROID_PLATFORM "android-24")

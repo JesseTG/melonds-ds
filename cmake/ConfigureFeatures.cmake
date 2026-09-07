@@ -114,6 +114,17 @@ else()
     set(ENABLE_OPENGL OFF CACHE BOOL "Enable OpenGL renderer" FORCE)
 endif()
 
+if (ENABLE_COMPUTE_RENDERER AND HAVE_OPENGL AND NOT HAVE_OPENGLES)
+    # melonDS always compiles GPU3D_Compute.cpp into its core target when ENABLE_OGLRENDERER is on,
+    # and GLRenderer's constructor refers to ComputeRenderer3D,
+    # so the compute renderer can't be left out of the binary without patching melonDS.
+    # This flag only controls whether melonDS DS exposes it:
+    # the "compute" render mode, its core options, and the code that constructs it.
+    set(HAVE_COMPUTE_RENDERER ON)
+else ()
+    set(HAVE_COMPUTE_RENDERER OFF)
+endif ()
+
 if (ENABLE_NETWORKING)
     set(HAVE_NETWORKING ON)
 
@@ -224,6 +235,10 @@ function(add_common_definitions TARGET)
 
     if (HAVE_OPENGL_MODERN)
         target_compile_definitions(${TARGET} PUBLIC HAVE_OPENGL_MODERN)
+    endif ()
+
+    if (HAVE_COMPUTE_RENDERER)
+        target_compile_definitions(${TARGET} PUBLIC HAVE_COMPUTE_RENDERER)
     endif ()
 
     if (HAVE_OPENGLES)
