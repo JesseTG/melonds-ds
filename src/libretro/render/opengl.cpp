@@ -17,8 +17,11 @@
 
 #include "opengl.hpp"
 
+#include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstring>
+#include <utility>
 
 #include <GPU_OpenGL.h>
 #include <GPU_Soft.h>
@@ -44,6 +47,14 @@ using std::array;
 using MelonDsDs::ScreenLayout;
 
 constexpr unsigned VERTEXES_PER_SCREEN = 6;
+
+// The OpenGL core-profile versions each of melonDS's OpenGL-based renderers needs, as (major, minor)
+constexpr std::pair<GLint, GLint> LEGACY_GL_VERSION {3, 2};
+constexpr std::pair<GLint, GLint> COMPUTE_GL_VERSION {4, 3};
+
+// How many shader storage buffer binding points melonDS's compute renderer uses
+// (see the "layout (std430, binding = N)" declarations in its GPU3D_Compute_shaders.h)
+constexpr GLuint COMPUTE_SSBO_BINDINGS = 8;
 
 // melonDS renders each screen into its own layer of a 2D array texture,
 // so the third texture coordinate selects the screen.
@@ -148,25 +159,35 @@ static const char* const SHADER_PROGRAM_NAME = "melonDS DS Shader Program";
 constexpr GLuint SHADER_CONFIG_UBO_BINDING = 16; // TODO: Where does 16 come from? It's not a size.
 
 
-std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New() noexcept {
+std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New(RenderMode mode) noexcept {
     ZoneScopedN(TracyFunction);
     try {
-        return std::make_unique<OpenGLRenderState>();
+        return std::make_unique<OpenGLRenderState>(mode);
     } catch (const opengl_not_initialized_exception& e) {
         retro::debug("OpenGL context could not be initialized: {}", e.what());
         return nullptr;
     }
 }
 
-MelonDsDs::OpenGLRenderState::OpenGLRenderState() {
+MelonDsDs::OpenGLRenderState::OpenGLRenderState(RenderMode mode) : _mode(mode) {
     ZoneScopedN(TracyFunction);
     retro::debug(TracyFunction);
+    retro_assert(UsesOpenGl(mode));
 
-    // MelonDS needs at least OpenGL 3.2 for OpenGL renderer
-    // (it doesn't use the legacy fixed-function pipeline)
+    // melonDS's OpenGL renderer needs at least OpenGL 3.2
+    // (it doesn't use the legacy fixed-function pipeline).
+    // Its compute renderer's shaders are "#version 430 core", so that one needs 4.3.
+    // The frontend gets exactly one version request per context,
+    // which is why each render mode gets its own OpenGLRenderState.
     _hw_render.context_type = RETRO_HW_CONTEXT_OPENGL_CORE;
-    _hw_render.version_major = 3;
-    _hw_render.version_minor = 2;
+    _hw_render.version_major = LEGACY_GL_VERSION.first;
+    _hw_render.version_minor = LEGACY_GL_VERSION.second;
+#ifdef HAVE_COMPUTE_RENDERER
+    if (UsesComputeRenderer()) {
+        _hw_render.version_major = COMPUTE_GL_VERSION.first;
+        _hw_render.version_minor = COMPUTE_GL_VERSION.second;
+    }
+#endif
     _hw_render.context_reset = HardwareContextReset;
     _hw_render.context_destroy = HardwareContextDestroyed;
     _hw_render.depth = true;
@@ -264,38 +285,52 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     retro::info("OpenGL vendor: {}", vendor ? vendor : "<null>");
     retro::info("OpenGL renderer: {}", rendererName ? rendererName : "<null>");
 
+    // The frontend may have said yes to our version request and then handed us something older;
+    // find out before melonDS's renderer tries to use features that aren't there
+    CheckContextVersion();
+
     // Start using OpenGL on the frontend's framebuffer
     retro::debug("Binding GL state");
     BindState();
     retro::debug("Bound GL state");
 
-    GLuint fbo = CurrentFramebuffer();
-    retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    retro::debug("Current OpenGL framebuffer: id={}, status={}", fbo, static_cast<FormattedGLEnum>(status));
+    try {
+        GLuint fbo = CurrentFramebuffer();
+        retro_assert(glIsFramebuffer(fbo) == GL_TRUE);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        retro::debug("Current OpenGL framebuffer: id={}, status={}", fbo, static_cast<FormattedGLEnum>(status));
 
-    // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
-    // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
-    // that recreates all resources)
-    nds.SetRenderer(std::make_unique<melonDS::SoftRenderer>(nds));
+        // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
+        // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
+        // that recreates all resources)
+        nds.SetRenderer(std::make_unique<melonDS::SoftRenderer>(nds));
 
-    // TODO: Offer melonDS's compute renderer as a core option (the bool selects it).
-    nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, false));
+        nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, UsesComputeRenderer()));
 
-    // melonDS installs its own software renderer if the one we gave it failed to start,
-    // so that's how we find out whether this worked.
-    if (!dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
-        retro::error("Failed to initialize OpenGL renderer!");
-        throw opengl_not_initialized_exception();
+        // melonDS installs its own software renderer if the one we gave it failed to start,
+        // so that's how we find out whether this worked.
+        if (!dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
+            retro::error("Failed to initialize {} renderer!", _mode);
+            throw opengl_not_initialized_exception(
+                "melonDS's OpenGL renderer failed to initialize",
+                "The OpenGL renderer failed to initialize; using software rendering instead."
+            );
+        }
+        retro::debug("Constructed {} renderer", _mode);
+        ApplyRendererSettings(nds, config);
+        _appliedScaleFactor = config.ScaleFactor();
+        _appliedBetterPolygons = config.BetterPolygonSplitting();
+        _appliedHiresCoordinates = config.HiresCoordinates();
+        retro::debug("Installed {} renderer and applied its settings", _mode);
+
+        SetUpCoreOpenGlState(config);
+        retro::debug("Initialized core OpenGL state");
     }
-    retro::debug("Constructed OpenGL renderer");
-    ApplyRendererSettings(nds, config);
-    _appliedScaleFactor = config.ScaleFactor();
-    _appliedBetterPolygons = config.BetterPolygonSplitting();
-    retro::debug("Installed OpenGL renderer and applied its settings");
-
-    SetUpCoreOpenGlState(config);
-    retro::debug("Initialized core OpenGL state");
+    catch (...) {
+        // Don't leave our bindings in the frontend's context on the way out
+        UnbindState();
+        throw;
+    }
     _contextInitialized = true;
 
     // Stop using OpenGL structures
@@ -311,6 +346,36 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
 #endif
 
     retro::debug("OpenGL context reset successfully.");
+}
+
+void MelonDsDs::OpenGLRenderState::CheckContextVersion() const {
+    ZoneScopedN(TracyFunction);
+
+    // Only the compute renderer needs checking:
+    // the frontend can't give us a core-profile context older than 3.2 (there's no such thing),
+    // but it can give us one older than 4.3.
+    // melonDS's compute renderer neither checks the version nor reports shader compile failures,
+    // so a context that's too old would just spew OpenGL errors and draw a black 3D layer.
+    if (!UsesComputeRenderer()) {
+        return;
+    }
+
+    std::pair<GLint, GLint> version {0, 0};
+    glGetIntegerv(GL_MAJOR_VERSION, &version.first);
+    glGetIntegerv(GL_MINOR_VERSION, &version.second);
+
+    if (version < COMPUTE_GL_VERSION) {
+        retro::error(
+            "The compute renderer needs OpenGL {}.{}, but the frontend provided {}.{}",
+            COMPUTE_GL_VERSION.first, COMPUTE_GL_VERSION.second, version.first, version.second
+        );
+        throw opengl_not_initialized_exception(
+            fmt::format("OpenGL {}.{} context is too old for the compute renderer", version.first, version.second),
+            "This frontend's OpenGL version is too old for the compute renderer; using software rendering instead."
+        );
+    }
+
+    retro::debug("OpenGL {}.{} context is new enough for the compute renderer", version.first, version.second);
 }
 
 // Sets up OpenGL resources specific to melonDS
@@ -405,9 +470,14 @@ void MelonDsDs::OpenGLRenderState::Render(
     // and resets whatever fixed-function state the frontend or melonDS may have changed
     BindState();
 
-    if (_appliedBetterPolygons != config.BetterPolygonSplitting() || _appliedScaleFactor != config.ScaleFactor())
+    if (
+        _appliedBetterPolygons != config.BetterPolygonSplitting()
+        || _appliedScaleFactor != config.ScaleFactor()
+        || _appliedHiresCoordinates != config.HiresCoordinates()
+    ) {
         // If any of the OpenGL renderer's settings have changed...
         _needsRefresh = true;
+    }
 
     if (_needsRefresh) {
         InitFrameState(nds, config, screenLayout);
@@ -501,6 +571,7 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     _screenProgram = 0;
     _appliedScaleFactor = 0;
     _appliedBetterPolygons = false;
+    _appliedHiresCoordinates = false;
     screen_vertices = {};
     vertexCount = 0;
     vao = 0;
@@ -522,6 +593,62 @@ GLuint MelonDsDs::OpenGLRenderState::CurrentFramebuffer() const noexcept {
 
 // This and UnbindState replace the parts of libretro-common's glsm
 // that melonDS DS actually used, before glsm was removed from libretro-common.
+MelonDsDs::ShaderCompileProgress MelonDsDs::OpenGLRenderState::CompileShaders(
+    melonDS::NDS& nds,
+    std::chrono::microseconds budget
+) noexcept {
+    melonDS::Renderer& renderer = nds.GetRenderer();
+    if (!renderer.NeedsShaderCompile()) [[likely]] {
+        // The legacy renderer compiles everything in its constructor, so this is the usual case
+        return {};
+    }
+
+    ZoneScopedN(TracyFunction);
+    TracyGpuZone(TracyFunction);
+    retro_assert(_contextInitialized);
+
+    // melonDS doesn't report shaders that failed to compile,
+    // so OpenGL's error queue is the only signal we get
+    // (such as GL_INVALID_ENUM from glCreateShader(GL_COMPUTE_SHADER)
+    // on a context that doesn't have compute shaders).
+    // Drain it first so that we only see the compiler's errors.
+    while (glGetError() != GL_NO_ERROR) {
+        // (there's nothing to do with these but discard them)
+    }
+
+    // melonDS compiles one program per call so that a frontend can spread the work out;
+    // its own Qt frontend does the same thing with the same time budget.
+    int current = 0;
+    int count = 0;
+    auto deadline = std::chrono::steady_clock::now() + budget;
+    do {
+        ZoneScopedN("melonDS::ComputeRenderer3D::ShaderCompileStep");
+        renderer.ShaderCompileStep(current, count);
+    } while (renderer.NeedsShaderCompile() && std::chrono::steady_clock::now() < deadline);
+
+    ShaderCompileProgress progress {
+        // current is the index of the last program compiled, so one more of them are ready
+        .Compiled = std::min(current + 1, count),
+        .Total = count,
+        .Done = !renderer.NeedsShaderCompile(),
+        .Failed = false,
+    };
+
+    for (GLenum error = glGetError(); error != GL_NO_ERROR; error = glGetError()) {
+        retro::error(
+            "OpenGL error {} while compiling shader {} of {} for the {} renderer",
+            static_cast<FormattedGLEnum>(error), progress.Compiled, progress.Total, _mode
+        );
+        progress.Failed = true;
+    }
+
+    if (progress.Done && !progress.Failed) {
+        retro::info("Compiled {} shader programs for the {} renderer", progress.Total, _mode);
+    }
+
+    return progress;
+}
+
 // Unlike glsm, nothing here is tracked through wrappers;
 // melonDS DS and melonDS both call OpenGL directly,
 // so we just apply the state we know the core needs.
@@ -572,6 +699,21 @@ void MelonDsDs::OpenGLRenderState::UnbindState() noexcept {
     // which makes the frontend's own glReadPixels (e.g. for screenshots) fail
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
+#ifdef HAVE_COMPUTE_RENDERER
+    if (UsesComputeRenderer()) {
+        // The compute renderer's dispatches leave its storage buffers, indirect buffer,
+        // texture buffer and output image bound.
+        // A 3.2 context has none of these targets (and may not even resolve the functions),
+        // hence the mode check.
+        for (GLuint i = 0; i < COMPUTE_SSBO_BINDINGS; ++i) {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0); // Also unbinds GL_SHADER_STORAGE_BUFFER itself
+        }
+        glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
+        glBindBuffer(GL_TEXTURE_BUFFER, 0);
+        glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+    }
+#endif
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_BLEND);
@@ -591,12 +733,14 @@ void MelonDsDs::OpenGLRenderState::UnbindState() noexcept {
     glStencilMask(~0u);
     glLineWidth(1);
 
-    // melonDS's renderer and compositor only use texture units 0 and 1
+    // melonDS's legacy renderer and compositor only use texture units 0 and 1,
+    // and its compute renderer also binds its texture cache to unit 2
     // (the texture cache binds 2D array textures to whichever unit is active)
-    for (GLenum unit : {GL_TEXTURE1, GL_TEXTURE0}) {
+    for (GLenum unit : {GL_TEXTURE2, GL_TEXTURE1, GL_TEXTURE0}) {
         glActiveTexture(unit);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
     // (Loop order leaves GL_TEXTURE0 active, which is the default)
 
@@ -610,9 +754,20 @@ void MelonDsDs::OpenGLRenderState::InitFrameState(melonDS::NDS& nds, const CoreC
 
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    ApplyRendererSettings(nds, config);
-    _appliedScaleFactor = config.ScaleFactor();
-    _appliedBetterPolygons = config.BetterPolygonSplitting();
+
+    if (
+        _appliedScaleFactor != config.ScaleFactor()
+        || _appliedBetterPolygons != config.BetterPolygonSplitting()
+        || _appliedHiresCoordinates != config.HiresCoordinates()
+    ) {
+        // Only push settings to melonDS when they've actually changed.
+        // A refresh is requested for every screen layout change too,
+        // and the compute renderer rebuilds all of its shaders and buffers on every call.
+        ApplyRendererSettings(nds, config);
+        _appliedScaleFactor = config.ScaleFactor();
+        _appliedBetterPolygons = config.BetterPolygonSplitting();
+        _appliedHiresCoordinates = config.HiresCoordinates();
+    }
 
     GL_ShaderConfig.uScreenSize = screenLayout.BufferSize();
     GL_ShaderConfig.u3DScale = screenLayout.Scale();

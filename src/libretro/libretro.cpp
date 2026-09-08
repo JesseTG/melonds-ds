@@ -272,10 +272,12 @@ extern "C" void MelonDsDs::HardwareContextReset() noexcept {
         Core.ResetRenderState();
     }
     catch (const opengl_exception& e) {
+        // RenderStateWrapper::ContextReset catches these itself
+        // and arranges a fallback to software rendering on the next frame,
+        // so this only runs if one escapes from somewhere else.
         retro::error("{}", e.what());
         retro::set_error_message(e.user_message());
         retro::shutdown();
-        // TODO: Instead of shutting down, fall back to the software renderer
     }
     catch (const emulator_exception& e) {
         retro::error("{}", e.what());

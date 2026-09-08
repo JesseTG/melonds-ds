@@ -113,6 +113,9 @@ namespace MelonDsDs {
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
+        [[gnu::cold]] void FallBackToSoftwareRenderer() noexcept;
+        [[gnu::cold]] void CancelShaderCompileTask() noexcept;
+        static void ShowShaderCompileProgress(int compiled, int total) noexcept;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
         [[gnu::cold]] void InstallNdsSram() noexcept;
         [[gnu::cold]] void StartConsole();
@@ -138,6 +141,7 @@ namespace MelonDsDs {
 
         const melonDS::AdapterData* SelectNetworkInterface(std::span<const melonDS::AdapterData> adapters) const noexcept;
 
+        [[gnu::cold]] retro::task::TaskSpec ShaderCompileTask() noexcept;
         retro::task::TaskSpec PowerStatusUpdateTask() noexcept;
         retro::task::TaskSpec OnScreenDisplayTask() noexcept;
         retro::task::TaskSpec FlushGbaSramTask() noexcept;
@@ -176,6 +180,9 @@ namespace MelonDsDs {
         bool _ndsSramInstalled = false;
         bool _deferredInitializationPending = false;
         uint32_t _flushTaskId = 0;
+        /// non-nullopt while the task is compiling melonDS's shaders;
+        /// the console can't emulate a frame until it finishes.
+        std::optional<uint32_t> _shaderCompileTaskId = std::nullopt;
     };
 }
 #endif //MELONDSDS_CORE_HPP

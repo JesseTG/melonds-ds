@@ -85,6 +85,19 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
 
         pytest.importorskip("moderngl", reason="install libretro.py[opengl]")
 
+    if item.get_closest_marker("compute") is not None:
+        if os.environ.get("MELONDSDS_HAVE_COMPUTE_RENDERER") != "1":
+            pytest.skip("the core was built without the compute renderer")
+
+        pytest.importorskip("moderngl", reason="install libretro.py[opengl]")
+
+    if item.get_closest_marker("gl43") is not None:
+        moderngl = pytest.importorskip("moderngl", reason="install libretro.py[opengl]")
+        try:
+            moderngl.create_context(standalone=True, require=430).release()
+        except Exception as exc:  # noqa: BLE001
+            pytest.skip(f"this host can't create an OpenGL 4.3 context: {exc}")
+
 
 #: Windows C runtimes whose ``getenv`` the core might be reading.
 #:

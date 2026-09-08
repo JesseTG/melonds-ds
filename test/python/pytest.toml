@@ -40,5 +40,7 @@ markers = [
 
     # --- Capabilities and behavior switches ------------------------------
     "opengl: needs an OpenGL-enabled core build and libretro.py[opengl]",
+    "compute: needs a core built with ENABLE_COMPUTE_RENDERER (off on macOS) and libretro.py[opengl]",
+    "gl43: needs a host that can create an OpenGL 4.3 core context",
     "no_skip_error_screen: do not set MELONDSDS_SKIP_ERROR_SCREEN for this test",
 ]

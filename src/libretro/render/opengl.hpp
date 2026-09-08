@@ -42,8 +42,10 @@ namespace MelonDsDs {
 
     class OpenGLRenderState final : public RenderState {
     public:
-        static std::unique_ptr<OpenGLRenderState> New() noexcept;
-        OpenGLRenderState();
+        /// Returns nullptr if the frontend won't provide the OpenGL context \c mode needs.
+        static std::unique_ptr<OpenGLRenderState> New(RenderMode mode) noexcept;
+        /// \param mode Which OpenGL render mode this state is for; must satisfy \c UsesOpenGl.
+        explicit OpenGLRenderState(RenderMode mode);
         ~OpenGLRenderState() noexcept override;
         OpenGLRenderState(const OpenGLRenderState&) = delete;
         OpenGLRenderState(OpenGLRenderState&&) = delete;
@@ -61,6 +63,11 @@ namespace MelonDsDs {
             _needsRefresh = true;
         }
 
+        ShaderCompileProgress CompileShaders(melonDS::NDS& nds, std::chrono::microseconds budget) noexcept override;
+
+        [[nodiscard]] RenderMode Mode() const noexcept { return _mode; }
+        [[nodiscard]] bool UsesComputeRenderer() const noexcept { return _mode == RenderMode::Compute; }
+
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
     private:
@@ -74,6 +81,8 @@ namespace MelonDsDs {
         static_assert(sizeof(Vertex) == sizeof(vec2::value_type) * 5);
 
         void SetUpCoreOpenGlState(const CoreConfig& config);
+        // Throws opengl_not_initialized_exception if the frontend's context is too old for _mode.
+        void CheckContextVersion() const;
         void InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void InitVertices(const ScreenLayoutData& screenLayout) noexcept;
 
@@ -92,6 +101,9 @@ namespace MelonDsDs {
         // Call after the core is done making OpenGL calls for the frame.
         void UnbindState() noexcept;
 
+        // Which of melonDS's OpenGL-based 3D renderers this state drives.
+        // Fixed for the lifetime of the object, since each needs a different OpenGL version.
+        const RenderMode _mode;
         bool _openGlDebugAvailable = false;
         bool _needsRefresh = true;
         bool _contextInitialized = false;
@@ -99,6 +111,7 @@ namespace MelonDsDs {
         // so we track the ones we last gave it to know when they've changed.
         unsigned _appliedScaleFactor = 0;
         bool _appliedBetterPolygons = false;
+        bool _appliedHiresCoordinates = false;
         GLuint _screenProgram = 0;
         std::array<Vertex, 18> screen_vertices {};
         unsigned vertexCount = 0;

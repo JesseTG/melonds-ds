@@ -17,12 +17,16 @@
 #include "render.hpp"
 
 #include "PlatformOGLPrivate.h"
+  
+#include <utility>
 
 #include <NDS.h>
 #include <GPU_Soft.h>
 #include <retro_assert.h>
 
 #include "config/config.hpp"
+#include "exceptions.hpp"
+#include "format.hpp"
 #include "message/error.hpp"
 #include "render/software.hpp"
 #include "screenlayout.hpp"
@@ -36,10 +40,8 @@ void MelonDsDs::ApplyRendererSettings(melonDS::NDS& nds, const CoreConfig& confi
     melonDS::RendererSettings settings {
         .ScaleFactor = static_cast<int>(config.ScaleFactor()),
         .Threaded = config.ThreadedSoftRenderer(),
-        // TODO: Expose melonDS's compute renderer as a core option;
-        //  HiresCoordinates only applies to that one, so it's inert until then.
-        .HiresCoordinates = false,
-        .BetterPolygons = config.BetterPolygonSplitting(),
+        .HiresCoordinates = config.HiresCoordinates(), // Compute renderer only
+        .BetterPolygons = config.BetterPolygonSplitting(), // Legacy OpenGL renderer only
     };
 
     nds.GetRenderer().SetRenderSettings(settings);
@@ -57,45 +59,104 @@ void MelonDsDs::RenderStateWrapper::Render(
     }
 }
 
+/// Puts melonDS's software renderer back in place
+/// so that its OpenGL renderer releases its objects while the context it made them in is still current.
+///
+/// Destroying an \c OpenGLRenderState tells the frontend that we're done with its context,
+/// and the frontend is free to destroy and recreate it before the core runs again.
+/// RetroArch does exactly that, from within the \c SET_SYSTEM_AV_INFO call
+/// that reports the new render mode's geometry.
+/// melonDS's renderer would then delete its OpenGL object names in a context
+/// that has since given those same names to the frontend's own textures and shaders,
+/// which stops the frontend from drawing anything at all (menus and overlays included).
+static void ReleaseOpenGlRenderer(melonDS::NDS* nds) noexcept {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    if (!nds || !dynamic_cast<melonDS::GLRenderer*>(&nds->GetRenderer())) {
+        // If there's no console yet, or if it isn't rendering with OpenGL...
+        return;
+    }
+
+    retro::debug("Releasing melonDS's OpenGL renderer while its context is still current");
+    nds->SetRenderer(std::make_unique<melonDS::SoftRenderer>(*nds));
+#endif
+}
+
 void MelonDsDs::RenderStateWrapper::Render(
     const error::ErrorScreen& error,
     const CoreConfig& config,
     const ScreenLayoutData& screenLayout
 ) noexcept {
-    SetRenderer(config);
+    SetRenderer(config, nullptr);
     static_cast<SoftwareRenderState*>(_renderState.get())->Render(error, config, screenLayout);
 }
 
-void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config) noexcept {
-    SetRenderer(config);
+void MelonDsDs::RenderStateWrapper::RequestSoftwareFallback(std::string message) noexcept {
+    _fallbackMessage = std::move(message);
+    _softwareFallbackRequested = true;
+
+#ifdef HAVE_COMPUTE_RENDERER
+    if (auto* glState = dynamic_cast<OpenGLRenderState*>(_renderState.get());
+        glState && glState->Mode() == RenderMode::Compute) {
+        // Don't ask this frontend for an OpenGL 4.3 context again;
+        // it's already shown that it can't run the compute renderer.
+        _computeUnsupported = true;
+    }
+#endif
+}
+
+void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config, melonDS::NDS* nds) noexcept {
+    SetRenderer(config, nds);
 }
 
 
-void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config) {
-    switch (config.ConfiguredRenderer()) {
+void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config, melonDS::NDS* nds) {
+    RenderMode wanted = config.ConfiguredRenderer();
+
+#ifdef HAVE_COMPUTE_RENDERER
+    if (wanted == RenderMode::Compute && _computeUnsupported) {
+        // This frontend already failed to run the compute renderer once;
+        // don't keep asking it for an OpenGL 4.3 context every time a setting changes.
+        wanted = RenderMode::Software;
+    }
+#endif
+
+    switch (wanted) {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+#ifdef HAVE_COMPUTE_RENDERER
+        case RenderMode::Compute:
+#endif
         case RenderMode::OpenGl: {
-            if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) != nullptr) {
-                // If we already have the OpenGL renderer configured...
+            if (auto* glState = dynamic_cast<OpenGLRenderState*>(_renderState.get()); glState && glState->Mode() == wanted) {
+                // If we already have this OpenGL renderer configured...
                 break;
             }
 
-            if (auto state = OpenGLRenderState::New()) {
+            // Each OpenGL render mode asks the frontend for a different context version,
+            // so switching between them means tearing down the old state
+            // (which tells the frontend we're done with its context)
+            // before requesting the new one.
+            ReleaseOpenGlRenderer(nds);
+            _renderState.reset();
+
+            if (auto state = OpenGLRenderState::New(wanted)) {
                 _renderState = std::move(state);
-                retro::debug("Initialized OpenGL render state");
+                retro::debug("Initialized {} render state", wanted);
                 break;
             }
 
-            retro::set_warn_message("Failed to initialize OpenGL render state, falling back to software mode.");
+            retro::set_warn_message("Failed to initialize {} render state, falling back to software mode.", wanted);
             [[fallthrough]];
         }
 #endif
-        case RenderMode::Software: {
+        case RenderMode::Software:
+        default: {
+            // (Render modes this build doesn't offer end up here too)
             if (dynamic_cast<SoftwareRenderState*>(_renderState.get()) != nullptr) {
                 // If we already have the software renderer configured...
                 break;
             }
 
+            ReleaseOpenGlRenderer(nds);
             _renderState = std::make_unique<SoftwareRenderState>(config);
             retro::debug("Initialized software render state");
             break;
@@ -121,21 +182,21 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (auto* glRender = dynamic_cast<OpenGLRenderState*>(_renderState.get());
-        glRender && !dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
-        // If we're configured to use the OpenGL renderer, and we aren't already...
-        retro::debug("Initializing OpenGL renderer");
+        glRender && glRender->Ready() && !dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
+        // If we're configured to use an OpenGL renderer and its context is up, but we aren't using it yet...
+        // (If the context isn't up yet, OpenGLRenderState::ContextReset will install the renderer once it is.)
+        retro::debug("Initializing {} renderer", glRender->Mode());
 
-        // TODO: Offer melonDS's compute renderer as a core option (the bool selects it).
-        nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, false));
+        nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, glRender->UsesComputeRenderer()));
 
         // melonDS installs its own software renderer if the one we gave it failed to start,
         // so that's how we find out whether this worked.
         if (dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
-            retro::debug("Initialized OpenGL renderer.");
+            retro::debug("Initialized {} renderer.", glRender->Mode());
             ApplyRendererSettings(nds, config);
             glRender->RequestRefresh();
         } else {
-            retro::set_warn_message("Failed to initialize OpenGL renderer, falling back to software mode.");
+            retro::set_warn_message("Failed to initialize {} renderer, falling back to software mode.", glRender->Mode());
             _renderState = std::make_unique<SoftwareRenderState>(config);
             ApplyRendererSettings(nds, config);
         }
@@ -145,8 +206,27 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
 
 void MelonDsDs::RenderStateWrapper::ContextReset(melonDS::NDS& nds, const CoreConfig& config) {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (auto glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get())) {
+    auto* glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get());
+    if (!glRenderState) {
+        return;
+    }
+
+    try {
         glRenderState->ContextReset(nds, config);
+    }
+    catch (const opengl_exception& e) {
+        // We're inside the frontend's context_reset callback,
+        // which is no place to tell it we've stopped using OpenGL;
+        // remember to do that at the start of the next frame instead.
+        retro::error("{}", e.what());
+        _fallbackMessage = e.user_message();
+        _softwareFallbackRequested = true;
+
+#ifdef HAVE_COMPUTE_RENDERER
+        if (glRenderState->Mode() == RenderMode::Compute) {
+            _computeUnsupported = true;
+        }
+#endif
     }
 #endif
 }
@@ -159,13 +239,26 @@ void MelonDsDs::RenderStateWrapper::ContextDestroyed() {
 #endif
 }
 
+std::string MelonDsDs::RenderStateWrapper::FallBackToSoftware(const CoreConfig& config, melonDS::NDS* nds) noexcept {
+    _softwareFallbackRequested = false;
+
+    ReleaseOpenGlRenderer(nds);
+
+    // Destroying an OpenGLRenderState tells the frontend we're done with its context
+    _renderState.reset();
+    _renderState = std::make_unique<SoftwareRenderState>(config);
+    retro::debug("Fell back to the software render state");
+
+    return std::exchange(_fallbackMessage, {});
+}
+
 std::optional<MelonDsDs::RenderMode> MelonDsDs::RenderStateWrapper::GetRenderMode() const noexcept {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (dynamic_cast<SoftwareRenderState*>(_renderState.get()))
         return RenderMode::Software;
 
-    if (dynamic_cast<OpenGLRenderState*>(_renderState.get()))
-        return RenderMode::OpenGl;
+    if (auto* glState = dynamic_cast<OpenGLRenderState*>(_renderState.get()))
+        return glState->Mode();
 
     return std::nullopt;
 #else

@@ -214,11 +214,6 @@ If you want to see them, ask how you can get involved!
   Standalone melonDS supports emulating the DSi's cameras.
   Support in melonDS DS is planned,
   but has not yet been integrated.
-- **OpenGL Compute Shader Renderer:**
-  melonDS introduced a new renderer that uses OpenGL compute shaders,
-  enabling the accuracy of the software renderer
-  with the upscaling of the legacy OpenGL renderer.
-  Support has not yet been integrated into melonDS DS.
 
 # Compatibility
 
@@ -248,6 +243,9 @@ assuming it's used with a frontend that also supports them:
 - iOS (arm64)
 
 Available features may vary depending on the platform and frontend.
+For example, the "OpenGL (Compute)" render mode needs OpenGL 4.3,
+so it isn't available on macOS (whose OpenGL stops at 4.1)
+or on frontends that can't provide that version.
 
 The legacy melonDS core has builds for the Nintendo Switch
 and for 32-bit versions of the above platforms,

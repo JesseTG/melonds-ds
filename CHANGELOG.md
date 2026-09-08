@@ -20,10 +20,19 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Added a "Rumble Motors" core option
   for choosing whether the Rumble Pak drives your controller's strong motor,
   its weak motor, or both.
+- Integrate the compute shader renderer.
+  You can select it from the core options on Windows and Linux builds.
+  Android is not yet supported, and Apple devices likely never will be.
+  [#209](https://github.com/JesseTG/melonds-ds/issues/209)
 
 ### Changed
 
 - Changed the default Console Mode to Auto.
+- Only show the "Improved Polygon Splitting" core option
+  when the legacy OpenGL renderer is selected.
+- The core now falls back to software rendering
+  when the OpenGL context the frontend provides can't be used,
+  instead of shutting down.
 - DSi-exclusive cartridges now run in DSi mode when Console Mode is set to Auto.
   DSi-_enhanced_ games are unaffected.
 

@@ -158,6 +158,9 @@ it means the test declared a prerequisite that isn't available on your machine.
 A wall of skipped tests usually means
 you haven't pointed CMake at your ROMs and system files,
 or that the core was built without OpenGL.
+The compute renderer's tests also skip
+when the core was built with `-DENABLE_COMPUTE_RENDERER=OFF`
+or the host can't create an OpenGL 4.3 context.
 
 # How the Suite Is Organized
 
@@ -172,6 +175,7 @@ All of the test code lives in [`test/python`](python).
 | `test_console_mode.py` | Resolving "Auto" console mode against the loaded ROM |
 | `test_av.py` | Audio and video output, screen geometry, rotation |
 | `test_opengl.py` | Hardware rendering and runtime renderer switching |
+| `test_compute.py` | melonDS's compute-shader renderer, and falling back when OpenGL 4.3 isn't available |
 | `test_input.py` | Buttons, the touch pointer, the analog cursor, the microphone |
 | `test_microphone.py` | When the host microphone is opened and activated |
 | `test_state.py` | Savestates and exposed memory regions |
@@ -211,7 +215,14 @@ The full list is in [`pytest.toml`](python/pytest.toml).
 @pytest.mark.nds_rom      # Needs -DNDS_ROM=...
 @pytest.mark.nds_sysfiles # Needs (and stages) bios7.bin, bios9.bin and firmware.bin
 @pytest.mark.opengl       # Needs an OpenGL-enabled core build
+@pytest.mark.compute      # Needs a core built with -DENABLE_COMPUTE_RENDERER=ON (the default except on macOS)
+@pytest.mark.gl43         # Needs a host whose OpenGL implementation can create a 4.3 core context
 ```
+
+The compute renderer's tests carry both of the last two markers,
+so they're skipped on macOS
+(where Apple's OpenGL stops at 4.1 and the core is built without the compute renderer)
+and on any other host that can't provide OpenGL 4.3.
 
 System file markers do double duty:
 a marked file is copied into `<system>/melonDS DS/` before the core is loaded.

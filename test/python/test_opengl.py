@@ -86,6 +86,10 @@ def test_falls_back_to_software(session: SessionFactory, nds_rom: Path) -> None:
         assert not is_opengl()
 
 
+#: Switching to or from the compute renderer needs a core that offers it and a host that can run it.
+compute = [pytest.mark.compute, pytest.mark.gl43]
+
+
 @pytest.mark.nds_rom
 @pytest.mark.parametrize(
     ("start", "sequence"),
@@ -94,12 +98,18 @@ def test_falls_back_to_software(session: SessionFactory, nds_rom: Path) -> None:
         pytest.param("opengl", ("software",), id="gl-to-sw"),
         pytest.param("software", ("opengl", "software"), id="sw-to-gl-to-sw"),
         pytest.param("opengl", ("software", "opengl"), id="gl-to-sw-to-gl"),
+        pytest.param("software", ("compute",), id="sw-to-compute", marks=compute),
+        pytest.param("compute", ("software",), id="compute-to-sw", marks=compute),
+        pytest.param("opengl", ("compute",), id="gl-to-compute", marks=compute),
+        pytest.param("compute", ("opengl",), id="compute-to-gl", marks=compute),
+        pytest.param("compute", ("opengl", "compute"), id="compute-to-gl-to-compute", marks=compute),
+        pytest.param("software", ("compute", "software"), id="sw-to-compute-to-sw", marks=compute),
     ],
 )
 def test_render_mode_switch(
     session: SessionFactory, nds_rom: Path, start: str, sequence: tuple[str, ...]
 ) -> None:
-    """The renderer can be swapped at runtime, in either direction, repeatedly."""
+    """The renderer can be swapped at runtime, in any direction, repeatedly."""
     with session(nds_rom, options={"melonds_render_mode": start}) as emulator:
         is_opengl = emulator.get_proc_address(b"melondsds_is_opengl_renderer", TypedFunctionPointer[c_bool, []])
         assert is_opengl is not None
@@ -107,7 +117,10 @@ def test_render_mode_switch(
         is_software = emulator.get_proc_address(b"melondsds_is_software_renderer", TypedFunctionPointer[c_bool, []])
         assert is_software is not None
 
-        probes = {"opengl": is_opengl, "software": is_software}
+        is_compute = emulator.get_proc_address(b"melondsds_is_compute_renderer", TypedFunctionPointer[c_bool, []])
+        assert is_compute is not None
+
+        probes = {"opengl": is_opengl, "software": is_software, "compute": is_compute}
 
         assert probes[start]()
 
@@ -124,12 +137,19 @@ def test_render_mode_switch(
 
 
 @pytest.mark.no_skip_error_screen
-def test_error_screen_does_not_crash(session: SessionFactory) -> None:
+@pytest.mark.parametrize(
+    "mode",
+    [
+        pytest.param("opengl", id="opengl"),
+        pytest.param("compute", id="compute", marks=compute),
+    ],
+)
+def test_error_screen_does_not_crash(session: SessionFactory, mode: str) -> None:
     """
-    The in-core error screen renders without crashing under OpenGL.
+    The in-core error screen renders without crashing when an OpenGL renderer is configured.
 
     See https://github.com/JesseTG/melonds-ds/issues/155
     """
-    with session(options={"melonds_render_mode": "opengl"}) as emulator:
+    with session(options={"melonds_render_mode": mode}) as emulator:
         for _ in range(300):
             emulator.run()

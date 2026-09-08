@@ -17,8 +17,10 @@
 #ifndef MELONDS_DS_RENDER_HPP
 #define MELONDS_DS_RENDER_HPP
 
+#include <chrono>
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "config/types.hpp"
 
@@ -40,6 +42,18 @@ namespace MelonDsDs {
     /// then forwards each field to whichever renderer cares about it.
     void ApplyRendererSettings(melonDS::NDS& nds, const CoreConfig& config) noexcept;
 
+    /// How far along a renderer is in compiling the shaders it has queued up.
+    struct ShaderCompileProgress {
+        /// How many shader programs are ready.
+        int Compiled = 0;
+        /// How many there are in total, or 0 if there was nothing to compile.
+        int Total = 0;
+        /// True if no shaders are left to compile.
+        bool Done = true;
+        /// True if a shader failed to compile, in which case this renderer is unusable.
+        bool Failed = false;
+    };
+
     class RenderState {
     public:
         virtual ~RenderState() noexcept = default;
@@ -49,6 +63,13 @@ namespace MelonDsDs {
         virtual bool Ready() const noexcept = 0;
         virtual void Render(melonDS::NDS& nds, const InputState& input, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept = 0;
         virtual void RequestRefresh() noexcept {}
+
+        /// Compiles shaders that melonDS's renderer has queued up,
+        /// spending no more than \c budget on them.
+        /// Only call while the frontend's OpenGL context is current, if there is one.
+        virtual ShaderCompileProgress CompileShaders(melonDS::NDS& nds, std::chrono::microseconds budget) noexcept {
+            return {};
+        }
     };
 
     class RenderStateWrapper {
@@ -62,14 +83,45 @@ namespace MelonDsDs {
             }
         }
 
-        void Apply(const CoreConfig& config) noexcept;
+        /// \see RenderState::CompileShaders
+        ShaderCompileProgress CompileShaders(melonDS::NDS& nds, std::chrono::microseconds budget) noexcept {
+            return _renderState ? _renderState->CompileShaders(nds, budget) : ShaderCompileProgress {};
+        }
+
+        /// Installs the render state that \c config asks for.
+        /// \param nds The console whose renderer should give up the frontend's OpenGL context
+        /// if this switches away from OpenGL, or \c nullptr if there isn't one yet.
+        void Apply(const CoreConfig& config, melonDS::NDS* nds) noexcept;
         [[gnu::cold]] void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
         std::optional<RenderMode> GetRenderMode() const noexcept;
+
+        /// True if the OpenGL render state failed in a way that's only recoverable
+        /// by switching to software rendering, and the switch hasn't happened yet.
+        /// Check at the start of each frame;
+        /// the failure is usually detected inside a frontend callback,
+        /// where the switch itself isn't safe to perform.
+        [[nodiscard]] bool SoftwareFallbackRequested() const noexcept { return _softwareFallbackRequested; }
+
+        /// Asks for the switch to software rendering that \c SoftwareFallbackRequested reports,
+        /// showing \c message to the player once it happens.
+        [[gnu::cold]] void RequestSoftwareFallback(std::string message) noexcept;
+
+        /// Replaces the current render state with the software one
+        /// and returns the message to show the player explaining why.
+        /// Only call from \c retro_run;
+        /// this tells the frontend we've stopped rendering with OpenGL.
+        /// \see Apply for what \c nds is for.
+        [[gnu::cold]] std::string FallBackToSoftware(const CoreConfig& config, melonDS::NDS* nds) noexcept;
     private:
-        void SetRenderer(const CoreConfig& config);
+        void SetRenderer(const CoreConfig& config, melonDS::NDS* nds);
         std::unique_ptr<RenderState> _renderState;
+        bool _softwareFallbackRequested = false;
+        /// Set once the frontend has shown it can't run the compute renderer,
+        /// so later settings changes don't keep asking it for an OpenGL 4.3 context.
+        bool _computeUnsupported = false;
+        std::string _fallbackMessage;
     };
 }
 

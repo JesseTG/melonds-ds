@@ -163,3 +163,49 @@ def test_options_visibility_update_callback(session: SessionFactory, nds_rom: Pa
     with session(nds_rom) as emulator:
         assert emulator.options.update_display_callback
         assert emulator.options.update_display_callback.callback
+
+
+@pytest.mark.opengl
+@pytest.mark.nds_rom
+@pytest.mark.parametrize(
+    ("render_mode", "shared_shown", "legacy_shown", "compute_shown", "software_shown"),
+    [
+        pytest.param(b"software", False, False, False, True, id="software"),
+        pytest.param(b"opengl", True, True, False, False, id="opengl"),
+        pytest.param(
+            b"compute", True, False, True, False, id="compute", marks=pytest.mark.compute
+        ),
+    ],
+)
+def test_render_mode_option_visibility(
+    session: SessionFactory,
+    nds_rom: Path,
+    render_mode: bytes,
+    shared_shown: bool,
+    legacy_shown: bool,
+    compute_shown: bool,
+    software_shown: bool,
+) -> None:
+    """
+    Each render mode shows only the settings that apply to it.
+
+    Unlike the other tests in this module,
+    this one needs the core to have been built with OpenGL
+    (and with the compute renderer, for that case),
+    or the options it checks aren't declared at all.
+    """
+    with session(nds_rom) as emulator:
+        assert "melonds_render_mode" in emulator.options.variables
+        emulator.options.variables["melonds_render_mode"] = render_mode
+
+        # The internal resolution applies to every OpenGL renderer
+        assert emulator.options.visibility["melonds_opengl_resolution"] == shared_shown
+        # Improved polygon splitting is a legacy-OpenGL workaround
+        assert emulator.options.visibility["melonds_opengl_better_polygons"] == legacy_shown
+        # Threaded rendering only means anything to the software renderer
+        assert emulator.options.visibility["melonds_threaded_renderer"] == software_shown
+
+        if "melonds_compute_hires_coordinates" in emulator.options.variables:
+            assert (
+                emulator.options.visibility["melonds_compute_hires_coordinates"] == compute_shown
+            )

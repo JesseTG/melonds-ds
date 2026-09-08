@@ -187,6 +187,13 @@ extern "C" bool melondsds_is_software_renderer() {
     return mode && *mode == RenderMode::Software;
 }
 
+extern "C" bool melondsds_is_compute_renderer() {
+    using namespace MelonDsDs;
+    auto mode = Core.GetRenderMode();
+
+    return mode && *mode == RenderMode::Compute;
+}
+
 extern "C" unsigned melondsds_num_cheats() {
     using namespace MelonDsDs;
     const auto *console = Core.GetConsole();
@@ -374,6 +381,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_is_software_renderer"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_is_software_renderer);
+
+    if (string_is_equal(sym, "melondsds_is_compute_renderer"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_is_compute_renderer);
 
     if (string_is_equal(sym, "melondsds_num_cheats"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_num_cheats);

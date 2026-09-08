@@ -29,6 +29,7 @@
 
 
 #include "../config/config.hpp"
+#include "../render/render.hpp"
 #include "core.hpp"
 #include "environment.hpp"
 #include "microphone.hpp"
@@ -64,6 +65,82 @@ static u8 GetDsiBatteryLevel(u8 percent) noexcept {
         default:
             return DSi_BPTWL::batteryLevel_Full;
     }
+}
+
+/// How long the shader-compiling task may block the frontend each frame.
+///
+/// melonDS's Qt frontend uses the same budget.
+/// Smaller slices keep the frontend more responsive
+/// but don't reduce the total time,
+/// since the emulated console is stopped either way.
+constexpr std::chrono::microseconds SHADER_COMPILE_BUDGET {1'000'000 / 6};
+
+/// Compiles the shaders that melonDS's renderer has queued up, a few frames at a time.
+///
+/// The compute renderer builds a few dozen programs from source
+/// when it's first installed and whenever its settings change,
+/// and it can't emulate a frame until they're all ready.
+/// Doing that in one go freezes the frontend for seconds,
+/// so this spreads the work out and reports progress while it runs.
+retro::task::TaskSpec MelonDsDs::CoreState::ShaderCompileTask() noexcept {
+    ZoneScopedN(TracyFunction);
+    retro::debug(TracyFunction);
+
+    return retro::task::TaskSpec(
+        [this](retro::task::TaskHandle& task) noexcept {
+            ZoneScopedN(TracyFunction);
+
+            if (Console == nullptr) [[unlikely]] {
+                task.Finish();
+                return;
+            }
+
+            ShaderCompileProgress progress = _renderState.CompileShaders(*Console, SHADER_COMPILE_BUDGET);
+
+            if (progress.Failed) [[unlikely]] {
+                task.Finish();
+                _shaderCompileTaskId = std::nullopt;
+                _renderState.RequestSoftwareFallback(
+                    "The OpenGL renderer couldn't compile its shaders; using software rendering instead."
+                );
+                return;
+            }
+
+            ShowShaderCompileProgress(progress.Compiled, progress.Total);
+
+            if (progress.Done) {
+                task.Finish();
+                _shaderCompileTaskId = std::nullopt;
+            }
+        },
+        nullptr,
+        nullptr,
+        retro::task::ASAP,
+        "Shader Compilation"
+    );
+}
+
+void MelonDsDs::CoreState::ShowShaderCompileProgress(int compiled, int total) noexcept {
+    if (total <= 0) [[unlikely]] {
+        return;
+    }
+
+    // Frontends that only have the original retro_message can't show progress bars,
+    // and retro::set_message won't pretend otherwise.
+    string text = fmt::format("Compiling shaders ({}/{})", compiled, total);
+    retro_message_ext message {
+        .msg = text.c_str(),
+        // Long enough to survive a frame that's busy compiling,
+        // but short enough to disappear promptly if the task is cancelled
+        .duration = 1000,
+        .priority = retro::DEFAULT_ERROR_PRIORITY,
+        .level = RETRO_LOG_INFO,
+        .target = RETRO_MESSAGE_TARGET_OSD,
+        .type = RETRO_MESSAGE_TYPE_PROGRESS,
+        .progress = static_cast<int8_t>(compiled * 100 / total),
+    };
+
+    retro::set_message(message);
 }
 
 retro::task::TaskSpec MelonDsDs::CoreState::PowerStatusUpdateTask() noexcept {

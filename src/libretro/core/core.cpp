@@ -150,6 +150,13 @@ void MelonDsDs::CoreState::UninstallDsiwareIfNeeded() noexcept {
 void MelonDsDs::CoreState::Run() noexcept {
     ZoneScopedN(TracyFunction);
 
+    if (_renderState.SoftwareFallbackRequested()) [[unlikely]] {
+        // The OpenGL context the frontend gave us turned out to be unusable.
+        // This has to come before the deferred initialization below,
+        // or StartConsole would try to build melonDS's OpenGL renderer on that same context.
+        FallBackToSoftwareRenderer();
+    }
+
     if (_deferredInitializationPending && !RunDeferredInitialization()) [[unlikely]] {
         // If we needed to run any extra setup, but that process failed...
         retro::shutdown();
@@ -204,28 +211,42 @@ void MelonDsDs::CoreState::Run() noexcept {
             SetConsoleTime(nds, LocalTime());
         }
 
-        // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
-        // which is then drawn to the screen by _renderState.Render
-        //
-        // TODO: When melonDS's compute renderer is offered as a core option,
-        //  compile its shaders here instead of running a frame
-        //  for as long as nds.GetRenderer().NeedsShaderCompile() is true;
-        //  see EmuThread::compileShaders in melonDS's Qt frontend for the pattern.
-        //  The regular OpenGL renderer compiles everything up front,
-        //  so this isn't necessary yet.
-        {
-            ZoneScopedN("NDS::RunFrame");
-            nds.RunFrame();
+        // melonDS's compute renderer throws away all of its shaders whenever its settings change,
+        // and it can't emulate a frame until they're compiled again.
+        // That takes a few seconds, so a task compiles them a slice at a time
+        // while we keep handing the frontend frames; see ShaderCompileTask.
+        bool compiling = nds.GetRenderer().NeedsShaderCompile();
+        if (compiling && !_shaderCompileTaskId) [[unlikely]] {
+            _shaderCompileTaskId = retro::task::push(ShaderCompileTask());
         }
 
-        // The Rumble Pak was flipped an unknown number of times during that frame;
-        // turn those into a single level before anything else can block.
-        _inputState.UpdateRumble();
+        if (!compiling) [[likely]] {
+            // NDS::RunFrame renders the Nintendo DS state to a framebuffer,
+            // which is then drawn to the screen by _renderState.Render
+            {
+                ZoneScopedN("NDS::RunFrame");
+                nds.RunFrame();
+            }
+
+            // The Rumble Pak was flipped an unknown number of times during that frame;
+            // turn those into a single level before anything else can block.
+            _inputState.UpdateRumble();
+        }
+        else {
+            // Nothing is driving the Rumble Pak while the console is stopped
+            _inputState.StopRumble();
+        }
 
         _renderState.Render(nds, _inputState, Config, _screenLayout);
         RenderAudio(*Console);
 
+        // Among other things, this is what compiles the shaders
         retro::task::check();
+
+        if (_renderState.SoftwareFallbackRequested()) [[unlikely]] {
+            // The OpenGL renderer just proved unusable (most likely while compiling shaders)
+            FallBackToSoftwareRenderer();
+        }
     }
     else {
         // No frames are running, so nothing is driving the Rumble Pak.
@@ -249,6 +270,12 @@ void MelonDsDs::CoreState::Reset() {
     if (optional<retro::task::TaskHandle> task = retro::task::find(_flushTaskId)) {
         task->Cancel();
     }
+
+    // The OpenGL context isn't guaranteed to be current outside retro_run,
+    // so the shader-compiling task mustn't be given a slice by the check() below.
+    // Run() starts a new one where this left off; melonDS remembers how far it got.
+    CancelShaderCompileTask();
+
     retro::task::check();
     _savestateSize = std::nullopt;
 
@@ -371,7 +398,7 @@ bool MelonDsDs::CoreState::InitErrorScreen(const config_exception& e) noexcept {
     retro::task::reset();
     _messageScreen = std::make_unique<error::ErrorScreen>(e);
     Config.SetConfiguredRenderer(RenderMode::Software);
-    _renderState.Apply(Config);
+    _renderState.Apply(Config, Console.get());
     _screenLayout.Apply(Config, _renderState);
     _screenLayout.Update();
     retro::error("Error screen initialized");
@@ -386,7 +413,7 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
         // so keep it in step with whatever the player changes while it's shown.
         ParseConfig(Config);
         Config.SetConfiguredRenderer(RenderMode::Software);
-        _renderState.Apply(Config);
+        _renderState.Apply(Config, Console.get());
         _screenLayout.Apply(Config, _renderState);
         _inputState.SetConfig(Config);
         _screenLayout.SetDirty();
@@ -632,7 +659,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     InitFlushFirmwareTask();
 
-    if (_renderState.GetRenderMode() == RenderMode::OpenGl) {
+    if (std::optional<RenderMode> mode = _renderState.GetRenderMode(); mode && UsesOpenGl(*mode)) {
         retro::info("Deferring initialization until the OpenGL context is ready");
         _deferredInitializationPending = true;
     }
@@ -733,7 +760,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     MicInputMode oldMicInputMode = config.MicInputMode();
 
     std::optional<RenderMode> oldRenderer = _renderState.GetRenderMode();
-    _renderState.Apply(config);
+    _renderState.Apply(config, Console.get());
     _screenLayout.Apply(config, _renderState);
     _inputState.SetConfig(config);
     _micState.SetConfig(config);
@@ -770,6 +797,45 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
 
         _renderState.UpdateRenderer(Config, *Console);
         _screenLayout.SetDirty();
+    }
+}
+
+void MelonDsDs::CoreState::CancelShaderCompileTask() noexcept {
+    if (!_shaderCompileTaskId) {
+        return;
+    }
+
+    if (optional<retro::task::TaskHandle> task = retro::task::find(*_shaderCompileTaskId)) {
+        task->Cancel();
+    }
+
+    _shaderCompileTaskId = std::nullopt;
+}
+
+void MelonDsDs::CoreState::FallBackToSoftwareRenderer() noexcept {
+    ZoneScopedN(TracyFunction);
+    retro::warn("Falling back to the software renderer");
+
+    // The renderer whose shaders were being compiled is about to be replaced
+    CancelShaderCompileTask();
+
+    std::string message = _renderState.FallBackToSoftware(Config, Console.get());
+    _screenLayout.Apply(Config, _renderState);
+
+    // The frontend sized its output for the OpenGL renderer; tell it what we're really producing now
+    if (!retro::set_system_av_info(GetSystemAvInfo(RenderMode::Software))) {
+        retro::warn("Failed to update system AV info after falling back to software rendering");
+    }
+
+    if (Console && !_deferredInitializationPending) {
+        // (If initialization is still pending, StartConsole will install the renderer itself)
+        _renderState.UpdateRenderer(Config, *Console);
+    }
+
+    _screenLayout.SetDirty();
+
+    if (!message.empty()) {
+        retro::set_warn_message(message.c_str());
     }
 }
 
