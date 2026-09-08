@@ -41,7 +41,14 @@ namespace MelonDsDs {
         bool ShowJitOptions = true;
 #endif
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+        /// Options shared by every OpenGL render mode, such as the internal resolution.
         bool ShowOpenGlOptions = true;
+        /// Options that only the legacy OpenGL renderer has.
+        bool ShowLegacyOpenGlOptions = true;
+#ifdef HAVE_COMPUTE_RENDERER
+        /// Options that only the compute renderer has.
+        bool ShowComputeOptions = true;
+#endif
 #endif
 #ifdef HAVE_NETWORKING_DIRECT_MODE
         bool ShowWifiInterface = true;

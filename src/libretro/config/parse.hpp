@@ -95,6 +95,7 @@ namespace MelonDsDs {
     constexpr std::optional<MelonDsDs::RenderMode> ParseRenderMode(std::string_view value) noexcept {
         if (value == config::values::SOFTWARE) return MelonDsDs::RenderMode::Software;
         if (value == config::values::OPENGL) return MelonDsDs::RenderMode::OpenGl;
+        if (value == config::values::COMPUTE) return MelonDsDs::RenderMode::Compute;
         return std::nullopt;
     }
 

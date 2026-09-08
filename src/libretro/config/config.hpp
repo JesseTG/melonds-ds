@@ -364,6 +364,13 @@ namespace MelonDsDs {
         [[nodiscard]] bool BetterPolygonSplitting() const noexcept { return _betterPolygonSplitting; }
         void SetBetterPolygonSplitting(bool betterPolygonSplitting) noexcept { _betterPolygonSplitting = betterPolygonSplitting; }
 
+#ifdef HAVE_COMPUTE_RENDERER
+        [[nodiscard]] bool HiresCoordinates() const noexcept { return _hiresCoordinates; }
+        void SetHiresCoordinates(bool hiresCoordinates) noexcept { _hiresCoordinates = hiresCoordinates; }
+#else
+        bool HiresCoordinates() const noexcept { return false; }
+#endif
+
         [[nodiscard]] RenderMode ConfiguredRenderer() const noexcept { return _configuredRenderer; }
         void SetConfiguredRenderer(RenderMode configuredRenderer) noexcept { _configuredRenderer = configuredRenderer; }
 
@@ -523,6 +530,7 @@ namespace MelonDsDs {
         mutable std::unordered_map<std::string, uint32_t> _dsiNandRegionCache;
         int _scaleFactor = 1;
         bool _betterPolygonSplitting = false;
+        bool _hiresCoordinates = true;
         RenderMode _configuredRenderer;
         bool _threadedSoftRenderer = false;
         MelonDsDs::ScreenFilter _screenFilter;

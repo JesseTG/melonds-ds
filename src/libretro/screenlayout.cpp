@@ -337,7 +337,7 @@ retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(RenderMode renderer) c
     };
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (renderer == RenderMode::OpenGl) {
+    if (UsesOpenGl(renderer)) {
         geometry.max_width = MaxOpenGlRenderedWidth();
         geometry.max_height = MaxOpenGlRenderedHeight();
     }

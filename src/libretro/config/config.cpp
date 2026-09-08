@@ -898,6 +898,15 @@ static void MelonDsDs::config::ParseVideoOptions(CoreConfig& config) noexcept {
         retro::warn("Failed to get value for {}; defaulting to {}", OPENGL_BETTER_POLYGONS, values::DISABLED);
         config.SetBetterPolygonSplitting(false);
     }
+
+#ifdef HAVE_COMPUTE_RENDERER
+    if (optional<bool> value = ParseBoolean(get_variable(COMPUTE_HIRES_COORDINATES))) {
+        config.SetHiresCoordinates(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", COMPUTE_HIRES_COORDINATES, values::ENABLED);
+        config.SetHiresCoordinates(true);
+    }
+#endif
 #endif
 }
 

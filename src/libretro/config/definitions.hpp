@@ -125,6 +125,9 @@ namespace MelonDsDs::config::definitions {
         RenderMode,
         OpenGlScaleFactor,
         OpenGlBetterPolygons,
+#   ifdef HAVE_COMPUTE_RENDERER
+        ComputeHiresCoordinates,
+#   endif
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
         ThreadedSoftwareRenderer,

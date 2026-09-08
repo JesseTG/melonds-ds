@@ -176,6 +176,7 @@ namespace MelonDsDs::config {
         constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
         constexpr unsigned MAX_OPENGL_SCALE = 8;
         static constexpr const char *const CATEGORY = "video";
+        static constexpr const char *const COMPUTE_HIRES_COORDINATES = "melonds_compute_hires_coordinates";
         static constexpr const char *const OPENGL_BETTER_POLYGONS = "melonds_opengl_better_polygons";
         static constexpr const char *const OPENGL_FILTERING = "melonds_opengl_filtering";
         static constexpr const char *const OPENGL_RESOLUTION = "melonds_opengl_resolution";
@@ -217,6 +218,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const DEDICATED = "dedicated";
         static constexpr const char *const DEFAULT = "default";
         static constexpr const char *const DIRECT = "direct";
+        static constexpr const char *const COMPUTE = "compute";
         static constexpr const char *const DISABLED = "disabled";
         static constexpr const char *const DS = "ds";
         static constexpr const char *const DSI = "dsi";

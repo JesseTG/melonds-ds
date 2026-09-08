@@ -534,6 +534,9 @@ auto fmt::formatter<MelonDsDs::RenderMode>::format(MelonDsDs::RenderMode mode, f
         case MelonDsDs::RenderMode::OpenGl:
             name = "OpenGL";
             break;
+        case MelonDsDs::RenderMode::Compute:
+            name = "OpenGL (Compute)";
+            break;
         default:
             name = "<unknown>";
             break;

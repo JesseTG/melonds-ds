@@ -65,6 +65,22 @@
 #define GL_COMMAND_BARRIER_BIT 0x00000040
 #endif
 
+#ifndef GL_MAJOR_VERSION
+#define GL_MAJOR_VERSION 0x821B
+#endif
+
+#ifndef GL_MINOR_VERSION
+#define GL_MINOR_VERSION 0x821C
+#endif
+
+#ifndef GL_TEXTURE_BUFFER
+#define GL_TEXTURE_BUFFER 0x8C2A
+#endif
+
+#ifndef GL_READ_ONLY
+#define GL_READ_ONLY 0x88B8
+#endif
+
 #if defined(HAVE_OPENGL) && !defined(HAVE_OPENGLES)
 // glsym.h doesn't have wrappers for OpenGL 1.x functions,
 // so we define our own equivalents

@@ -27,19 +27,26 @@ namespace MelonDsDs::config::definitions {
         config::video::RENDER_MODE,
         "Render Mode",
         nullptr,
-        "Software mode is faster and more accurate, "
-        "while OpenGL mode supports scaling up "
-        "the resolution of 3D graphics in most cases.\n"
+        "Software is fastest and most accurate. "
+        "OpenGL (Classic) can scale up 3D graphics, "
+        "but some games don't render correctly.\n"
+#ifdef HAVE_COMPUTE_RENDERER
+        "OpenGL (Compute) is accurate and supports upscaling, "
+        "but won't work on some older devices. "
+        "Switching to it takes a few seconds to compile its shaders.\n"
+#endif
         "\n"
-        "OpenGL mode may be buggy on some graphics hardware. "
-        "If it doesn't work, software rendering is used as a fallback. "
+        "Falls back to software rendering if OpenGL can't be used. "
         "Changes take effect immediately "
         "but may require the frontend's video driver to be restarted.",
         nullptr,
         config::video::CATEGORY,
         {
             {MelonDsDs::config::values::SOFTWARE, "Software"},
-            {MelonDsDs::config::values::OPENGL, "OpenGL"},
+            {MelonDsDs::config::values::OPENGL, "OpenGL (Classic)"},
+#ifdef HAVE_COMPUTE_RENDERER
+            {MelonDsDs::config::values::COMPUTE, "OpenGL (Compute)"},
+#endif
             {nullptr, nullptr},
         },
         MelonDsDs::config::values::SOFTWARE
@@ -51,7 +58,9 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         "The degree to which the emulated 3D engine's graphics are scaled up. "
         "Dimensions are given per screen. "
-        "OpenGL renderer only.",
+        "OpenGL renderers only. "
+        "Changing this takes a few seconds "
+        "while the OpenGL (Compute) renderer recompiles its shaders.",
         nullptr,
         config::video::CATEGORY,
         {
@@ -73,7 +82,7 @@ namespace MelonDsDs::config::definitions {
         "Improved Polygon Splitting",
         nullptr,
         "Enable this if your game's 3D models are not rendering correctly. "
-        "OpenGL renderer only.",
+        "OpenGL (Classic) renderer only.",
         nullptr,
         config::video::CATEGORY,
         {
@@ -83,6 +92,28 @@ namespace MelonDsDs::config::definitions {
         },
         MelonDsDs::config::values::ENABLED
     };
+
+#ifdef HAVE_COMPUTE_RENDERER
+    constexpr retro_core_option_v2_definition ComputeHiresCoordinates {
+        config::video::COMPUTE_HIRES_COORDINATES,
+        "High-Resolution Coordinates",
+        nullptr,
+        "Positions 3D geometry at the upscaled resolution "
+        "instead of snapping it to the DS's native pixel grid, "
+        "which smooths out wobbling polygons. "
+        "A few games rely on the native grid and look wrong with this enabled. "
+        "OpenGL (Compute) renderer only. "
+        "Changing this takes a few seconds while the shaders are recompiled.",
+        nullptr,
+        config::video::CATEGORY,
+        {
+            {MelonDsDs::config::values::DISABLED, nullptr},
+            {MelonDsDs::config::values::ENABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        MelonDsDs::config::values::ENABLED
+    };
+#endif
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
     constexpr retro_core_option_v2_definition ThreadedSoftwareRenderer {
@@ -108,6 +139,9 @@ namespace MelonDsDs::config::definitions {
         RenderMode,
         OpenGlScaleFactor,
         OpenGlBetterPolygons,
+#ifdef HAVE_COMPUTE_RENDERER
+        ComputeHiresCoordinates,
+#endif
 #endif
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
         ThreadedSoftwareRenderer,

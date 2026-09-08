@@ -79,7 +79,14 @@ namespace MelonDsDs {
     enum class RenderMode {
         Software = 0,
         OpenGl = 1,
+        Compute = 2,
     };
+
+    /// True if \c mode renders through the frontend's OpenGL context
+    /// (as opposed to a framebuffer in main memory).
+    constexpr bool UsesOpenGl(RenderMode mode) noexcept {
+        return mode != RenderMode::Software;
+    }
 
     enum class MicInputMode {
         None,

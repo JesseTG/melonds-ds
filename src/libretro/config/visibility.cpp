@@ -47,15 +47,29 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     // Show/hide OpenGL core options
     bool oldShowOpenGlOptions = ShowOpenGlOptions;
+    bool oldShowLegacyOpenGlOptions = ShowLegacyOpenGlOptions;
     bool oldShowSoftwareRenderOptions = ShowSoftwareRenderOptions;
     optional<RenderMode> renderer = ParseRenderMode(get_variable(video::RENDER_MODE));
-    ShowOpenGlOptions = !renderer || *renderer == RenderMode::OpenGl;
+    // An unreadable setting shows everything rather than hiding something the player needs
+    ShowOpenGlOptions = !renderer || UsesOpenGl(*renderer);
+    ShowLegacyOpenGlOptions = !renderer || *renderer == RenderMode::OpenGl;
     ShowSoftwareRenderOptions = !ShowOpenGlOptions;
     if (!VisibilityInitialized || ShowOpenGlOptions != oldShowOpenGlOptions) {
         set_option_visible(video::OPENGL_RESOLUTION, ShowOpenGlOptions);
-        set_option_visible(video::OPENGL_BETTER_POLYGONS, ShowOpenGlOptions);
         updated = true;
     }
+    if (!VisibilityInitialized || ShowLegacyOpenGlOptions != oldShowLegacyOpenGlOptions) {
+        set_option_visible(video::OPENGL_BETTER_POLYGONS, ShowLegacyOpenGlOptions);
+        updated = true;
+    }
+#ifdef HAVE_COMPUTE_RENDERER
+    bool oldShowComputeOptions = ShowComputeOptions;
+    ShowComputeOptions = !renderer || *renderer == RenderMode::Compute;
+    if (!VisibilityInitialized || ShowComputeOptions != oldShowComputeOptions) {
+        set_option_visible(video::COMPUTE_HIRES_COORDINATES, ShowComputeOptions);
+        updated = true;
+    }
+#endif
 #ifdef HAVE_THREADED_RENDERER
     if (!VisibilityInitialized || ShowSoftwareRenderOptions != oldShowSoftwareRenderOptions) {
         set_option_visible(video::THREADED_RENDERER, ShowSoftwareRenderOptions);
