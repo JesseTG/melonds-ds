@@ -176,6 +176,7 @@ All of the test code lives in [`test/python`](python).
 | `test_av.py` | Audio and video output, screen geometry, rotation |
 | `test_opengl.py` | Hardware rendering and runtime renderer switching |
 | `test_compute.py` | melonDS's compute-shader renderer, and falling back when OpenGL 4.3 isn't available |
+| `test_gl_resources.py` | Leaving the frontend's own OpenGL objects alone |
 | `test_input.py` | Buttons, the touch pointer, the analog cursor, the microphone |
 | `test_microphone.py` | When the host microphone is opened and activated |
 | `test_state.py` | Savestates and exposed memory regions |
