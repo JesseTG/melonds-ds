@@ -317,6 +317,7 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
             );
         }
         retro::debug("Constructed {} renderer", _mode);
+        MarkRendererInstalled();
         ApplyRendererSettings(nds, config);
         _appliedScaleFactor = config.ScaleFactor();
         _appliedBetterPolygons = config.BetterPolygonSplitting();
@@ -348,8 +349,14 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     retro::debug("OpenGL context reset successfully.");
 }
 
-void MelonDsDs::OpenGLRenderState::CheckContextVersion() const {
+void MelonDsDs::OpenGLRenderState::CheckContextVersion() {
     ZoneScopedN(TracyFunction);
+
+    // The frontend may have given us a newer context than we asked for, which is worth knowing:
+    // it decides whether we can switch to the other OpenGL renderer without a new context.
+    _contextVersion = {0, 0};
+    glGetIntegerv(GL_MAJOR_VERSION, &_contextVersion.first);
+    glGetIntegerv(GL_MINOR_VERSION, &_contextVersion.second);
 
     // Only the compute renderer needs checking:
     // the frontend can't give us a core-profile context older than 3.2 (there's no such thing),
@@ -360,22 +367,50 @@ void MelonDsDs::OpenGLRenderState::CheckContextVersion() const {
         return;
     }
 
-    std::pair<GLint, GLint> version {0, 0};
-    glGetIntegerv(GL_MAJOR_VERSION, &version.first);
-    glGetIntegerv(GL_MINOR_VERSION, &version.second);
-
-    if (version < COMPUTE_GL_VERSION) {
+    if (_contextVersion < COMPUTE_GL_VERSION) {
         retro::error(
             "The compute renderer needs OpenGL {}.{}, but the frontend provided {}.{}",
-            COMPUTE_GL_VERSION.first, COMPUTE_GL_VERSION.second, version.first, version.second
+            COMPUTE_GL_VERSION.first, COMPUTE_GL_VERSION.second, _contextVersion.first, _contextVersion.second
         );
         throw opengl_not_initialized_exception(
-            fmt::format("OpenGL {}.{} context is too old for the compute renderer", version.first, version.second),
+            fmt::format(
+                "OpenGL {}.{} context is too old for the compute renderer",
+                _contextVersion.first, _contextVersion.second
+            ),
             "This frontend's OpenGL version is too old for the compute renderer; using software rendering instead."
         );
     }
 
-    retro::debug("OpenGL {}.{} context is new enough for the compute renderer", version.first, version.second);
+    retro::debug(
+        "OpenGL {}.{} context is new enough for the compute renderer",
+        _contextVersion.first, _contextVersion.second
+    );
+}
+
+bool MelonDsDs::OpenGLRenderState::CanHost(RenderMode mode) const noexcept {
+    if (!_contextInitialized || !UsesOpenGl(mode)) {
+        // If we don't know what we've got yet, or if this isn't an OpenGL renderer at all...
+        return false;
+    }
+
+#ifdef HAVE_COMPUTE_RENDERER
+    if (mode == RenderMode::Compute) {
+        return _contextVersion >= COMPUTE_GL_VERSION;
+    }
+#endif
+
+    // Any core context we could've been given is at least 3.2, which the legacy renderer needs
+    return true;
+}
+
+void MelonDsDs::OpenGLRenderState::SetMode(RenderMode mode) noexcept {
+    retro_assert(CanHost(mode));
+
+    _mode = mode;
+
+    // The screen layout's vertices and the shader config don't depend on the renderer,
+    // but melonDS's new renderer starts with an empty output texture
+    _needsRefresh = true;
 }
 
 // Sets up OpenGL resources specific to melonDS
@@ -568,6 +603,9 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     _openGlDebugAvailable = false;
     _needsRefresh = false;
     _contextInitialized = false;
+    // melonDS's renderer went away with the context, and so did what we knew about it
+    _installedMode = std::nullopt;
+    _contextVersion = {0, 0};
     _screenProgram = 0;
     _appliedScaleFactor = 0;
     _appliedBetterPolygons = false;

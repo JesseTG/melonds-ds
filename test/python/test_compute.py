@@ -13,6 +13,7 @@ import time
 from collections.abc import Mapping
 from ctypes import c_bool
 from pathlib import Path
+from typing import override
 
 import pytest
 from libretro import (
@@ -22,7 +23,7 @@ from libretro import (
     ModernGlVideoDriver,
     Session,
 )
-from libretro.api import retro_message_ext
+from libretro.api import retro_hw_render_callback, retro_message_ext
 from libretro.ctypes import TypedFunctionPointer
 
 from melondsds import SessionFactory
@@ -193,6 +194,61 @@ def test_settings_changes_recompile_shaders(session: SessionFactory, nds_rom: Pa
 
         assert video.screenshot() is not None
         assert _active_mode(probes) == "compute"
+
+
+class CountingModernGlVideoDriver(ModernGlVideoDriver):
+    """A video driver that counts how many times the core asks it for a hardware context."""
+
+    def __init__(self, *, gl_version: tuple[int, int] | None = None) -> None:
+        super().__init__(gl_version=gl_version)
+        self.context_requests = 0
+
+    @override
+    def set_context(self, callback: retro_hw_render_callback) -> None:
+        self.context_requests += 1
+        super().set_context(callback)
+
+
+@pytest.mark.gl43
+@pytest.mark.nds_rom
+def test_switching_renderers_reuses_a_context_that_is_new_enough(
+    session: SessionFactory, nds_rom: Path
+) -> None:
+    """
+    Switching between the two OpenGL renderers doesn't ask the frontend for a second context.
+
+    Most frontends hand out a newer context than the core asks for,
+    so one obtained for the classic renderer usually runs the compute renderer too.
+    The core has to notice and keep it,
+    because a frontend that sizes its output the same way for both renderers
+    has no reason to build a new context and may never reset the one it has.
+    """
+    video = CountingModernGlVideoDriver(gl_version=(4, 3))
+    options = {"melonds_render_mode": "opengl"}
+
+    with session(nds_rom, video=video, options=options) as emulator:
+        probes = _probes(emulator)
+
+        for _ in range(10):
+            emulator.run()
+
+        assert _active_mode(probes) == "opengl"
+        assert video.context_requests == 1
+
+        emulator.options.variables["melonds_render_mode"] = b"compute"
+        for _ in range(60):
+            emulator.run()
+
+        assert _active_mode(probes) == "compute"
+        assert video.context_requests == 1, "The core asked for a context it didn't need"
+        assert video.screenshot() is not None
+
+        emulator.options.variables["melonds_render_mode"] = b"opengl"
+        for _ in range(10):
+            emulator.run()
+
+        assert _active_mode(probes) == "opengl"
+        assert video.context_requests == 1, "The core asked for a context it didn't need"
 
 
 def _progress_messages(driver: LoggerMessageDriver) -> list[retro_message_ext]:

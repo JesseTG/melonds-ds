@@ -126,13 +126,25 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config, melonD
         case RenderMode::Compute:
 #endif
         case RenderMode::OpenGl: {
-            if (auto* glState = dynamic_cast<OpenGLRenderState*>(_renderState.get()); glState && glState->Mode() == wanted) {
+            auto* glState = dynamic_cast<OpenGLRenderState*>(_renderState.get());
+            if (glState && glState->Mode() == wanted) {
                 // If we already have this OpenGL renderer configured...
                 break;
             }
 
+            if (glState && glState->CanHost(wanted)) {
+                // The context we already have is new enough for the renderer we're switching to,
+                // so keep it. Asking for a new one may not actually get us a new one:
+                // RetroArch rebuilds its OpenGL context only when the core's maximum geometry changes,
+                // which it doesn't when switching between two OpenGL renderers,
+                // so the context reset we'd be waiting for would never come.
+                retro::debug("Switching to the {} renderer on the context we already have", wanted);
+                glState->SetMode(wanted);
+                break;
+            }
+
             // Each OpenGL render mode asks the frontend for a different context version,
-            // so switching between them means tearing down the old state
+            // so switching to one the current context can't drive means tearing down the old state
             // (which tells the frontend we're done with its context)
             // before requesting the new one.
             ReleaseOpenGlRenderer(nds);
@@ -181,18 +193,27 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
     }
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (auto* glRender = dynamic_cast<OpenGLRenderState*>(_renderState.get());
-        glRender && glRender->Ready() && !dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
-        // If we're configured to use an OpenGL renderer and its context is up, but we aren't using it yet...
+    auto* glRender = dynamic_cast<OpenGLRenderState*>(_renderState.get());
+    bool rendererIsStale =
+        // melonDS isn't using an OpenGL renderer at all (a new console starts with the software one)...
+        !dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())
+        // ...or it's using the OpenGL renderer we've since switched away from
+        || (glRender && glRender->InstalledMode() != glRender->Mode());
+
+    if (glRender && glRender->Ready() && rendererIsStale) {
+        // If we're configured to use an OpenGL renderer and its context is up,
+        // but melonDS isn't using that renderer yet...
         // (If the context isn't up yet, OpenGLRenderState::ContextReset will install the renderer once it is.)
         retro::debug("Initializing {} renderer", glRender->Mode());
 
+        // Any renderer already in place is replaced here, while its context is still current
         nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, glRender->UsesComputeRenderer()));
 
         // melonDS installs its own software renderer if the one we gave it failed to start,
         // so that's how we find out whether this worked.
         if (dynamic_cast<melonDS::GLRenderer*>(&nds.GetRenderer())) {
             retro::debug("Initialized {} renderer.", glRender->Mode());
+            glRender->MarkRendererInstalled();
             ApplyRendererSettings(nds, config);
             glRender->RequestRefresh();
         } else {

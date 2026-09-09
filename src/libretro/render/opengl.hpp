@@ -21,6 +21,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <utility>
 
 #include <libretro.h>
 
@@ -68,6 +69,26 @@ namespace MelonDsDs {
         [[nodiscard]] RenderMode Mode() const noexcept { return _mode; }
         [[nodiscard]] bool UsesComputeRenderer() const noexcept { return _mode == RenderMode::Compute; }
 
+        /// True if the context we've been given can drive \c mode,
+        /// whichever mode we originally asked the frontend for.
+        /// Frontends routinely hand out a newer context than the core requested
+        /// (Mesa and RetroArch's WGL and GLX drivers all return the driver's highest version),
+        /// so a context obtained for one OpenGL renderer will usually run the other one too.
+        /// Always false until the context has been reset, since that's when its version is known.
+        [[nodiscard]] bool CanHost(RenderMode mode) const noexcept;
+
+        /// Switches to another OpenGL renderer without asking the frontend for a new context.
+        /// Only valid for a mode that \c CanHost accepts;
+        /// \c RenderStateWrapper::UpdateRenderer installs the new renderer afterwards.
+        void SetMode(RenderMode mode) noexcept;
+
+        /// Which renderer melonDS is using on this context,
+        /// or \c nullopt if we haven't installed one (or if the context went away).
+        [[nodiscard]] std::optional<RenderMode> InstalledMode() const noexcept { return _installedMode; }
+
+        /// Records that melonDS is now rendering with \c Mode().
+        void MarkRendererInstalled() noexcept { _installedMode = _mode; }
+
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
         void ContextDestroyed();
     private:
@@ -81,8 +102,9 @@ namespace MelonDsDs {
         static_assert(sizeof(Vertex) == sizeof(vec2::value_type) * 5);
 
         void SetUpCoreOpenGlState(const CoreConfig& config);
-        // Throws opengl_not_initialized_exception if the frontend's context is too old for _mode.
-        void CheckContextVersion() const;
+        // Records the context's version in _contextVersion,
+        // then throws opengl_not_initialized_exception if it's too old for _mode.
+        void CheckContextVersion();
         void InitFrameState(melonDS::NDS& nds, const CoreConfig& config, const ScreenLayoutData& screenLayout) noexcept;
         void InitVertices(const ScreenLayoutData& screenLayout) noexcept;
 
@@ -102,8 +124,14 @@ namespace MelonDsDs {
         void UnbindState() noexcept;
 
         // Which of melonDS's OpenGL-based 3D renderers this state drives.
-        // Fixed for the lifetime of the object, since each needs a different OpenGL version.
-        const RenderMode _mode;
+        // Decides the version we ask the frontend for,
+        // but it can change afterwards if the context we got can drive the other renderer too.
+        RenderMode _mode;
+        // Which renderer melonDS is using, so we know when _mode has moved on without it.
+        std::optional<RenderMode> _installedMode = std::nullopt;
+        // The context's actual version, which is at least the one we asked for.
+        // Only meaningful once the context has been reset.
+        std::pair<GLint, GLint> _contextVersion {0, 0};
         bool _openGlDebugAvailable = false;
         bool _needsRefresh = true;
         bool _contextInitialized = false;
