@@ -103,6 +103,7 @@ void InputState::Update(const CoreConfig& config, const ScreenLayoutData& layout
     ZoneScopedN(TracyFunction);
 
     retro::input_poll();
+    _typingKeyboard.Update();
 
     // First get the raw input from libretro itself
     InputPollResult pollResult;
@@ -149,7 +150,7 @@ void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneSt
     Apply(layout);
 
     // Forward the frontend's button input to the emulated DS
-    _joypad.Apply(nds);
+    _joypad.Apply(nds, _typingKeyboard.HeldButtons());
 
     // Update the microphone's state
     _joypad.Apply(mic);
@@ -167,6 +168,7 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
     _joypad.SetConfig(config);
     _cursor.SetConfig(config);
     _pointer.SetConfig(config);
+    _typingKeyboard.SetConfig(config);
     if (auto* solar = std::get_if<SolarSensorState>(&_slot2)) {
         solar->SetConfig(config);
     }
