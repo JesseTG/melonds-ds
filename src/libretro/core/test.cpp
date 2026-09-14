@@ -24,6 +24,7 @@
 #include "config/console.hpp"
 #include "core.hpp"
 #include "environment.hpp"
+#include "input/keyboard.hpp"
 #include "input/rumble.hpp"
 
 namespace MelonDsDs
@@ -297,6 +298,13 @@ extern "C" uint32_t melondsds_read_sub_bg_vram(uint32_t offset, uint16_t* out, u
     return count;
 }
 
+/// \param region A \c melonDS::PokeTypeKeyboard::Region.
+/// \return The character that \c region's Typing Adventure keyboard sends
+/// when a host keyboard types \c character.
+extern "C" uint16_t melondsds_typing_flip_letter_case(uint32_t region, uint16_t character) {
+    return MelonDsDs::FlipLetterCase(static_cast<melonDS::PokeTypeKeyboard::Region>(region), character);
+}
+
 extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept {
     using namespace MelonDsDs;
 
@@ -432,6 +440,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_read_sub_bg_vram"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_read_sub_bg_vram);
+
+    if (string_is_equal(sym, "melondsds_typing_flip_letter_case"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_typing_flip_letter_case);
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);
