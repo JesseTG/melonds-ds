@@ -172,6 +172,14 @@ namespace MelonDsDs::config {
         static constexpr const char *const ABSOLUTE_MINUTE = "melonds_start_time_absolute_minute";
     }
 
+    namespace typing {
+        static constexpr const char *const CATEGORY = "typing";
+        static constexpr const char *const ARROWS_PRESS_DPAD = "melonds_typing_arrows_dpad";
+        static constexpr const char *const AUTO_PAIR = "melonds_typing_auto_fn";
+        static constexpr const char *const FN_KEY = "melonds_typing_fn_key";
+        static constexpr const char *const KEYBOARD = "melonds_typing_keyboard";
+    }
+
     namespace video {
         constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
         constexpr unsigned MAX_OPENGL_SCALE = 8;
@@ -194,6 +202,14 @@ namespace MelonDsDs::config {
             static constexpr const char *const SOLAR_SENSOR_1 = "solar1";
             static constexpr const char *const SOLAR_SENSOR_2 = "solar2";
             static constexpr const char *const SOLAR_SENSOR_3 = "solar3";
+        }
+        namespace typing {
+            static constexpr const char *const KEY_DELETE = "delete";
+            static constexpr const char *const KEY_END = "end";
+            static constexpr const char *const KEY_INSERT = "insert";
+            static constexpr const char *const KEY_PAGE_DOWN = "pagedown";
+            static constexpr const char *const KEY_PAGE_UP = "pageup";
+            static constexpr const char *const KEY_PAUSE = "pause";
         }
         namespace wfc {
             static constexpr const char *const DEFAULT = "0.0.0.0";
