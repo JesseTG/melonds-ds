@@ -24,6 +24,7 @@
 #include "config/console.hpp"
 #include "core.hpp"
 #include "environment.hpp"
+#include "input/keyboard.hpp"
 #include "input/rumble.hpp"
 
 namespace MelonDsDs
@@ -273,6 +274,13 @@ extern "C" uint32_t melondsds_rumble_filter(const uint32_t* edges, uint32_t coun
     return count;
 }
 
+/// \param region A \c melonDS::PokeTypeKeyboard::Region.
+/// \return The character that \c region's Typing Adventure keyboard sends
+/// when a host keyboard types \c character.
+extern "C" uint16_t melondsds_typing_flip_letter_case(uint32_t region, uint16_t character) {
+    return MelonDsDs::FlipLetterCase(static_cast<melonDS::PokeTypeKeyboard::Region>(region), character);
+}
+
 extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept {
     using namespace MelonDsDs;
 
@@ -405,6 +413,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_rumble_filter"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_rumble_filter);
+
+    if (string_is_equal(sym, "melondsds_typing_flip_letter_case"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_typing_flip_letter_case);
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);

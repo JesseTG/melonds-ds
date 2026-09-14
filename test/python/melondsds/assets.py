@@ -29,6 +29,7 @@ ASSETS: Mapping[str, tuple[str, ...]] = {
     "micrecord_nds": ("MICRECORD_NDS",),
     "periph_slot2_nds": ("PERIPH_SLOT2_NDS",),
     "scfg_registers_nds": ("SCFG_REGISTERS_NDS",),
+    "typing_adventure_rom": ("TYPING_ADVENTURE_ROM",),
     # System files, individually
     "arm7_bios": ("ARM7_BIOS",),
     "arm9_bios": ("ARM9_BIOS",),

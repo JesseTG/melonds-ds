@@ -104,6 +104,7 @@ function(find_content VAR DESCRIPTION)
 endfunction()
 
 find_content(NDS_ROM "an NDS ROM")
+find_content(TYPING_ADVENTURE_ROM "Learn with Pokémon: Typing Adventure (European release)")
 find_content(DSIWARE_ROM "a DSiWare ROM (not a DSi-enhanced cartridge)")
 find_content(GBA_ROM "a GBA ROM")
 find_content(GBA_SRAM "a GBA save file")
@@ -260,6 +261,7 @@ pytest_discover_tests(melonDSDS
         "MELONDSDS_HAVE_OPENGL=$<BOOL:${HAVE_OPENGL}>"
         "MELONDSDS_HAVE_COMPUTE_RENDERER=$<BOOL:${HAVE_COMPUTE_RENDERER}>"
         "NDS_ROM=${NDS_ROM}"
+        "TYPING_ADVENTURE_ROM=${TYPING_ADVENTURE_ROM}"
         "DSIWARE_ROM=${DSIWARE_ROM}"
         "GBA_ROM=${GBA_ROM}"
         "GBA_SRAM=${GBA_SRAM}"
