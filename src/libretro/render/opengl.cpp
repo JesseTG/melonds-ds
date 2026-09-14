@@ -300,11 +300,11 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         retro::debug("Current OpenGL framebuffer: id={}, status={}", fbo, static_cast<FormattedGLEnum>(status));
 
-        // HACK: Makes the core resilient to context loss by cleaning up the stale OpenGL renderer
+        // Any renderer left over from a previous context gave up its OpenGL objects
+        // in RenderStateWrapper::ContextDestroyed, back when that context was still current;
+        // deleting them here would delete names that this context never handed out.
         // (The "correct" way to do this would be to add a Reinitialize() method to GLRenderer
         // that recreates all resources)
-        nds.SetRenderer(std::make_unique<melonDS::SoftRenderer>(nds));
-
         nds.SetRenderer(std::make_unique<melonDS::GLRenderer>(nds, UsesComputeRenderer()));
 
         // melonDS installs its own software renderer if the one we gave it failed to start,
@@ -606,18 +606,20 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     // melonDS's renderer went away with the context, and so did what we knew about it
     _installedMode = std::nullopt;
     _contextVersion = {0, 0};
+    glDeleteProgram(_screenProgram);
     _screenProgram = 0;
     _appliedScaleFactor = 0;
     _appliedBetterPolygons = false;
     _appliedHiresCoordinates = false;
     screen_vertices = {};
     vertexCount = 0;
+    glDeleteVertexArrays(1, &vao);
     vao = 0;
+    glDeleteBuffers(1, &vbo);
     vbo = 0;
     GL_ShaderConfig = {};
+    glDeleteBuffers(1, &ubo);
     ubo = 0;
-    // TODO: Delete these objects, since the context hasn't been destroyed yet
-    // (just in case it's not really destroyed afterwards)
 
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
     _tracyCapture = std::nullopt;
@@ -738,11 +740,12 @@ void MelonDsDs::OpenGLRenderState::UnbindState() noexcept {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 #ifdef HAVE_COMPUTE_RENDERER
-    if (UsesComputeRenderer()) {
+    if (CanHost(RenderMode::Compute)) {
         // The compute renderer's dispatches leave its storage buffers, indirect buffer,
         // texture buffer and output image bound.
         // A 3.2 context has none of these targets (and may not even resolve the functions),
-        // hence the mode check.
+        // hence the check on the context rather than on the mode:
+        // switching to the legacy renderer doesn't unbind what the compute renderer left behind.
         for (GLuint i = 0; i < COMPUTE_SSBO_BINDINGS; ++i) {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0); // Also unbinds GL_SHADER_STORAGE_BUFFER itself
         }

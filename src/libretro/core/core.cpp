@@ -585,7 +585,7 @@ void MelonDsDs::CoreState::ResetRenderState() {
 }
 
 void MelonDsDs::CoreState::DestroyRenderState() {
-    _renderState.ContextDestroyed();
+    _renderState.ContextDestroyed(Console.get());
 }
 
 bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept try {

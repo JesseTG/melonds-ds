@@ -252,7 +252,13 @@ void MelonDsDs::RenderStateWrapper::ContextReset(melonDS::NDS& nds, const CoreCo
 #endif
 }
 
-void MelonDsDs::RenderStateWrapper::ContextDestroyed() {
+void MelonDsDs::RenderStateWrapper::ContextDestroyed(melonDS::NDS* nds) {
+    // The frontend calls this while the context it's about to destroy is still current,
+    // which makes it the only safe moment for melonDS's renderer to release its OpenGL objects.
+    // Waiting until the next context reset would delete those names in a *different* context,
+    // where they either don't exist or belong to something the frontend made in the meantime.
+    ReleaseOpenGlRenderer(nds);
+
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
     if (auto glRenderState = dynamic_cast<OpenGLRenderState*>(_renderState.get())) {
         glRenderState->ContextDestroyed();

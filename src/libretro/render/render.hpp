@@ -94,7 +94,10 @@ namespace MelonDsDs {
         void Apply(const CoreConfig& config, melonDS::NDS* nds) noexcept;
         [[gnu::cold]] void UpdateRenderer(const CoreConfig& config, melonDS::NDS& nds) noexcept;
         void ContextReset(melonDS::NDS& nds, const CoreConfig& config);
-        void ContextDestroyed();
+        /// \param nds The console whose renderer should release its OpenGL objects
+        /// while the context that made them is still current,
+        /// or \c nullptr if there isn't one.
+        void ContextDestroyed(melonDS::NDS* nds);
         std::optional<RenderMode> GetRenderMode() const noexcept;
 
         /// True if the OpenGL render state failed in a way that's only recoverable
