@@ -25,6 +25,7 @@
 #include "config/types.hpp"
 #include "cursor.hpp"
 #include "joypad.hpp"
+#include "keyboard.hpp"
 #include "pointer.hpp"
 #include "retro/task_queue.hpp"
 #include "rumble.hpp"
@@ -77,6 +78,7 @@ namespace MelonDsDs {
         [[nodiscard]] ivec2 PointerTouchPosition() const noexcept { return _cursor.PointerTouchPosition(); }
         [[nodiscard]] ivec2 JoystickTouchPosition() const noexcept { return _cursor.JoypadTouchPosition(); }
         [[nodiscard]] i16vec2 PointerRawPosition() const noexcept { return _pointer.RawPosition(); }
+        [[nodiscard]] TypingKeyboardState& TypingKeyboard() noexcept { return _typingKeyboard; }
 
         void SetControllerPortDevice(unsigned port, unsigned device) noexcept;
         [[nodiscard]] unsigned GetControllerPortDevice(unsigned port) const noexcept {
@@ -112,6 +114,7 @@ namespace MelonDsDs {
         JoypadState _joypad;
         PointerState _pointer;
         CursorState _cursor;
+        TypingKeyboardState _typingKeyboard;
 
         unsigned _inputDeviceType;
         enum TouchMode _touchMode;

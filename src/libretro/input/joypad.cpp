@@ -124,8 +124,9 @@ void JoypadState::Apply(CoreConfig& config) const noexcept {
 }
 
 
-void JoypadState::Apply(melonDS::NDS& nds) const noexcept {
-    nds.SetKeyMask(_consoleButtons);
+void JoypadState::Apply(melonDS::NDS& nds, uint32_t keyboardButtons) const noexcept {
+    // A cleared bit is a pressed button
+    nds.SetKeyMask(_consoleButtons & ~keyboardButtons);
 
     if (_toggleLidButton && !_previousToggleLidButton) {
         // If the "toggle lid" button was just pressed (and is not being held)...
