@@ -71,6 +71,11 @@ namespace MelonDsDs::config::definitions {
             "On-Screen Display & Notifications",
             "Change what extra information is shown on-screen."
         },
+        retro_core_option_v2_category {
+            MelonDsDs::config::typing::CATEGORY,
+            "Typing Adventure Keyboard",
+            "Settings for the wireless keyboard in Learn with Pokémon: Typing Adventure."
+        },
         retro_core_option_v2_category {nullptr, nullptr, nullptr},
     };
 }

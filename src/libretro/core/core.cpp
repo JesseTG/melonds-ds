@@ -32,6 +32,7 @@
 #include "../exceptions.hpp"
 #include "../format.hpp"
 #include "../info.hpp"
+#include "../libretro.hpp"
 #include "../microphone.hpp"
 #include "../message/error.hpp"
 #include "../render/render.hpp"
@@ -99,6 +100,7 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 void MelonDsDs::CoreState::UnloadGame() noexcept {
     // Just in case the frontend forgets to stop the rumbling
     _inputState.StopRumble();
+    _inputState.TypingKeyboard().SetActive(false);
 
     if (!Console) {
         // The console object may be uninitialized
@@ -187,6 +189,7 @@ void MelonDsDs::CoreState::Run() noexcept {
     if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
         _inputState.Update(Config, _screenLayout);
+        _inputState.TypingKeyboard().Apply(nds);
         _inputState.Apply(nds, _screenLayout, _micState, Config);
         // melonDS pulls microphone samples as it needs them
         // (see Platform::Mic_ReadInput in platform/mic.cpp),
@@ -333,6 +336,7 @@ void MelonDsDs::CoreState::Reset() {
     // a Rumble Pak that's just been removed has to release the motors.
     _inputState.SetSlot2Input(Console->GetGBACart());
     _inputState.SetConfig(Config);
+    _inputState.TypingKeyboard().Reset();
 
 
     StartConsole();
@@ -630,6 +634,14 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
             static_cast<ConsoleType>(Console->ConsoleType) == ConsoleType::DS
         );
         InitNdsSave(*cart);
+    }
+
+    if (Console->PokeTypeKeyboard.IsSupportedGame()) {
+        // RetroArch's "Detect" Game Focus setting turns Game Focus on for any core
+        // with a keyboard callback, so only the game that needs one registers it
+        static constexpr retro_keyboard_callback keyboard { TypingKeyboardEvent };
+        retro::environment(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, (void*)&keyboard);
+        _inputState.TypingKeyboard().SetActive(true);
     }
 
     if (_gbaInfo && _gbaSaveInfo && Console->GetGBASave() && Console->GetGBASaveLength()) {

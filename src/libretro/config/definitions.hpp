@@ -29,6 +29,7 @@
 #include "config/definitions/screen.hpp"
 #include "config/definitions/system.hpp"
 #include "config/definitions/time.hpp"
+#include "config/definitions/typing.hpp"
 #include "config/definitions/video.hpp"
 
 // All descriptive text uses semantic line breaks. https://sembr.org
@@ -132,6 +133,11 @@ namespace MelonDsDs::config::definitions {
 #if defined(HAVE_THREADS) && defined(HAVE_THREADED_RENDERER)
         ThreadedSoftwareRenderer,
 #endif
+
+        TypingKeyboard,
+        TypingAutoPair,
+        TypingFnKey,
+        TypingArrowsPressDpad,
 
         ShowUnsupportedFeatures,
         ShowBiosWarnings,

@@ -21,6 +21,8 @@
 #include <SPU.h>
 #include <string_view>
 
+#include <libretro.h>
+
 #include "constants.hpp"
 #include "config/types.hpp"
 
@@ -32,6 +34,16 @@ namespace MelonDsDs {
     constexpr std::optional<bool> ParseBoolean(std::string_view value) noexcept {
         if (value == config::values::ENABLED) return true;
         if (value == config::values::DISABLED) return false;
+        return std::nullopt;
+    }
+
+    constexpr std::optional<unsigned> ParseTypingFnKey(std::string_view value) noexcept {
+        if (value == config::values::typing::KEY_INSERT) return RETROK_INSERT;
+        if (value == config::values::typing::KEY_DELETE) return RETROK_DELETE;
+        if (value == config::values::typing::KEY_END) return RETROK_END;
+        if (value == config::values::typing::KEY_PAGE_UP) return RETROK_PAGEUP;
+        if (value == config::values::typing::KEY_PAGE_DOWN) return RETROK_PAGEDOWN;
+        if (value == config::values::typing::KEY_PAUSE) return RETROK_PAUSE;
         return std::nullopt;
     }
 

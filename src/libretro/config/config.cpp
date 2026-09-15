@@ -121,6 +121,7 @@ namespace MelonDsDs::config {
     static void ParseNetworkOptions(CoreConfig& config) noexcept;
     static void ParseScreenOptions(CoreConfig& config) noexcept;
     static void ParseVideoOptions(CoreConfig& config) noexcept;
+    static void ParseTypingKeyboardOptions(CoreConfig& config) noexcept;
 
 }
 
@@ -162,6 +163,7 @@ void MelonDsDs::ParseConfig(CoreConfig& config) noexcept {
     config::ParseNetworkOptions(config);
     config::ParseScreenOptions(config);
     config::ParseVideoOptions(config);
+    config::ParseTypingKeyboardOptions(config);
 }
 
 static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
@@ -908,6 +910,40 @@ static void MelonDsDs::config::ParseVideoOptions(CoreConfig& config) noexcept {
     }
 #endif
 #endif
+}
+
+static void MelonDsDs::config::ParseTypingKeyboardOptions(CoreConfig& config) noexcept {
+    ZoneScopedN(TracyFunction);
+    using namespace MelonDsDs::config::typing;
+    using retro::get_variable;
+
+    if (optional<bool> value = ParseBoolean(get_variable(KEYBOARD))) {
+        config.SetTypingKeyboard(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", KEYBOARD, values::ENABLED);
+        config.SetTypingKeyboard(true);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(AUTO_PAIR))) {
+        config.SetTypingAutoPair(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", AUTO_PAIR, values::ENABLED);
+        config.SetTypingAutoPair(true);
+    }
+
+    if (optional<unsigned> key = ParseTypingFnKey(get_variable(FN_KEY))) {
+        config.SetTypingFnKey(*key);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", FN_KEY, values::typing::KEY_INSERT);
+        config.SetTypingFnKey(RETROK_INSERT);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(ARROWS_PRESS_DPAD))) {
+        config.SetTypingArrowsPressDpad(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", ARROWS_PRESS_DPAD, values::DISABLED);
+        config.SetTypingArrowsPressDpad(false);
+    }
 }
 
 struct FirmwareEntry {

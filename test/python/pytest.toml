@@ -22,6 +22,7 @@ markers = [
     "micrecord_nds: needs test/nds/micrecord.nds",
     "periph_slot2_nds: needs test/nds/periph_slot2.nds",
     "scfg_registers_nds: needs test/nds/tests_sys_scfg_registers.nds",
+    "typing_adventure_rom: needs Learn with Pokémon: Typing Adventure, European release (-DTYPING_ADVENTURE_ROM=...)",
 
     # --- System files ----------------------------------------------------
     # These are both a prerequisite and a staging instruction: a marked file is

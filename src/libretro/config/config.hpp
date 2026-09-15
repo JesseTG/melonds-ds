@@ -438,6 +438,19 @@ namespace MelonDsDs {
 
         [[nodiscard]] bool UseRealLightSensor() const noexcept { return _useRealLightSensor; }
         void SetUseRealLightSensor(bool enabled) noexcept { _useRealLightSensor = enabled; }
+
+        [[nodiscard]] bool TypingKeyboard() const noexcept { return _typingKeyboard; }
+        void SetTypingKeyboard(bool enabled) noexcept { _typingKeyboard = enabled; }
+
+        [[nodiscard]] bool TypingAutoPair() const noexcept { return _typingAutoPair; }
+        void SetTypingAutoPair(bool enabled) noexcept { _typingAutoPair = enabled; }
+
+        /// The RETROK_* key that stands in for the Typing Adventure keyboard's Fn key.
+        [[nodiscard]] unsigned TypingFnKey() const noexcept { return _typingFnKey; }
+        void SetTypingFnKey(unsigned key) noexcept { _typingFnKey = key; }
+
+        [[nodiscard]] bool TypingArrowsPressDpad() const noexcept { return _typingArrowsPressDpad; }
+        void SetTypingArrowsPressDpad(bool enabled) noexcept { _typingArrowsPressDpad = enabled; }
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
@@ -459,6 +472,10 @@ namespace MelonDsDs {
         uint16_t _rumbleIntensity = UINT16_MAX;
         MelonDsDs::RumbleMotorType _rumbleMotors = *ParseRumbleMotorType(config::definitions::RumbleType.default_value);
         bool _useRealLightSensor = *ParseBoolean(config::definitions::SolarSensorMode.default_value);
+        bool _typingKeyboard = *ParseBoolean(config::definitions::TypingKeyboard.default_value);
+        bool _typingAutoPair = *ParseBoolean(config::definitions::TypingAutoPair.default_value);
+        unsigned _typingFnKey = *ParseTypingFnKey(config::definitions::TypingFnKey.default_value);
+        bool _typingArrowsPressDpad = *ParseBoolean(config::definitions::TypingArrowsPressDpad.default_value);
 #ifdef JIT_ENABLED
         bool _jitEnable;
         unsigned _maxBlockSize;

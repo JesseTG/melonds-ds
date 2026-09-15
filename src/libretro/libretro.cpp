@@ -302,6 +302,10 @@ extern "C" bool MelonDsDs::UpdateOptionVisibility() noexcept {
     return Core.UpdateOptionVisibility();
 }
 
+extern "C" void MelonDsDs::TypingKeyboardEvent(bool down, unsigned keycode, uint32_t character, uint16_t modifiers) noexcept {
+    Core.GetInputState().TypingKeyboard().KeyEvent(down, keycode, character, modifiers);
+}
+
 int Platform::Net_SendPacket(u8* data, int len, void*) {
     ZoneScopedN(TracyFunction);
 
