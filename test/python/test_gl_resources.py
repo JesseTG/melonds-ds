@@ -128,19 +128,29 @@ def assert_frontend_can_still_draw(video: FrontendWithResources) -> None:
 
 @pytest.mark.nds_rom
 @pytest.mark.parametrize(
-    "mode",
+    ("mode", "frames"),
     [
-        pytest.param("opengl", id="opengl"),
-        pytest.param("compute", id="compute", marks=COMPUTE),
+        # melonDS's legacy renderer creates its OpenGL objects when the context is reset
+        # and has used all of them within its first few frames.
+        # After that, every frame makes the same calls on the same objects
+        # until the game draws textured 3D graphics (which fill melonDS's texture cache),
+        # so rendering more frames only makes the test slower.
+        # Each frame is expensive without a real GPU,
+        # because melonDS composites both screens in a large fragment shader.
+        pytest.param("opengl", 10, id="opengl"),
+        # melonDS's compute renderer compiles its programs a few at a time,
+        # within a per-frame time budget,
+        # so it can take many more frames to create all of its objects.
+        pytest.param("compute", 60, id="compute", marks=COMPUTE),
     ],
 )
 def test_rendering_leaves_the_frontends_objects_alone(
-    session: SessionFactory, nds_rom: Path, mode: str
+    session: SessionFactory, nds_rom: Path, mode: str, frames: int
 ) -> None:
     """Rendering frame after frame doesn't touch objects the frontend made for itself."""
     video = FrontendWithResources()
     with session(nds_rom, video=video, options={"melonds_render_mode": mode}) as emulator:
-        for _ in range(60):
+        for _ in range(frames):
             emulator.run()
 
         assert_resources_intact(video)
