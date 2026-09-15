@@ -169,12 +169,6 @@ std::unique_ptr<MelonDsDs::OpenGLRenderState> MelonDsDs::OpenGLRenderState::New(
     }
 }
 
-void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam)
-{
-    using namespace MelonDsDs;
-    retro::debug("{} {} {} {}: {}", (FormattedGLEnum)source, (FormattedGLEnum)type, id, (FormattedGLEnum)severity, message);
-}
-
 MelonDsDs::OpenGLRenderState::OpenGLRenderState(RenderMode mode) : _mode(mode) {
     ZoneScopedN(TracyFunction);
     retro::debug(TracyFunction);
@@ -294,14 +288,6 @@ void MelonDsDs::OpenGLRenderState::ContextReset(melonDS::NDS& nds, const CoreCon
     // The frontend may have said yes to our version request and then handed us something older;
     // find out before melonDS's renderer tries to use features that aren't there
     CheckContextVersion();
-
-#ifdef DEBUG
-    if (glDebugMessageCallback)
-    {
-        glDebugMessageCallback(debugCallback, NULL);
-        glEnable(GL_DEBUG_OUTPUT);
-    }
-#endif
 
     // Start using OpenGL on the frontend's framebuffer
     retro::debug("Binding GL state");
