@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
 #include <utility>
 
@@ -195,9 +196,8 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState(RenderMode mode) : _mode(mode) {
     _hw_render.bottom_left_origin = true;
     _hw_render.cache_context = false;
 
-#ifdef DEBUG
-    _hw_render.debug_context = true;
-#endif
+    bool wantsDebugContext = std::getenv("MELONDSDS_OPENGL_DEBUG_CONTEXT") != nullptr;
+    _hw_render.debug_context = wantsDebugContext;
 
     // If this succeeds, the frontend fills in _hw_render's function pointers
     // (but it won't call them until the context is reset)
@@ -205,9 +205,7 @@ MelonDsDs::OpenGLRenderState::OpenGLRenderState(RenderMode mode) : _mode(mode) {
         throw opengl_not_initialized_exception();
     }
 
-#ifndef NDEBUG
-    retro_assert(_hw_render.debug_context);
-#endif
+    retro_assert(_hw_render.debug_context == wantsDebugContext);
 
     gl_query_core_context_set(_hw_render.context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
 }
