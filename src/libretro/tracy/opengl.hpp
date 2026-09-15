@@ -39,10 +39,10 @@ namespace MelonDsDs {
         void CaptureFrame(GLuint current_fbo, float scale) noexcept;
     private:
         static constexpr int FRAME_LAG = 4;
-        std::array<GLuint, FRAME_LAG> _tracyTextures;
-        std::array<GLuint, FRAME_LAG> _tracyFbos;
-        std::array<GLuint, FRAME_LAG> _tracyPbos;
-        std::array<GLsync, FRAME_LAG> _tracyFences;
+        std::array<GLuint, FRAME_LAG> _tracyTextures {};
+        std::array<GLuint, FRAME_LAG> _tracyFbos {};
+        std::array<GLuint, FRAME_LAG> _tracyPbos {};
+        std::array<GLsync, FRAME_LAG> _tracyFences {};
         int _tracyIndex = 0;
         std::queue<int> _tracyQueue;
         bool _debug;

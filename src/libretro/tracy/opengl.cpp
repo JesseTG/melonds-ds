@@ -170,6 +170,11 @@ void MelonDsDs::OpenGlTracyCapture::CaptureFrame(GLuint current_fbo, float scale
     // (nullptr means to read data into the bound PBO, not to the CPU)
     glReadPixels(0, 0, NDS_SCREEN_WIDTH, NDS_SCREEN_HEIGHT * 2, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
+    // Unbind the PBO now that the read is queued; leaving it bound would break
+    // the next GL_PIXEL_PACK_BUFFER read anyone else does with this context,
+    // including the frontend's own glReadPixels calls for its screenshots.
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
     // Okay, now we're done with the capture FBO; you can have the current FBO back
     glBindFramebuffer(GL_READ_FRAMEBUFFER, current_fbo);
 
