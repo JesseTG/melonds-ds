@@ -41,7 +41,10 @@ function(fetch_dependency name default_url default_tag)
     FetchContent_GetProperties(${name})
 endfunction()
 
-fetch_dependency(melonDS "https://github.com/JesseTG/melonDS" "jtg/fix-uninitialized-opengl")
+# Until melonDS-emu/melonDS#2755 is merged, build against the fork it comes from,
+# which has the Typing Adventure keyboard. This commit also has the GL renderer fix
+# from JesseTG/melonDS's jtg/fix-uninitialized-opengl, which dev builds against.
+fetch_dependency(melonDS "https://github.com/Davey-Hughes/melonDS" "2225310")
 fetch_dependency(libretro-common "https://github.com/libretro/libretro-common" "fa8a1b5")
 fetch_dependency("embed-binaries" "https://github.com/andoalon/embed-binaries" "078b62b")
 fetch_dependency(glm "https://github.com/g-truc/glm" "6f14f47")
