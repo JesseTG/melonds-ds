@@ -25,6 +25,7 @@
 #include "config/types.hpp"
 #include "cursor.hpp"
 #include "joypad.hpp"
+#include "motion.hpp"
 #include "pointer.hpp"
 #include "retro/task_queue.hpp"
 #include "rumble.hpp"
@@ -53,7 +54,7 @@ namespace MelonDsDs {
         retro_perf_tick_t Timestamp;
     };
 
-    using Slot2State = std::variant<std::monostate, SolarSensorState, RumbleState>;
+    using Slot2State = std::variant<std::monostate, SolarSensorState, RumbleState, MotionState>;
 
     class InputState
     {
@@ -108,6 +109,11 @@ namespace MelonDsDs {
         /// The number of Rumble Pak register toggles counted in the most recent frame,
         /// or -1 if there's no Rumble Pak in Slot-2.
         [[nodiscard]] int32_t RumbleEdges() const noexcept;
+
+        /// The Motion Pak reading that melonDS asked for,
+        /// in m/s^2 for acceleration and rad/s for rotation.
+        /// Reads as if lying flat and still if there's no Motion Pak in Slot-2.
+        [[nodiscard]] float MotionQuery(melonDS::Platform::MotionQueryType type) const noexcept;
     private:
         JoypadState _joypad;
         PointerState _pointer;

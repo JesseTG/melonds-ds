@@ -191,6 +191,8 @@ namespace MelonDsDs::config {
             static constexpr const char *const DEFAULT_USERNAME = "melonDS DS";
         }
         namespace system {
+            static constexpr const char *const MOTION_PAK_HOMEBREW = "motion-pak-homebrew";
+            static constexpr const char *const MOTION_PAK_RETAIL = "motion-pak-retail";
             static constexpr const char *const SOLAR_SENSOR_1 = "solar1";
             static constexpr const char *const SOLAR_SENSOR_2 = "solar2";
             static constexpr const char *const SOLAR_SENSOR_3 = "solar3";

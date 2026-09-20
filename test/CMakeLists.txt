@@ -120,6 +120,7 @@ set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 set(GODMODE9I_DSI_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.dsi")
 
 set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
+set(PERIPH_MOTION_CARD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/periph_motion_card.nds")
 set(PERIPH_SLOT2_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/periph_slot2.nds")
 set(SCFG_REGISTERS_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/tests_sys_scfg_registers.nds")
 
@@ -266,6 +267,7 @@ pytest_discover_tests(melonDSDS
         "GODMODE9I_ROM=${GODMODE9I_ROM}"
         "GODMODE9I_DSI_ROM=${GODMODE9I_DSI_ROM}"
         "MICRECORD_NDS=${MICRECORD_NDS}"
+        "PERIPH_MOTION_CARD_NDS=${PERIPH_MOTION_CARD_NDS}"
         "PERIPH_SLOT2_NDS=${PERIPH_SLOT2_NDS}"
         "SCFG_REGISTERS_NDS=${SCFG_REGISTERS_NDS}"
         "ARM7_BIOS=${ARM7_BIOS}"
@@ -279,8 +281,6 @@ pytest_discover_tests(melonDSDS
         "PYTHONDONTWRITEBYTECODE=1"
 
     PROPERTIES
-        # Keep this a single label: PROPERTIES is a multi-value argument, so a
-        # semicolon would split it into two property tokens.
         LABELS libretro.py
         TIMEOUT ${DEFAULT_TIMEOUT}
         # conftest.py exits with 77 when a test case was skipped for want of an asset.

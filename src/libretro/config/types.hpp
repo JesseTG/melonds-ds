@@ -43,6 +43,8 @@ namespace MelonDsDs {
         SolarSensorBoktai1,
         SolarSensorBoktai2,
         SolarSensorBoktai3,
+        MotionPakHomebrew,
+        MotionPakRetail,
     };
 
     enum RumbleMotorType {

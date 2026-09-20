@@ -184,7 +184,8 @@ even when booting directly!
   and pick them from the core options.
 - **Slot-2 Accessories:**
   melonDS DS currently supports the
-  [solar sensor][solar-sensor], [Memory Expansion Pak][memory-pak], and [Rumble Pak][rumble-pak].
+  [solar sensor][solar-sensor], [Memory Expansion Pak][memory-pak], [Rumble Pak][rumble-pak],
+  and both the homebrew DS Motion Pak and the retail DS Motion Pack.
 
 # Missing Features
 

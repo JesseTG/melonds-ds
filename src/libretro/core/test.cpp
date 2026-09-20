@@ -273,6 +273,30 @@ extern "C" uint32_t melondsds_rumble_filter(const uint32_t* edges, uint32_t coun
     return count;
 }
 
+/// Copies halfwords out of the sub engine's background VRAM,
+/// the way the emulated console sees it at <tt>0x06200000 + offset</tt>.
+/// libnds's demo console keeps its tile map here,
+/// so this is how the tests read the text that homebrew prints.
+///
+/// \param offset Where to start copying, in bytes past the start of the sub engine's background VRAM.
+/// \param out Receives the copied halfwords.
+/// \param count The number of halfwords to copy.
+/// \return The number of halfwords written to \c out,
+/// or 0 if there's no console.
+extern "C" uint32_t melondsds_read_sub_bg_vram(uint32_t offset, uint16_t* out, uint32_t count) {
+    using namespace MelonDsDs;
+    const melonDS::NDS* console = Core.GetConsole();
+
+    if (!console || !out)
+        return 0;
+
+    for (uint32_t i = 0; i < count; ++i) {
+        out[i] = console->GPU.ReadVRAM_BBG<uint16_t>(offset + i * sizeof(uint16_t));
+    }
+
+    return count;
+}
+
 extern "C" unsigned melondsds_get_controller_port_device(unsigned port) noexcept {
     using namespace MelonDsDs;
 
@@ -405,6 +429,9 @@ extern "C" retro_proc_address_t MelonDsDs::GetRetroProcAddress(const char* sym) 
 
     if (string_is_equal(sym, "melondsds_rumble_filter"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_rumble_filter);
+
+    if (string_is_equal(sym, "melondsds_read_sub_bg_vram"))
+        return reinterpret_cast<retro_proc_address_t>(melondsds_read_sub_bg_vram);
 
     if (string_is_equal(sym, "melondsds_get_controller_port_device"))
         return reinterpret_cast<retro_proc_address_t>(melondsds_get_controller_port_device);

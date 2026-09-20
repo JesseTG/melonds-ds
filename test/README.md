@@ -183,6 +183,7 @@ All of the test code lives in [`test/python`](python).
 | `test_cheats.py` | Applying, resetting and validating cheats |
 | `test_firmware.py` | Firmware and BIOS validation, fallback and preservation |
 | `test_slot2.py` | The Memory Expansion Pak, Rumble Pak and Solar Sensor |
+| `test_motion.py` | The homebrew DS Motion Pak and the retail DS Motion Pack |
 | `test_reset.py` | Resetting the emulated console |
 | `test_homebrew_sd.py` | The virtual SD card that homebrew ROMs see |
 

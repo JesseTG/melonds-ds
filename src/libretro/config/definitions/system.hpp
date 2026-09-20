@@ -348,6 +348,10 @@ namespace MelonDsDs::config::definitions {
         "If a GBA ROM for any game in the Boktai trilogy is inserted, "
         "the corresponding Solar Sensor setting will be forced. "
         "In supported NDS games, each Boktai cart will have different effects. "
+        "The Motion Paks read your device's accelerometer "
+        "(and its gyroscope, for the homebrew pak) "
+        "if the frontend supports them; "
+        "otherwise, they act as if the console is lying flat and still. "
         "\n"
         "Changes take effect at next core start.",
         nullptr,
@@ -359,6 +363,8 @@ namespace MelonDsDs::config::definitions {
             {values::system::SOLAR_SENSOR_1, "Solar Sensor (Boktai 1)"},
             {values::system::SOLAR_SENSOR_2, "Solar Sensor (Boktai 2)"},
             {values::system::SOLAR_SENSOR_3, "Solar Sensor (Boktai 3)"},
+            {values::system::MOTION_PAK_HOMEBREW, "Motion Pak (Homebrew)"},
+            {values::system::MOTION_PAK_RETAIL, "Motion Pack (Retail)"},
             {nullptr, nullptr},
         },
         values::AUTO

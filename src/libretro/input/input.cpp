@@ -127,6 +127,9 @@ void InputState::Update(const CoreConfig& config, const ScreenLayoutData& layout
     if (auto* solar = get_if<SolarSensorState>(&_slot2)) {
         solar->Update(_joypad);
     }
+    else if (auto* motion = get_if<MotionState>(&_slot2)) {
+        motion->Update();
+    }
     _pointer.Update(pollResult);
 
     _cursor.Update(config, layout, _pointer, _joypad);
@@ -171,6 +174,10 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
     if (auto* rumble = std::get_if<RumbleState>(&_slot2)) {
         rumble->SetConfig(config);
     }
+
+    if (auto* motion = std::get_if<MotionState>(&_slot2)) {
+        motion->SetConfig(config);
+    }
 }
 
 void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon* gbacart) noexcept {
@@ -188,6 +195,14 @@ void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon* gbacart) noex
         case melonDS::GBACart::CartType::RumblePak:
             _slot2 = RumbleState();
             retro::debug("Enabled RumbleState");
+            break;
+        case melonDS::GBACart::CartType::MotionPakHomebrew:
+            _slot2 = MotionState(0, true);
+            retro::debug("Enabled MotionState with a gyroscope");
+            break;
+        case melonDS::GBACart::CartType::MotionPakRetail:
+            _slot2 = MotionState(0, false);
+            retro::debug("Enabled MotionState without a gyroscope");
             break;
         default:
             // No GBA cart, or it's a plain game, or it's a peripheral unrelated to input
@@ -236,6 +251,14 @@ int32_t InputState::RumbleEdges() const noexcept {
     return -1;
 }
 
+float InputState::MotionQuery(melonDS::Platform::MotionQueryType type) const noexcept {
+    if (const auto* motion = get_if<MotionState>(&_slot2)) {
+        return motion->Query(type);
+    }
+
+    return MotionState::Resting(type);
+}
+
 void melonDS::Platform::Addon_RumbleStart(melonDS::u32 len, void* userdata)
 {
     ZoneScopedN(TracyFunction);
@@ -251,4 +274,13 @@ void melonDS::Platform::Addon_RumbleStop(void* userdata)
     ZoneScopedN(TracyFunction);
     MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
     core.GetInputState().RumbleStop();
+}
+
+float melonDS::Platform::Addon_MotionQuery(melonDS::Platform::MotionQueryType type, void* userdata)
+{
+    ZoneScopedN(TracyFunction);
+    // The readings were taken at the start of the frame;
+    // melonDS asks for them each time the game reads the Motion Pak.
+    MelonDsDs::CoreState& core = *reinterpret_cast<MelonDsDs::CoreState*>(userdata);
+    return core.GetInputState().MotionQuery(type);
 }

@@ -3,20 +3,19 @@ Slot-2 accessories: the Memory Expansion Pak, Rumble Pak and Solar Sensor.
 
 Every case here loads ``test/nds/periph_slot2.nds``,
 a homebrew ROM that reports what's in Slot-2.
+The motion paks are also inserted and removed here,
+but ``test_motion.py`` covers what they read.
 """
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from ctypes import POINTER, c_int32, c_uint16, c_uint32
+from ctypes import c_int32, c_uint16, c_uint32
 from itertools import chain, repeat
 from pathlib import Path
 from typing import Any
 
 import pytest
-from libretro.ctypes import TypedFunctionPointer, TypedPointer
-from melondsds import SessionFactory
-
 from libretro import (
     Content,
     DictRumbleDriver,
@@ -31,6 +30,9 @@ from libretro import (
     Session,
     SubsystemContent,
 )
+from libretro.ctypes import CIntArg, TypedFunctionPointer, TypedPointer
+
+from melondsds import SessionFactory
 
 #: Cart type IDs reported by ``melondsds_get_gba_cart_type``.
 NO_CART = 0
@@ -38,12 +40,16 @@ GBA_CART = 0x101
 SOLAR_SENSOR = 0x102
 EXPANSION_PAK = 0x201
 RUMBLE_PAK = 0x202
+MOTION_PAK_HOMEBREW = 0x203
+MOTION_PAK_RETAIL = 0x204
 
 #: Slot-2 device option value -> the cart type the core should report for it.
 DEVICES = {
     "expansion-pak": EXPANSION_PAK,
     "rumble-pak": RUMBLE_PAK,
     "solar1": SOLAR_SENSOR,
+    "motion-pak-homebrew": MOTION_PAK_HOMEBREW,
+    "motion-pak-retail": MOTION_PAK_RETAIL,
 }
 
 #: The strongest rumble a libretro frontend can be asked for.
@@ -57,7 +63,7 @@ RumbleWindowProbe = TypedFunctionPointer[c_uint32, []]
 
 #: ``uint32_t melondsds_rumble_filter(const uint32_t*, uint32_t, uint16_t*)``.
 RumbleFilterProbe = TypedFunctionPointer[
-    c_uint32, [TypedPointer[c_uint32], c_uint32, TypedPointer[c_uint16]]
+    c_uint32, [TypedPointer[c_uint32], CIntArg[c_uint32], TypedPointer[c_uint16]]
 ]
 
 pytestmark = pytest.mark.periph_slot2_nds

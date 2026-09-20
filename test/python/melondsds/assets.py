@@ -27,6 +27,7 @@ ASSETS: Mapping[str, tuple[str, ...]] = {
     "godmode9i_rom": ("GODMODE9I_ROM",),
     "godmode9i_dsi_rom": ("GODMODE9I_DSI_ROM",),
     "micrecord_nds": ("MICRECORD_NDS",),
+    "periph_motion_card_nds": ("PERIPH_MOTION_CARD_NDS",),
     "periph_slot2_nds": ("PERIPH_SLOT2_NDS",),
     "scfg_registers_nds": ("SCFG_REGISTERS_NDS",),
     # System files, individually

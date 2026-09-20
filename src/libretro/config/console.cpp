@@ -466,6 +466,14 @@ static MelonDsDs::NDSArgs MelonDsDs::GetNdsArgs(
                 }
                 retro::debug("Installed built-in Boktai 3 stub for the solar sensor");
                 break;
+            case Slot2Device::MotionPakHomebrew:
+                ndsargs.gbaCart = std::make_unique<melonDS::GBACart::CartMotionPakHomebrew>(&state);
+                retro::debug("Installed built-in DS Motion Pak (homebrew)");
+                break;
+            case Slot2Device::MotionPakRetail:
+                ndsargs.gbaCart = std::make_unique<melonDS::GBACart::CartMotionPakRetail>(&state);
+                retro::debug("Installed built-in DS Motion Pack (retail)");
+                break;
             default:
                 break;
         }

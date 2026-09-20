@@ -24,6 +24,8 @@ a design goal is to avoid a 2.x release for as long as possible.
   You can select it from the core options on Windows and Linux builds.
   Android is not yet supported, and Apple devices likely never will be.
   [#209](https://github.com/JesseTG/melonds-ds/issues/209)
+- Added the homebrew DS Motion Pak and the retail DS Motion Pack
+  to the "Slot-2 Device" core option.
 
 ### Changed
 
