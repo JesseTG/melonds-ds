@@ -118,6 +118,12 @@ namespace MelonDsDs {
         static void ShowShaderCompileProgress(int compiled, int total) noexcept;
         [[gnu::cold]] bool RunDeferredInitialization() noexcept;
         [[gnu::cold]] void InstallNdsSram() noexcept;
+
+        /// Tells the frontend where the console's memory sits in the DS's address space,
+        /// so that cheats, achievements, and memory viewers can reach it.
+        /// Must be called each time the console is (re)created,
+        /// as the buffers move with it.
+        [[gnu::cold]] void RegisterMemoryMap() const noexcept;
         [[gnu::cold]] void StartConsole();
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds) noexcept;
         [[gnu::cold]] void SetConsoleTime(melonDS::NDS& nds, local_seconds time) noexcept;

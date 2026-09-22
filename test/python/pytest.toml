@@ -19,6 +19,7 @@ markers = [
     "gba_sram: needs GBA save data (-DGBA_SRAM=...)",
     "godmode9i_rom: needs the GodMode9i homebrew ROM (downloaded at configure time)",
     "godmode9i_dsi_rom: needs the DSi build of GodMode9i (downloaded at configure time)",
+    "mem_regions_nds: needs test/nds/tests_sys_mem_regions.nds",
     "micrecord_nds: needs test/nds/micrecord.nds",
     "periph_motion_card_nds: needs test/nds/periph_motion_card.nds",
     "periph_slot2_nds: needs test/nds/periph_slot2.nds",

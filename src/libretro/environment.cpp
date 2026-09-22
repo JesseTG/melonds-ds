@@ -566,6 +566,20 @@ bool retro::set_system_av_info(const retro_system_av_info& av_info) noexcept {
     return retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, (void*)&av_info);
 }
 
+bool retro::set_memory_maps(const retro_memory_map& map) noexcept {
+    ZoneScopedN(TracyFunction);
+    return retro::environment(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, (void*)&map);
+}
+
+bool retro::set_memory_maps(std::span<const retro_memory_descriptor> descriptors) noexcept {
+    ZoneScopedN(TracyFunction);
+    retro_memory_map map;
+    map.descriptors = descriptors.data();
+    map.num_descriptors = static_cast<unsigned>(descriptors.size());
+
+    return retro::set_memory_maps(map);
+}
+
 optional<string_view> retro::username() noexcept {
     ZoneScopedN(TracyFunction);
     const char* username = nullptr;

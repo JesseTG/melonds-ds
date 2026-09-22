@@ -25,6 +25,7 @@
 #undef isnan
 #include <fmt/format.h>
 #include "std/chrono.hpp"
+#include "std/span.hpp"
 
 namespace retro {
     constexpr unsigned DEFAULT_ERROR_DURATION = 5000; // in ms
@@ -96,6 +97,8 @@ namespace retro {
     std::optional<retro_language> get_language() noexcept;
     bool set_geometry(const retro_game_geometry& geometry) noexcept;
     bool set_system_av_info(const retro_system_av_info& av_info) noexcept;
+    bool set_memory_maps(const retro_memory_map& map) noexcept;
+    bool set_memory_maps(std::span<const retro_memory_descriptor> descriptors) noexcept;
     std::optional<std::string_view> username() noexcept;
     void set_option_visible(const char* key, bool visible) noexcept;
     bool supports_power_status() noexcept;

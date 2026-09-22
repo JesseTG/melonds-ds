@@ -16,6 +16,7 @@
 
 #include "core.hpp"
 
+#include <array>
 #include <charconv>
 #include <DSi.h>
 
@@ -47,6 +48,35 @@ using namespace melonDS::DSi_NAND;
 
 constexpr size_t DS_MEMORY_SIZE = 0x400000;
 constexpr size_t DSI_MEMORY_SIZE = 0x1000000;
+
+/// Where main RAM begins in the ARM9's address space.
+constexpr size_t MAIN_RAM_ADDRESS = 0x02000000;
+
+/// Selects the 16MB window that main RAM occupies (0x02000000 to 0x02FFFFFF).
+constexpr size_t MAIN_RAM_SELECT = 0xFF000000;
+
+/// Offsets within that window.
+/// Main RAM mirrors through whichever of these bits it's too small to use.
+constexpr size_t MAIN_RAM_WINDOW_MASK = 0x00FFFFFF;
+
+/// Where the ARM9's ITCM begins; the CP15 fixes it at 0.
+constexpr size_t ITCM_ADDRESS = 0x00000000;
+
+/// Selects the 32MB window that ITCM occupies,
+/// which is the virtual size that the DS firmware gives it.
+/// libnds links ITCM code at 0x01000000 and relies on this.
+constexpr size_t ITCM_SELECT = 0xFE000000;
+
+/// The bits of that window that ITCM's 32KB doesn't use,
+/// so that the rest of it mirrors them.
+constexpr size_t ITCM_DISCONNECT = 0x01FF8000;
+
+/// Where RetroAchievements looks for the ARM9's DTCM, on both the DS and the DSi.
+/// See the "Nintendo DS" entry in rcheevos' \c consoleinfo.c.
+/// A DSi really does start with its DTCM here,
+/// though most games move it somewhere else.
+constexpr size_t DTCM_PSEUDO_ADDRESS = 0x0E000000;
+
 static const char* const INTERNAL_ERROR_MESSAGE =
     "An internal error occurred with melonDS DS. "
     "Please contact the developer with the log file.";
@@ -315,6 +345,7 @@ void MelonDsDs::CoreState::Reset() {
     );
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
+    RegisterMemoryMap(); // The old console's buffers went with it, so refresh the frontend's
     // TODO: Don't throw out the NDS object (unless changing console type), customize it instead
     if (!ndsSram.empty()) {
         Console->SetNDSSave(ndsSram.data(), ndsSram.size());
@@ -615,7 +646,7 @@ bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_in
 
     retro_assert(Console != nullptr);
     melonDS::NDS::Current = Console.get();
-
+    RegisterMemoryMap();
 
     if (melonDS::NDSCart::CartCommon* cart = Console->GetNDSCart()) {
         // A title installed onto the NAND isn't inserted into the cart slot,
@@ -1049,6 +1080,58 @@ bool MelonDsDs::CoreState::Unserialize(std::span<const std::byte> data) noexcept
     _inputState.StopRumble();
 
     return true;
+}
+
+void MelonDsDs::CoreState::RegisterMemoryMap() const noexcept {
+    ZoneScopedN(TracyFunction);
+    retro_assert(Console != nullptr);
+
+    // A DS's 4MB repeats four times across the 16MB window at 0x02000000,
+    // while a DSi's 16MB fills it exactly;
+    // disconnecting the window bits that the RAM doesn't need declares those mirrors.
+    // NDS::MainRAMMask would say the same thing,
+    // except that a DSi changes it at runtime as the firmware unlocks the extra 12MB.
+    size_t mainRamSize = GetMemorySize(RETRO_MEMORY_SYSTEM_RAM);
+    retro_assert(mainRamSize != 0);
+
+    std::array<retro_memory_descriptor, 3> descriptors = {};
+
+    retro_memory_descriptor& mainRam = descriptors[0];
+    mainRam.flags = RETRO_MEMDESC_SYSTEM_RAM;
+    mainRam.ptr = Console->MainRAM;
+    mainRam.start = MAIN_RAM_ADDRESS;
+    mainRam.select = MAIN_RAM_SELECT;
+    mainRam.disconnect = MAIN_RAM_WINDOW_MASK & ~(mainRamSize - 1);
+    mainRam.len = mainRamSize;
+    mainRam.addrspace = nullptr;
+
+    retro_memory_descriptor& itcm = descriptors[1];
+    itcm.flags = RETRO_MEMDESC_SYSTEM_RAM;
+    itcm.ptr = Console->ARM9.ITCM;
+    itcm.start = ITCM_ADDRESS;
+    itcm.select = ITCM_SELECT;
+    itcm.disconnect = ITCM_DISCONNECT;
+    itcm.len = melonDS::ITCMPhysicalSize;
+    itcm.addrspace = nullptr;
+
+    // DTCM is moveable, so it has no fixed address to describe;
+    // the ARM9 puts it at 0x027C0000 on a retail DS and wherever the game asks otherwise.
+    // Reads at its real address hit the main RAM mirror that surrounds it instead,
+    // because main RAM comes first in this map.
+    retro_memory_descriptor& dtcm = descriptors[2];
+    dtcm.flags = RETRO_MEMDESC_SYSTEM_RAM;
+    dtcm.ptr = Console->ARM9.DTCM;
+    dtcm.start = DTCM_PSEUDO_ADDRESS;
+    dtcm.select = 0;
+    dtcm.disconnect = 0;
+    dtcm.len = melonDS::DTCMPhysicalSize;
+    dtcm.addrspace = nullptr;
+
+    std::span<const retro_memory_descriptor> memoryMap(descriptors.data(), descriptors.size());
+    if (!retro::set_memory_maps(memoryMap)) {
+        // Not fatal; the frontend can still reach main RAM through retro_get_memory_data.
+        retro::warn("Frontend refused the memory map; cheats and achievements may not work.");
+    }
 }
 
 std::byte* MelonDsDs::CoreState::GetMemoryData(unsigned id) noexcept {

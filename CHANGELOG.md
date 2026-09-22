@@ -44,6 +44,13 @@ a design goal is to avoid a 2.x release for as long as possible.
 - When Starting Time Mode is Absolute,
   the emulated clock's starting second is now set by the "Starting Second" core option
   instead of always being taken from your device's clock.
+- Added a memory map, so that frontends can reach main RAM, ITCM, and DTCM
+  by address instead of only as one flat buffer.
+  RetroArch's `READ_CORE_MEMORY` and `WRITE_CORE_MEMORY` commands should now work.
+  [#273](https://github.com/JesseTG/melonds-ds/issues/273)
+- Exposed the ARM9's DTCM at address `0x0E000000`,
+  where RetroAchievements looks for it.
+  [#301](https://github.com/JesseTG/melonds-ds/issues/301)
 
 ### Fixed
 

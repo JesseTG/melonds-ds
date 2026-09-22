@@ -119,6 +119,7 @@ FetchContent_MakeAvailable(godmode9i)
 set(GODMODE9I_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.nds")
 set(GODMODE9I_DSI_ROM "${godmode9i_SOURCE_DIR}/GodMode9i.dsi")
 
+set(MEM_REGIONS_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/tests_sys_mem_regions.nds")
 set(MICRECORD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/micrecord.nds")
 set(PERIPH_MOTION_CARD_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/periph_motion_card.nds")
 set(PERIPH_SLOT2_NDS "${CMAKE_CURRENT_SOURCE_DIR}/nds/periph_slot2.nds")
@@ -266,6 +267,7 @@ pytest_discover_tests(melonDSDS
         "GBA_SRAM=${GBA_SRAM}"
         "GODMODE9I_ROM=${GODMODE9I_ROM}"
         "GODMODE9I_DSI_ROM=${GODMODE9I_DSI_ROM}"
+        "MEM_REGIONS_NDS=${MEM_REGIONS_NDS}"
         "MICRECORD_NDS=${MICRECORD_NDS}"
         "PERIPH_MOTION_CARD_NDS=${PERIPH_MOTION_CARD_NDS}"
         "PERIPH_SLOT2_NDS=${PERIPH_SLOT2_NDS}"

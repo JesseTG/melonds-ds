@@ -26,6 +26,7 @@ ASSETS: Mapping[str, tuple[str, ...]] = {
     "gba_sram": ("GBA_SRAM",),
     "godmode9i_rom": ("GODMODE9I_ROM",),
     "godmode9i_dsi_rom": ("GODMODE9I_DSI_ROM",),
+    "mem_regions_nds": ("MEM_REGIONS_NDS",),
     "micrecord_nds": ("MICRECORD_NDS",),
     "periph_motion_card_nds": ("PERIPH_MOTION_CARD_NDS",),
     "periph_slot2_nds": ("PERIPH_SLOT2_NDS",),
