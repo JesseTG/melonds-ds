@@ -487,10 +487,7 @@ void MelonDsDs::CoreState::SetConsoleTime(melonDS::NDS& nds) noexcept {
             break;
         }
         case StartTimeMode::Absolute: {
-            const auto tpm = floor<seconds>(now);
-            const auto dp = floor<days>(tpm);
-            auto time = make_time(tpm-dp);
-            targetTime = Config.AbsoluteStartDateTime() + time.seconds();
+            targetTime = Config.AbsoluteStartDateTime();
             retro::debug("Starting the RTC at {:%F %r} (ignoring the local time)", ToSystemTime(targetTime));
             break;
         }

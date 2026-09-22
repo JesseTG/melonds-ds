@@ -26,6 +26,10 @@ a design goal is to avoid a 2.x release for as long as possible.
   [#209](https://github.com/JesseTG/melonds-ds/issues/209)
 - Added the homebrew DS Motion Pak and the retail DS Motion Pack
   to the "Slot-2 Device" core option.
+- Added a "Starting Second" core option
+  for setting the initial second of the emulated console's clock
+  when Starting Time Mode is Absolute.
+  [#302](https://github.com/JesseTG/melonds-ds/issues/302)
 
 ### Changed
 
@@ -37,6 +41,9 @@ a design goal is to avoid a 2.x release for as long as possible.
   instead of shutting down.
 - DSi-exclusive cartridges now run in DSi mode when Console Mode is set to Auto.
   DSi-_enhanced_ games are unaffected.
+- When Starting Time Mode is Absolute,
+  the emulated clock's starting second is now set by the "Starting Second" core option
+  instead of always being taken from your device's clock.
 
 ### Fixed
 

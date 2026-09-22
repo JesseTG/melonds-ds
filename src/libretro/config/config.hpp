@@ -423,8 +423,13 @@ namespace MelonDsDs {
         [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartMinute() const noexcept { return _absoluteStartMinute; }
         void SetAbsoluteStartMinute(hh_mm_ss<minutes> minute) noexcept { _absoluteStartMinute = minute; }
 
+        [[nodiscard]] hh_mm_ss<seconds> AbsoluteStartSecond() const noexcept { return _absoluteStartSecond; }
+        void SetAbsoluteStartSecond(hh_mm_ss<seconds> second) noexcept { _absoluteStartSecond = second; }
+
         [[nodiscard]] year_month_day AbsoluteStartDate() const noexcept { return _absoluteStartYear / _absoluteStartMonth / _absoluteStartDay; }
-        [[nodiscard]] hh_mm_ss<minutes> AbsoluteStartTime() const noexcept { return hh_mm_ss(_absoluteStartHour.hours() + _absoluteStartMinute.minutes()); }
+        [[nodiscard]] hh_mm_ss<seconds> AbsoluteStartTime() const noexcept {
+            return hh_mm_ss(_absoluteStartHour.hours() + _absoluteStartMinute.minutes() + _absoluteStartSecond.seconds());
+        }
         [[nodiscard]] local_seconds AbsoluteStartDateTime() const noexcept { return local_days(AbsoluteStartDate()) + AbsoluteStartTime().to_duration(); }
 
         [[nodiscard]] Slot2Device GetSlot2Device() const noexcept { return _slot2; }
@@ -544,6 +549,7 @@ namespace MelonDsDs {
         day _absoluteStartDay;
         hh_mm_ss<hours> _absoluteStartHour;
         hh_mm_ss<minutes> _absoluteStartMinute;
+        hh_mm_ss<seconds> _absoluteStartSecond;
     };
 }
 

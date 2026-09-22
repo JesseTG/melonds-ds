@@ -170,6 +170,7 @@ namespace MelonDsDs::config {
         static constexpr const char *const ABSOLUTE_DAY = "melonds_start_time_absolute_day";
         static constexpr const char *const ABSOLUTE_HOUR = "melonds_start_time_absolute_hour";
         static constexpr const char *const ABSOLUTE_MINUTE = "melonds_start_time_absolute_minute";
+        static constexpr const char *const ABSOLUTE_SECOND = "melonds_start_time_absolute_second";
     }
 
     namespace video {

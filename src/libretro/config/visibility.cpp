@@ -237,6 +237,7 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
         set_option_visible(time::ABSOLUTE_DAY, ShowAbsoluteStartTime);
         set_option_visible(time::ABSOLUTE_HOUR, ShowAbsoluteStartTime);
         set_option_visible(time::ABSOLUTE_MINUTE, ShowAbsoluteStartTime);
+        set_option_visible(time::ABSOLUTE_SECOND, ShowAbsoluteStartTime);
         updated = true;
     }
 

@@ -322,6 +322,14 @@ void MelonDsDs::config::ParseTimeOptions(CoreConfig& config) noexcept {
         retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteMinute.key, 0);
         config.SetAbsoluteStartMinute(hh_mm_ss(minutes(0)));
     }
+
+    if (optional<unsigned> value = ParseIntegerInRange(get_variable(definitions::AbsoluteSecond.key), 0, 59)) {
+        config.SetAbsoluteStartSecond(hh_mm_ss(seconds(*value)));
+    }
+    else {
+        retro::warn("Failed to get value for {}; defaulting to {}", definitions::AbsoluteSecond.key, 0);
+        config.SetAbsoluteStartSecond(hh_mm_ss(seconds(0)));
+    }
 }
 
 

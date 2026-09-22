@@ -120,6 +120,7 @@ namespace MelonDsDs::config::definitions {
         AbsoluteDay,
         AbsoluteHour,
         AbsoluteMinute,
+        AbsoluteSecond,
 
 #if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
         RenderMode,
