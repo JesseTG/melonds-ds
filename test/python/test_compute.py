@@ -27,6 +27,7 @@ from libretro.api import retro_hw_render_callback, retro_message_ext
 from libretro.ctypes import TypedFunctionPointer
 
 from melondsds import SessionFactory
+from melondsds.video import TrackingVideoDriver
 
 pytestmark = [pytest.mark.opengl, pytest.mark.compute]
 
@@ -196,7 +197,7 @@ def test_settings_changes_recompile_shaders(session: SessionFactory, nds_rom: Pa
         assert _active_mode(probes) == "compute"
 
 
-class CountingModernGlVideoDriver(ModernGlVideoDriver):
+class CountingModernGlVideoDriver(TrackingVideoDriver):
     """A video driver that counts how many times the core asks it for a hardware context."""
 
     def __init__(self, *, gl_version: tuple[int, int] | None = None) -> None:
@@ -220,8 +221,7 @@ def test_switching_renderers_reuses_a_context_that_is_new_enough(
     Most frontends hand out a newer context than the core asks for,
     so one obtained for the classic renderer usually runs the compute renderer too.
     The core has to notice and keep it,
-    because a frontend that sizes its output the same way for both renderers
-    has no reason to build a new context and may never reset the one it has.
+    because getting a new context means making the frontend rebuild its whole video driver.
     """
     video = CountingModernGlVideoDriver(gl_version=(4, 3))
     options = {"melonds_render_mode": "opengl"}
@@ -234,6 +234,7 @@ def test_switching_renderers_reuses_a_context_that_is_new_enough(
 
         assert _active_mode(probes) == "opengl"
         assert video.context_requests == 1
+        rebuilds = video.rebuilds
 
         emulator.options.variables["melonds_render_mode"] = b"compute"
         for _ in range(60):
@@ -241,6 +242,7 @@ def test_switching_renderers_reuses_a_context_that_is_new_enough(
 
         assert _active_mode(probes) == "compute"
         assert video.context_requests == 1, "The core asked for a context it didn't need"
+        assert video.rebuilds == rebuilds, "The core made the frontend rebuild its video driver"
         assert video.screenshot() is not None
 
         emulator.options.variables["melonds_render_mode"] = b"opengl"
@@ -249,6 +251,7 @@ def test_switching_renderers_reuses_a_context_that_is_new_enough(
 
         assert _active_mode(probes) == "opengl"
         assert video.context_requests == 1, "The core asked for a context it didn't need"
+        assert video.rebuilds == rebuilds, "The core made the frontend rebuild its video driver"
 
 
 def _progress_messages(driver: LoggerMessageDriver) -> list[retro_message_ext]:

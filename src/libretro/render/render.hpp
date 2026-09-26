@@ -21,6 +21,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 
 #include "config/types.hpp"
 
@@ -117,9 +118,21 @@ namespace MelonDsDs {
         /// this tells the frontend we've stopped rendering with OpenGL.
         /// \see Apply for what \c nds is for.
         [[gnu::cold]] std::string FallBackToSoftware(const CoreConfig& config, melonDS::NDS* nds) noexcept;
+
+        /// True if we've asked the frontend for a different OpenGL context
+        /// (or told it we're done with one) since the last call,
+        /// which then resets the flag.
+        /// The frontend only acts on either when it rebuilds its video driver,
+        /// which RetroArch does only when the core's maximum geometry changes.
+        [[nodiscard]] bool TakeContextChange() noexcept { return std::exchange(_contextChanged, false); }
     private:
         void SetRenderer(const CoreConfig& config, melonDS::NDS* nds);
+
+        /// Replaces the render state,
+        /// noting whether that changes the context we're asking the frontend for.
+        void ReplaceRenderState(std::unique_ptr<RenderState> state) noexcept;
         std::unique_ptr<RenderState> _renderState;
+        bool _contextChanged = false;
         bool _softwareFallbackRequested = false;
         /// Set once the frontend has shown it can't run the compute renderer,
         /// so later settings changes don't keep asking it for an OpenGL 4.3 context.

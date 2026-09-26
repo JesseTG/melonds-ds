@@ -327,23 +327,18 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
     _dirty = false;
 }
 
-retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry(RenderMode renderer) const noexcept {
+retro_game_geometry MelonDsDs::ScreenLayoutData::Geometry() const noexcept {
+    // The software renderer's scale is always 1,
+    // so this covers both kinds of renderer
+    uvec2 maxSize = MaxBufferSize();
     retro_game_geometry geometry {
         .base_width = BufferWidth(),
         .base_height = BufferHeight(),
-        .max_width = MaxSoftwareRenderedWidth(),
-        .max_height = MaxSoftwareRenderedHeight(),
+        .max_width = maxSize.x,
+        .max_height = maxSize.y,
         .aspect_ratio = BufferAspectRatio(),
     };
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
-    if (UsesOpenGl(renderer)) {
-        geometry.max_width = MaxOpenGlRenderedWidth();
-        geometry.max_height = MaxOpenGlRenderedHeight();
-    }
-#endif
-    static_assert(MaxSoftwareRenderedWidth() > 0);
-    static_assert(MaxSoftwareRenderedHeight() > 0);
     retro_assert(geometry.base_width > 0);
     retro_assert(geometry.base_height > 0);
     retro_assert(geometry.max_height >= geometry.base_height);

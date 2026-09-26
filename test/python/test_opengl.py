@@ -12,14 +12,15 @@ from libretro import ArrayVideoDriver, ModernGlVideoDriver
 from libretro.ctypes import TypedFunctionPointer
 
 from melondsds import SessionFactory
+from melondsds.video import RetroArchVideoDriver, TrackingVideoDriver
 
 pytestmark = pytest.mark.opengl
 
 #: On macOS x86_64 this times out.
 #: The core's OpenGL rendering is correct,
 #: but libretro.py's ``ModernGlVideoDriver.refresh()``
-#: sizes its FBOs and textures to ``max_geometry`` (8198x4608)
-#: rather than to the current ``base_geometry`` (256x384).
+#: sizes its FBOs and textures to ``max_geometry``
+#: rather than to the current ``base_geometry``.
 #: The rendered content is correct
 #: but occupies a tiny fraction of the oversized FBO,
 #: so ``screenshot()`` reads back mostly empty pixels and the comparison fails.
@@ -89,8 +90,80 @@ def test_falls_back_to_software(session: SessionFactory, nds_rom: Path) -> None:
 #: Switching to or from the compute renderer needs a core that offers it and a host that can run it.
 compute = [pytest.mark.compute, pytest.mark.gl43]
 
+#: The size of a 3:1 hybrid layout at 1x,
+#: which is four screens wide and three screens tall;
+#: no layout is wider or taller.
+LARGEST_LAYOUT = (1024, 576)
+
 
 @pytest.mark.nds_rom
+@pytest.mark.parametrize("scale", [1, 4])
+def test_max_geometry_follows_internal_resolution(
+    session: SessionFactory, nds_rom: Path, scale: int
+) -> None:
+    """
+    The maximum geometry is as large as the internal resolution needs, and no larger.
+
+    The frontend sizes its video output for the maximum geometry,
+    so asking for 8x when the player wants 1x would waste video memory.
+    """
+    options = {"melonds_render_mode": "opengl", "melonds_opengl_resolution": str(scale)}
+    with session(nds_rom, video=ModernGlVideoDriver, options=options) as emulator:
+        emulator.run()
+
+        geometry = emulator.video.geometry
+        assert geometry is not None
+        assert (geometry.max_width, geometry.max_height) == (
+            LARGEST_LAYOUT[0] * scale,
+            LARGEST_LAYOUT[1] * scale,
+        )
+
+
+@pytest.mark.nds_rom
+def test_changing_internal_resolution_rebuilds_the_video_driver(
+    session: SessionFactory, nds_rom: Path
+) -> None:
+    """
+    A new internal resolution gets a video driver sized for it, larger or smaller.
+
+    Reporting a new maximum geometry is what makes the frontend rebuild its video driver.
+    """
+    video = TrackingVideoDriver()
+    options = {"melonds_render_mode": "opengl", "melonds_opengl_resolution": "1"}
+
+    with session(nds_rom, video=video, options=options) as emulator:
+        for _ in range(3):
+            emulator.run()
+
+        for scale in (2, 1):
+            rebuilds = video.rebuilds
+            emulator.options.variables["melonds_opengl_resolution"] = str(scale).encode()
+
+            for _ in range(3):
+                emulator.run()
+
+            assert video.rebuilds == rebuilds + 1
+
+            geometry = video.geometry
+            assert geometry is not None
+            assert (geometry.max_width, geometry.max_height) == (
+                LARGEST_LAYOUT[0] * scale,
+                LARGEST_LAYOUT[1] * scale,
+            )
+
+            # The core kept rendering, at the new size
+            assert video.last_frame == "hardware"
+            assert video.last_frame_size == (geometry.base_width, geometry.base_height)
+
+
+@pytest.mark.nds_rom
+@pytest.mark.parametrize(
+    "frontend",
+    [
+        pytest.param(TrackingVideoDriver, id="libretro-py"),
+        pytest.param(RetroArchVideoDriver, id="retroarch"),
+    ],
+)
 @pytest.mark.parametrize(
     ("start", "sequence"),
     [
@@ -107,10 +180,22 @@ compute = [pytest.mark.compute, pytest.mark.gl43]
     ],
 )
 def test_render_mode_switch(
-    session: SessionFactory, nds_rom: Path, start: str, sequence: tuple[str, ...]
+    session: SessionFactory,
+    nds_rom: Path,
+    start: str,
+    sequence: tuple[str, ...],
+    frontend: type[TrackingVideoDriver],
 ) -> None:
-    """The renderer can be swapped at runtime, in any direction, repeatedly."""
-    with session(nds_rom, options={"melonds_render_mode": start}) as emulator:
+    """
+    The renderer can be swapped at runtime, in any direction, repeatedly.
+
+    The ``retroarch`` cases only rebuild the video driver
+    when the maximum geometry changes,
+    which it doesn't when switching renderers at 1x;
+    the core has to change it anyway, or it never gets the context it asked for.
+    """
+    video = frontend()
+    with session(nds_rom, video=video, options={"melonds_render_mode": start}) as emulator:
         is_opengl = emulator.get_proc_address(b"melondsds_is_opengl_renderer", TypedFunctionPointer[c_bool, []])
         assert is_opengl is not None
 
@@ -129,11 +214,58 @@ def test_render_mode_switch(
                 emulator.run()
 
             emulator.options.variables["melonds_render_mode"] = mode.encode()
+            frames = video.frames
 
             for _ in range(3):
                 emulator.run()
 
             assert probes[mode]()
+
+            # The core kept rendering, and with the renderer it switched to
+            assert video.frames > frames, f"The core stopped rendering after switching to {mode}"
+            assert video.last_frame == ("software" if mode == "software" else "hardware")
+
+
+@pytest.mark.compute
+@pytest.mark.nds_rom
+def test_switching_to_compute_on_an_old_context_falls_back(
+    session: SessionFactory, nds_rom: Path
+) -> None:
+    """
+    Switching to the compute renderer on a context too old for it ends up in software mode.
+
+    The core has to ask for a newer context,
+    which RetroArch only creates by rebuilding its video driver,
+    which it only does when the maximum geometry changes.
+    The internal resolution is the same, so the core has to change the geometry itself.
+    This frontend then provides another context that's too old,
+    so the core should fall back to software rendering
+    instead of waiting forever for one that can run the compute renderer.
+    """
+    video = RetroArchVideoDriver(gl_version=(3, 3))
+    with session(nds_rom, video=video, options={"melonds_render_mode": "opengl"}) as emulator:
+        assert video.context is not None
+        if video.context.version_code >= 430:
+            pytest.skip(
+                f"This OpenGL implementation returned {video.context.version_code} "
+                "for a 3.3 request, so the context isn't too old after all"
+            )
+
+        is_software = emulator.get_proc_address(
+            b"melondsds_is_software_renderer", TypedFunctionPointer[c_bool, []]
+        )
+        assert is_software is not None
+
+        for _ in range(3):
+            emulator.run()
+
+        emulator.options.variables["melonds_render_mode"] = b"compute"
+
+        for _ in range(10):
+            emulator.run()
+
+        assert is_software()
+        assert video.last_frame == "software"
 
 
 @pytest.mark.no_skip_error_screen

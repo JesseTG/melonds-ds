@@ -51,6 +51,10 @@ a design goal is to avoid a 2.x release for as long as possible.
 - Exposed the ARM9's DTCM at address `0x0E000000`,
   where RetroAchievements looks for it.
   [#301](https://github.com/JesseTG/melonds-ds/issues/301)
+- The OpenGL renderers now use far less video memory,
+  since the frontend's framebuffer is sized for the current internal resolution
+  instead of the largest one.
+  In exchange, changing the internal resolution now reloads the frontend's video driver.
 
 ### Fixed
 

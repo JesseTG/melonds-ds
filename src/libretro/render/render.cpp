@@ -108,6 +108,18 @@ void MelonDsDs::RenderStateWrapper::Apply(const CoreConfig& config, melonDS::NDS
     SetRenderer(config, nds);
 }
 
+void MelonDsDs::RenderStateWrapper::ReplaceRenderState(std::unique_ptr<RenderState> state) noexcept {
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+    // Creating an OpenGLRenderState asks the frontend for a context,
+    // and destroying one tells the frontend we're done with it
+    if (dynamic_cast<OpenGLRenderState*>(_renderState.get()) || dynamic_cast<OpenGLRenderState*>(state.get())) {
+        _contextChanged = true;
+    }
+#endif
+
+    _renderState = std::move(state);
+}
+
 
 void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config, melonDS::NDS* nds) {
     RenderMode wanted = config.ConfiguredRenderer();
@@ -134,10 +146,9 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config, melonD
 
             if (glState && glState->CanHost(wanted)) {
                 // The context we already have is new enough for the renderer we're switching to,
-                // so keep it. Asking for a new one may not actually get us a new one:
-                // RetroArch rebuilds its OpenGL context only when the core's maximum geometry changes,
-                // which it doesn't when switching between two OpenGL renderers,
-                // so the context reset we'd be waiting for would never come.
+                // so keep it.
+                // A new one would cost a rebuild of the frontend's whole video driver
+                // (see CoreState::UpdateSystemAvInfo).
                 retro::debug("Switching to the {} renderer on the context we already have", wanted);
                 glState->SetMode(wanted);
                 break;
@@ -148,10 +159,10 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config, melonD
             // (which tells the frontend we're done with its context)
             // before requesting the new one.
             ReleaseOpenGlRenderer(nds);
-            _renderState.reset();
+            ReplaceRenderState(nullptr);
 
             if (auto state = OpenGLRenderState::New(wanted)) {
-                _renderState = std::move(state);
+                ReplaceRenderState(std::move(state));
                 retro::debug("Initialized {} render state", wanted);
                 break;
             }
@@ -169,7 +180,7 @@ void MelonDsDs::RenderStateWrapper::SetRenderer(const CoreConfig& config, melonD
             }
 
             ReleaseOpenGlRenderer(nds);
-            _renderState = std::make_unique<SoftwareRenderState>(config);
+            ReplaceRenderState(std::make_unique<SoftwareRenderState>(config));
             retro::debug("Initialized software render state");
             break;
         }
@@ -218,7 +229,7 @@ void MelonDsDs::RenderStateWrapper::UpdateRenderer(const CoreConfig& config, mel
             glRender->RequestRefresh();
         } else {
             retro::set_warn_message("Failed to initialize {} renderer, falling back to software mode.", glRender->Mode());
-            _renderState = std::make_unique<SoftwareRenderState>(config);
+            ReplaceRenderState(std::make_unique<SoftwareRenderState>(config));
             ApplyRendererSettings(nds, config);
         }
     }
@@ -272,8 +283,8 @@ std::string MelonDsDs::RenderStateWrapper::FallBackToSoftware(const CoreConfig& 
     ReleaseOpenGlRenderer(nds);
 
     // Destroying an OpenGLRenderState tells the frontend we're done with its context
-    _renderState.reset();
-    _renderState = std::make_unique<SoftwareRenderState>(config);
+    ReplaceRenderState(nullptr);
+    ReplaceRenderState(std::make_unique<SoftwareRenderState>(config));
     retro::debug("Fell back to the software render state");
 
     return std::exchange(_fallbackMessage, {});

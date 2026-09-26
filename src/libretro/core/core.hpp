@@ -74,7 +74,6 @@ namespace MelonDsDs {
         [[nodiscard]] bool IsInitialized() const noexcept { return _initialized; }
 
         [[nodiscard]] retro_system_av_info GetSystemAvInfo() const noexcept;
-        [[nodiscard]] retro_system_av_info GetSystemAvInfo(RenderMode renderer) const noexcept;
         [[gnu::hot]] void Run() noexcept;
         void Reset();
         size_t SerializeSize() const noexcept;
@@ -113,6 +112,13 @@ namespace MelonDsDs {
     private:
         static constexpr auto REGEX_OPTIONS = std::regex_constants::ECMAScript | std::regex_constants::optimize;
         [[gnu::cold]] void ApplyConfig(const CoreConfig& config) noexcept;
+
+        /// Tells the frontend about a change to our video output that \c SET_GEOMETRY can't express:
+        /// a new maximum size (i.e. a new internal resolution),
+        /// or a new OpenGL context (or no longer needing one).
+        /// Either one makes the frontend rebuild its video driver.
+        /// \param oldMaxSize \c ScreenLayoutData::MaxBufferSize from before the change.
+        [[gnu::cold]] void UpdateSystemAvInfo(glm::uvec2 oldMaxSize) noexcept;
         [[gnu::cold]] void FallBackToSoftwareRenderer() noexcept;
         [[gnu::cold]] void CancelShaderCompileTask() noexcept;
         static void ShowShaderCompileProgress(int compiled, int total) noexcept;
@@ -185,6 +191,10 @@ namespace MelonDsDs {
         const bool _initialized = true;
         bool _ndsSramInstalled = false;
         bool _deferredInitializationPending = false;
+        /// If set, we report a maximum geometry one row taller than we need,
+        /// so that we can change it whenever the frontend needs to rebuild its video driver.
+        /// \see UpdateSystemAvInfo
+        bool _nudgeMaxHeight = false;
         uint32_t _flushTaskId = 0;
         /// non-nullopt while the task is compiling melonDS's shaders;
         /// the console can't emulate a frame until it finishes.

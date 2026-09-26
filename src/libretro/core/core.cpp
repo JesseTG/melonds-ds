@@ -103,16 +103,6 @@ MelonDsDs::CoreState::~CoreState() noexcept {
     melonDS::NDS::Current = nullptr;
 }
 
-retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo(RenderMode renderer) const noexcept {
-    return {
-        .geometry = _screenLayout.Geometry(renderer),
-        .timing {
-            .fps = FPS,
-            .sample_rate = SAMPLE_RATE,
-        },
-    };
-}
-
 retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
 #ifndef NDEBUG
     if (!_messageScreen) {
@@ -120,10 +110,20 @@ retro_system_av_info MelonDsDs::CoreState::GetSystemAvInfo() const noexcept {
     }
 #endif
 
-    std::optional<RenderMode> renderer = _renderState.GetRenderMode();
-    retro_assert(renderer.has_value());
+    retro_system_av_info av {
+        .geometry = _screenLayout.Geometry(),
+        .timing {
+            .fps = FPS,
+            .sample_rate = SAMPLE_RATE,
+        },
+    };
 
-    return GetSystemAvInfo(*renderer);
+    if (_nudgeMaxHeight) {
+        // See UpdateSystemAvInfo
+        av.geometry.max_height += 1;
+    }
+
+    return av;
 }
 
 void MelonDsDs::CoreState::UnloadGame() noexcept {
@@ -228,9 +228,9 @@ void MelonDsDs::CoreState::Run() noexcept {
             // Apply the new screen layout
             _screenLayout.Update();
 
-            RenderMode renderer = _renderState.GetRenderMode().value_or(RenderMode::Software);
             // And update the geometry
-            if (!retro::set_geometry(_screenLayout.Geometry(renderer))) {
+            // (the layout never changes the maximum size, so the frontend can keep its video output)
+            if (!retro::set_geometry(_screenLayout.Geometry())) {
                 retro::warn("Failed to update geometry after screen layout change");
             }
 
@@ -457,7 +457,7 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
     if (_screenLayout.Dirty()) {
         _screenLayout.Update();
 
-        if (!retro::set_geometry(_screenLayout.Geometry(RenderMode::Software))) {
+        if (!retro::set_geometry(_screenLayout.Geometry())) {
             retro::warn("Failed to update geometry after screen layout change");
         }
     }
@@ -788,6 +788,7 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
     MicInputMode oldMicInputMode = config.MicInputMode();
 
     std::optional<RenderMode> oldRenderer = _renderState.GetRenderMode();
+    glm::uvec2 oldMaxSize = _screenLayout.MaxBufferSize();
     _renderState.Apply(config, Console.get());
     _screenLayout.Apply(config, _renderState);
     _inputState.SetConfig(config);
@@ -814,17 +815,46 @@ void MelonDsDs::CoreState::ApplyConfig(const CoreConfig& config) noexcept {
         if (oldRenderer != newRenderer) {
             // If we're switching renderer modes...
             retro::debug("Switching render mode from {} to {}", *oldRenderer, *newRenderer);
-            retro_system_av_info av = GetSystemAvInfo(*newRenderer);
-            if (retro::set_system_av_info(av)) {
-                retro::info("Updated system AV info for new renderer");
-            }
-            else {
-                retro::warn("Failed to update system AV info for new renderer");
-            }
         }
 
         _renderState.UpdateRenderer(Config, *Console);
+        UpdateSystemAvInfo(oldMaxSize);
         _screenLayout.SetDirty();
+    }
+    else {
+        // The frontend will learn about our first context and geometry from retro_get_system_av_info
+        (void)_renderState.TakeContextChange();
+    }
+}
+
+// RetroArch sizes its framebuffer by the larger of the two maximum dimensions,
+// so UpdateSystemAvInfo's extra row must never make the height the larger one.
+static_assert(MelonDsDs::MaxBufferHeight(1) + 1 < MelonDsDs::MaxBufferWidth(1));
+
+void MelonDsDs::CoreState::UpdateSystemAvInfo(glm::uvec2 oldMaxSize) noexcept {
+    ZoneScopedN(TracyFunction);
+    bool contextChanged = _renderState.TakeContextChange();
+    bool resized = _screenLayout.MaxBufferSize() != oldMaxSize;
+
+    if (!contextChanged && !resized) {
+        // Anything else (like a new screen layout) goes through SET_GEOMETRY once Run() updates the layout
+        return;
+    }
+
+    if (contextChanged && !resized) {
+        // We've asked the frontend for a new OpenGL context (or told it we're done with one),
+        // but it only acts on that when it rebuilds its video driver,
+        // and RetroArch only does *that* when our maximum geometry changes.
+        // So we change it by one row, which costs nothing (see the static_assert above).
+        _nudgeMaxHeight = !_nudgeMaxHeight;
+    }
+
+    retro_system_av_info av = GetSystemAvInfo();
+    if (retro::set_system_av_info(av)) {
+        retro::info("Updated system AV info (maximum size {}x{})", av.geometry.max_width, av.geometry.max_height);
+    }
+    else {
+        retro::warn("Failed to update system AV info");
     }
 }
 
@@ -847,13 +877,12 @@ void MelonDsDs::CoreState::FallBackToSoftwareRenderer() noexcept {
     // The renderer whose shaders were being compiled is about to be replaced
     CancelShaderCompileTask();
 
+    glm::uvec2 oldMaxSize = _screenLayout.MaxBufferSize();
     std::string message = _renderState.FallBackToSoftware(Config, Console.get());
     _screenLayout.Apply(Config, _renderState);
 
     // The frontend sized its output for the OpenGL renderer; tell it what we're really producing now
-    if (!retro::set_system_av_info(GetSystemAvInfo(RenderMode::Software))) {
-        retro::warn("Failed to update system AV info after falling back to software rendering");
-    }
+    UpdateSystemAvInfo(oldMaxSize);
 
     if (Console && !_deferredInitializationPending) {
         // (If initialization is still pending, StartConsole will install the renderer itself)

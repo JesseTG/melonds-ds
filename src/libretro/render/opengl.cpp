@@ -604,20 +604,36 @@ void MelonDsDs::OpenGLRenderState::ContextDestroyed() {
     // melonDS's renderer went away with the context, and so did what we knew about it
     _installedMode = std::nullopt;
     _contextVersion = {0, 0};
-    glDeleteProgram(_screenProgram);
-    _screenProgram = 0;
     _appliedScaleFactor = 0;
     _appliedBetterPolygons = false;
     _appliedHiresCoordinates = false;
     screen_vertices = {};
     vertexCount = 0;
-    glDeleteVertexArrays(1, &vao);
-    vao = 0;
-    glDeleteBuffers(1, &vbo);
-    vbo = 0;
     GL_ShaderConfig = {};
-    glDeleteBuffers(1, &ubo);
-    ubo = 0;
+
+    // The frontend may be destroying a context that this state never got,
+    // such as the one it had while we were rendering in software.
+    // Then we never created these objects,
+    // and may not have even loaded the OpenGL functions to delete them with.
+    if (_screenProgram) {
+        glDeleteProgram(_screenProgram);
+        _screenProgram = 0;
+    }
+
+    if (vao) {
+        glDeleteVertexArrays(1, &vao);
+        vao = 0;
+    }
+
+    if (vbo) {
+        glDeleteBuffers(1, &vbo);
+        vbo = 0;
+    }
+
+    if (ubo) {
+        glDeleteBuffers(1, &ubo);
+        ubo = 0;
+    }
 
 #if defined(HAVE_TRACY) && !defined(__APPLE__)
     _tracyCapture = std::nullopt;

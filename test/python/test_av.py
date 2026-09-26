@@ -12,6 +12,7 @@ from libretro.ctypes import TypedFunctionPointer
 
 from melondsds import SessionFactory
 from melondsds.options import DIRECT_BOOT_BUILTIN
+from melondsds.video import TrackingVideoDriver
 
 
 def _press_r3_after(frames: int):
@@ -110,6 +111,78 @@ def test_sets_geometry(session: SessionFactory, nds_rom: Path) -> None:
         assert frame2 is not None
         assert geometry2 is not None
         assert geometry1 != geometry2
+
+        # The frontend sized its video output for the maximum,
+        # so a layout change mustn't make it start over
+        assert (geometry1.max_width, geometry1.max_height) == (
+            geometry2.max_width,
+            geometry2.max_height,
+        )
+
+
+@pytest.mark.nds_rom
+@pytest.mark.parametrize(
+    "options",
+    [
+        pytest.param({"melonds_render_mode": "software"}, id="software"),
+        pytest.param(
+            {"melonds_render_mode": "opengl", "melonds_opengl_resolution": "2"},
+            id="opengl-2x",
+            marks=pytest.mark.opengl,
+        ),
+    ],
+)
+def test_every_layout_fits_the_max_geometry(
+    session: SessionFactory, nds_rom: Path, options: dict[str, str]
+) -> None:
+    """
+    Every screen layout fits within the maximum geometry, and none of them changes it.
+
+    The frontend sizes its video output for the maximum geometry,
+    so a layout that outgrew it would be cut off,
+    and one that changed it would make the frontend rebuild its video driver.
+    The largest hybrid ratio and screen gap make the largest layouts,
+    and the largest of those should fill the maximum exactly.
+    """
+    options = {
+        **options,
+        "melonds_number_of_screen_layouts": "1",
+        "melonds_hybrid_ratio": "3",
+        "melonds_screen_gap": "126",
+    }
+    video = TrackingVideoDriver()
+
+    with session(nds_rom, video=video, options=options) as emulator:
+        emulator.run()
+
+        geometry = video.geometry
+        assert geometry is not None
+        max_size = (geometry.max_width, geometry.max_height)
+        rebuilds = video.rebuilds
+
+        # Taken from the core, so that layouts added later are covered too
+        definitions = emulator.options.definitions
+        assert definitions
+        definition = definitions[b"melonds_screen_layout1"]
+        assert definition is not None
+        layouts = [v.value for v in definition.values if v.value is not None]
+        assert len(layouts) > 1
+
+        largest = (0, 0)
+        for layout in layouts:
+            emulator.options.variables["melonds_screen_layout1"] = layout
+            emulator.run()
+
+            geometry = video.geometry
+            assert geometry is not None
+            base = (geometry.base_width, geometry.base_height)
+            assert video.last_frame_size == base, layout
+            assert base[0] <= max_size[0] and base[1] <= max_size[1], layout
+            assert (geometry.max_width, geometry.max_height) == max_size, layout
+            largest = (max(largest[0], base[0]), max(largest[1], base[1]))
+
+        assert video.rebuilds == rebuilds, "A layout change rebuilt the video driver"
+        assert largest == max_size, "The maximum geometry is larger than any layout needs"
 
 
 @pytest.mark.nds_sysfiles

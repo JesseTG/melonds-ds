@@ -193,3 +193,38 @@ def test_switching_render_modes_leaves_the_frontends_objects_alone(
 
         assert_resources_intact(video)
         assert_frontend_can_still_draw(video)
+
+
+@pytest.mark.nds_rom
+@pytest.mark.parametrize(
+    "mode",
+    [
+        pytest.param("opengl", id="opengl"),
+        pytest.param("compute", id="compute", marks=COMPUTE),
+    ],
+)
+def test_changing_internal_resolution_leaves_the_frontends_objects_alone(
+    session: SessionFactory, nds_rom: Path, mode: str
+) -> None:
+    """
+    Changing the internal resolution mid-game doesn't take the frontend's objects with it.
+
+    A new internal resolution means a new maximum geometry,
+    which makes the frontend rebuild its context from inside the call that reports it,
+    just as switching render modes does.
+    """
+    video = FrontendWithResources()
+    options = {"melonds_render_mode": mode, "melonds_opengl_resolution": "1"}
+    with session(nds_rom, video=video, options=options) as emulator:
+        for _ in range(30):
+            emulator.run()
+
+        assert_resources_intact(video)
+
+        emulator.options.variables["melonds_opengl_resolution"] = b"2"
+
+        for _ in range(30):
+            emulator.run()
+
+        assert_resources_intact(video)
+        assert_frontend_can_still_draw(video)

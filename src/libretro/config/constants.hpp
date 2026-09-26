@@ -174,7 +174,6 @@ namespace MelonDsDs::config {
     }
 
     namespace video {
-        constexpr unsigned INITIAL_MAX_OPENGL_SCALE = 4;
         constexpr unsigned MAX_OPENGL_SCALE = 8;
         static constexpr const char *const CATEGORY = "video";
         static constexpr const char *const COMPUTE_HIRES_COORDINATES = "melonds_compute_hires_coordinates";

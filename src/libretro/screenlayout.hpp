@@ -93,6 +93,35 @@ namespace MelonDsDs {
         }
     }
 
+    /// The width of the widest image that any screen layout needs
+    /// at the given resolution scale, in pixels.
+    constexpr unsigned MaxBufferWidth(unsigned scale) noexcept {
+        using namespace config::screen;
+        return scale * std::max(
+            // Left/Right or Right/Left layout
+            NDS_SCREEN_WIDTH * 2u,
+
+            // Hybrid or large-screen layout;
+            // the small screens sit flush against the large one
+            NDS_SCREEN_WIDTH * (MAX_HYBRID_RATIO + 1)
+        );
+        // (Rotated layouts use the same image as Top/Bottom,
+        // and the frontend rotates it for us.)
+    }
+
+    /// The height of the tallest image that any screen layout needs
+    /// at the given resolution scale, in pixels.
+    constexpr unsigned MaxBufferHeight(unsigned scale) noexcept {
+        using namespace config::screen;
+        return scale * std::max(
+            // Top/Bottom or Bottom/Top layout (or one of its rotations)
+            NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP,
+
+            // Hybrid or large-screen layout
+            NDS_SCREEN_HEIGHT * MAX_HYBRID_RATIO
+        );
+    }
+
 
     class ScreenLayoutData {
     public:
@@ -113,6 +142,13 @@ namespace MelonDsDs {
 
         /// The size of the image necessary to hold this layout, in pixels
         glm::uvec2 BufferSize() const noexcept { return bufferSize; }
+
+        /// The size of the largest image that any layout could need at this resolution scale, in pixels.
+        /// Unlike \c BufferSize, it doesn't depend on the current layout,
+        /// so the frontend can keep the same video output across layout changes.
+        glm::uvec2 MaxBufferSize() const noexcept {
+            return {MaxBufferWidth(resolutionScale), MaxBufferHeight(resolutionScale)};
+        }
 
         float BufferAspectRatio() const noexcept {
             switch (Layout()) {
@@ -224,7 +260,7 @@ namespace MelonDsDs {
             return transformedScreenPoints;
         }
 
-        [[nodiscard]] retro_game_geometry Geometry(RenderMode renderer) const noexcept;
+        [[nodiscard]] retro_game_geometry Geometry() const noexcept;
 
         [[nodiscard]] retro::ScreenOrientation EffectiveOrientation() const noexcept { return orientation; }
         [[nodiscard]] const glm::mat3& GetBottomScreenMatrix() const noexcept { return bottomScreenMatrix; }
@@ -331,58 +367,6 @@ namespace MelonDsDs {
             default:
                 return 0.0f;
         }
-    }
-
-    constexpr unsigned MaxSoftwareRenderedWidth() noexcept {
-        using namespace config::screen;
-        return std::max({
-            // Left/Right or Right/Left layout
-            NDS_SCREEN_WIDTH * 2u,
-
-            // Hybrid layout
-            (NDS_SCREEN_WIDTH * MAX_HYBRID_RATIO) + NDS_SCREEN_WIDTH + (MAX_HYBRID_RATIO * 2),
-
-            // Sideways layout
-            NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP,
-        });
-    }
-
-    constexpr unsigned MaxSoftwareRenderedHeight() noexcept {
-        using namespace config::screen;
-        return std::max({
-            // Top/Bottom or Bottom/Top layout
-            NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP,
-
-            // Hybrid layout
-            NDS_SCREEN_HEIGHT * MAX_HYBRID_RATIO,
-        });
-    }
-
-    constexpr unsigned MaxOpenGlRenderedWidth() noexcept {
-        using namespace config::screen;
-        unsigned scale = config::video::MAX_OPENGL_SCALE;
-        // TODO: What if this is too big?
-
-        return std::max({
-            // Left/Right or Right/Left layout
-            NDS_SCREEN_WIDTH * scale * 2,
-
-            // Hybrid layout
-            (NDS_SCREEN_WIDTH * scale * MAX_HYBRID_RATIO) + (NDS_SCREEN_WIDTH * scale) + MAX_HYBRID_RATIO * 2,
-
-            // Sideways layout
-            scale * (NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP),
-        });
-    }
-
-    constexpr unsigned MaxOpenGlRenderedHeight() noexcept {
-        using namespace config::screen;
-        unsigned scale = config::video::MAX_OPENGL_SCALE;
-
-        return std::max(
-            scale * (NDS_SCREEN_HEIGHT * 2 + MAX_SCREEN_GAP),
-            scale * NDS_SCREEN_HEIGHT * MAX_HYBRID_RATIO
-        );
     }
 }
 #endif //MELONDS_DS_SCREENLAYOUT_HPP
