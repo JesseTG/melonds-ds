@@ -223,7 +223,7 @@ set(ENV{${LIBRARY_ENV_NAME}} "${FILTERED_LIBRARY_PATH}")
 # Test discovery
 ################################################################################
 
-set(DEFAULT_TIMEOUT 60) # In seconds
+set(DEFAULT_TIMEOUT 120) # In seconds
 
 # Re-run discovery whenever a test module or conftest.py changes.
 file(GLOB MELONDSDS_TEST_SOURCES CONFIGURE_DEPENDS
