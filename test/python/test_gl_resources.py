@@ -197,14 +197,17 @@ def test_switching_render_modes_leaves_the_frontends_objects_alone(
 
 @pytest.mark.nds_rom
 @pytest.mark.parametrize(
-    "mode",
+    ("mode", "frames"),
     [
-        pytest.param("opengl", id="opengl"),
-        pytest.param("compute", id="compute", marks=COMPUTE),
+        # See test_rendering_leaves_the_frontends_objects_alone for why these counts differ.
+        # Frames at 2x resolution cost about four times as much as those at 1x,
+        # so the legacy renderer's count matters twice over here.
+        pytest.param("opengl", 5, id="opengl"),
+        pytest.param("compute", 30, id="compute", marks=COMPUTE),
     ],
 )
 def test_changing_internal_resolution_leaves_the_frontends_objects_alone(
-    session: SessionFactory, nds_rom: Path, mode: str
+    session: SessionFactory, nds_rom: Path, mode: str, frames: int
 ) -> None:
     """
     Changing the internal resolution mid-game doesn't take the frontend's objects with it.
@@ -216,14 +219,14 @@ def test_changing_internal_resolution_leaves_the_frontends_objects_alone(
     video = FrontendWithResources()
     options = {"melonds_render_mode": mode, "melonds_opengl_resolution": "1"}
     with session(nds_rom, video=video, options=options) as emulator:
-        for _ in range(30):
+        for _ in range(frames):
             emulator.run()
 
         assert_resources_intact(video)
 
         emulator.options.variables["melonds_opengl_resolution"] = b"2"
 
-        for _ in range(30):
+        for _ in range(frames):
             emulator.run()
 
         assert_resources_intact(video)
