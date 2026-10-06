@@ -443,6 +443,22 @@ namespace MelonDsDs {
 
         [[nodiscard]] bool UseRealLightSensor() const noexcept { return _useRealLightSensor; }
         void SetUseRealLightSensor(bool enabled) noexcept { _useRealLightSensor = enabled; }
+
+        [[nodiscard]] MelonDsDs::PaddleAxis PaddleAxis() const noexcept { return _paddleAxis; }
+        void SetPaddleAxis(MelonDsDs::PaddleAxis axis) noexcept { _paddleAxis = axis; }
+
+        /// Dial movement per unit of mouse movement, in percent.
+        [[nodiscard]] unsigned PaddleSpeed() const noexcept { return _paddleSpeed; }
+        void SetPaddleSpeed(unsigned speed) noexcept { _paddleSpeed = speed; }
+
+        [[nodiscard]] bool PaddleInverted() const noexcept { return _paddleInverted; }
+        void SetPaddleInverted(bool inverted) noexcept { _paddleInverted = inverted; }
+
+        /// The RetroPad button bits that each mouse button presses while it's turning the paddle,
+        /// indexed by \c PaddleMouseButton.
+        /// \c PADDLE_TOGGLE_BIT marks a button that switches the mouse between the paddle and the touch screen.
+        [[nodiscard]] const std::array<uint32_t, PaddleMouseButtonCount>& PaddleMouseButtons() const noexcept { return _paddleMouseButtons; }
+        void SetPaddleMouseButton(PaddleMouseButton button, uint32_t retropadBits) noexcept { _paddleMouseButtons[button] = retropadBits; }
     private:
         void CustomizeFirmware(melonDS::Firmware& firmware);
         MelonDsDs::MicButtonMode _micButtonMode = MelonDsDs::MicButtonMode::Hold;
@@ -464,6 +480,16 @@ namespace MelonDsDs {
         uint16_t _rumbleIntensity = UINT16_MAX;
         MelonDsDs::RumbleMotorType _rumbleMotors = *ParseRumbleMotorType(config::definitions::RumbleType.default_value);
         bool _useRealLightSensor = *ParseBoolean(config::definitions::SolarSensorMode.default_value);
+        MelonDsDs::PaddleAxis _paddleAxis = *ParsePaddleAxis(config::definitions::PaddleAxis.default_value);
+        unsigned _paddleSpeed = 100;
+        bool _paddleInverted = *ParseBoolean(config::definitions::PaddleInvert.default_value);
+        std::array<uint32_t, PaddleMouseButtonCount> _paddleMouseButtons {
+            *ParsePaddleMouseButton(config::definitions::PaddleMouseLeft.default_value),
+            *ParsePaddleMouseButton(config::definitions::PaddleMouseRight.default_value),
+            *ParsePaddleMouseButton(config::definitions::PaddleMouseMiddle.default_value),
+            *ParsePaddleMouseButton(config::definitions::PaddleMouseButton4.default_value),
+            *ParsePaddleMouseButton(config::definitions::PaddleMouseButton5.default_value),
+        };
 #ifdef JIT_ENABLED
         bool _jitEnable;
         unsigned _maxBlockSize;

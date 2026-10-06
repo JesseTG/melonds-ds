@@ -42,6 +42,7 @@
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "format.hpp"
+#include "input/paddle.hpp"
 #include "retro/file.hpp"
 #include "retro/http.hpp"
 #include "retro/info.hpp"
@@ -473,6 +474,10 @@ static MelonDsDs::NDSArgs MelonDsDs::GetNdsArgs(
             case Slot2Device::MotionPakRetail:
                 ndsargs.gbaCart = std::make_unique<melonDS::GBACart::CartMotionPakRetail>(&state);
                 retro::debug("Installed built-in DS Motion Pack (retail)");
+                break;
+            case Slot2Device::Paddle:
+                ndsargs.gbaCart = std::make_unique<PaddleCart>();
+                retro::debug("Installed built-in Taito Paddle Controller");
                 break;
             default:
                 break;

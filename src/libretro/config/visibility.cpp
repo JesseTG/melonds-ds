@@ -120,6 +120,20 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
         updated = true;
     }
 
+    bool oldShowPaddleOptions = ShowPaddleOptions;
+    ShowPaddleOptions = ShowDsOptions && (!slot2Device || *slot2Device == Slot2Device::Paddle);
+    if (!VisibilityInitialized || ShowPaddleOptions != oldShowPaddleOptions) {
+        set_option_visible(system::PADDLE_AXIS, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_SPEED, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_INVERT, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_MOUSE_LEFT, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_MOUSE_RIGHT, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_MOUSE_MIDDLE, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_MOUSE_BUTTON4, ShowPaddleOptions);
+        set_option_visible(system::PADDLE_MOUSE_BUTTON5, ShowPaddleOptions);
+        updated = true;
+    }
+
     bool oldShowHomebrewSdOptions = ShowHomebrewSdOptions;
     optional<bool> homebrewSdCardEnabled = ParseBoolean(get_variable(storage::HOMEBREW_SAVE_MODE));
     ShowHomebrewSdOptions = !homebrewSdCardEnabled || *homebrewSdCardEnabled;

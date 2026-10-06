@@ -26,6 +26,7 @@ namespace MelonDsDs {
         bool ShowHomebrewSdOptions = true;
         bool ShowDsOptions = true;
         bool ShowRumbleOptions = true;
+        bool ShowPaddleOptions = true;
         bool ShowDsiOptions = true;
         bool ShowDsiSdCardOptions = true;
         bool ShowSoftwareRenderOptions = true;

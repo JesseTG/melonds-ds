@@ -352,6 +352,8 @@ namespace MelonDsDs::config::definitions {
         "(and its gyroscope, for the homebrew pak) "
         "if the frontend supports them; "
         "otherwise, they act as if the console is lying flat and still. "
+        "The Taito Paddle Controller is turned with your mouse; "
+        "see the Paddle options. "
         "\n"
         "Changes take effect at next core start.",
         nullptr,
@@ -365,10 +367,170 @@ namespace MelonDsDs::config::definitions {
             {values::system::SOLAR_SENSOR_3, "Solar Sensor (Boktai 3)"},
             {values::system::MOTION_PAK_HOMEBREW, "Motion Pak (Homebrew)"},
             {values::system::MOTION_PAK_RETAIL, "Motion Pack (Retail)"},
+            {values::system::PADDLE, "Taito Paddle Controller"},
             {nullptr, nullptr},
         },
         values::AUTO
     };
+
+    constexpr retro_core_option_v2_definition PaddleAxis {
+        config::system::PADDLE_AXIS,
+        "Paddle Axis",
+        nullptr,
+        "Which mouse movement turns the Taito Paddle Controller's dial. "
+        "Moving right or down turns it clockwise. "
+        "The left analog stick also turns the dial, "
+        "faster the further it's pushed; "
+        "it can be remapped in the Controls menu.\n"
+        "\n"
+        "Ignored unless \"Slot-2 Device\" is set to Taito Paddle Controller.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {values::system::MOUSE_X, "Mouse X"},
+            {values::system::MOUSE_Y, "Mouse Y"},
+            {nullptr, nullptr},
+        },
+        values::system::MOUSE_X
+    };
+
+    constexpr retro_core_option_v2_definition PaddleSpeed {
+        config::system::PADDLE_SPEED,
+        "Paddle Speed",
+        nullptr,
+        "How far the Taito Paddle Controller's dial turns "
+        "for each unit of mouse movement, "
+        "or for the left analog stick pushed all the way. "
+        "The dial has 4096 steps per turn.\n"
+        "\n"
+        "Ignored unless \"Slot-2 Device\" is set to Taito Paddle Controller.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {"25", "0.25x"},
+            {"50", "0.5x"},
+            {"75", "0.75x"},
+            {"100", "1x"},
+            {"150", "1.5x"},
+            {"200", "2x"},
+            {"300", "3x"},
+            {"400", "4x"},
+            {"500", "5x"},
+            {"750", "7.5x"},
+            {"1000", "10x"},
+            {"1500", "15x"},
+            {"2000", "20x"},
+            {nullptr, nullptr},
+        },
+        "100"
+    };
+
+    constexpr retro_core_option_v2_definition PaddleInvert {
+        config::system::PADDLE_INVERT,
+        "Invert Paddle",
+        nullptr,
+        "If enabled, the Taito Paddle Controller's dial turns the other way.\n"
+        "\n"
+        "Ignored unless \"Slot-2 Device\" is set to Taito Paddle Controller.",
+        nullptr,
+        config::system::CATEGORY,
+        {
+            {values::DISABLED, nullptr},
+            {values::ENABLED, nullptr},
+            {nullptr, nullptr},
+        },
+        values::DISABLED
+    };
+
+// What a mouse button can do while the mouse is turning the paddle.
+#define MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES { \
+    {values::system::BUTTON_NONE, "None"}, \
+    {values::system::BUTTON_A, "A"}, \
+    {values::system::BUTTON_B, "B"}, \
+    {values::system::BUTTON_X, "X"}, \
+    {values::system::BUTTON_Y, "Y"}, \
+    {values::system::BUTTON_L, "L"}, \
+    {values::system::BUTTON_R, "R"}, \
+    {values::system::BUTTON_SELECT, "Select"}, \
+    {values::system::BUTTON_START, "Start"}, \
+    {values::system::BUTTON_UP, "Up"}, \
+    {values::system::BUTTON_DOWN, "Down"}, \
+    {values::system::BUTTON_LEFT, "Left"}, \
+    {values::system::BUTTON_RIGHT, "Right"}, \
+    {values::system::BUTTON_TOGGLE, "Paddle/Touch Toggle"}, \
+    {nullptr, nullptr}, \
+}
+
+#define MELONDSDS_PADDLE_MOUSE_BUTTON_INFO \
+    "The DS button that this mouse button presses " \
+    "while the mouse is turning the Taito Paddle Controller. " \
+    "The paddle itself has no buttons; " \
+    "games read the DS's own buttons, " \
+    "which your controller can still press as usual.\n" \
+    "\n" \
+    "\"Paddle/Touch Toggle\" makes this button switch the mouse " \
+    "between turning the paddle and touching the screen instead. " \
+    "If no mouse button is set to toggle, the mouse always turns the paddle.\n" \
+    "\n" \
+    "Ignored unless \"Slot-2 Device\" is set to Taito Paddle Controller."
+
+    constexpr retro_core_option_v2_definition PaddleMouseLeft {
+        config::system::PADDLE_MOUSE_LEFT,
+        "Paddle Left Mouse Button",
+        nullptr,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_INFO,
+        nullptr,
+        config::system::CATEGORY,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES,
+        values::system::BUTTON_B
+    };
+
+    constexpr retro_core_option_v2_definition PaddleMouseRight {
+        config::system::PADDLE_MOUSE_RIGHT,
+        "Paddle Right Mouse Button",
+        nullptr,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_INFO,
+        nullptr,
+        config::system::CATEGORY,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES,
+        values::system::BUTTON_A
+    };
+
+    constexpr retro_core_option_v2_definition PaddleMouseMiddle {
+        config::system::PADDLE_MOUSE_MIDDLE,
+        "Paddle Middle Mouse Button",
+        nullptr,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_INFO,
+        nullptr,
+        config::system::CATEGORY,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES,
+        values::system::BUTTON_TOGGLE
+    };
+
+    constexpr retro_core_option_v2_definition PaddleMouseButton4 {
+        config::system::PADDLE_MOUSE_BUTTON4,
+        "Paddle Mouse Button 4",
+        nullptr,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_INFO,
+        nullptr,
+        config::system::CATEGORY,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES,
+        values::system::BUTTON_NONE
+    };
+
+    constexpr retro_core_option_v2_definition PaddleMouseButton5 {
+        config::system::PADDLE_MOUSE_BUTTON5,
+        "Paddle Mouse Button 5",
+        nullptr,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_INFO,
+        nullptr,
+        config::system::CATEGORY,
+        MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES,
+        values::system::BUTTON_NONE
+    };
+
+#undef MELONDSDS_PADDLE_MOUSE_BUTTON_INFO
+#undef MELONDSDS_PADDLE_MOUSE_BUTTON_VALUES
 
     constexpr retro_core_option_v2_definition RumbleIntensity {
         config::system::RUMBLE_INTENSITY,

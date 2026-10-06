@@ -68,6 +68,8 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     input/joypad.hpp
     input/motion.cpp
     input/motion.hpp
+    input/paddle.cpp
+    input/paddle.hpp
     input/pointer.cpp
     input/pointer.hpp
     input/rumble.cpp

@@ -42,6 +42,8 @@ EXPANSION_PAK = 0x201
 RUMBLE_PAK = 0x202
 MOTION_PAK_HOMEBREW = 0x203
 MOTION_PAK_RETAIL = 0x204
+#: melonDS doesn't emulate the paddle, so melonDS DS gives it an ID of its own.
+PADDLE = 0x2A0
 
 #: Slot-2 device option value -> the cart type the core should report for it.
 DEVICES = {
@@ -50,6 +52,7 @@ DEVICES = {
     "solar1": SOLAR_SENSOR,
     "motion-pak-homebrew": MOTION_PAK_HOMEBREW,
     "motion-pak-retail": MOTION_PAK_RETAIL,
+    "paddle": PADDLE,
 }
 
 #: The strongest rumble a libretro frontend can be asked for.
