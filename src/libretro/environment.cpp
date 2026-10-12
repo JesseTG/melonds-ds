@@ -566,6 +566,21 @@ bool retro::set_system_av_info(const retro_system_av_info& av_info) noexcept {
     return retro::environment(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, (void*)&av_info);
 }
 
+optional<unsigned> retro::get_video_views_status() noexcept {
+    ZoneScopedN(TracyFunction);
+    unsigned status = 0;
+    if (!retro::environment(RETRO_ENVIRONMENT_GET_VIDEO_VIEWS_STATUS, &status)) {
+        return nullopt;
+    }
+
+    return status;
+}
+
+bool retro::set_video_views(retro_video_views& views) noexcept {
+    ZoneScopedN(TracyFunction);
+    return retro::environment(RETRO_ENVIRONMENT_SET_VIDEO_VIEWS, &views);
+}
+
 bool retro::set_memory_maps(const retro_memory_map& map) noexcept {
     ZoneScopedN(TracyFunction);
     return retro::environment(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, (void*)&map);

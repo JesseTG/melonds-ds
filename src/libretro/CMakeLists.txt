@@ -67,6 +67,7 @@ add_library(melondsds_libretro ${LIBRARY_TYPE}
     input/solar.hpp
     libretro.cpp
     libretro.hpp
+    libretro_views.h
     math.hpp
     message/error.cpp
     message/error.hpp
