@@ -140,7 +140,7 @@ void JoypadState::Apply(ScreenLayoutData& layout) const noexcept {
         // If the "cycle screen layout" button was just pressed (and is not being held)...
 
         layout.NextLayout(); // ...update the screen layout to the next in the sequence.
-        retro::debug("Switched to screen layout {} of {} ({})", layout.LayoutIndex() + 1, layout.NumberOfLayouts(), layout.Layout());
+        retro::debug("Switched to screen layout {} of {} ({})", layout.LayoutIndex() + 1, layout.NumberOfLayouts(), layout.SelectedLayout());
         // Add 1 to the index because we present the layout index as 1-based to the user.
     }
 }

@@ -176,7 +176,8 @@ namespace MelonDsDs::config::definitions {
         config::screen::HYBRID_RATIO,
         "Hybrid/Largescreen Ratio",
         nullptr,
-        "The size of the larger screen relative to the smaller ones when using a hybrid or largescreen layout.",
+        "The size of the larger screen relative to the smaller ones when using a hybrid or largescreen layout. "
+        "Not used while the frontend arranges the screens (see Frontend Screen Layout).",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -191,7 +192,8 @@ namespace MelonDsDs::config::definitions {
         config::screen::HYBRID_SMALL_SCREEN,
         "Hybrid Small Screen Mode",
         nullptr,
-        "Choose which screens will be shown when using a hybrid layout.",
+        "Choose which screens will be shown when using a hybrid layout. "
+        "Not used while the frontend arranges the screens (see Frontend Screen Layout).",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -206,7 +208,8 @@ namespace MelonDsDs::config::definitions {
         config::screen::HYBRID_SCREEN_FILTERING,
         "Hybrid/Largescreen Filtering",
         nullptr,
-        "Affects how the hybrid/largescreen screen is scaled up.\n"
+        "Affects how the hybrid/largescreen screen is scaled up. "
+        "Not used while the frontend arranges the screens (see Frontend Screen Layout).\n"
         "\n"
         "Nearest: No filtering. Graphics look blocky.\n"
         "Linear: Smooth scaling.\n",
@@ -226,7 +229,8 @@ namespace MelonDsDs::config::definitions {
         nullptr,
         "Choose how large the gap between the screens should be. "
         "Vertical layouts (including rotations) only. "
-        "Dimensions exclude the effects of the frontend's scaling.",
+        "Dimensions exclude the effects of the frontend's scaling. "
+        "Not used while the frontend arranges the screens (see Frontend Screen Layout).",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -369,7 +373,8 @@ namespace MelonDsDs::config::definitions {
         "The size of the secondary screen relative to the primary screen. "
         "Applies to vertical layouts (Top/Bottom, Bottom/Top). "
         "At 100%, both screens are the same size. "
-        "At 50%, the secondary screen is half the width and height of the primary screen.",
+        "At 50%, the secondary screen is half the width and height of the primary screen. "
+        "Not used while the frontend arranges the screens (see Frontend Screen Layout).",
         nullptr,
         config::screen::CATEGORY,
         {
@@ -393,7 +398,8 @@ namespace MelonDsDs::config::definitions {
         config::screen::SECONDARY_SCREEN_FILTERING,
         "Secondary Screen Filtering",
         nullptr,
-        "Affects how the secondary screen is scaled down.\n"
+        "Affects how the secondary screen is scaled down. "
+        "Not used while the frontend arranges the screens (see Frontend Screen Layout).\n"
         "\n"
         "Nearest: No filtering. Graphics look blocky.\n"
         "Linear: Smooth scaling. Recommended when using Secondary Screen Scale below 100%.\n",
@@ -405,6 +411,35 @@ namespace MelonDsDs::config::definitions {
             {nullptr, nullptr},
         },
         MelonDsDs::config::values::NEAREST
+    };
+
+    constexpr retro_core_option_v2_definition FrontendLayout {
+        config::screen::FRONTEND_LAYOUT,
+        "Frontend Screen Layout",
+        nullptr,
+        "Lets the frontend arrange the emulated screens itself, "
+        "with its own screen layout, stereo 3D mode, headset output, and a shader for each screen. "
+        "Has no effect on a frontend that can't do this.\n"
+        "\n"
+        "Auto: The frontend arranges the screens where it can. "
+        "It always does in its stereo 3D modes and on a headset. "
+        "In its 2D mode it only does while the current screen layout is "
+        "Top/Bottom or Bottom/Top (with no screen gap and a full-size secondary screen), "
+        "Top Only, or Bottom Only; "
+        "every other layout is shown the way it's configured here.\n"
+        "Off: The screen layouts configured here always apply.\n"
+        "\n"
+        "While the frontend arranges the screens, "
+        "the current screen layout still chooses which screens are shown, "
+        "which one comes first, and how they're rotated.",
+        nullptr,
+        config::screen::CATEGORY,
+        {
+            {MelonDsDs::config::values::AUTO, "Auto"},
+            {MelonDsDs::config::values::DISABLED, "Off"},
+            {nullptr, nullptr},
+        },
+        MelonDsDs::config::values::AUTO
     };
 
     constexpr retro_core_option_v2_definition NumberOfScreenLayouts {

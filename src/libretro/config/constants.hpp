@@ -96,6 +96,7 @@ namespace MelonDsDs::config {
         constexpr unsigned MAX_SCREEN_GAP = 126;
         static constexpr const char *const CATEGORY = "screen";
         static constexpr const char *const CURSOR_TIMEOUT = "melonds_cursor_timeout";
+        static constexpr const char *const FRONTEND_LAYOUT = "melonds_frontend_layout";
         static constexpr const char *const HYBRID_RATIO = "melonds_hybrid_ratio";
         // HYBRID_SCREEN_FILTERING is no longer OpenGL-exclusive but the name is kept for compatibility
         static constexpr const char *const HYBRID_SCREEN_FILTERING = "melonds_opengl_filtering";

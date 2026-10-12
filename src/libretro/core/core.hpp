@@ -147,6 +147,14 @@ namespace MelonDsDs {
             int type
         ) noexcept;
         [[gnu::hot]] static void RenderAudio(melonDS::NDS& nds) noexcept;
+        /// Follows the frontend's video views status,
+        /// which decides whether the frame is packed for the frontend to arrange.
+        /// Call before the screen layout is updated for the frame.
+        void UpdateVideoViewsStatus() noexcept;
+        /// Tells the frontend where the screens are in the frame that's about to be drawn,
+        /// or takes back the last map once this core's own layout applies again.
+        /// Call after the screen layout is updated and before the frame is sent.
+        void SendVideoViews() noexcept;
         [[gnu::cold]] bool InitErrorScreen(const config_exception& e) noexcept;
         [[gnu::cold]] void RenderErrorScreen() noexcept;
         [[gnu::cold]] void InitContent(unsigned type, std::span<const retro_game_info> game);
@@ -196,6 +204,14 @@ namespace MelonDsDs {
         /// \see UpdateSystemAvInfo
         bool _nudgeMaxHeight = false;
         uint32_t _flushTaskId = 0;
+        /// The frontend's \c RETRO_VIDEO_VIEWS_STATUS_ flags as of the last frame.
+        unsigned _viewsStatus = 0;
+        /// \c false once the frontend has shown that it doesn't know the status call.
+        bool _viewsStatusSupported = true;
+        /// Whether the frontend holds a view map from us.
+        bool _viewsMapSent = false;
+        /// Whether the frontend turned down the last view map we sent.
+        bool _viewsMapRejected = false;
         /// non-nullopt while the task is compiling melonDS's shaders;
         /// the console can't emulate a frame until it finishes.
         std::optional<uint32_t> _shaderCompileTaskId = std::nullopt;
