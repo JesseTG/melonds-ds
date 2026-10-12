@@ -160,9 +160,18 @@ bool MelonDsDs::CoreOptionVisibility::Update() noexcept {
         anyVerticalLayouts |= !parsedLayout || LayoutSupportsScreenGap(*parsedLayout);
         anySecondaryScaleLayouts |= !parsedLayout || LayoutSupportsSecondaryScreenScale(*parsedLayout);
     }
-    ShowHybridOptions = anyHybridLayouts;
-    ShowVerticalLayoutOptions = anyVerticalLayouts;
-    ShowSecondaryScaleOptions = anySecondaryScaleLayouts;
+
+    // The frontend always arranges the screens itself in its stereo modes (and on a headset),
+    // where the options that shape this core's own layouts do nothing.
+    // In its 2D mode they decide whether the frontend arranges the screens at all, so they stay.
+    constexpr unsigned STEREO_VIEWS = RETRO_VIDEO_VIEWS_STATUS_PRESENTS | RETRO_VIDEO_VIEWS_STATUS_STEREO;
+    optional<bool> frontendLayout = ParseFrontendLayout(get_variable(screen::FRONTEND_LAYOUT));
+    unsigned viewsStatus = retro::get_video_views_status().value_or(0);
+    bool frontendArrangesScreens = frontendLayout && *frontendLayout && (viewsStatus & STEREO_VIEWS) == STEREO_VIEWS;
+
+    ShowHybridOptions = anyHybridLayouts && !frontendArrangesScreens;
+    ShowVerticalLayoutOptions = anyVerticalLayouts && !frontendArrangesScreens;
+    ShowSecondaryScaleOptions = anySecondaryScaleLayouts && !frontendArrangesScreens;
 
     if (!VisibilityInitialized || ShowHybridOptions != oldShowHybridOptions) {
         set_option_visible(screen::HYBRID_SMALL_SCREEN, ShowHybridOptions);

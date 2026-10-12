@@ -28,6 +28,17 @@ type ViewsSessionFactory = Callable[..., ViewsSession]
 #: The size of one emulated screen at the native resolution.
 W, H = 256, 192
 
+#: The options that shape the core's own layouts,
+#: which do nothing while the frontend arranges the screens.
+OWN_LAYOUT_OPTIONS = (
+    "melonds_hybrid_ratio",
+    "melonds_hybrid_small_screen",
+    "melonds_opengl_filtering",
+    "melonds_screen_gap",
+    "melonds_secondary_screen_scale",
+    "melonds_secondary_screen_filtering",
+)
+
 
 @pytest.fixture
 def views_session(
@@ -499,3 +510,47 @@ def test_rotated_views_turn_the_touch_within_the_screen(
         assert emulator.views == (_top(0, 0, 0), _bottom(0, H, 1))
         assert _frame_size(emulator) == frame_size
         assert _touch_position(emulator) == touch
+
+
+# --------------------------------------------------------------------------- #
+# Core options
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.nds_rom
+def test_stereo_views_hide_the_options_they_override(
+    views_session: ViewsSessionFactory, nds_rom: Path
+) -> None:
+    """The options that only shape the core's own layouts are hidden while they do nothing."""
+    options = {
+        "melonds_number_of_screen_layouts": "2",
+        "melonds_screen_layout1": "top-bottom",
+        "melonds_screen_layout2": "hybrid-top",
+    }
+
+    with views_session(nds_rom, views_status=FLAT, options=options) as emulator:
+        visibility = emulator.options.visibility
+
+        # In the frontend's 2D mode these decide whether the frontend arranges the screens at all
+        for _ in range(5):
+            emulator.run()
+
+        for key in OWN_LAYOUT_OPTIONS:
+            assert visibility[key], key
+
+        emulator.views_status = STEREO
+        emulator.run()
+
+        for key in OWN_LAYOUT_OPTIONS:
+            assert not visibility[key], key
+
+        # The layouts themselves still choose which screens are shown and in what order
+        assert visibility["melonds_number_of_screen_layouts"]
+        assert visibility["melonds_screen_layout1"]
+        assert visibility["melonds_frontend_layout"]
+
+        # The frontend asks again after an option changes, before the core reads it
+        emulator.options.variables["melonds_frontend_layout"] = "disabled"
+
+        for key in OWN_LAYOUT_OPTIONS:
+            assert visibility[key], key

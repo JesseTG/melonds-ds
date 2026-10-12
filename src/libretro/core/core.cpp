@@ -497,6 +497,9 @@ void MelonDsDs::CoreState::UpdateVideoViewsStatus() noexcept {
 
     _viewsStatus = status;
     _screenLayout.SetViewsStatus(status);
+
+    // The frontend's stereo modes take over some of the screen options
+    _optionVisibility.Update();
 }
 
 void MelonDsDs::CoreState::SendVideoViews() noexcept {
