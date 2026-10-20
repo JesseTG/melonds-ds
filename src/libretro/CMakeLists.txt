@@ -268,6 +268,12 @@ if (WIN32 AND MINGW)
     target_link_options(melondsds_libretro PUBLIC -static-libgcc -static-libstdc++ -static)
 endif()
 
+if (UNIX AND NOT APPLE)
+    # Export only retro_* so the frontend's libraries can't preempt the core's own symbols
+    target_link_options(melondsds_libretro PRIVATE "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/link.T")
+    set_target_properties(melondsds_libretro PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/link.T")
+endif()
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "(.+)?Clang")
     target_compile_options(melondsds_libretro PUBLIC -Werror=return-type)
     # For some reason, C++ allows functions to not return values in all code paths.
