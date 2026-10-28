@@ -254,6 +254,10 @@ namespace MelonDsDs {
         [[nodiscard]] unsigned FlushDelay() const noexcept { return _flushDelay; }
         void SetFlushDelay(unsigned delay) noexcept { _flushDelay = delay; }
 
+        /// Whether the frontend may lay out the screens itself, where it can.
+        [[nodiscard]] bool FrontendLayout() const noexcept { return _frontendLayout; }
+        void SetFrontendLayout(bool frontendLayout) noexcept { _frontendLayout = frontendLayout; }
+
         [[nodiscard]] unsigned NumberOfScreenLayouts() const noexcept { return _numberOfScreenLayouts; }
         void SetNumberOfScreenLayouts(unsigned numberOfScreenLayouts) noexcept { _numberOfScreenLayouts = numberOfScreenLayouts; }
 
@@ -507,6 +511,7 @@ namespace MelonDsDs {
         string _dsiSdImagePath;
         uint64_t _dsiSdImageSize;
         unsigned _flushDelay = 120; // TODO: Make configurable
+        bool _frontendLayout = true;
         unsigned _numberOfScreenLayouts = 1;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _screenLayouts;
         unsigned _screenGap = 0;

@@ -216,6 +216,7 @@ void MelonDsDs::CoreState::Run() noexcept {
 
     if (_renderState.Ready()) [[likely]] {
         // If the global state needed for rendering is ready...
+        UpdateVideoViewsStatus();
         _inputState.Update(Config, _screenLayout);
         _inputState.Apply(nds, _screenLayout, _micState, Config);
         // melonDS pulls microphone samples as it needs them
@@ -267,6 +268,7 @@ void MelonDsDs::CoreState::Run() noexcept {
             _inputState.StopRumble();
         }
 
+        SendVideoViews();
         _renderState.Render(nds, _inputState, Config, _screenLayout);
         RenderAudio(*Console);
 
@@ -450,6 +452,8 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
         _screenLayout.SetDirty();
     }
 
+    UpdateVideoViewsStatus();
+
     // The screen layout hotkey works here too, even though there's no console to drive
     _inputState.Update(Config, _screenLayout);
     _inputState.Apply(_screenLayout);
@@ -462,7 +466,69 @@ void MelonDsDs::CoreState::RenderErrorScreen() noexcept {
         }
     }
 
+    SendVideoViews();
     _renderState.Render(*_messageScreen, Config, _screenLayout);
+}
+
+void MelonDsDs::CoreState::UpdateVideoViewsStatus() noexcept {
+    ZoneScopedN(TracyFunction);
+    unsigned status = 0;
+
+    if (_viewsStatusSupported) {
+        if (optional<unsigned> answer = retro::get_video_views_status()) {
+            status = *answer;
+        }
+        else {
+            // A frontend that doesn't know the call won't learn it while content is running
+            _viewsStatusSupported = false;
+        }
+    }
+
+    if (status == _viewsStatus) {
+        return;
+    }
+
+    retro::info(
+        "Video views: presents={} stereo={} headset={}",
+        (status & RETRO_VIDEO_VIEWS_STATUS_PRESENTS) != 0,
+        (status & RETRO_VIDEO_VIEWS_STATUS_STEREO) != 0,
+        (status & RETRO_VIDEO_VIEWS_STATUS_HMD) != 0
+    );
+
+    _viewsStatus = status;
+    _screenLayout.SetViewsStatus(status);
+
+    // The frontend's stereo modes take over some of the screen options
+    _optionVisibility.Update();
+}
+
+void MelonDsDs::CoreState::SendVideoViews() noexcept {
+    ZoneScopedN(TracyFunction);
+    std::span<const retro_video_view> views = _screenLayout.Views();
+
+    if (!views.empty()) {
+        // The map goes out with every frame it describes;
+        // an unchanged one costs the frontend a comparison,
+        // and sending it again covers a frontend that dropped it.
+        retro_video_views map {};
+        map.views = views.data();
+        map.num_views = static_cast<unsigned>(views.size());
+
+        bool accepted = retro::set_video_views(map);
+        if (!accepted && !_viewsMapRejected) {
+            retro::error("The frontend rejected a video views map of {} views", views.size());
+        }
+
+        _viewsMapRejected = !accepted;
+        _viewsMapSent = true;
+    }
+    else if (_viewsMapSent) {
+        // This core's own layout applies again, so the frontend should show the frame as it is
+        retro_video_views none {};
+        retro::set_video_views(none);
+        _viewsMapSent = false;
+        _viewsMapRejected = false;
+    }
 }
 
 std::chrono::system_clock::time_point ToSystemTime(std::chrono::local_seconds time) noexcept {
@@ -618,6 +684,14 @@ void MelonDsDs::CoreState::DestroyRenderState() {
 
 bool MelonDsDs::CoreState::LoadGame(unsigned type, std::span<const retro_game_info> game) noexcept try {
     ZoneScopedN(TracyFunction);
+
+    // The frontend dropped any view map of ours when the last content unloaded,
+    // and this object outlives that content.
+    _viewsStatus = 0;
+    _viewsStatusSupported = true;
+    _viewsMapSent = false;
+    _viewsMapRejected = false;
+    _screenLayout.SetViewsStatus(0);
 
     InitContent(type, game);
 

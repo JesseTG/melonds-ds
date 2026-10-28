@@ -30,6 +30,13 @@ a design goal is to avoid a 2.x release for as long as possible.
   for setting the initial second of the emulated console's clock
   when Starting Time Mode is Absolute.
   [#302](https://github.com/JesseTG/melonds-ds/issues/302)
+- Added support for RetroArch's video views,
+  which let the frontend arrange the emulated screens itself
+  with its own screen layout, stereo 3D modes, headset output,
+  and a shader for each screen.
+  The new "Frontend Screen Layout" core option controls it;
+  on its default of Auto, the frontend takes over in its stereo 3D modes and on a headset,
+  and in its 2D mode wherever that looks the same as the current screen layout.
 
 ### Changed
 

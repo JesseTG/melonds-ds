@@ -844,6 +844,13 @@ static void MelonDsDs::config::ParseScreenOptions(CoreConfig& config) noexcept {
         config.SetSmallScreenLayout(HybridSideScreenDisplay::Both);
     }
 
+    if (optional<bool> value = MelonDsDs::ParseFrontendLayout(get_variable(FRONTEND_LAYOUT))) {
+        config.SetFrontendLayout(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", FRONTEND_LAYOUT, values::AUTO);
+        config.SetFrontendLayout(true);
+    }
+
     if (optional<unsigned> value = MelonDsDs::ParseIntegerInRange(get_variable(NUMBER_OF_SCREEN_LAYOUTS), 1u, MAX_SCREEN_LAYOUTS)) {
         config.SetNumberOfScreenLayouts(*value);
     } else {

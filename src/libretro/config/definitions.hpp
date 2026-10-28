@@ -65,6 +65,7 @@ namespace MelonDsDs::config::definitions {
         JoystickCursorMaxSpeed,
         JoystickCursorResponse,
         JoystickCursorSpeedup,
+        FrontendLayout,
         NumberOfScreenLayouts,
         ScreenLayout1,
         ScreenLayout2,

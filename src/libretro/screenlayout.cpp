@@ -49,10 +49,15 @@ MelonDsDs::ScreenLayoutData::ScreenLayoutData() :
     bottomScreenMatrixInverse(1),
     hybridScreenMatrix(1),
     pointerMatrix(1),
+    touchRotationMatrix(1),
     secondaryScreenScale(100),
     secondaryScreenScaleFactor(1.0f),
     hybridRatio(2),
-    _numberOfLayouts(1) {
+    _numberOfLayouts(1),
+    _frontendLayout(true),
+    _viewsStatus(0), // Until the frontend says otherwise
+    _numberOfViews(0),
+    _views() {
 }
 
 MelonDsDs::ScreenLayoutData::~ScreenLayoutData() noexcept {
@@ -179,7 +184,7 @@ mat3 MelonDsDs::ScreenLayoutData::GetTopScreenMatrix(unsigned scale) const noexc
         case ScreenLayout::UpsideDown:
             return NorthwestMatrix(scale);
         case ScreenLayout::BottomTop:
-            return SouthwestScaledMatrix(scale, screenGap, secondaryScreenScaleFactor);
+            return SouthwestScaledMatrix(scale, ScreenGap(), SecondaryScreenScaleFactor());
         case ScreenLayout::RightLeft:
             return EastMatrix(scale);
         case ScreenLayout::HybridTop:
@@ -207,9 +212,9 @@ mat3 MelonDsDs::ScreenLayoutData::GetBottomScreenMatrix(unsigned scale) const no
         case ScreenLayout::TurnLeft:
         case ScreenLayout::TurnRight:
         case ScreenLayout::UpsideDown:
-            return SouthwestMatrix(scale, screenGap);
+            return SouthwestMatrix(scale, ScreenGap());
         case ScreenLayout::TopBottom:
-            return SouthwestScaledMatrix(scale, screenGap, secondaryScreenScaleFactor);
+            return SouthwestScaledMatrix(scale, ScreenGap(), SecondaryScreenScaleFactor());
         case ScreenLayout::BottomTop:
         case ScreenLayout::BottomOnly:
         case ScreenLayout::RightLeft:
@@ -256,6 +261,7 @@ void MelonDsDs::ScreenLayoutData::Apply(const CoreConfig& config, const RenderSt
     SetScale(1);
 #endif
     SetLayouts(config.ScreenLayouts());
+    SetFrontendLayout(config.FrontendLayout());
     HybridSmallScreenLayout(config.SmallScreenLayout());
     ScreenGap(config.ScreenGap());
     secondaryScreenScale = config.SecondaryScreenScale();
@@ -310,13 +316,50 @@ void MelonDsDs::ScreenLayoutData::Update() noexcept {
     bottomScreenTranslation = transformedScreenPoints[4];
     hybridScreenTranslation = transformedScreenPoints[8];
     pointerMatrix = math::ts<float>(vec2(bufferSize) / 2.0f, vec2(bufferSize) / (2.0f * RETRO_MAX_POINTER_COORDINATE<float>));
+    touchRotationMatrix = mat3(1);
 
     ScreenLayout layout = Layout();
     retro::ScreenOrientation newOrientation = LayoutOrientation(layout);
 
+    _numberOfViews = 0;
+    if (ViewsActive()) {
+        // Every layout that packs a frame for views draws its screens at the resolution scale
+        uvec2 screenSize = NDS_SCREEN_SIZE<unsigned> * resolutionScale;
+        auto addView = [&](uvec2 translation) noexcept {
+            _views[_numberOfViews] = {
+                .x = translation.x,
+                .y = translation.y,
+                .width = screenSize.x,
+                .height = screenSize.y,
+                .screen = _numberOfViews, // Screens are numbered in the order they're shown
+                .eye = RETRO_VIDEO_VIEW_EYE_NONE,
+                .aspect_ratio = 0.0f, // i.e. width / height
+            };
+            ++_numberOfViews;
+        };
+
+        bool bottomFirst = IsBottomScreenFirst(layout);
+        if (bottomFirst) addView(bottomScreenTranslation);
+        if (layout != ScreenLayout::BottomOnly) addView(topScreenTranslation);
+        if (!bottomFirst && layout != ScreenLayout::TopOnly) addView(bottomScreenTranslation);
+    }
+
     if (retro::set_screen_rotation(newOrientation)) {
         // Try to rotate the screen. If that failed...
-        pointerMatrix = glm::rotate(pointerMatrix, LayoutAngle(layout));
+        if (!ViewsActive()) {
+            pointerMatrix = glm::rotate(pointerMatrix, LayoutAngle(layout));
+        }
+        else if (newOrientation != retro::ScreenOrientation::Normal) {
+            // The frontend turns each view on its own,
+            // and reports a touch as far across a view's rectangle as it is across the screen it sees.
+            // So the point turns about the middle of the touch screen, not the middle of the frame.
+            vec2 halfScreenSize = NDS_SCREEN_SIZE<float> / 2.0f;
+            touchRotationMatrix = glm::translate(touchRotationMatrix, halfScreenSize);
+            touchRotationMatrix = glm::scale(touchRotationMatrix, halfScreenSize);
+            touchRotationMatrix = glm::rotate(touchRotationMatrix, LayoutAngle(layout));
+            touchRotationMatrix = glm::scale(touchRotationMatrix, 1.0f / halfScreenSize);
+            touchRotationMatrix = glm::translate(touchRotationMatrix, -halfScreenSize);
+        }
         orientation = newOrientation;
     } else if (newOrientation != retro::ScreenOrientation::Normal) {
         // A rotation to normal orientation may "fail", even though it's the default.

@@ -24,6 +24,7 @@
 #include <glm/ext/vector_int2_sized.hpp>
 #undef isnan
 #include <fmt/format.h>
+#include "libretro_views.h"
 #include "std/chrono.hpp"
 #include "std/span.hpp"
 
@@ -97,6 +98,13 @@ namespace retro {
     std::optional<retro_language> get_language() noexcept;
     bool set_geometry(const retro_game_geometry& geometry) noexcept;
     bool set_system_av_info(const retro_system_av_info& av_info) noexcept;
+    /// \return The frontend's \c RETRO_VIDEO_VIEWS_STATUS_ flags,
+    /// or \c nullopt if it doesn't know the call.
+    std::optional<unsigned> get_video_views_status() noexcept;
+    /// Tells the frontend how the frame divides into screens.
+    /// The map isn't \c const because the frontend writes the recommended eye size back into it
+    /// while a headset is tracking.
+    bool set_video_views(retro_video_views& views) noexcept;
     bool set_memory_maps(const retro_memory_map& map) noexcept;
     bool set_memory_maps(std::span<const retro_memory_descriptor> descriptors) noexcept;
     std::optional<std::string_view> username() noexcept;

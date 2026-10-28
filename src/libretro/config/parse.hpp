@@ -140,6 +140,13 @@ namespace MelonDsDs {
         return std::nullopt;
     }
 
+    /// \return \c true if the frontend may lay out the screens itself ("Auto").
+    constexpr std::optional<bool> ParseFrontendLayout(std::string_view value) noexcept {
+        if (value == config::values::AUTO) return true;
+        if (value == config::values::DISABLED) return false;
+        return std::nullopt;
+    }
+
     constexpr std::optional<MelonDsDs::ScreenLayout> ParseScreenLayout(std::string_view value) noexcept {
         using MelonDsDs::ScreenLayout;
         if (value == config::values::TOP_BOTTOM) return ScreenLayout::TopBottom;

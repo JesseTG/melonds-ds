@@ -18,6 +18,7 @@
 #define MELONDS_DS_SCREENLAYOUT_HPP
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -33,6 +34,7 @@
 #include "config/constants.hpp"
 #include "environment.hpp"
 #include "input/input.hpp"
+#include "libretro_views.h"
 #include "buffer.hpp"
 #include "retro/scaler.hpp"
 
@@ -87,6 +89,54 @@ namespace MelonDsDs {
             case ScreenLayout::LargescreenBottom:
             case ScreenLayout::FlippedLargescreenTop:
             case ScreenLayout::FlippedLargescreenBottom:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// The layout a frame is packed with while the frontend arranges the screens itself.
+    /// The frontend takes each screen from the frame as it's drawn,
+    /// so a layout that draws a screen enlarged falls back to a vertical one
+    /// that keeps its focused screen first.
+    constexpr ScreenLayout ViewsPackedLayout(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::HybridTop:
+            case ScreenLayout::FlippedHybridTop:
+            case ScreenLayout::LargescreenTop:
+            case ScreenLayout::FlippedLargescreenTop:
+                return ScreenLayout::TopBottom;
+            case ScreenLayout::HybridBottom:
+            case ScreenLayout::FlippedHybridBottom:
+            case ScreenLayout::LargescreenBottom:
+            case ScreenLayout::FlippedLargescreenBottom:
+                return ScreenLayout::BottomTop;
+            default:
+                return layout;
+        }
+    }
+
+    /// Whether a frontend that stacks the screens vertically
+    /// shows them the same way this layout would.
+    constexpr bool ViewsMatchLayout(ScreenLayout layout, unsigned screenGap, unsigned secondaryScreenScale) noexcept {
+        switch (layout) {
+            case ScreenLayout::TopOnly:
+            case ScreenLayout::BottomOnly:
+                return true;
+            case ScreenLayout::TopBottom:
+            case ScreenLayout::BottomTop:
+                return screenGap == 0 && secondaryScreenScale == 100;
+            default:
+                return false;
+        }
+    }
+
+    /// Whether the bottom screen comes before the top one in this layout.
+    constexpr bool IsBottomScreenFirst(ScreenLayout layout) noexcept {
+        switch (layout) {
+            case ScreenLayout::BottomTop:
+            case ScreenLayout::RightLeft:
+            case ScreenLayout::BottomOnly:
                 return true;
             default:
                 return false;
@@ -162,9 +212,17 @@ namespace MelonDsDs {
 
         unsigned LayoutIndex() const noexcept { return _layoutIndex; }
         unsigned NumberOfLayouts() const noexcept { return _numberOfLayouts; }
-        ScreenLayout Layout() const noexcept { return _layouts[_layoutIndex]; }
+
+        /// The layout the player chose.
+        ScreenLayout SelectedLayout() const noexcept { return _layouts[_layoutIndex]; }
+
+        /// The layout the frame is drawn with:
+        /// the one the player chose, or the one that packs it for the frontend's views.
+        ScreenLayout Layout() const noexcept {
+            return ViewsActive() ? ViewsPackedLayout(SelectedLayout()) : SelectedLayout();
+        }
         void SetLayouts(const std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS>& layouts, unsigned numberOfLayouts) noexcept {
-            ScreenLayout oldLayout = Layout();
+            ScreenLayout oldLayout = SelectedLayout();
 
             if (_layoutIndex >= numberOfLayouts) {
                 _layoutIndex = numberOfLayouts - 1;
@@ -172,11 +230,11 @@ namespace MelonDsDs {
             _layouts = layouts;
             _numberOfLayouts = numberOfLayouts;
 
-            if (oldLayout != Layout()) _dirty = true;
+            if (oldLayout != SelectedLayout()) _dirty = true;
         }
 
         void SetLayouts(const std::span<const ScreenLayout> layouts) noexcept {
-            ScreenLayout oldLayout = Layout();
+            ScreenLayout oldLayout = SelectedLayout();
 
             if (_layoutIndex >= layouts.size()) {
                 _layoutIndex = layouts.size() - 1;
@@ -184,14 +242,47 @@ namespace MelonDsDs {
             memcpy(_layouts.data(), layouts.data(), layouts.size() * sizeof(ScreenLayout));
             _numberOfLayouts = layouts.size();
 
-            if (oldLayout != Layout()) _dirty = true;
+            if (oldLayout != SelectedLayout()) _dirty = true;
         }
 
         void NextLayout() noexcept {
-            ScreenLayout oldLayout = Layout();
+            ScreenLayout oldLayout = SelectedLayout();
             _layoutIndex = (_layoutIndex + 1) % _numberOfLayouts;
 
-            if (oldLayout != Layout()) _dirty = true;
+            if (oldLayout != SelectedLayout()) _dirty = true;
+        }
+
+        /// Whether the frontend may arrange the screens itself (the Frontend Screen Layout option).
+        bool FrontendLayout() const noexcept { return _frontendLayout; }
+        void SetFrontendLayout(bool frontendLayout) noexcept {
+            bool wasActive = ViewsActive();
+            _frontendLayout = frontendLayout;
+            if (wasActive != ViewsActive()) _dirty = true;
+        }
+
+        /// The frontend's \c RETRO_VIDEO_VIEWS_STATUS_ flags, as of this frame.
+        unsigned ViewsStatus() const noexcept { return _viewsStatus; }
+        void SetViewsStatus(unsigned status) noexcept {
+            bool wasActive = ViewsActive();
+            _viewsStatus = status;
+            if (wasActive != ViewsActive()) _dirty = true;
+        }
+
+        /// Whether the frame is packed for the frontend's views instead of following the player's layout.
+        /// The frontend's stereo modes and headset always get views;
+        /// in 2D they only stand in for a layout that they'd look the same as.
+        bool ViewsActive() const noexcept {
+            if (!_frontendLayout || !(_viewsStatus & RETRO_VIDEO_VIEWS_STATUS_PRESENTS))
+                return false;
+
+            return (_viewsStatus & RETRO_VIDEO_VIEWS_STATUS_STEREO)
+                || ViewsMatchLayout(SelectedLayout(), screenGap, secondaryScreenScale);
+        }
+
+        /// The screens the frame divides into, primary screen first.
+        /// Empty unless the frame is packed for the frontend's views.
+        [[nodiscard]] std::span<const retro_video_view> Views() const noexcept {
+            return {_views.data(), _numberOfViews};
         }
 
         HybridSideScreenDisplay HybridSmallScreenLayout() const noexcept { return hybridSmallScreenLayout; }
@@ -211,14 +302,15 @@ namespace MelonDsDs {
             }
         }
 
-        unsigned ScreenGap() const noexcept { return screenGap; }
+        // The frontend spaces and sizes the screens itself while it arranges them
+        unsigned ScreenGap() const noexcept { return ViewsActive() ? 0 : screenGap; }
         void ScreenGap(unsigned _screen_gap) noexcept {
             if (_screen_gap != screenGap) _dirty = true;
             screenGap = _screen_gap;
         }
 
-        unsigned SecondaryScreenScale() const noexcept { return secondaryScreenScale; }
-        float SecondaryScreenScaleFactor() const noexcept { return secondaryScreenScaleFactor; }
+        unsigned SecondaryScreenScale() const noexcept { return ViewsActive() ? 100 : secondaryScreenScale; }
+        float SecondaryScreenScaleFactor() const noexcept { return ViewsActive() ? 1.0f : secondaryScreenScaleFactor; }
         void SecondaryScreenScale(unsigned _scale) noexcept {
             if (_scale != secondaryScreenScale) _dirty = true;
             secondaryScreenScale = _scale;
@@ -238,7 +330,7 @@ namespace MelonDsDs {
 
         /// @param input Coordinates in pointer space (from -32767 to 32767)
         [[nodiscard]] glm::ivec2 TransformPointerInput(glm::i16vec2 input) const noexcept {
-            glm::vec3 transformed = bottomScreenMatrixInverse * pointerMatrix * glm::vec3(input, 1.0f);
+            glm::vec3 transformed = touchRotationMatrix * bottomScreenMatrixInverse * pointerMatrix * glm::vec3(input, 1.0f);
             return glm::ivec2(transformed.x, transformed.y);
         }
 
@@ -285,6 +377,9 @@ namespace MelonDsDs {
         glm::mat3 hybridScreenMatrix;
         glm::mat3 hybridScreenMatrixInverse;
         glm::mat3 pointerMatrix;
+        /// Turns a point within the touch screen, for a frontend that rotates each view on its own.
+        /// The identity matrix otherwise.
+        glm::mat3 touchRotationMatrix;
 
         unsigned screenGap;
         unsigned secondaryScreenScale;
@@ -296,6 +391,11 @@ namespace MelonDsDs {
         unsigned _layoutIndex;
         unsigned _numberOfLayouts;
         std::array<ScreenLayout, config::screen::MAX_SCREEN_LAYOUTS> _layouts;
+
+        bool _frontendLayout;
+        unsigned _viewsStatus;
+        unsigned _numberOfViews;
+        std::array<retro_video_view, 2> _views;
 
         // Offset in pixels, not bytes
         glm::uvec2 topScreenTranslation;
