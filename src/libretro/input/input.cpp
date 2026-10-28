@@ -68,6 +68,7 @@ const struct retro_input_descriptor MelonDsDs::input_descriptors[] = {
         {0, RETRO_DEVICE_JOYPAD, 0,                               RETRO_DEVICE_ID_JOYPAD_R3,     "Next Screen Layout"},
         {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X,      "Pointer X"},
         {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y,      "Pointer Y"},
+        {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT,  RETRO_DEVICE_ID_ANALOG_X,      "Paddle"},
         {},
 };
 
@@ -115,7 +116,21 @@ void InputState::Update(const CoreConfig& config, const ScreenLayoutData& layout
         pollResult.AnalogCursorDirection = retro::analog_state(0, RETRO_DEVICE_INDEX_ANALOG_RIGHT);
     }
 
-    if (_touchMode == TouchMode::Pointer || _touchMode == TouchMode::Auto) {
+    auto* paddle = get_if<PaddleState>(&_slot2);
+    if (paddle) {
+        // Update the paddle first, since it decides whether the mouse can touch the screen.
+        paddle->Update();
+    }
+
+    if (paddle && paddle->CapturesMouse()) {
+        // The mouse is turning the paddle, so keep it from touching the screen;
+        // the pointer stays where it was, and isn't pressed.
+        // Its buttons press whichever DS buttons the player mapped them to instead.
+        pollResult.JoypadButtons |= paddle->JoypadButtons();
+        pollResult.PointerPressed = false;
+        pollResult.PointerPosition = _pointer.RawPosition();
+    }
+    else if (_touchMode == TouchMode::Pointer || _touchMode == TouchMode::Auto) {
         pollResult.PointerPressed = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
         pollResult.PointerPosition.x = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
         pollResult.PointerPosition.y = retro::input_state(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
@@ -158,6 +173,9 @@ void InputState::Apply(melonDS::NDS& nds, ScreenLayoutData& layout, MicrophoneSt
     if (const auto* solar = get_if<SolarSensorState>(&_slot2)) {
         solar->Apply(nds);
     }
+    else if (const auto* paddle = get_if<PaddleState>(&_slot2)) {
+        paddle->Apply(nds);
+    }
 
     _cursor.Apply(nds);
 }
@@ -177,6 +195,10 @@ void InputState::SetConfig(const CoreConfig& config) noexcept {
 
     if (auto* motion = std::get_if<MotionState>(&_slot2)) {
         motion->SetConfig(config);
+    }
+
+    if (auto* paddle = std::get_if<PaddleState>(&_slot2)) {
+        paddle->SetConfig(config);
     }
 }
 
@@ -203,6 +225,10 @@ void InputState::SetSlot2Input(const melonDS::GBACart::CartCommon* gbacart) noex
         case melonDS::GBACart::CartType::MotionPakRetail:
             _slot2 = MotionState(0, false);
             retro::debug("Enabled MotionState without a gyroscope");
+            break;
+        case PADDLE_CART_TYPE:
+            _slot2 = PaddleState();
+            retro::debug("Enabled PaddleState");
             break;
         default:
             // No GBA cart, or it's a plain game, or it's a peripheral unrelated to input

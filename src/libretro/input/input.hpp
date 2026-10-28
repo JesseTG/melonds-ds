@@ -26,6 +26,7 @@
 #include "cursor.hpp"
 #include "joypad.hpp"
 #include "motion.hpp"
+#include "paddle.hpp"
 #include "pointer.hpp"
 #include "retro/task_queue.hpp"
 #include "rumble.hpp"
@@ -54,7 +55,7 @@ namespace MelonDsDs {
         retro_perf_tick_t Timestamp;
     };
 
-    using Slot2State = std::variant<std::monostate, SolarSensorState, RumbleState, MotionState>;
+    using Slot2State = std::variant<std::monostate, SolarSensorState, RumbleState, MotionState, PaddleState>;
 
     class InputState
     {

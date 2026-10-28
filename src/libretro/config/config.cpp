@@ -104,6 +104,7 @@ const initializer_list<int> JOYSTICK_CURSOR_SPEEDUPS = {33, 50, 66, 150, 200, 25
 const initializer_list<unsigned> DS_POWER_OK_THRESHOLDS = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 const initializer_list<unsigned> POWER_UPDATE_INTERVALS = {1, 2, 3, 5, 10, 15, 20, 30, 60};
 const initializer_list<uint16_t> RUMBLE_INTENSITY_VALUES = {0, 6554, 13107, 19661, 26214, 32768, 39321, 45875, 52428, 58982, 65535};
+const initializer_list<unsigned> PADDLE_SPEEDS = {25, 50, 75, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000};
 const initializer_list<int> RELATIVE_DAY_OFFSETS = {
     -364, -180, -150, -120, -90, -60, -30, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 30, 60, 90, 120, 150, 180, 364
@@ -218,6 +219,47 @@ static void MelonDsDs::config::ParseSystemOptions(CoreConfig& config) noexcept {
     } else {
         retro::warn("Failed to get value for {}; defaulting to {}", SOLAR_SENSOR_HOST_SENSOR, values::SENSOR);
         config.SetUseRealLightSensor(true);
+    }
+
+    if (optional<MelonDsDs::PaddleAxis> value = ParsePaddleAxis(get_variable(PADDLE_AXIS))) {
+        config.SetPaddleAxis(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", PADDLE_AXIS, values::system::MOUSE_X);
+        config.SetPaddleAxis(PaddleAxis::MouseX);
+    }
+
+    if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(PADDLE_SPEED), PADDLE_SPEEDS)) {
+        config.SetPaddleSpeed(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to 100", PADDLE_SPEED);
+        config.SetPaddleSpeed(100);
+    }
+
+    if (optional<bool> value = ParseBoolean(get_variable(PADDLE_INVERT))) {
+        config.SetPaddleInverted(*value);
+    } else {
+        retro::warn("Failed to get value for {}; defaulting to {}", PADDLE_INVERT, values::DISABLED);
+        config.SetPaddleInverted(false);
+    }
+
+    struct PaddleMouseButtonOption {
+        PaddleMouseButton button;
+        const retro_core_option_v2_definition& definition;
+    };
+    const PaddleMouseButtonOption paddleMouseButtonOptions[] = {
+        {PaddleMouseLeft, definitions::PaddleMouseLeft},
+        {PaddleMouseRight, definitions::PaddleMouseRight},
+        {PaddleMouseMiddle, definitions::PaddleMouseMiddle},
+        {PaddleMouseButton4, definitions::PaddleMouseButton4},
+        {PaddleMouseButton5, definitions::PaddleMouseButton5},
+    };
+    for (const PaddleMouseButtonOption& option : paddleMouseButtonOptions) {
+        if (optional<uint32_t> value = ParsePaddleMouseButton(get_variable(option.definition.key))) {
+            config.SetPaddleMouseButton(option.button, *value);
+        } else {
+            retro::warn("Failed to get value for {}; defaulting to {}", option.definition.key, option.definition.default_value);
+            config.SetPaddleMouseButton(option.button, *ParsePaddleMouseButton(option.definition.default_value));
+        }
     }
 
     if (optional<unsigned> value = ParseIntegerInList<unsigned>(get_variable(DS_POWER_OK), DS_POWER_OK_THRESHOLDS)) {

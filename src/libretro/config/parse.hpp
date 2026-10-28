@@ -17,7 +17,9 @@
 #ifndef MELONDSDS_PARSE_HPP
 #define MELONDSDS_PARSE_HPP
 
+#include <cstdint>
 #include <optional>
+#include <libretro.h>
 #include <SPU.h>
 #include <string_view>
 
@@ -123,6 +125,35 @@ namespace MelonDsDs {
         if (value == config::values::system::SOLAR_SENSOR_3) return MelonDsDs::Slot2Device::SolarSensorBoktai3;
         if (value == config::values::system::MOTION_PAK_HOMEBREW) return MelonDsDs::Slot2Device::MotionPakHomebrew;
         if (value == config::values::system::MOTION_PAK_RETAIL) return MelonDsDs::Slot2Device::MotionPakRetail;
+        if (value == config::values::system::PADDLE) return MelonDsDs::Slot2Device::Paddle;
+        return std::nullopt;
+    }
+
+    constexpr std::optional<MelonDsDs::PaddleAxis> ParsePaddleAxis(std::string_view value) noexcept {
+        if (value == config::values::system::MOUSE_X) return MelonDsDs::PaddleAxis::MouseX;
+        if (value == config::values::system::MOUSE_Y) return MelonDsDs::PaddleAxis::MouseY;
+        return std::nullopt;
+    }
+
+    /// Parses what a mouse button does while the mouse is turning the paddle.
+    /// \return The RetroPad button bits to press (0 for none),
+    /// \c PADDLE_TOGGLE_BIT if the button switches the mouse to the touch screen and back,
+    /// or \c nullopt if \c value isn't valid.
+    constexpr std::optional<uint32_t> ParsePaddleMouseButton(std::string_view value) noexcept {
+        if (value == config::values::system::BUTTON_NONE) return 0;
+        if (value == config::values::system::BUTTON_A) return 1u << RETRO_DEVICE_ID_JOYPAD_A;
+        if (value == config::values::system::BUTTON_B) return 1u << RETRO_DEVICE_ID_JOYPAD_B;
+        if (value == config::values::system::BUTTON_X) return 1u << RETRO_DEVICE_ID_JOYPAD_X;
+        if (value == config::values::system::BUTTON_Y) return 1u << RETRO_DEVICE_ID_JOYPAD_Y;
+        if (value == config::values::system::BUTTON_L) return 1u << RETRO_DEVICE_ID_JOYPAD_L;
+        if (value == config::values::system::BUTTON_R) return 1u << RETRO_DEVICE_ID_JOYPAD_R;
+        if (value == config::values::system::BUTTON_SELECT) return 1u << RETRO_DEVICE_ID_JOYPAD_SELECT;
+        if (value == config::values::system::BUTTON_START) return 1u << RETRO_DEVICE_ID_JOYPAD_START;
+        if (value == config::values::system::BUTTON_UP) return 1u << RETRO_DEVICE_ID_JOYPAD_UP;
+        if (value == config::values::system::BUTTON_DOWN) return 1u << RETRO_DEVICE_ID_JOYPAD_DOWN;
+        if (value == config::values::system::BUTTON_LEFT) return 1u << RETRO_DEVICE_ID_JOYPAD_LEFT;
+        if (value == config::values::system::BUTTON_RIGHT) return 1u << RETRO_DEVICE_ID_JOYPAD_RIGHT;
+        if (value == config::values::system::BUTTON_TOGGLE) return MelonDsDs::PADDLE_TOGGLE_BIT;
         return std::nullopt;
     }
 

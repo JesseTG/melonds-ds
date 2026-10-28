@@ -45,6 +45,29 @@ namespace MelonDsDs {
         SolarSensorBoktai3,
         MotionPakHomebrew,
         MotionPakRetail,
+        Paddle,
+    };
+
+    /// The mouse input that turns the Taito Paddle Controller's dial.
+    enum class PaddleAxis {
+        MouseX,
+        MouseY,
+    };
+
+    /// Set in a mouse button's mapping (alongside no RetroPad bits)
+    /// when that button switches the mouse between the paddle and the touch screen.
+    /// RetroPad buttons only use the low 16 bits, so this can't collide with one.
+    constexpr uint32_t PADDLE_TOGGLE_BIT = 1u << 31;
+
+    /// The mouse buttons that can press DS buttons while the mouse is turning the paddle,
+    /// in the order of \c CoreConfig::PaddleMouseButtons.
+    enum PaddleMouseButton {
+        PaddleMouseLeft,
+        PaddleMouseRight,
+        PaddleMouseMiddle,
+        PaddleMouseButton4,
+        PaddleMouseButton5,
+        PaddleMouseButtonCount,
     };
 
     enum RumbleMotorType {

@@ -139,6 +139,14 @@ namespace MelonDsDs::config {
         static constexpr const char *const FIRMWARE_PATH = "melonds_firmware_nds_path";
         static constexpr const char *const FIRMWARE_DSI_PATH = "melonds_firmware_dsi_path";
         static constexpr const char *const OVERRIDE_FIRMWARE_SETTINGS = "melonds_override_fw_settings";
+        static constexpr const char *const PADDLE_AXIS = "melonds_paddle_axis";
+        static constexpr const char *const PADDLE_INVERT = "melonds_paddle_invert";
+        static constexpr const char *const PADDLE_MOUSE_LEFT = "melonds_paddle_mouse_left";
+        static constexpr const char *const PADDLE_MOUSE_RIGHT = "melonds_paddle_mouse_right";
+        static constexpr const char *const PADDLE_MOUSE_MIDDLE = "melonds_paddle_mouse_middle";
+        static constexpr const char *const PADDLE_MOUSE_BUTTON4 = "melonds_paddle_mouse_button4";
+        static constexpr const char *const PADDLE_MOUSE_BUTTON5 = "melonds_paddle_mouse_button5";
+        static constexpr const char *const PADDLE_SPEED = "melonds_paddle_speed";
         static constexpr const char *const RUMBLE_INTENSITY = "melonds_rumble_intensity";
         static constexpr const char *const RUMBLE_TYPE = "melonds_rumble_type";
         static constexpr const char *const SLOT2_DEVICE = "melonds_slot2_device";
@@ -193,6 +201,26 @@ namespace MelonDsDs::config {
         namespace system {
             static constexpr const char *const MOTION_PAK_HOMEBREW = "motion-pak-homebrew";
             static constexpr const char *const MOTION_PAK_RETAIL = "motion-pak-retail";
+            static constexpr const char *const MOUSE_X = "mouse-x";
+            static constexpr const char *const MOUSE_Y = "mouse-y";
+            static constexpr const char *const PADDLE = "paddle";
+
+            // What a mouse button can do while the mouse is turning the paddle:
+            // nothing, press a DS button, or switch the mouse to the touch screen and back
+            static constexpr const char *const BUTTON_NONE = "none";
+            static constexpr const char *const BUTTON_TOGGLE = "toggle";
+            static constexpr const char *const BUTTON_A = "a";
+            static constexpr const char *const BUTTON_B = "b";
+            static constexpr const char *const BUTTON_X = "x";
+            static constexpr const char *const BUTTON_Y = "y";
+            static constexpr const char *const BUTTON_L = "l";
+            static constexpr const char *const BUTTON_R = "r";
+            static constexpr const char *const BUTTON_SELECT = "select";
+            static constexpr const char *const BUTTON_START = "start";
+            static constexpr const char *const BUTTON_UP = "up";
+            static constexpr const char *const BUTTON_DOWN = "down";
+            static constexpr const char *const BUTTON_LEFT = "left";
+            static constexpr const char *const BUTTON_RIGHT = "right";
             static constexpr const char *const SOLAR_SENSOR_1 = "solar1";
             static constexpr const char *const SOLAR_SENSOR_2 = "solar2";
             static constexpr const char *const SOLAR_SENSOR_3 = "solar3";
