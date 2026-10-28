@@ -40,7 +40,8 @@ namespace MelonDsDs {
     public:
         void SetConfig(const CoreConfig& config) noexcept;
         void Update(const InputPollResult& poll) noexcept;
-        void Apply(melonDS::NDS& nds) const noexcept;
+        /// \param keyboardButtons KEYINPUT bits the keyboard is also holding down
+        void Apply(melonDS::NDS& nds, uint32_t keyboardButtons) const noexcept;
         void Apply(CoreConfig& config) const noexcept;
         void Apply(ScreenLayoutData& layout) const noexcept;
         void Apply(MicrophoneState& mic) const noexcept;
