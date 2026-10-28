@@ -9,6 +9,15 @@ else ()
     set(LIBRARY_TYPE MODULE)
 endif ()
 
+# Mirror melonDS's LTO settings so our objects and melonDS's are both bitcode.
+# (Mixed LTO/non-LTO breaks emulated-TLS symbols like NDS::Current on Android/MinGW.)
+if (ENABLE_LTO_RELEASE)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+endif ()
+if (ENABLE_LTO)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif ()
+
 add_library(melondsds_libretro ${LIBRARY_TYPE}
     buffer.cpp
     buffer.hpp
@@ -266,6 +275,12 @@ endif ()
 
 if (WIN32 AND MINGW)
     target_link_options(melondsds_libretro PUBLIC -static-libgcc -static-libstdc++ -static)
+endif()
+
+if (UNIX AND NOT APPLE)
+    # Export only retro_* so the frontend's libraries can't preempt the core's own symbols
+    target_link_options(melondsds_libretro PRIVATE "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/link.T")
+    set_target_properties(melondsds_libretro PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/link.T")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "(.+)?Clang")
