@@ -148,6 +148,19 @@ def _error_screen(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatc
         _putenv_all_crts("MELONDSDS_SKIP_ERROR_SCREEN", "1")
 
 
+@pytest.fixture
+def no_host_username(monkeypatch: pytest.MonkeyPatch) -> None:
+    """
+    Unset the environment variables that the "Guess" username option falls back to,
+    as on Android.
+
+    Goes through :func:`_putenv_all_crts` for the same reason :func:`_error_screen` does.
+    """
+    for name in ("USER", "USERNAME", "LOGNAME"):
+        monkeypatch.delenv(name, raising=False)
+        _putenv_all_crts(name, None)
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """
     Exit with :data:`SKIP_EXIT_CODE` if the entire run was skipped.

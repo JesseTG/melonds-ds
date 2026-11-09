@@ -6,7 +6,14 @@ from ctypes import c_bool
 from pathlib import Path
 
 import pytest
-from libretro import DefaultFileSystemDriver, HistoryFileSystemDriver, Open, VfsFileAccess
+from libretro import (
+    DefaultFileSystemDriver,
+    DefaultUserDriver,
+    HistoryFileSystemDriver,
+    LogLevel,
+    Open,
+    VfsFileAccess,
+)
 from libretro.ctypes import TypedFunctionPointer
 
 from melondsds import SessionFactory
@@ -231,3 +238,21 @@ def test_firmware_not_overwritten_on_console_switch(
     assert len(nds_after) == len(nds_firmware)
     assert len(dsi_after) == len(dsi_firmware)
     assert nds_after != dsi_after
+
+
+# --------------------------------------------------------------------------- #
+# Overriding the firmware's username
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.nds_rom
+@pytest.mark.usefixtures("no_host_username")
+def test_guessed_username_warns_where_to_set_it(session: SessionFactory, nds_rom: Path) -> None:
+    """When "Guess" finds no username, the warning says where to set one."""
+    options = {**BUILTIN_DS, "melonds_firmware_username": "guess_username"}
+    with session(nds_rom, options=options, user=DefaultUserDriver(username=None)) as emulator:
+        assert any(
+            b"Settings > User > Username" in m.msg
+            for m in emulator.message.message_exts
+            if m.msg and m.level == LogLevel.WARNING
+        )

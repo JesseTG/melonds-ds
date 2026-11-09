@@ -1265,7 +1265,12 @@ static void MelonDsDs::CustomizeFirmware(const CoreConfig& config, Firmware& fir
         // If we want to override the existing username...
         optional<string> username = GetUsername(config.UsernameMode());
         if (!username || username->empty()) {
-            retro::set_warn_message("Failed to get username, or none was provided; using default");
+            retro::set_warn_message(
+                "No username found, using \"{}\". "
+                "Set one in your frontend "
+                "(RetroArch: Settings > User > Username).",
+                config::values::firmware::DEFAULT_USERNAME
+            );
             username = config::values::firmware::DEFAULT_USERNAME;
         }
 
